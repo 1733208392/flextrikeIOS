@@ -7,6 +7,7 @@ struct ConnectSmartTargetView: View {
     @State private var isShaking: Bool = true
     @State private var showProgress: Bool = false
     @State private var navigateToCamera = false
+    @State private var showInfo = false
 
     var body: some View {
         NavigationStack {
@@ -17,6 +18,19 @@ struct ConnectSmartTargetView: View {
                 let dotRadius: CGFloat = 6
 
                 VStack(spacing: 0) {
+                    //Information Button
+                    HStack {
+                        Button(action: { showInfo = true }) {
+                            Image(systemName: "info.circle")
+                                .font(.title2)
+                                .foregroundColor(.white)
+//                                .background(Circle().fill(Color.red))
+                        }
+                    }
+                    .frame(width: geometry.size.width,alignment:.trailing)
+                    .padding(.top, 16)
+                    .padding(.trailing, 24)
+                    // Main Target Frame
                     ZStack(alignment: .topLeading) {
                         Rectangle()
                             .stroke(Color.white, lineWidth: 10)
@@ -26,9 +40,11 @@ struct ConnectSmartTargetView: View {
                             .frame(width: dotRadius * 2, height: dotRadius * 2)
                             .offset(x: dotPadding, y: dotPadding)
                     }
-                    .frame(width: frameWidth, height: frameHeight, alignment: .top)
-                    .padding(.top, geometry.size.height * 0.2)
-
+                    //.frame(width: .infinity, height: frameHeight, alignment: .top)
+                    .padding(.top, geometry.size.height * 0.15)
+//                    .border(.red, width: 1)
+                    
+                    // Status and Reconnect Button
                     VStack(spacing: 12) {
                         HStack(spacing: 8) {
                             Text(statusText)
@@ -54,12 +70,14 @@ struct ConnectSmartTargetView: View {
                             }
                             .padding(.horizontal)
                         }
-                    }
+                    }//Status and Reconnect Button
                     .frame(maxWidth: .infinity)
                     .padding(.top, 120)
-                }
+                }//Top Level VStack
                 .frame(width: geometry.size.width, height: geometry.size.height, alignment: .top)
-            }
+//                .border(Color.white, width: 1)
+            }//Top Level Geometry Reader
+            .sheet(isPresented: $showInfo) { InformationPage() }
             .background(Color.black.ignoresSafeArea())
             .onAppear { startScanAndTimer() }
             .onReceive(bleManager.$isConnected) { connected in
