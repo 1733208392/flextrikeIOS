@@ -24,7 +24,8 @@ playground.xcworkspace
 # Package.pins
 # Package.resolved
 # *.xcodeproj
-#
+flextarget/opencv2.framework/
+
 # Xcode automatically generates this directory with a .xcworkspacedata file and xcuserdata
 # hence it is not needed unless you have added a package configuration file to your project
 # .swiftpm
@@ -48,6 +49,9 @@ playground.xcworkspace
 # Carthage/Checkouts
 
 Carthage/Build/
+
+# Ignore macOS system files
+.DS_Store
 
 # fastlane
 #

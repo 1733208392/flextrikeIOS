@@ -37,11 +37,19 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		2A717F5C2E2330E6002CBD1E /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		2AEA52952E07F37C009C0C68 = {
 			isa = PBXGroup;
 			children = (
 				2A717F532E22A82E002CBD1E /* Flex-Target-Info.plist */,
 				2AEA52A02E07F37C009C0C68 /* flextarget */,
+				2A717F5C2E2330E6002CBD1E /* Frameworks */,
 				2AEA529F2E07F37C009C0C68 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -274,13 +282,11 @@
 				ENABLE_PREVIEWS = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)/**",
-					"$(PROJECT_DIR)/opencvtestminimal/**",
-					"$(PROJECT_DIR)/opencvtestminimal",
-					"$(PROJECT_DIR)/flextarget",
+					"$(PROJECT_DIR)/flextarget/Packages",
 				);
 				GCC_C_LANGUAGE_STANDARD = c23;
 				GENERATE_INFOPLIST_FILE = YES;
-				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/opencvtestminimal/**";
+				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/Packages/opencv2.framework";
 				INFOPLIST_FILE = "Flex-Target-Info.plist";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.sports";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = Test;
@@ -321,13 +327,11 @@
 				ENABLE_PREVIEWS = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)/**",
-					"$(PROJECT_DIR)/opencvtestminimal/**",
-					"$(PROJECT_DIR)/opencvtestminimal",
-					"$(PROJECT_DIR)/flextarget",
+					"$(PROJECT_DIR)/flextarget/Packages",
 				);
 				GCC_C_LANGUAGE_STANDARD = c23;
 				GENERATE_INFOPLIST_FILE = YES;
-				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/opencvtestminimal/**";
+				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/Packages/opencv2.framework";
 				INFOPLIST_FILE = "Flex-Target-Info.plist";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.sports";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = Test;
