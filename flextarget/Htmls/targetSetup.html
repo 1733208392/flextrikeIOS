@@ -1,62 +1,137 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Frequently Asked Questions</title>
-  <style>
-    body {
-      font-family: SF Pro Display, SF Pro Text, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
-      background: #F2F2F7;
-      margin: 0;
-      padding: 16px;
-      font-size: 24px;
-    }
-    h1 {
-      text-align: center;
-      font-size: 3em;
-      margin-bottom: 40px;
-      font-family: SF Pro Display, SF Pro Text, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
-    }
-    .faq {
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px #0001;
-      margin-bottom: 28px;
-      padding: 28px 24px;
-      transition: box-shadow 0.2s, transform 0.2s;
-      cursor: pointer;
-    }
-    .faq:hover {
-      box-shadow: 0 4px 16px #0002;
-      transform: translateY(-2px) scale(1.02);
-    }
-    .question {
-      font-weight: bold;
-      color: #007AFF;
-      margin-bottom: 16px;
-      font-size: 1.4em;
-      font-family: SF Pro Display, SF Pro Text, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
-    }
-    .answer {
-      color: #555;
-      font-size: 1.15em;
-      font-family: SF Pro Text, SF Pro Display, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Target Setup</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .row {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 40px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .row h2 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 24px;
+            margin-top: 0;
+        }
+        
+       .image-container {
+            width: 100%;
+            height: 300pt;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+            padding: 0 20px;
+            box-sizing: border-box;
+        }
+        
+        .image-container img {
+            width: 100%;
+            max-width: 600pt;
+            height: 300pt;
+            object-fit: contain;
+        }
+        
+        .row p {
+            color: #666;
+            line-height: 1.6;
+            font-size: 16px;
+            margin: 0;
+            max-width: 600px;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 10px;
+            }
+            
+            .row {
+                padding: 20px;
+            }
+            
+            .row h2 {
+                font-size: 20px;
+                margin-bottom: 20px;
+            }
+            
+            .image-container {
+                width: 100%;
+                height: 250pt;
+                margin-bottom: 20px;
+                padding: 0 15px;
+            }
+            
+            .image-container img {
+                width: 100%;
+                max-width: 400pt;
+                height: 250pt;
+            }
+            
+            .row p {
+                font-size: 14px;
+                line-height: 1.4;
+            }
+        }
+    </style>
 </head>
 <body>
-  <h1>Frequently Asked Questions</h1>
-  <div class="faq">
-    <div class="question">How do I set up the target?</div>
-  </div>
-  <div class="faq">
-    <div class="question">Why does the app keep connecting to the target?</div>
-  </div>
-  <div class="faq">
-    <div class="question">Why are no shots being captured?</div>
-  </div>
-  <div class="faq">
-    <div class="question">How can I view my drill results?</div>
-  </div>
+    <div class="container">
+        <!-- Row 1 -->
+        <div class="row">
+            <h2>Initial Configuration</h2>
+            <div class="image-container">
+                <img src="accessory.svg" alt="Setup Step 1">
+            </div>
+            <p>Begin your target setup by configuring the basic parameters. This step involves setting up the fundamental settings that will serve as the foundation for your entire targeting system. Ensure all initial values are properly calibrated before proceeding to the next phase.</p>
+        </div>
+
+        <!-- Row 2 -->
+        <div class="row">
+            <h2>Sensor Alignment</h2>
+            <div class="image-container">
+                <img src="assemble.svg" alt="Setup Step 2">
+            </div>
+            <p>Proper sensor alignment is crucial for accurate target detection. Follow the visual guide to position your sensors correctly. This process requires precision and attention to detail to ensure optimal performance throughout the system's operational lifecycle.</p>
+        </div>
+
+        <!-- Row 3 -->
+        <div class="row">
+            <h2>Calibration Process</h2>
+            <div class="image-container">
+                <img src="poweron.svg" alt="Setup Step 3">
+            </div>
+            <p>Execute the automated calibration sequence to fine-tune your system's accuracy. This intelligent process will automatically adjust various parameters to optimize performance based on your specific environmental conditions and requirements.</p>
+        </div>
+
+        <!-- Row 4 -->
+        <div class="row">
+            <h2>Testing & Validation</h2>
+            <div class="image-container">
+                <img src="remotebattery.svg" alt="Setup Step 4">
+            </div>
+            <p>Conduct comprehensive testing to validate your setup configuration. Run multiple test scenarios to ensure consistent performance across different conditions. This phase is essential for identifying any potential issues before deployment.</p>
+        </div>
 </body>
 </html>
