@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 850px;
+            margin: 0 auto;
+        }
+        
+        .content {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            padding: 50px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+        
+        h1 {
+            color: #2c3e50;
+            font-size: 42px;
+            font-weight: 700;
+            margin-top: 0;
+            margin-bottom: 30px;
+            text-align: center;
+            position: relative;
+        }
+        
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 2px;
+        }
+        
+        h2 {
+            color: #2c3e50;
+            font-size: 24px;
+            font-weight: 600;
+            margin-top: 40px;
+            margin-bottom: 15px;
+            padding-left: 20px;
+            position: relative;
+        }
+        
+        h2::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 24px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 2px;
+        }
+        
+        p {
+            font-size: 17px;
+            margin-bottom: 20px;
+            color: #444;
+        }
+        
+        .intro {
+            font-size: 18px;
+            margin-bottom: 30px;
+            padding: 25px;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 15px;
+            border-left: 5px solid #667eea;
+            text-align: center;
+        }
+        
+        .intro strong {
+            font-weight: 700;
+            color: #e74c3c;
+        }
+        
+        ul {
+            font-size: 16px;
+            margin: 20px 0;
+            padding-left: 0;
+            list-style: none;
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+        }
+        
+        ul li {
+            margin-bottom: 12px;
+            position: relative;
+            padding-left: 30px;
+            color: #555;
+            transition: color 0.3s ease;
+        }
+        
+        ul li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #27ae60;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        ul li:hover {
+            color: #2c3e50;
+        }
+        
+        .contact-section {
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 30px 0;
+            text-align: center;
+        }
+        
+        .contact-section p {
+            color: white;
+            margin: 0;
+            font-size: 18px;
+        }
+        
+        .contact-text {
+            font-size: 18px;
+            display: inline;
+        }
+        
+        .contact-email {
+            color: #fff;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            display: inline-block;
+            margin-top: 10px;
+        }
+        
+        .contact-email:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .last-updated {
+            font-size: 14px;
+            color: #7f8c8d;
+            font-style: italic;
+            margin-top: 40px;
+            margin-bottom: 0;
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                padding: 0;
+            }
+            
+            .content {
+                padding: 30px 20px;
+                border-radius: 15px;
+            }
+            
+            h1 {
+                font-size: 32px;
+            }
+            
+            h2 {
+                font-size: 20px;
+                padding-left: 15px;
+            }
+            
+            h2::before {
+                width: 3px;
+                height: 20px;
+            }
+            
+            p, ul, .contact-text {
+                font-size: 15px;
+            }
+            
+            .intro {
+                font-size: 16px;
+                padding: 20px 15px;
+            }
+            
+            .contact-section {
+                padding: 20px 15px;
+            }
+            
+            .last-updated {
+                font-size: 13px;
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="content">
+            <h1>Privacy Policy</h1>
+            
+            <p class="intro">Your privacy is important to us. This app does <strong>not</strong> collect, store, or share any personal information from users.</p>
+            
+            <h2>Data Collection</h2>
+            <ul>
+                <li>The app does not collect any personal data, usage data, or location data.</li>
+                <li>No information is transmitted to external servers or third parties.</li>
+            </ul>
+            
+            <h2>Data Usage</h2>
+            <ul>
+                <li>All features and data processing occur locally on your device.</li>
+                <li>No user data is used for analytics, advertising, or marketing purposes.</li>
+            </ul>
+            
+            <h2>Contact</h2>
+            <div class="contact-section">
+                <p>
+                    <span class="contact-text">If you have any questions or concerns about this privacy policy, please contact us at</span><br>
+                    <a href="mailto:business@grwolftactical.com" class="contact-email">business@grwolftactical.com</a>
+                </p>
+            </div>
+            
+            <p class="last-updated">Last updated: June 2024</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -4,8 +4,8 @@ struct FAQView: View {
     let faqs = [
         ("How do I set up the target", "targetSetup"),
         ("Why does the app keep connecting to the target?", "bleConnect"),
-        ("Why are no shots being captured?", ""),
-        ("How can I view my drill results?", "")
+        ("Why are no shots being captured?", "rectify"),
+        ("How can I view my drill results?", "results")
     ]
     
     private func faqRow(question: String, answer: String) -> some View {

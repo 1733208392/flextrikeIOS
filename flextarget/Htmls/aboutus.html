@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 850px;
+            margin: 0 auto;
+        }
+        
+        .content {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            padding: 50px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+        
+        h1 {
+            color: #2c3e50;
+            font-size: 42px;
+            font-weight: 700;
+            margin-top: 0;
+            margin-bottom: 30px;
+            text-align: center;
+            position: relative;
+        }
+        
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 2px;
+        }
+        
+        h2 {
+            color: #2c3e50;
+            font-size: 24px;
+            font-weight: 600;
+            margin-top: 40px;
+            margin-bottom: 15px;
+            padding-left: 20px;
+            position: relative;
+        }
+        
+        h2::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 24px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 2px;
+        }
+        
+        p {
+            font-size: 17px;
+            margin-bottom: 20px;
+            color: #444;
+        }
+        
+        .headline {
+            font-size: 20px;
+            font-weight: 500;
+            text-align: center;
+            color: #34495e;
+            margin-bottom: 30px;
+        }
+        
+        ul {
+            font-size: 16px;
+            margin: 20px 0;
+            padding-left: 0;
+            list-style: none;
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+        }
+        
+        ul li {
+            margin-bottom: 12px;
+            position: relative;
+            padding-left: 30px;
+            color: #555;
+        }
+        
+        ul li:before {
+            content: "•";
+            position: absolute;
+            left: 8px;
+            color: #667eea;
+            font-weight: bold;
+            font-size: 20px;
+        }
+        
+        .contact-section {
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 30px 0;
+            text-align: center;
+        }
+        
+        .contact-section p {
+            color: white;
+            margin: 0;
+            font-size: 18px;
+        }
+        
+        .contact-email {
+            color: #fff;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            display: inline-block;
+            margin-top: 10px;
+        }
+        
+        .contact-email:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        hr {
+            border: 0;
+            height: 1px;
+            background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0));
+            margin: 40px 0;
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                padding: 0;
+            }
+            
+            .content {
+                padding: 30px 20px;
+                border-radius: 15px;
+            }
+            
+            h1 {
+                font-size: 32px;
+            }
+            
+            h2 {
+                font-size: 20px;
+                padding-left: 15px;
+            }
+            
+            h2::before {
+                width: 3px;
+                height: 20px;
+            }
+            
+            p, ul {
+                font-size: 15px;
+            }
+            
+            .headline {
+                font-size: 18px;
+            }
+            
+            .contact-section {
+                padding: 20px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="content">
+            <h1>About Us</h1>
+            
+            <p class="headline">Thank you for trusting us with buying our product!</p>
+
+            <p>The Grwolf Smart Target is designed for shooting enthusiasts who want a convenient solution for practicing with airsoft or Laser Dry Fire at home, eliminating the hassle of going to the shooting range. Compared to the traditional target, the device has the following features:</p>
+            
+            <ul>
+                <li>Real-time hit point display allows you to track and score your shots instantly.</li>
+                <li>Choose different drills with the same device, such as high-speed shooting and free shooting, to enhance your shooting experience.</li>
+            </ul>
+            
+            <hr>
+            
+            <h2>Contact Us</h2>
+            <div class="contact-section">
+                <p>
+                    If you have any questions or feedback, please feel free to write to<br>
+                    <a href="mailto:business@grwolftactical.com" class="contact-email">business@grwolftactical.com</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
