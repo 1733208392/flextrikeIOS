@@ -39,7 +39,7 @@ struct OrientationStepView: View {
                 VStack(spacing: 16) {
                     // Progress Bar
                     VStack(spacing: 4) {
-                        ProgressView(value: duration > 0 ? currentTime / duration : 0)
+                        ProgressView(value: max(0, min(1, duration > 0 ? currentTime / duration : 0)))
                             .progressViewStyle(.linear)
                             .accentColor(.red)
                             .frame(height: 4)
@@ -108,17 +108,19 @@ struct OrientationStepView: View {
                             .foregroundColor(.white.opacity(0.7))
                     }
                     Spacer()
-                    Button(action: {
-                        onNext?()
-                        loadVideo()
-                    }) {
-                        ZStack {
-                            Circle()
-                                .fill(Color.red)
-                                .frame(width: 44, height: 44)
-                            Image(systemName: "arrow.right")
-                                .foregroundColor(.white)
-                                .font(.title2)
+                    // Only show Next button if onNext is not nil
+                    if let onNext = onNext {
+                        Button(action: {
+                            onNext()
+                        }) {
+                            ZStack {
+                                Circle()
+                                    .fill(Color.red)
+                                    .frame(width: 44, height: 44)
+                                Image(systemName: "arrow.right")
+                                    .foregroundColor(.white)
+                                    .font(.title2)
+                            }
                         }
                     }
                 }
@@ -143,25 +145,45 @@ struct OrientationStepView: View {
     }
     
     private func loadVideo() {
+        // Remove existing time observer
+        if let token = timeObserverToken {
+            player.removeTimeObserver(token)
+            timeObserverToken = nil
+        }
+        
         // Reset player state
         player.replaceCurrentItem(with: AVPlayerItem(url: step.videoURL))
         player.play()
         isPlaying = true
-        duration = player.currentItem?.asset.duration.seconds ?? 1
+        currentTime = 0
+        duration = 1
+        
+        // Load duration properly
         if let asset = player.currentItem?.asset {
             Task {
-                let durationValue = try? await asset.load(.duration).seconds
-                duration = durationValue ?? 1
+                do {
+                    let durationValue = try await asset.load(.duration).seconds
+                    await MainActor.run {
+                        duration = durationValue.isFinite ? durationValue : 1
+                    }
+                } catch {
+                    await MainActor.run {
+                        duration = 1
+                    }
+                }
             }
         }
+        
         // Add periodic time observer
         let interval = CMTime(seconds: 0.5, preferredTimescale: 600)
-        if let token = timeObserverToken {
-            player.removeTimeObserver(token)
-        }
         timeObserverToken = player.addPeriodicTimeObserver(forInterval: interval, queue: .main) { time in
-            currentTime = time.seconds
-            duration = player.currentItem?.duration.seconds ?? 1
+            let timeSeconds = time.seconds
+            if timeSeconds.isFinite {
+                currentTime = timeSeconds
+            }
+            if let durationSeconds = player.currentItem?.duration.seconds, durationSeconds.isFinite {
+                duration = durationSeconds
+            }
         }
     }
 }

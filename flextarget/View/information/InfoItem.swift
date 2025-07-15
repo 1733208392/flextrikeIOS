@@ -34,7 +34,7 @@ struct InformationPage: View {
         case .help:
             FAQView()
         case .intro:
-            OrientationView()
+            OrientationView(isFromInfoItem: true)
         case .about:
             AboutUsView()
         case .privacy:
