@@ -5,20 +5,33 @@ struct OrientationView: View {
     @State var selectedStep: Int = 0
     @State private var navigateToConnect = false
     @StateObject var bleManager = BLEManager()
+    
+    // Add parameter to track entry source
+    let isFromInfoItem: Bool
+    
+    // Add initializer
+    init(isFromInfoItem: Bool = false) {
+        self.isFromInfoItem = isFromInfoItem
+    }
 
     var body: some View {
         NavigationStack {
             VStack {
                 if !steps.isEmpty && selectedStep < steps.count {
-                    OrientationStepView(step: $steps[selectedStep], onNext: {
-                        if selectedStep < steps.count - 1 {
-                            selectedStep += 1
-                        } else {
-                            navigateToConnect = true
+                    OrientationStepView(
+                        step: $steps[selectedStep],
+                        onNext: shouldShowNext() ? {
+                            if selectedStep < steps.count - 1 {
+                                selectedStep += 1
+                            } else {
+                                navigateToConnect = true
+                            }
+                        } : nil,
+                        onStepCompleted: {
+                            saveStepsToLocal()
                         }
-                    }, onStepCompleted: {
-                        saveStepsToLocal()
-                    })
+                    )
+                    .id(selectedStep) // Force view recreation when step changes
                 }
             }
             .onAppear {
@@ -37,25 +50,46 @@ struct OrientationView: View {
             }
         }
     }
+    
+    // Helper function to determine if Next button should be shown
+    private func shouldShowNext() -> Bool {
+        // Hide Next button on last step if coming from info item
+        if isFromInfoItem && selectedStep == steps.count - 1 {
+            return false
+        }
+        return true
+    }
 
     private func loadStepsFromLocal() {
         if let data = UserDefaults.standard.data(forKey: "orientationSteps"),
            let savedSteps = try? JSONDecoder().decode([OrientationStep].self, from: data) {
             steps = savedSteps
         } else {
-            guard let localVideoURL = Bundle.main.url(forResource: "Orientation", withExtension: "mp4") else {
-                print("Orientation.mp4 not found in bundle")
+            let videoFiles = [
+                "tutorial-target-setup",
+                "tutorial-mobile-setup",
+                "tutorial-select-drills",
+                "tutorial-view-results"
+            ]
+            
+            let videoURLs = videoFiles.compactMap { fileName in
+                Bundle.main.url(forResource: fileName, withExtension: "mp4")
+            }
+            
+            guard videoURLs.count == 4 else {
+                print("One or more tutorial videos not found in bundle")
                 return
             }
+            
             steps = [
-                OrientationStep(step: "Step 1", title: "Setup My Target", videoURL: localVideoURL,
-                                subTitle: "Power It Up, Wait Patiently Until You See the Main Menu Screen", thumbNail: "test", isCompleted: false),
-                OrientationStep(step: "Step 2", title: "Stage the App", videoURL: localVideoURL,
-                                subTitle: "Power It Up, Wait Patiently Until You See the Main Menu Screen", thumbNail: "", isCompleted: false),
-                OrientationStep(step: "Step 3", title: "Choose your Drill", videoURL: localVideoURL,
-                                subTitle: "Power It Up, Wait Patiently Until You See the Main Menu Screen", thumbNail: "", isCompleted: false),
-                OrientationStep(step: "Step 4", title: "Finish the Drill", videoURL: localVideoURL,
-                                subTitle: "Power It Up, Wait Patiently Until You See the Main Menu Screen", thumbNail: "", isCompleted: false)
+                OrientationStep(step: "Step 1", title: "Target Setup", videoURL: videoURLs[0],
+                                subTitle: "Assemble target → power on", thumbNail: "test", isCompleted: false),
+                OrientationStep(step: "Step 2", title: "Mobile Setup", videoURL: videoURLs[1],
+                                subTitle: "Download app → connect to target", thumbNail: "", isCompleted: false),
+                OrientationStep(step: "Step 3", title: "Select Drills", videoURL: videoURLs[2],
+                                subTitle: "Use remote to select → start drill", thumbNail: "", isCompleted: false),
+                OrientationStep(step: "Step 4", title: "View Results", videoURL: videoURLs[3],
+                                subTitle: "Pause with right button → use ↑↓ to review shots", thumbNail: "", isCompleted: false)
             ]
         }
     }
