@@ -341,9 +341,8 @@ class CameraProcessor: NSObject, ObservableObject, AVCaptureVideoDataOutputSampl
                 let dx = center.x - last.x
                 let dy = center.y - last.y
                 let dist = sqrt(dx * dx + dy * dy)
-                if dt < minTimeDiff && dist < minDist {
-//
-                    continue // Skip as duplicate
+                if dt <= minTimeDiff { //This is unhumanly fast, ignore the minDist for now
+                    continue
                 }
             }
             filtered.append(center)
@@ -351,6 +350,7 @@ class CameraProcessor: NSObject, ObservableObject, AVCaptureVideoDataOutputSampl
         return filtered
     }
     
+    //Those are likely to be flares from the center
     func filterBoundaryCenters(_ centers: [(t: Int, x: CGFloat, y: CGFloat, a: Int)], width: CGFloat = 1920, height: CGFloat = 1080, boundaryMargin: CGFloat = 50) -> [(t: Int, x: CGFloat, y: CGFloat, a: Int)] {
         var result: [(t: Int, x: CGFloat, y: CGFloat, a: Int)] = []
         let grouped = Dictionary(grouping: centers, by: { $0.t })

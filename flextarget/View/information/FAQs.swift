@@ -2,51 +2,49 @@ import SwiftUI
 
 struct FAQView: View {
     let faqs = [
-        ("How do I set up the target", "targetSetup"),
-        ("Why does the app keep connecting to the target?", "bleConnect"),
-        ("Why are no shots being captured?", "rectify"),
-        ("How can I view my drill results?", "results")
+        ("How do I set up the target?", "targetSetup", "target"),
+        ("Why does the app keep connecting to the target?", "bleConnect", "wifi.exclamationmark"),
+        ("Why are no shots being captured?", "rectify", "scope"),
+        ("How can I view my drill results?", "results", "chart.bar.fill")
     ]
     
-    private func faqRow(question: String, answer: String) -> some View {
-        NavigationLink(destination: FAQDetailView(htmlFileName: answer.isEmpty ? "" : answer)) {
-            VStack(alignment: .leading, spacing: 8) {
+    private func faqRow(question: String, answer: String, icon: String) -> some View {
+        NavigationLink(destination: FAQDetailView(question: question, htmlFileName: answer.isEmpty ? "" : answer)) {
+            HStack(spacing: 12) {
+                Image(systemName: icon)
+                    .foregroundColor(.accentColor)
+                    .font(.title3)
+                    .frame(width: 24)
+                
                 Text(question)
-                    .font(.headline)
-                    .foregroundColor(.black)
-                if !answer.isEmpty {
-                    Text(answer)
-                        .font(.body)
-                        .foregroundColor(.secondary)
-                }
+                    .font(.body)
+                    .foregroundColor(.primary)
+                    .multilineTextAlignment(.leading)
+                
+                Spacer()
+                
+                Image(systemName: "chevron.right")
+                    .foregroundColor(.secondary)
+                    .font(.caption)
             }
             .padding()
-            .background(Color(.systemBackground))
-            .cornerRadius(12)
-            .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
-            .padding(.horizontal)
+            .background(Color(.secondarySystemGroupedBackground))
+            .cornerRadius(10)
         }
         .buttonStyle(PlainButtonStyle())
     }
 
     var body: some View {
-        NavigationView {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
-                    Text("Frequently Asked Questions")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                        .padding(.top, 16)
-                        .padding(.horizontal)
-                    
-                    ForEach(faqs, id: \.0) { question, answer in
-                        faqRow(question: question, answer: answer)
-                    }
+        ScrollView {
+            VStack(spacing: 12) {
+                ForEach(faqs, id: \.0) { question, answer, icon in
+                    faqRow(question: question, answer: answer, icon: icon)
                 }
-                .padding(.bottom, 24)
-                .frame(maxWidth: .infinity, alignment: .center)
             }
-            .background(Color(.systemGroupedBackground).ignoresSafeArea())
+            .padding()
         }
+        .background(Color(.systemGroupedBackground).ignoresSafeArea())
+        .navigationTitle("FAQ")
+        .navigationBarTitleDisplayMode(.large)
     }
 }
