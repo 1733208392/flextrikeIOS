@@ -16,6 +16,8 @@ struct AddDrillConfigView: View {
     @State private var targetType: TargetType = .paper
     @State private var isSendEnabled: Bool = false
     @State private var isDescriptionExpanded: Bool = false
+    @State private var showDrillSetupModal = false
+    @State private var sets: [DrillSetConfigEditable] = DrillConfigStorage.shared.loadEditableSets()
     @Environment(\.presentationMode) var presentationMode
     
     enum DelayType: String, CaseIterable { case fixed, random }
@@ -23,15 +25,30 @@ struct AddDrillConfigView: View {
     enum TargetType: String, CaseIterable { case paper = "paper", electronic = "electronic" }
     
     private func buildDrillConfig() -> DrillConfig {
-        let setConfig = DrillSetConfig(duration: setDuration, numberOfShots: shotsPerSet, distance: 0)
+        // Step 1: Map sets to DrillSetConfig
+        let drillSets = sets.map { set in
+            DrillSetConfig(
+                duration: Double(set.duration),
+                numberOfShots: set.shots ?? -1, // -1 for infinite
+                distance: Double(set.distance)
+            )
+        }
+
+        // Step 2: Calculate pauseBetweenSets
+        let pauseBetweenSets: Double = {
+            guard let firstSet = sets.first else { return 0 }
+            return Double(firstSet.pauseTime)
+        }()
+
+        // Step 3: Return DrillConfig
         return DrillConfig(
             name: drillName,
             description: description,
             demoVideoURL: demoVideoURL,
-            numberOfSets: numberOfSets,
+            numberOfSets: sets.count,
             startDelay: delayValue,
-            pauseBetweenSets: 0,
-            sets: Array(repeating: setConfig, count: numberOfSets),
+            pauseBetweenSets: pauseBetweenSets,
+            sets: drillSets,
             targetType: targetType.rawValue,
             gunType: gunType.rawValue
         )
@@ -48,7 +65,6 @@ struct AddDrillConfigView: View {
                 // Title Bar
                 HStack {
                     Button(action: {
-                        // TODO: Back action
                     }) {
                         Image(systemName: "chevron.left")
                             .foregroundColor(.white)
@@ -137,7 +153,6 @@ struct AddDrillConfigView: View {
                                     .foregroundColor(isEditingName ? .red : Color.gray.opacity(0.5))
                                     .animation(.easeInOut, value: isEditingName)
                             }
-                            .padding(.horizontal)
                             
                             // Description
                             VStack(alignment: .leading, spacing: 8) {
@@ -178,7 +193,6 @@ struct AddDrillConfigView: View {
                                     }
                                 }
                             }
-                            .padding(.horizontal)
                             
                             // Demo Video Upload
                             Button(action: { showVideoPicker = true }) {
@@ -199,7 +213,6 @@ struct AddDrillConfigView: View {
                                         )
                                 }
                             }
-                            .padding(.horizontal)
                             .sheet(isPresented: $showVideoPicker) {
                                 // TODO: Video picker/recorder
                                 Text("Video Picker/Recorder (TBD)")
@@ -207,10 +220,10 @@ struct AddDrillConfigView: View {
                                     .background(Color.black)
                             }
                         }
-                        .padding(.vertical, 20)
+                        .padding()
                         .background(Color.gray.opacity(0.2))
                         .cornerRadius(20)
-                        //                        .padding(.vertical)
+                        .padding(.horizontal)
                         
                         // Delay of Set Starting
                         HStack {
@@ -266,7 +279,7 @@ struct AddDrillConfigView: View {
                         
                         // Drill Setup Field
                         Button(action: {
-                            // TODO: Navigate to DrillSet configuration page
+                            showDrillSetupModal = true
                         }) {
                             VStack(alignment: .leading, spacing: 12) {
                                 HStack(spacing: 8) {
@@ -276,6 +289,8 @@ struct AddDrillConfigView: View {
                                         .foregroundColor(.white)
                                         .font(.headline)
                                     Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .foregroundColor(.gray)
                                 }
                                 HStack(alignment: .center, spacing: 0) {
                                     VStack {
@@ -323,42 +338,43 @@ struct AddDrillConfigView: View {
                         }
                         .buttonStyle(PlainButtonStyle())
                         .padding(.horizontal)
-                        
+                        .sheet(isPresented: $showDrillSetupModal, onDismiss: {
+                            DrillConfigStorage.shared.saveEditableSets(sets)
+                        }) {
+                            DrillSetupSheetView(sets: $sets, isPresented: $showDrillSetupModal)
+                        }
                         Spacer()
                         
-                        // Gun Type
+                        // Gun Type Radio Toggle
                         HStack {
                             Text("Gun")
                                 .foregroundColor(.red)
                             Spacer()
-                            Picker("Gun Type", selection: $gunType) {
+                            HStack(spacing: 20) {
                                 ForEach(GunType.allCases, id: \.self) { type in
-                                    Text(type.rawValue.capitalized)
-                                        .tag(type)
-                                        .foregroundColor(.red)
+                                    Button(action: {
+                                        gunType = type
+                                    }) {
+                                        HStack(spacing: 8) {
+                                            ZStack {
+                                                Circle()
+                                                    .stroke(Color.red, lineWidth: 2)
+                                                    .frame(width: 24, height: 24)
+                                                if gunType == type {
+                                                    Circle()
+                                                        .fill(Color.red)
+                                                        .frame(width: 14, height: 14)
+                                                }
+                                            }
+                                            Text(type.rawValue.capitalized)
+                                                .foregroundColor(.white)
+                                        }
+                                        .padding(.vertical, 4)
+                                        .padding(.horizontal, 8)
+                                    }
+                                    .buttonStyle(PlainButtonStyle())
                                 }
                             }
-                            .pickerStyle(.segmented)
-                            .frame(width: 200)
-                        }
-                        .padding()
-                        .background(Color.gray.opacity(0.2))
-                        .cornerRadius(16)
-                        .padding(.horizontal)
-                        // Target Type
-                        HStack {
-                            Text("Target")
-                                .foregroundColor(.red)
-                            Spacer()
-                            Picker("Target Type", selection: $targetType) {
-                                ForEach(TargetType.allCases, id: \.self) { type in
-                                    Text(type.rawValue.capitalized)
-                                        .tag(type)
-                                        .foregroundColor(.red)
-                                }
-                            }
-                            .pickerStyle(.segmented)
-                            .frame(width: 200)
                         }
                         .padding()
                         .background(Color.gray.opacity(0.2))
@@ -367,23 +383,13 @@ struct AddDrillConfigView: View {
                         
                         // Bottom Buttons
                         HStack {
-                            Button(action: {
-                                presentationMode.wrappedValue.dismiss()
-                            }) {
-                                Text("Cancel")
-                                    .foregroundColor(.red)
-                                    .fontWeight(.semibold)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color.clear)
-                                    .cornerRadius(8)
-                            }
+                            // Removed Cancel button
                             Button(action: {
                                 let config = buildDrillConfig()
                                 DrillConfigStorage.shared.add(config)
                                 presentationMode.wrappedValue.dismiss()
                             }) {
-                                Text("Send Drill")
+                                Text("Save Drill")
                                     .foregroundColor(.white)
                                     .fontWeight(.semibold)
                                     .frame(maxWidth: .infinity)
@@ -396,12 +402,18 @@ struct AddDrillConfigView: View {
                         .padding(.horizontal)
                         .padding(.bottom, 20)
                     }
-                    .onChange(of: drillName) { _ in validateFields() }
-                    .onChange(of: description) { _ in validateFields() }
-                    .onChange(of: numberOfSets) { _ in validateFields() }
-                    .onChange(of: setDuration) { _ in validateFields() }
-                    .onChange(of: shotsPerSet) { _ in validateFields() }
-                    .onAppear { validateFields() }
+//                    .onChange(of: drillName) { _ in validateFields() }
+//                    .onChange(of: description) { _ in validateFields() }
+//                    .onChange(of: numberOfSets) { _ in validateFields() }
+//                    .onChange(of: setDuration) { _ in validateFields() }
+//                    .onChange(of: shotsPerSet) { _ in validateFields() }
+//                    .onChange(of: sets) { _ in
+//                        numberOfSets = sets.count
+//                        setDuration = sets.first?.duration != nil ? Double(sets.first!.duration) : 30
+//                        shotsPerSet = sets.first?.shots ?? 5
+//                        validateFields()
+//                    }
+//                    .onAppear { validateFields() }
                 }
             }
         }

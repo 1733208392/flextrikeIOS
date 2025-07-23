@@ -62,4 +62,32 @@ class DrillConfigStorage {
     func countByTargetType(_ targetType: String) -> Int {
         configs.filter { $0.targetType == targetType }.count
     }
+    
+    // MARK: - Editable Sets Storage
+    private let editableSetsFileName = "drill_editable_sets.json"
+    
+    private var editableSetsFileURL: URL? {
+        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent(editableSetsFileName)
+    }
+    
+    func loadEditableSets() -> [DrillSetConfigEditable] {
+        guard let url = editableSetsFileURL else { return [] }
+        do {
+            let data = try Data(contentsOf: url)
+            let sets = try JSONDecoder().decode([DrillSetConfigEditable].self, from: data)
+            return sets
+        } catch {
+            return []
+        }
+    }
+    
+    func saveEditableSets(_ sets: [DrillSetConfigEditable]) {
+        guard let url = editableSetsFileURL else { return }
+        do {
+            let data = try JSONEncoder().encode(sets)
+            try data.write(to: url)
+        } catch {
+            print("Failed to save editable sets: \(error)")
+        }
+    }
 }
