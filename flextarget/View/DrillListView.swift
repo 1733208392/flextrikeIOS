@@ -24,10 +24,13 @@ struct DrillListView: View {
                 HStack {
                     Image(systemName: "magnifyingglass")
                         .foregroundColor(.gray)
-                    Text("Search")
-                        .foregroundColor(.gray)
+                    if searchText.isEmpty {
+                        Text("Search")
+                            .foregroundColor(.gray)
+                    }
                     TextField("", text: $searchText)
                         .foregroundColor(.white)
+                        .submitLabel(.done) // Set return key to 'Done'
                 }
                 .padding(10)
                 .background(Color(.systemGray6).opacity(0.3))
