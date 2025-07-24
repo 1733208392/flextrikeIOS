@@ -1,9 +1,5 @@
 import SwiftUI
 
-import SwiftUI
-
-import SwiftUI
-
 struct DrillListView: View {
     @State private var searchText: String = ""
     @State private var drills: [DrillConfig] = []
@@ -43,12 +39,14 @@ struct DrillListView: View {
                     ForEach(Array(filteredDrills.enumerated()), id: \.element.id) { (index, drill) in
                         ZStack {
                             DrillListItemView(drill: drill, index: index + 1)
+                                .listRowInsets(EdgeInsets())
                                 .listRowBackground(Color.clear)
                             NavigationLink(destination: EditDrillConfigView(drill: drill)) {
                                 EmptyView()
                             }
-                            .opacity(0) // Hide chevron and highlight
+                            .opacity(0) // Make the link invisible but still tappable
                         }
+                        .listRowBackground(Color.clear) // Clear the default row background
                         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                             Button {
                                 // Copy logic: duplicate drill, assign new UUID, add to storage and refresh
@@ -82,9 +80,8 @@ struct DrillListView: View {
                         }
                     }
                 }
-//                .listStyle(PlainListStyle())
+                .listStyle(PlainListStyle())
                 .scrollContentBackground(.hidden)
-                .background(Color.black)
                 Spacer()
                 // Add New Drill Button (unchanged)
                 NavigationLink(destination: AddDrillConfigView()) {
@@ -105,18 +102,6 @@ struct DrillListView: View {
                         .font(.headline)
                         .foregroundColor(.red)
                 }
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button(action: {
-                        dismiss()
-                    }) {
-                        HStack {
-                            Image(systemName: "chevron.left")
-                                .foregroundColor(.red)
-                            Text("Back")
-                                .foregroundColor(.red)
-                        }
-                    }
-                }
             }
             .onAppear {
                 drills = DrillConfigStorage.shared.getAll()
@@ -133,6 +118,8 @@ struct DrillListView: View {
         }
     }
 }
+    
+    
 struct DrillListItemView: View {
     let drill: DrillConfig
     let index: Int
@@ -227,12 +214,5 @@ struct DrillListItemView: View {
             .padding(.vertical, 4)
         }
         .frame(height: 100) // Adjust height as needed
-    }
-}
-
-// Preview (requires mock DrillConfig)
-struct DrillListView_Previews: PreviewProvider {
-    static var previews: some View {
-        DrillListView()
     }
 }
