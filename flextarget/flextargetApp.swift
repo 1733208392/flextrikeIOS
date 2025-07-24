@@ -9,6 +9,16 @@ import SwiftUI
 
 @main
 struct flextargetApp: App {
+    init() {
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithTransparentBackground()
+        appearance.titleTextAttributes = [.foregroundColor: UIColor.red]
+        appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.red]
+        UINavigationBar.appearance().tintColor = .red
+        UINavigationBar.appearance().standardAppearance = appearance
+        UINavigationBar.appearance().scrollEdgeAppearance = appearance
+    }
+
     @State private var showLaunchScreen = true
     @StateObject var bleManager = BLEManager()
 
@@ -26,11 +36,8 @@ struct flextargetApp: App {
                     }
             } else {
                 /*OrientationView() */ // Replace with your main view
-                AddDrillConfigView()
+                MainPageView()
             }
         }
     }
 }
-
-
-

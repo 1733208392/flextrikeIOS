@@ -125,6 +125,7 @@ struct DrillSetupSheetView: View {
                 }
                 .padding(.top)
             }
+            .ignoresSafeArea(.keyboard, edges: .bottom)
             Button(action: {
                 sets.append(DrillSetConfigEditable(duration: 10, shots: 5, distance: 5, pauseTime: 10))
             }) {
@@ -140,5 +141,6 @@ struct DrillSetupSheetView: View {
             }
         }
         .background(Color.black.ignoresSafeArea())
+        .ignoresSafeArea(.keyboard, edges: .bottom)
     }
 }
