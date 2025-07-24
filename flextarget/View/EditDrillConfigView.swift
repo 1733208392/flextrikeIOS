@@ -71,6 +71,7 @@ struct EditDrillConfigView: View {
                 ScrollView{
                     // Drill Name & Description Card
                     VStack(alignment: .leading, spacing: 0) {
+                        //Title and Chevron Button
                         HStack {
                             if isEditingName {
                                 TextField("Drill Name", text: $drillName)
@@ -98,7 +99,7 @@ struct EditDrillConfigView: View {
                                 Image(systemName: isEditingName ? "xmark" : "pencil")
                                     .foregroundColor(Color(red: 1, green: 0.38, blue: 0.22))
                             }
-                        } //Title
+                        }
                         .padding(.bottom, 2)
                         Rectangle()
                             .frame(height: 1)
@@ -110,7 +111,7 @@ struct EditDrillConfigView: View {
                                 Image(systemName: isDescriptionExpanded ? "chevron.down" : "chevron.up")
                                     .foregroundColor(.red)
                             }
-                        } //Description
+                        }
                         if isDescriptionExpanded {
                             if isEditingDescription {
                                 TextField("Description", text: $description)

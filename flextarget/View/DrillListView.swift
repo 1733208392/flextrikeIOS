@@ -28,10 +28,13 @@ struct DrillListView: View {
                 HStack {
                     Image(systemName: "magnifyingglass")
                         .foregroundColor(.gray)
-                    Text("Search")
-                        .foregroundColor(.gray)
+                    if searchText.isEmpty {
+                        Text("Search")
+                            .foregroundColor(.gray)
+                    }
                     TextField("", text: $searchText)
                         .foregroundColor(.white)
+                        .submitLabel(.done) // Set return key to 'Done'
                 }
                 .padding(10)
                 .background(Color(.systemGray6).opacity(0.3))
@@ -43,12 +46,14 @@ struct DrillListView: View {
                     ForEach(Array(filteredDrills.enumerated()), id: \.element.id) { (index, drill) in
                         ZStack {
                             DrillListItemView(drill: drill, index: index + 1)
+                                .listRowInsets(EdgeInsets())
                                 .listRowBackground(Color.clear)
                             NavigationLink(destination: EditDrillConfigView(drill: drill)) {
                                 EmptyView()
                             }
-                            .opacity(0) // Hide chevron and highlight
+                            .opacity(0) // Make the link invisible but still tappable
                         }
+                        .listRowBackground(Color.clear) // Clear the default row background
                         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                             Button {
                                 // Copy logic: duplicate drill, assign new UUID, add to storage and refresh
@@ -82,9 +87,8 @@ struct DrillListView: View {
                         }
                     }
                 }
-//                .listStyle(PlainListStyle())
+                .listStyle(PlainListStyle())
                 .scrollContentBackground(.hidden)
-                .background(Color.black)
                 Spacer()
                 // Add New Drill Button (unchanged)
                 NavigationLink(destination: AddDrillConfigView()) {
@@ -104,18 +108,6 @@ struct DrillListView: View {
                     Text("Drill List")
                         .font(.headline)
                         .foregroundColor(.red)
-                }
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button(action: {
-                        dismiss()
-                    }) {
-                        HStack {
-                            Image(systemName: "chevron.left")
-                                .foregroundColor(.red)
-                            Text("Back")
-                                .foregroundColor(.red)
-                        }
-                    }
                 }
             }
             .onAppear {
