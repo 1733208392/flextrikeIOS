@@ -39,6 +39,7 @@ class DrillConfigStorage {
     
     func add(_ config: DrillConfig) {
         configs.append(config)
+        printDrillConfigsFileContent()
         save()
     }
     
@@ -88,6 +89,24 @@ class DrillConfigStorage {
             try data.write(to: url)
         } catch {
             print("Failed to save editable sets: \(error)")
+        }
+    }
+    
+    // Debug: Print the raw JSON content of drill_configs.json
+    func printDrillConfigsFileContent() {
+        guard let url = fileURL else {
+            print("drill_configs.json file URL not found.")
+            return
+        }
+        do {
+            let data = try Data(contentsOf: url)
+            if let jsonString = String(data: data, encoding: .utf8) {
+                print("drill_configs.json content:\n\(jsonString)")
+            } else {
+                print("Failed to decode drill_configs.json as UTF-8 string.")
+            }
+        } catch {
+            print("Failed to read drill_configs.json: \(error)")
         }
     }
 }

@@ -71,6 +71,7 @@ struct AddDrillConfigView: View {
     @State private var demoVideoThumbnail: UIImage? = nil
     @State private var isGeneratingThumbnail: Bool = false
     @State private var showVideoPlayer: Bool = false
+    @State private var thumbnailFileURL: URL? = nil
     @Environment(\.presentationMode) var presentationMode
     
     enum DelayType: String, CaseIterable { case fixed, random }
@@ -98,6 +99,7 @@ struct AddDrillConfigView: View {
             name: drillName,
             description: description,
             demoVideoURL: demoVideoURL,
+            thumbnailURL: thumbnailFileURL, // Pass the saved thumbnail URL
             numberOfSets: sets.count,
             startDelay: delayValue,
             pauseBetweenSets: pauseBetweenSets,
@@ -132,34 +134,12 @@ struct AddDrillConfigView: View {
     @FocusState private var isDrillNameFocused: Bool
     
     var body: some View {
-        ZStack {
-            Color.black.ignoresSafeArea()
-                .onTapGesture {
-                    isDrillNameFocused = false
-                }
-            VStack(spacing: 0) {
-                // Title Bar
-                HStack {
-                    Button(action: {
-                    }) {
-                        Image(systemName: "chevron.left")
-                            .foregroundColor(.white)
-                            .padding(8)
-                            .background(Circle().fill(Color.red))
+        VStack(spacing: 0) {
+            ZStack {
+                Color.black.ignoresSafeArea()
+                    .onTapGesture {
+                        isDrillNameFocused = false
                     }
-                    Spacer()
-                    Text("Add a Drill")
-                        .foregroundColor(.white)
-                        .font(.headline)
-                    Spacer()
-                    // Placeholder for alignment
-                    Color.clear.frame(width: 40, height: 40)
-                }
-                .padding(.horizontal)
-                .frame(height: 56)
-                .background(Color.red)
-                
-                ScrollView {
                     VStack(spacing: 20) {
                         // History Record Button
                         HStack {
@@ -180,6 +160,7 @@ struct AddDrillConfigView: View {
                                 .padding(.horizontal)
                                 .padding(.top)
                         }
+                        ScrollView {
                         // Grouped Section: Drill Name, Description, Add Video
                         VStack(spacing: 20) {
                             // Drill Name
@@ -213,23 +194,17 @@ struct AddDrillConfigView: View {
                                         }
                                     }
                                     Spacer()
-                                    if isEditingName {
-                                        Button(action: {
-                                            drillName = ""
+                                    Button(action: {
+                                        if isEditingName {
                                             isEditingName = false
                                             isDrillNameFocused = false
-                                        }) {
-                                            Image(systemName: "xmark.circle.fill")
-                                                .foregroundColor(.red)
-                                        }
-                                    } else {
-                                        Button(action: {
+                                        } else {
                                             isEditingName = true
                                             isDrillNameFocused = true
-                                        }) {
-                                            Image(systemName: "pencil")
-                                                .foregroundColor(.red)
                                         }
+                                    }) {
+                                        Image(systemName: isEditingName ? "xmark" : "pencil")
+                                            .foregroundColor(.red)
                                     }
                                 }
                                 Rectangle()
@@ -301,12 +276,14 @@ struct AddDrillConfigView: View {
                                                                     .cornerRadius(16)
                                                                     .contentShape(Rectangle())
                                                                 // Play icon in center
-                                                                Image(systemName: "play.circle.fill")
-                                                                    .resizable()
-                                                                    .frame(width: 48, height: 48)
-                                                                    .foregroundColor(.white)
-                                                                    .shadow(radius: 4)
-                                                                    .opacity(0.85)
+                                                                if demoVideoURL != nil {
+                                                                    Image(systemName: "play.circle.fill")
+                                                                        .resizable()
+                                                                        .frame(width: 48, height: 48)
+                                                                        .foregroundColor(.white)
+                                                                        .shadow(radius: 4)
+                                                                        .opacity(0.85)
+                                                                }
                                                                 // Delete button at top right
                                                                 VStack {
                                                                     HStack {
@@ -535,7 +512,7 @@ struct AddDrillConfigView: View {
                         .padding(.horizontal)
                         .padding(.bottom, 20)
                     }
-                    .onChange(of: selectedVideoItem) { newItem in
+                        .onChange(of: selectedVideoItem) { newItem in
                         guard let item = newItem else { return }
                         isGeneratingThumbnail = true
                         Task {
@@ -544,6 +521,7 @@ struct AddDrillConfigView: View {
                                 demoVideoURL = url
                                 if let thumbnail = await generateThumbnail(for: url) {
                                     demoVideoThumbnail = thumbnail
+                                    thumbnailFileURL = saveThumbnailToDocuments(thumbnail)
                                 }
                             } else if let data = try? await item.loadTransferable(type: Data.self) {
                                 // Save to temp file
@@ -553,6 +531,7 @@ struct AddDrillConfigView: View {
                                     demoVideoURL = tempURL
                                     if let thumbnail = await generateThumbnail(for: tempURL) {
                                         demoVideoThumbnail = thumbnail
+                                        thumbnailFileURL = saveThumbnailToDocuments(thumbnail)
                                     }
                                 } catch {
                                     print("Failed to write video data to temp file: \(error)")
@@ -561,6 +540,7 @@ struct AddDrillConfigView: View {
                             isGeneratingThumbnail = false
                         }
                     }
+                        .ignoresSafeArea(.keyboard, edges: .bottom)
                 }
             }
         }
@@ -606,6 +586,19 @@ struct AddDrillConfigView: View {
             return UIImage(cgImage: cgImage, scale: image.scale, orientation: image.imageOrientation)
         }
         return image
+    }
+    // Helper to save thumbnail image to documents directory
+    func saveThumbnailToDocuments(_ image: UIImage) -> URL? {
+        guard let data = image.jpegData(compressionQuality: 0.8) else { return nil }
+        let filename = UUID().uuidString + ".jpg"
+        let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent(filename)
+        do {
+            try data.write(to: url)
+            return url
+        } catch {
+            print("Failed to save thumbnail: \(error)")
+            return nil
+        }
     }
 }
 
