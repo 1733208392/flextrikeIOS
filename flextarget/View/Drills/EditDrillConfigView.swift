@@ -25,6 +25,7 @@ struct EditDrillConfigView: View {
     @State private var showVideoPlayer: Bool = false
     @Environment(\.presentationMode) var presentationMode
     @FocusState private var isDrillNameFocused: Bool
+    @FocusState private var isDescriptionFocused: Bool
 
     let originalDrill: DrillConfig
 
@@ -33,8 +34,8 @@ struct EditDrillConfigView: View {
         _drillName = State(initialValue: drill.name)
         _description = State(initialValue: drill.description)
         _demoVideoURL = State(initialValue: drill.demoVideoURL)
-        _demoVideoThumbnailUrl = State(initialValue: drill.thumbnailURL) // Initialize thumbnail as nil
-        _delayType = State(initialValue: .fixed) // Adjust if DrillConfig has this info
+        _demoVideoThumbnailUrl = State(initialValue: drill.thumbnailURL)
+        _delayType = State(initialValue: .fixed)
         _delayValue = State(initialValue: drill.startDelay)
         _numberOfSets = State(initialValue: drill.sets.count)
         _setDuration = State(initialValue: drill.sets.first?.duration ?? 30)
@@ -50,6 +51,7 @@ struct EditDrillConfigView: View {
             VStack(spacing: 0) {
                 // History Button
                 Button(action: { /* Show history */ }) {
+                    
                     HStack {
                         Image(systemName: "clock.arrow.circlepath")
                             .foregroundColor(Color(red: 1, green: 0.38, blue: 0.22))
@@ -66,13 +68,13 @@ struct EditDrillConfigView: View {
                     .padding(.horizontal, 24)
                     .padding(.top, 12)
                 }
-                
+
                 // Content in the middle
-                ScrollView{
+                ScrollView {
                     // Drill Name & Description Card
                     VStack(alignment: .leading, spacing: 0) {
-                        //Title and Chevron Button
-                        HStack {
+                        // Title and Chevron Button
+                        HStack(alignment: .center) {
                             if isEditingName {
                                 TextField("Drill Name", text: $drillName)
                                     .foregroundColor(.white)
@@ -83,7 +85,7 @@ struct EditDrillConfigView: View {
                             } else {
                                 Text(drillName)
                                     .foregroundColor(.white)
-                                    .font(.system(size: 18, weight: .bold))
+                                    .font(.title3)
                                     .onTapGesture { isEditingName = true; isDrillNameFocused = true }
                             }
                             Spacer()
@@ -106,106 +108,129 @@ struct EditDrillConfigView: View {
                             .foregroundColor(isEditingName ? .red : Color.gray.opacity(0.5))
                             .animation(.easeInOut, value: isEditingName)
                         HStack(alignment: .top) {
-                            Spacer()
-                            Button(action: { isDescriptionExpanded.toggle() }) {
-                                Image(systemName: isDescriptionExpanded ? "chevron.down" : "chevron.up")
-                                    .foregroundColor(.red)
-                            }
-                        }
-                        if isDescriptionExpanded {
-                            if isEditingDescription {
-                                TextField("Description", text: $description)
-                                    .foregroundColor(.white)
-                                    .padding(8)
-                                    .background(Color(red: 0.15, green: 0.15, blue: 0.15))
-                                    .cornerRadius(8)
-                            } else {
-                                Text(description)
-                                    .foregroundColor(.gray)
-                                    .font(.system(size: 15))
-                                    .padding(.bottom, 2)
-                            }
-                            // Demo Video Area
-                            VStack {
-                                ZStack {
-                                    if fileExists(at: demoVideoThumbnailUrl), demoVideoURL != nil {
-                                        if let url = demoVideoThumbnailUrl {
-                                            AsyncImage(url: url) { phase in
-                                                switch phase {
-                                                case .empty:
-                                                    Color.gray.opacity(0.2)
-                                                case .success(let image):
-                                                    image
-                                                        .resizable()
-                                                        .aspectRatio(16/9, contentMode: .fill)
-                                                        .frame(height: 200)
-                                                        .clipped()
-                                                case .failure:
-                                                    Color.gray.opacity(0.2)
-                                                @unknown default:
-                                                    Color.gray.opacity(0.2)
+                            if isDescriptionExpanded {
+                                VStack(alignment: .leading, spacing: 12) {
+                                    HStack(alignment: .top) {
+                                        if isEditingDescription {
+                                            TextEditor(text: $description)
+                                                .foregroundColor(.white)
+                                                .scrollContentBackground(.hidden)
+                                                .padding(8)
+                                                .cornerRadius(8)
+                                                .focused($isDescriptionFocused)
+                                        } else {
+                                            Text(description)
+                                                .foregroundColor(.gray)
+                                                .font(.caption)
+                                                .padding(.bottom, 2)
+                                                .onTapGesture {
+                                                    isEditingDescription = true
+                                                    isDescriptionFocused = true
+                                                }
+                                        }
+                                        Spacer()
+                                        Button(action: {
+                                            isDescriptionExpanded.toggle()
+                                            isDescriptionFocused.toggle()
+                                        }) {
+                                            Image(systemName: isDescriptionExpanded ? "chevron.down" : "chevron.up")
+                                                .foregroundColor(.red)
+                                        }
+                                    }
+                                    // Demo Video Area
+                                    VStack {
+                                        ZStack {
+                                            if fileExists(at: demoVideoThumbnailUrl), demoVideoURL != nil {
+                                                if let url = demoVideoThumbnailUrl {
+                                                    AsyncImage(url: url) { phase in
+                                                        switch phase {
+                                                        case .empty:
+                                                            Color.gray.opacity(0.2)
+                                                        case .success(let image):
+                                                            image
+                                                                .resizable()
+                                                                .aspectRatio(16/9, contentMode: .fill)
+                                                                .frame(height: 200)
+                                                                .clipped()
+                                                        case .failure:
+                                                            Color.gray.opacity(0.2)
+                                                        @unknown default:
+                                                            Color.gray.opacity(0.2)
+                                                        }
+                                                    }
+                                                }
+                                                // Play icon only if video exists
+                                                Image(systemName: "play.circle.fill")
+                                                    .resizable()
+                                                    .frame(width: 56, height: 56)
+                                                    .foregroundColor(.white)
+                                                    .shadow(radius: 8)
+                                                    .onTapGesture {
+                                                        showVideoPlayer = true
+                                                    }
+                                            } else {
+                                                Color.gray.opacity(0.2)
+                                                // Directly show the camera roll picker when tapping the AddVideo icon
+                                                PhotosPicker(selection: $selectedVideoItem, matching: .videos, photoLibrary: .shared()) {
+                                                    Image(systemName: "video.badge.plus")
+                                                        .font(.system(size: 30))
+                                                        .foregroundColor(.red)
                                                 }
                                             }
                                         }
-                                        // Play icon only if video exists
-                                        Image(systemName: "play.circle.fill")
-                                            .resizable()
-                                            .frame(width: 56, height: 56)
-                                            .foregroundColor(.white)
-                                            .shadow(radius: 8)
-                                    } else {
-                                        Color.gray.opacity(0.2)
-                                        // Show add video icon if no video
-                                        Image(systemName: "plus.circle")
-                                            .resizable()
-                                            .frame(width: 56, height: 56)
-                                            .foregroundColor(.white)
-                                            .shadow(radius: 8)
+                                        .frame(height: 200)
+                                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                                        .padding(.top, 12)
+                                        // Video Action Buttons
+                                        HStack(spacing: 16) {
+                                            Button(action: {
+                                                demoVideoURL = nil
+                                                demoVideoThumbnailUrl = nil
+                                                selectedVideoItem = nil
+                                            }) {
+                                                HStack {
+                                                    Image(systemName: "trash")
+                                                    Text("Delete")
+                                                }
+                                                .foregroundColor(.white)
+                                                .padding(.vertical, 8)
+                                                .padding(.horizontal, 24)
+                                                .background(Color(red: 0.22, green: 0.22, blue: 0.22))
+                                                .cornerRadius(24)
+                                            }
+                                            PhotosPicker(selection: $selectedVideoItem, matching: .videos, photoLibrary: .shared()) {
+                                                HStack {
+                                                    Image(systemName: "video")
+                                                    Text("Select")
+                                                }
+                                                .foregroundColor(.white)
+                                                .padding(.vertical, 8)
+                                                .padding(.horizontal, 24)
+                                                .background(Color(red: 1, green: 0.38, blue: 0.22))
+                                                .cornerRadius(24)
+                                            }
+                                        }
+                                        .padding(.top, 8)
                                     }
                                 }
-                                .frame(height: 200)
-                                .clipShape(RoundedRectangle(cornerRadius: 12))
-                                .padding(.top, 12)
-                                // Video Action Buttons
-                                HStack(spacing: 16) {
+                            } else {
+                                HStack(alignment: .top, spacing: 8) {
+                                    Text(description)
+                                        .foregroundColor(.gray)
+                                        .font(.system(size: 15))
+                                        .lineLimit(2)
+                                        .truncationMode(.tail)
+                                    Spacer()
                                     Button(action: {
-                                        demoVideoURL = nil
-                                        demoVideoThumbnailUrl = nil
-                                        selectedVideoItem = nil
+                                        isDescriptionExpanded.toggle()
+                                        isDescriptionFocused.toggle()
                                     }) {
-                                        HStack {
-                                            Image(systemName: "trash")
-                                            Text("Delete")
-                                        }
-                                        .foregroundColor(.white)
-                                        .padding(.vertical, 8)
-                                        .padding(.horizontal, 24)
-                                        .background(Color(red: 0.22, green: 0.22, blue: 0.22))
-                                        .cornerRadius(24)
-                                    }
-                                    PhotosPicker(selection: $selectedVideoItem, matching: .videos, photoLibrary: .shared()) {
-                                        HStack {
-                                            Image(systemName: "video")
-                                            Text("Select")
-                                        }
-                                        .foregroundColor(.white)
-                                        .padding(.vertical, 8)
-                                        .padding(.horizontal, 24)
-                                        .background(Color(red: 1, green: 0.38, blue: 0.22))
-                                        .cornerRadius(24)
+                                        Image(systemName: isDescriptionExpanded ? "chevron.down" : "chevron.up")
+                                            .foregroundColor(.red)
                                     }
                                 }
-                                .padding(.top, 8)
+                                .padding(.vertical, 4)
                             }
-                        } else {
-                            HStack(alignment: .top, spacing: 8) {
-                                Text(description)
-                                    .foregroundColor(.gray)
-                                    .font(.system(size: 15))
-                                    .lineLimit(2)
-                                    .truncationMode(.tail)
-                            }
-                            .padding(.vertical, 4)
                         }
                     }
                     .padding()
@@ -213,6 +238,7 @@ struct EditDrillConfigView: View {
                     .cornerRadius(16)
                     .padding(.horizontal, 16)
                     .padding(.top, 18)
+                        
                     // Delay Card
                     HStack {
                         Text("延迟(秒)")
@@ -312,7 +338,7 @@ struct EditDrillConfigView: View {
                     Spacer()
                 }
                 .ignoresSafeArea(.keyboard, edges: .bottom)
-                
+
                 // Bottom Buttons
                 HStack(spacing: 24) {
                     Button(action: { /* Save action */ }) {
@@ -365,6 +391,11 @@ struct EditDrillConfigView: View {
                     }
                 }
                 isGeneratingThumbnail = false
+            }
+        }
+        .sheet(isPresented: $showVideoPlayer) {
+            if let demoVideoURL = demoVideoURL {
+                VideoPlayerView(url: demoVideoURL)
             }
         }
     }
