@@ -241,59 +241,41 @@ struct EditDrillConfigView: View {
                         
                     // Delay Card
                     HStack {
-                        Text("延迟(秒)")
+                        Text("Delay(sec)")
                             .foregroundColor(.white)
                             .font(.system(size: 16, weight: .medium))
                         Spacer()
-                        Image(systemName: "arrow.triangle.2.circlepath")
-                            .foregroundColor(Color(red: 1, green: 0.38, blue: 0.22))
-                            .font(.system(size: 24))
-                        Text("2...4")
-                            .foregroundColor(Color(red: 1, green: 0.38, blue: 0.22))
-                            .font(.system(size: 18, weight: .bold))
-                    }
-                    .padding()
-                    .background(Color(red: 0.13, green: 0.13, blue: 0.13))
-                    .cornerRadius(16)
-                    .padding(.horizontal, 16)
-                    .padding(.top, 18)
-                    // Step Design Card
-                    VStack(alignment: .leading, spacing: 0) {
-                        HStack {
-                            Image(systemName: "point.topleft.down.curvedto.point.bottomright.up")
+                        Button(action: {
+                            delayType = (delayType == .fixed) ? .random : .fixed
+                        }) {
+                            Image(systemName: "shuffle")
+                                .foregroundColor(delayType == .random ? Color(red: 1, green: 0.38, blue: 0.22) : Color.gray)
+                                .font(.system(size: 32))
+                                .rotationEffect(.degrees(0))
+                        }
+                        Spacer()
+                        if delayType == .random {
+                            Text("2...4")
                                 .foregroundColor(Color(red: 1, green: 0.38, blue: 0.22))
-                            Text("设计步骤")
-                                .foregroundColor(.white)
-                                .font(.system(size: 16, weight: .medium))
-                        }
-                        .padding(.bottom, 8)
-                        HStack {
-                            VStack {
-                                Text("2")
-                                    .foregroundColor(.white)
-                                    .font(.system(size: 20, weight: .bold))
-                                Text("组")
-                                    .foregroundColor(.gray)
-                                    .font(.system(size: 14))
+                                .font(.system(size: 18, weight: .bold))
+                        } else {
+                            // Picker with wheel rotated 90 degrees, text rotated upright
+                            GeometryReader { geometry in
+                                Picker(selection: $delayValue, label: EmptyView()) {
+                                    ForEach(2...10, id: \ .self) { value in
+                                        Text("\(value)")
+                                            .rotationEffect(.degrees(-90))
+                                            .font(.system(size: 24, weight: .bold))
+                                            .foregroundColor(Color(red: 1, green: 0.38, blue: 0.22))
+                                            .tag(Double(value))
+                                    }
+                                }
+                                .pickerStyle(WheelPickerStyle())
+                                .frame(width: geometry.size.height * 0.7, height: 80)
+                                .rotationEffect(.degrees(90))
+                                .clipped()
                             }
-                            Spacer()
-                            VStack {
-                                Text("5s")
-                                    .foregroundColor(.white)
-                                    .font(.system(size: 20, weight: .bold))
-                                Text("时长")
-                                    .foregroundColor(.gray)
-                                    .font(.system(size: 14))
-                            }
-                            Spacer()
-                            VStack {
-                                Text("∞")
-                                    .foregroundColor(.white)
-                                    .font(.system(size: 20, weight: .bold))
-                                Text("射击次数")
-                                    .foregroundColor(.gray)
-                                    .font(.system(size: 14))
-                            }
+                            .frame(width: 80, height: 80)
                         }
                     }
                     .padding()
@@ -301,9 +283,64 @@ struct EditDrillConfigView: View {
                     .cornerRadius(16)
                     .padding(.horizontal, 16)
                     .padding(.top, 18)
+                    
+                    // Step Design Card
+                    Button(action: { showDrillSetupModal = true }) {
+                        VStack(alignment: .leading, spacing: 0) {
+                            HStack {
+                                Image(systemName: "point.topleft.down.curvedto.point.bottomright.up")
+                                    .foregroundColor(Color(red: 1, green: 0.38, blue: 0.22))
+                                Text("Drill Setup")
+                                    .foregroundColor(.white)
+                                    .font(.system(size: 16, weight: .medium))
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .foregroundColor(.white)
+                            }
+                            .padding(.bottom, 8)
+                            HStack {
+                                VStack {
+                                    Text("2")
+                                        .foregroundColor(.white)
+                                        .font(.system(size: 20, weight: .bold))
+                                    Text("Sets")
+                                        .foregroundColor(.gray)
+                                        .font(.system(size: 14))
+                                }
+                                Spacer()
+                                VStack {
+                                    Text("5s")
+                                        .foregroundColor(.white)
+                                        .font(.system(size: 20, weight: .bold))
+                                    Text("Duration")
+                                        .foregroundColor(.gray)
+                                        .font(.system(size: 14))
+                                }
+                                Spacer()
+                                VStack {
+                                    Text("∞")
+                                        .foregroundColor(.white)
+                                        .font(.system(size: 20, weight: .bold))
+                                    Text("Number of Shots")
+                                        .foregroundColor(.gray)
+                                        .font(.system(size: 14))
+                                }
+                            }
+                        }
+                        .padding()
+                        .background(Color(red: 0.13, green: 0.13, blue: 0.13))
+                        .cornerRadius(16)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.top, 18)
+                    .sheet(isPresented: $showDrillSetupModal, onDismiss: {
+                        DrillConfigStorage.shared.saveEditableSets(sets)
+                    }) {
+                        DrillSetupSheetView(sets: $sets, isPresented: $showDrillSetupModal)
+                    }
                     // Gun Type Card
                     HStack {
-                        Text("枪支类型")
+                        Text("Gun Type")
                             .foregroundColor(.white)
                             .font(.system(size: 16, weight: .medium))
                         Spacer()
@@ -323,7 +360,7 @@ struct EditDrillConfigView: View {
                                     .fill(gunType == .laser ? Color(red: 1, green: 0.38, blue: 0.22) : Color.clear)
                                     .frame(width: 20, height: 20)
                                     .overlay(Circle().stroke(Color.gray, lineWidth: 2))
-                                Text("激光")
+                                Text("Laser Dryfire")
                                     .foregroundColor(.white)
                                     .font(.system(size: 16))
                             }
@@ -341,10 +378,13 @@ struct EditDrillConfigView: View {
 
                 // Bottom Buttons
                 HStack(spacing: 24) {
-                    Button(action: { /* Save action */ }) {
+                    Button(action: {
+                        saveDrillConfig()
+                        presentationMode.wrappedValue.dismiss()
+                    }) {
                         HStack {
                             Image(systemName: "square.and.arrow.down")
-                            Text("保存")
+                            Text("Save")
                         }
                         .foregroundColor(.white)
                         .font(.system(size: 18, weight: .medium))
@@ -356,7 +396,7 @@ struct EditDrillConfigView: View {
                     Button(action: { /* Send action */ }) {
                         HStack {
                             Image(systemName: "paperplane")
-                            Text("发送练习")
+                            Text("Send")
                         }
                         .foregroundColor(.white)
                         .font(.system(size: 18, weight: .medium))
@@ -419,6 +459,22 @@ struct EditDrillConfigView: View {
     func fileExists(at url: URL?) -> Bool {
         guard let url = url else { return false }
         return FileManager.default.fileExists(atPath: url.path)
+    }
+    
+    private func saveDrillConfig() {
+        let updatedDrill = DrillConfig(
+            name: drillName,
+            description: description,
+            demoVideoURL: demoVideoURL,
+            thumbnailURL: demoVideoThumbnailUrl,
+            numberOfSets: sets.count,
+            startDelay: delayValue,
+            pauseBetweenSets: 0, // You may want to set this from UI
+            sets: sets.map { $0.toDrillSetConfig() },
+            targetType: targetType.rawValue,
+            gunType: gunType.rawValue
+        )
+        DrillConfigStorage.shared.add(updatedDrill)
     }
 }
 

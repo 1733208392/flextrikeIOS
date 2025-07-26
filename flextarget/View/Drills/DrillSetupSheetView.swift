@@ -16,6 +16,16 @@ struct DrillSetConfigEditable: Identifiable, Codable {
     }
 }
 
+extension DrillSetConfigEditable {
+    func toDrillSetConfig() -> DrillSetConfig {
+        DrillSetConfig(
+            duration: TimeInterval(self.duration),
+            numberOfShots: self.shots ?? 0,
+            distance: Double(self.distance)
+        )
+    }
+}
+
 struct DrillSetupSheetView: View {
     @Binding var sets: [DrillSetConfigEditable]
     @Binding var isPresented: Bool
