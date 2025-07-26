@@ -19,8 +19,9 @@ struct DrillSetConfigEditable: Identifiable, Codable {
 extension DrillSetConfigEditable {
     func toDrillSetConfig() -> DrillSetConfig {
         DrillSetConfig(
+            id: self.id,
             duration: TimeInterval(self.duration),
-            numberOfShots: self.shots ?? 0,
+            numberOfShots: self.shots ?? Int.max, // Use Int.max for infinite
             distance: Double(self.distance)
         )
     }
@@ -37,105 +38,105 @@ struct DrillSetupSheetView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            ScrollView {
-                VStack(spacing: 20) {
-                    ForEach(Array(sets.enumerated()), id: \.element.id) { idx, set in
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("Set \(idx + 1)")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                                .padding(.bottom, 4)
-                            VStack(spacing: 0) {
-                                // Duration
-                                HStack {
-                                    Text("Duration(sec)")
-                                        .foregroundColor(.gray)
-                                        .padding(.leading, 8)
-                                    Spacer()
-                                    Picker("Duration", selection: $sets[idx].duration) {
-                                        ForEach(durationRange, id: \.self) { v in
-                                            Text("\(v)").foregroundColor(.red)
-                                                .font(.system(size: 22, weight: .bold))
-                                                .rotationEffect(.degrees(90))
-                                                .bold()
-                                        }
-                                    }
-                                    .pickerStyle(WheelPickerStyle())
-                                    .rotationEffect(.degrees(-90))
-                                    .frame(width: 80, height: 80) // reduced height
-                                }
-                                Divider().background(Color.gray)
-                                // Shots
-                                HStack {
-                                    Text("Shots")
-                                        .foregroundColor(.gray)
-                                    Spacer()
-                                    Picker("Shots", selection: Binding<Int?>(
-                                        get: { sets[idx].shots },
-                                        set: { sets[idx].shots = $0 }
-                                    )) {
-                                        Image(systemName: "infinity")
-                                            .foregroundColor(.red)
+            List {
+                ForEach(Array(sets.enumerated()), id: \.element.id) { idx, set in
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Set \(idx + 1)")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .padding(.bottom, 4)
+                        VStack(spacing: 0) {
+                            // Duration
+                            HStack {
+                                Text("Duration(sec)")
+                                    .foregroundColor(.gray)
+                                    .padding(.leading, 8)
+                                Spacer()
+                                Picker("Duration", selection: $sets[idx].duration) {
+                                    ForEach(durationRange, id: \.self) { v in
+                                        Text("\(v)").foregroundColor(.red)
                                             .font(.system(size: 22, weight: .bold))
                                             .rotationEffect(.degrees(90))
-                                            .tag(nil as Int?)
-                                        ForEach(shotsRange, id: \.self) { v in
-                                            Text("\(v)").foregroundColor(.red)
-                                                .font(.system(size: 22, weight: .bold))
-                                                .rotationEffect(.degrees(90))
-                                                .tag(Optional(v))
-                                                .bold()
-                                        }
+                                            .bold()
                                     }
-                                    .pickerStyle(WheelPickerStyle())
-                                    .rotationEffect(.degrees(-90))
-                                    .frame(width: 80, height: 80) // reduced height
                                 }
-                                Divider().background(Color.gray)
-                                // Distance
-                                HStack {
-                                    Text("Distance")
-                                        .foregroundColor(.gray)
-                                    Spacer()
-                                    Picker("Distance", selection: $sets[idx].distance) {
-                                        ForEach(distanceOptions, id: \.self) { v in
-                                            Text("\(v)").foregroundColor(.red)
-                                                .font(.system(size: 22, weight: .bold))
-                                                .rotationEffect(.degrees(90))
-                                                .bold()
-                                        }
-                                    }
-                                    .pickerStyle(WheelPickerStyle())
-                                    .rotationEffect(.degrees(-90))
-                                    .frame(width: 80, height: 80) // reduced height
-                                }
-                                Divider().background(Color.gray)
-                                // Pause Time
-                                HStack {
-                                    Text("Pause Time(sec)")
-                                        .foregroundColor(.gray)
-                                    Spacer()
-                                    Picker("Pause", selection: $sets[idx].pauseTime) {
-                                        ForEach(pauseOptions, id: \.self) { v in
-                                            Text("\(v)").foregroundColor(.red)
-                                                .font(.system(size: 22, weight: .bold))
-                                                .rotationEffect(.degrees(90))
-                                        }
-                                    }
-                                    .pickerStyle(WheelPickerStyle())
-                                    .rotationEffect(.degrees(-90))
-                                    .frame(width: 80, height: 80) // reduced height
-                                }
+                                .pickerStyle(WheelPickerStyle())
+                                .rotationEffect(.degrees(-90))
+                                .frame(width: 80, height: 80)
                             }
-                            .background(Color.gray.opacity(0.15))
-                            .cornerRadius(12)
+                            Divider().background(Color.gray)
+                            // Shots
+                            HStack {
+                                Text("Shots")
+                                    .foregroundColor(.gray)
+                                Spacer()
+                                Picker("Shots", selection: Binding<Int?>(
+                                    get: { sets[idx].shots },
+                                    set: { sets[idx].shots = $0 }
+                                )) {
+                                    Image(systemName: "infinity")
+                                        .foregroundColor(.red)
+                                        .font(.system(size: 22, weight: .bold))
+                                        .rotationEffect(.degrees(90))
+                                        .tag(nil as Int?)
+                                    ForEach(shotsRange, id: \.self) { v in
+                                        Text("\(v)").foregroundColor(.red)
+                                            .font(.system(size: 22, weight: .bold))
+                                            .rotationEffect(.degrees(90))
+                                            .tag(Optional(v))
+                                            .bold()
+                                    }
+                                }
+                                .pickerStyle(WheelPickerStyle())
+                                .rotationEffect(.degrees(-90))
+                                .frame(width: 80, height: 80)
+                            }
+                            Divider().background(Color.gray)
+                            // Distance
+                            HStack {
+                                Text("Distance")
+                                    .foregroundColor(.gray)
+                                Spacer()
+                                Picker("Distance", selection: $sets[idx].distance) {
+                                    ForEach(distanceOptions, id: \.self) { v in
+                                        Text("\(v)").foregroundColor(.red)
+                                            .font(.system(size: 22, weight: .bold))
+                                            .rotationEffect(.degrees(90))
+                                            .bold()
+                                    }
+                                }
+                                .pickerStyle(WheelPickerStyle())
+                                .rotationEffect(.degrees(-90))
+                                .frame(width: 80, height: 80)
+                            }
+                            Divider().background(Color.gray)
+                            // Pause Time
+                            HStack {
+                                Text("Pause Time(sec)")
+                                    .foregroundColor(.gray)
+                                Spacer()
+                                Picker("Pause", selection: $sets[idx].pauseTime) {
+                                    ForEach(pauseOptions, id: \.self) { v in
+                                        Text("\(v)").foregroundColor(.red)
+                                            .font(.system(size: 22, weight: .bold))
+                                            .rotationEffect(.degrees(90))
+                                    }
+                                }
+                                .pickerStyle(WheelPickerStyle())
+                                .rotationEffect(.degrees(-90))
+                                .frame(width: 80, height: 80)
+                            }
                         }
-                        .padding(.horizontal)
+                        .background(Color.gray.opacity(0.15))
+                        .cornerRadius(12)
                     }
+                    .listRowBackground(Color.clear) // Clear the default row background
+                    .padding(.horizontal)
                 }
-                .padding(.top)
+                .onDelete(perform: deleteSet)
             }
-            .ignoresSafeArea(.keyboard, edges: .bottom)
+            .listStyle(PlainListStyle())
+            .background(Color.black)
             Button(action: {
                 sets.append(DrillSetConfigEditable(duration: 10, shots: 5, distance: 5, pauseTime: 10))
             }) {
@@ -152,5 +153,9 @@ struct DrillSetupSheetView: View {
         }
         .background(Color.black.ignoresSafeArea())
         .ignoresSafeArea(.keyboard, edges: .bottom)
+    }
+    
+    private func deleteSet(at offsets: IndexSet) {
+        sets.remove(atOffsets: offsets)
     }
 }
