@@ -10,6 +10,29 @@ import CoreBluetooth
 import Combine
 import UIKit
 
+// Device data structures for netlink device_list
+struct NetworkDevice: Codable, Identifiable {
+    let id = UUID()
+    let name: String
+    let mode: String
+    
+    // Custom coding keys to match JSON structure
+    enum CodingKeys: String, CodingKey {
+        case name, mode
+    }
+    
+    init(name: String, mode: String) {
+        self.name = name
+        self.mode = mode
+    }
+}
+
+struct DeviceListResponse: Codable {
+    let type: String
+    let action: String
+    let data: [NetworkDevice]
+}
+
 struct DiscoveredPeripheral: Identifiable {
     let id: UUID
     let name: String
@@ -49,7 +72,11 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
     @Published var isScanning: Bool = false
     @Published var error: BLEError?
     @Published var connectedPeripheral: DiscoveredPeripheral?
-    
+
+    // Global device list data for sharing across views
+    @Published var networkDevices: [NetworkDevice] = []
+    @Published var lastDeviceListUpdate: Date?
+
     private var centralManager: CBCentralManager!
     private var connectingPeripheral: CBPeripheral?
     private var disposables = Set<AnyCancellable>()
@@ -57,7 +84,7 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
     private var pendingStartScan: Bool = false
     private var fallbackScanTimer: Timer?
     private let targetedScanDuration: TimeInterval = 5.0
-    
+
     // 1. Store the target service UUID
     private let advServiceUUID = CBUUID(string: "002A7982-6A23-1A71-A5C2-6C4B54310C9C")
     private let targetServiceUUID = CBUUID(string: "0000FFC9-0000-1000-8000-00805F9B34FB")
@@ -183,9 +210,9 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
         }
 
         let lowerName = name.lowercased()
-        let matchesMacBookName = lowerName.contains("macbook") || lowerName.contains("kai")
+        let matchesName = lowerName.contains("macbook")
 
-        if matchesTargetService || matchesMacBookName {
+        if matchesTargetService || matchesName {
             print("Adding peripheral: \(name)")
             // Cancel fallback broad-scan timer because we found a candidate
             fallbackScanTimer?.invalidate()
@@ -302,7 +329,7 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
     
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
         _ = characteristic.value
-//        print("Received notification from peripheral \(peripheral.identifier) on characteristic \(characteristic.uuid), data: \(data as! NSData)")
+        //        print("Received notification from peripheral \(peripheral.identifier) on characteristic \(characteristic.uuid), data: \(data as! NSData)")
         
         if let error = error {
             print("Failed to receive notification: \(error.localizedDescription)")
@@ -334,6 +361,26 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
                 object: nil,
                 userInfo: ["state_code": stateCode]
             )
+        }
+
+        // Handle incoming netlink device_list response and save globally
+        if let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+           let type = json["type"] as? String, type == "netlink",
+           let action = json["action"] as? String, action == "device_list",
+           let dataArray = json["data"] {
+            do {
+                let normalized = try JSONSerialization.data(withJSONObject: dataArray, options: [])
+                let decoder = JSONDecoder()
+                let devices = try decoder.decode([NetworkDevice].self, from: normalized)
+                print("Received netlink device_list: \(devices)")
+                DispatchQueue.main.async {
+                    self.networkDevices = devices
+                    self.lastDeviceListUpdate = Date()
+                }
+                NotificationCenter.default.post(name: .bleDeviceListUpdated, object: nil, userInfo: ["device_list": devices])
+            } catch {
+                print("Failed to decode netlink device_list: \(error.localizedDescription)")
+            }
         }
     }
     
@@ -375,4 +422,5 @@ extension BLEManager: BLEManagerProtocol {
 // Add a notification name for BLE state updates
 extension Notification.Name {
     static let bleStateNotificationReceived = Notification.Name("bleStateNotificationReceived")
+    static let bleDeviceListUpdated = Notification.Name("bleDeviceListUpdated")
 }

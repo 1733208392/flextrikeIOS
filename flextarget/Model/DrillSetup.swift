@@ -1,0 +1,21 @@
+import Foundation
+
+struct DrillSetup: Identifiable, Codable {
+    let id: UUID
+    var name: String
+    var description: String
+    var demoVideoURL: URL?
+    var thumbnailURL: URL?
+    var delay: TimeInterval // seconds
+    var targets: [DrillTargetsConfig]
+    
+    init(id: UUID = UUID(), name: String, description: String, demoVideoURL: URL? = nil, thumbnailURL: URL? = nil, delay: TimeInterval, targets: [DrillTargetsConfig] = []) {
+        self.id = id
+        self.name = name
+        self.description = description
+        self.demoVideoURL = demoVideoURL
+        self.thumbnailURL = thumbnailURL
+        self.delay = delay
+        self.targets = targets
+    }
+}

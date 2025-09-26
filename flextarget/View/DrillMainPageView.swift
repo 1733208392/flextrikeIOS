@@ -3,7 +3,6 @@ import SwiftUI
 struct MainPageView: View {
     @EnvironmentObject var bleManager: BLEManager
     @State private var showDrillList = false
-    @State private var sentDeviceListQuery = false
     var body: some View {
         NavigationStack {
             ZStack {
@@ -127,23 +126,8 @@ struct MainPageView: View {
                 }
             }
             .navigationDestination(isPresented: $showDrillList) {
-                DrillListView()
-            }
-            .onAppear {
-                // If BLE is already ready, send immediately
-                if bleManager.isReady && !sentDeviceListQuery {
-                    let msg = "{\"type\":\"netlink\",\"action\":\"query_device_list\"}"
-                    bleManager.writeJSON(msg)
-                    sentDeviceListQuery = true
-                }
-            }
-            .onReceive(bleManager.$isReady) { ready in
-                // Send once when BLE becomes ready
-                if ready && !sentDeviceListQuery {
-                    let msg = "{\"type\":\"netlink\",\"action\":\"query_device_list\"}"
-                    bleManager.writeJSON(msg)
-                    sentDeviceListQuery = true
-                }
+//                DrillListView()
+                DrillSetupEntryView()
             }
         }
     }
