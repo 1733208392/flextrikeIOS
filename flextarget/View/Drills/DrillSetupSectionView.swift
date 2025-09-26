@@ -19,9 +19,10 @@ import SwiftUI
 struct DrillSetupSectionView: View {
     @Binding var targets: [DrillTargetsConfig]
     @Binding var isTargetListReceived: Bool
+    @EnvironmentObject private var bleManager: BLEManager
 
     var body: some View {
-        NavigationLink(destination: TargetConfigView()) {
+        NavigationLink(destination: TargetConfigView(deviceList: bleManager.networkDevices)) {
             VStack(alignment: .leading, spacing: 12) {
                 HStack(spacing: 8) {
                     Image(systemName: "slider.horizontal.3")
