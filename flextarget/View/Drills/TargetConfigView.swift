@@ -15,6 +15,8 @@ struct TargetConfigView: View {
 
     @State private var availableDevices: [NetworkDevice] = []
     @State private var selectedDevice: NetworkDevice? = nil
+    @State private var availableIcons: [String] = []
+    @State private var selectedIcon: String? = nil
 
     var body: some View {
         GeometryReader { geometry in
@@ -54,26 +56,18 @@ struct TargetConfigView: View {
                     Rectangle()
                         .stroke(Color.white, lineWidth: 10)
                         .frame(width: frameWidth, height: frameHeight)
+                        .overlay(alignment: .center) {
+                            if let icon = selectedIcon {
+                                Image(systemName: icon)
+                                    .font(.system(size: 60))
+                                    .foregroundColor(.white)
+                            }
+                        }
                         .overlay(alignment: .topLeading) {
                             Text(selectedDevice?.name ?? "No 1")
                                 .font(.title2)
                                 .foregroundColor(.white)
                                 .padding(8)
-                        }
-                        .overlay(alignment: .topTrailing) {
-                            if selectedDevice != nil {
-                                Button(action: {
-                                    if let device = selectedDevice {
-                                        availableDevices.append(device)
-                                        selectedDevice = nil
-                                    }
-                                }) {
-                                    Image(systemName: "xmark.circle.fill")
-                                        .foregroundColor(.red)
-                                        .font(.title)
-                                        .padding(8)
-                                }
-                            }
                         }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -94,8 +88,16 @@ struct TargetConfigView: View {
                     HStack(spacing: 16) {
                         ForEach(availableDevices) { device in
                             Button(action: {
-                                selectedDevice = device
-                                availableDevices.removeAll { $0.id == device.id }
+                                if selectedDevice == nil {
+                                    selectedDevice = device
+                                    availableDevices.removeAll { $0.id == device.id }
+                                } else {
+                                    let temp = selectedDevice!
+                                    selectedDevice = device
+                                    if let index = availableDevices.firstIndex(where: { $0.id == device.id }) {
+                                        availableDevices[index] = temp
+                                    }
+                                }
                             }) {
                                 VStack {
                                     Image(systemName: "rectangle.ratio.9.to.16")
@@ -109,7 +111,49 @@ struct TargetConfigView: View {
                                         .foregroundColor(.white)
                                 }
                             }
-                            .disabled(selectedDevice != nil)
+                        }
+                    }
+                    .padding(.horizontal, 24)
+                }
+                .frame(height: 100)
+
+                                // Label above horizontal scroller
+                HStack {
+                    Text("Please select target type")
+                        .font(.title3)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 24)
+                        .padding(.top, 16)
+                    
+                    Spacer()
+                }
+                // New horizontal scroller with sample icons
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 16) {
+                        ForEach(availableIcons.indices, id: \.self) { index in
+                            let icon = availableIcons[index]
+                            Button(action: {
+                                if selectedIcon == nil {
+                                    selectedIcon = icon
+                                    availableIcons.remove(at: index)
+                                } else {
+                                    let temp = selectedIcon!
+                                    selectedIcon = icon
+                                    availableIcons[index] = temp
+                                }
+                            }) {
+                                VStack {
+                                    Image(systemName: icon)
+                                        .font(.title)
+                                        .foregroundColor(.white)
+                                        .frame(width: 50, height: 50)
+                                        .background(Color.gray.opacity(0.3))
+                                        .cornerRadius(8)
+                                    Text("Sample \(availableIcons.firstIndex(of: icon)! + 1)")
+                                        .font(.caption)
+                                        .foregroundColor(.white)
+                                }
+                            }
                         }
                     }
                     .padding(.horizontal, 24)
@@ -172,6 +216,9 @@ struct TargetConfigView: View {
     private func initializeDevices() {
         if availableDevices.isEmpty && !deviceList.isEmpty {
             availableDevices = deviceList
+        }
+        if availableIcons.isEmpty {
+            availableIcons = iconNames
         }
     }
 }
