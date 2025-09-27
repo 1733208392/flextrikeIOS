@@ -324,6 +324,7 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
         
         //Add debug to print the JSON string
         print("Writing JSON data to BLE: \(jsonString)")
+        print("BLE data length: \(data.count)")
         peripheral.writeValue(data, for: writeCharacteristic, type: .withResponse)
     }
     

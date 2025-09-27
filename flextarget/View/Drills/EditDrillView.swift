@@ -154,6 +154,17 @@ struct EditDrillView: View {
                                         .background(Color.red)
                                         .cornerRadius(8)
                                 }
+                                Button(action: {
+                                    sendStartDrillMessages()
+                                }) {
+                                    Text("Start Drill")
+                                        .foregroundColor(.white)
+                                        .fontWeight(.semibold)
+                                        .frame(maxWidth: .infinity)
+                                        .padding()
+                                        .background(Color.green)
+                                        .cornerRadius(8)
+                                }
                             }
                             .padding(.horizontal)
                             .padding(.bottom, 20)
@@ -172,6 +183,32 @@ struct EditDrillView: View {
         }
     }
     
+    private func sendStartDrillMessages() {
+        guard bleManager.isConnected else {
+            print("BLE not connected")
+            return
+        }
+        let setup = buildDrillSetup()
+        targets = targetConfigs
+        for target in setup.targets {
+            do {
+                let content: [String: Any] = [
+                    "delay": setup.delay,
+                    "targetType": target.targetType,
+                    "timeout": target.timeout,
+                    "countedShots": target.countedShots
+                ]
+                let message: [String: Any] = ["type": "netlink", "action": "forward", "dest": target.targetName, "content": content]
+                let messageData = try JSONSerialization.data(withJSONObject: message, options: [])
+                let messageString = String(data: messageData, encoding: .utf8)!
+                print("Sending forward message for target \(target.targetName), length: \(messageData.count)")
+                bleManager.writeJSON(messageString)
+            } catch {
+                print("Failed to send start drill message for target \(target.targetName): \(error)")
+            }
+        }
+    }
+    
     // MARK: - Device List Query Methods
     
     private func queryDeviceList() {
@@ -185,6 +222,7 @@ struct EditDrillView: View {
         do {
             let jsonData = try JSONSerialization.data(withJSONObject: command, options: [])
             if let jsonString = String(data: jsonData, encoding: .utf8) {
+                print("Query message length: \(jsonData.count)")
                 bleManager.writeJSON(jsonString)
                 print("Sent query_device_list command: \(jsonString)")
             }
