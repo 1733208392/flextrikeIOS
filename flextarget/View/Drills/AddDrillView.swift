@@ -6,7 +6,7 @@ import PhotosUI
 /**
  */
 
-struct AddDrillSetupView: View {
+struct AddDrillView: View {
     @State private var drillName: String = ""
     @State private var description: String = ""
     @State private var demoVideoURL: URL? = nil
@@ -16,7 +16,6 @@ struct AddDrillSetupView: View {
     @State private var showVideoPlayer: Bool = false
     @State private var delayType: DelayConfigurationView.DelayType = .fixed
     @State private var delayValue: Double = 0
-    @State private var gunType: GunTypeSelectionView.GunType = .airsoft
     @State private var targets: [DrillTargetsConfig] = []
     @State private var isTargetListReceived: Bool = false
     @EnvironmentObject private var bleManager: BLEManager
@@ -106,16 +105,12 @@ struct AddDrillSetupView: View {
                             
                             
                             // Drill Setup Field
-                            DrillSetupSectionView(
+                            AddTargetSectionView(
                                 isTargetListReceived: $isTargetListReceived,
                                 targetConfigs: $targetConfigs
                             )
                             .padding(.horizontal)
                             Spacer()
-                            
-                            // Gun Type Radio Toggle
-                            GunTypeSelectionView(gunType: $gunType)
-                            .padding(.horizontal)
                             
                             // Bottom Buttons
                             HStack {
@@ -182,20 +177,20 @@ struct AddDrillSetupView: View {
     }
 }
 
-struct AddDrillSetupView_Previews: PreviewProvider {
+struct AddDrillView_Previews: PreviewProvider {
     static var previews: some View {
-        AddDrillSetupView()
+        AddDrillView()
     }
 }
 
 import SwiftUI
 
-struct DrillSetupEntryView: View {
+struct AddDrillEntryView: View {
     @ObservedObject private var storage = DrillSetupStorage.shared
     
     var body: some View {
         if storage.drillSetups.isEmpty {
-            AddDrillSetupView()
+            AddDrillView()
         } else {
             // TODO: Handle the case when there are existing DrillSetups
             Text("Drill setups exist. TODO: Show list or main view.")

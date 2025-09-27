@@ -28,7 +28,7 @@ struct DescriptionVideoSectionView: View {
     @Binding var thumbnailFileURL: URL?
     @Binding var showVideoPlayer: Bool
     
-    @State private var isDescriptionExpanded: Bool = false
+    @State private var isDescriptionExpanded: Bool = true
     @State private var isGeneratingThumbnail: Bool = false
     
     var body: some View {
