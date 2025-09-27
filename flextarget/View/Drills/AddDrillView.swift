@@ -105,7 +105,7 @@ struct AddDrillView: View {
                             
                             
                             // Drill Setup Field
-                            AddTargetSectionView(
+                            TargetsSectionView(
                                 isTargetListReceived: $isTargetListReceived,
                                 targetConfigs: $targetConfigs
                             )

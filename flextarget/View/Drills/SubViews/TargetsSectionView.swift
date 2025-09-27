@@ -1,19 +1,6 @@
 import SwiftUI
 
-/**
- `DrillSetupSectionView` is a SwiftUI component for displaying and configuring drill setup parameters.
- 
- This view provides:
- - A button to open drill setup modal
- - Visual display of current drill configuration (sets, duration, shots)
- - Conditional styling based on setup enabled state
- - Integration with drill setup sheet
- 
- ## Features
- - Shows current drill parameters in a clean layout
- - Disabled state when setup is not enabled
- - Modal sheet presentation for detailed configuration
- - Consistent styling with app design system
+/*
  */
 
 struct TargetsSectionView: View {
@@ -22,7 +9,7 @@ struct TargetsSectionView: View {
     @Binding var targetConfigs: [DrillTargetsConfig]
 
     var body: some View {
-        NavigationLink(destination: TargetConfigView(deviceList: bleManager.networkDevices, targetConfigs: $targetConfigs)) {
+        NavigationLink(destination: TargetConfigListView(deviceList: bleManager.networkDevices, targetConfigs: $targetConfigs)) {
             HStack(spacing: 8) {
                 Text("Add Target")
                     .foregroundColor(.white)
