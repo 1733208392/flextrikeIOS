@@ -129,7 +129,7 @@ struct EditDrillView: View {
                             
                             
                             // Drill Setup Field
-                            AddTargetSectionView(
+                            TargetsSectionView(
                                 isTargetListReceived: $isTargetListReceived,
                                 targetConfigs: $targetConfigs
                             )

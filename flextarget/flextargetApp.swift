@@ -35,9 +35,10 @@ struct flextargetApp: App {
                         }
                     }
             } else {
-                OrientationView() // Replace with your main view
+//                OrientationView() // Replace with your main view
+//                    .environmentObject(bleManager)
+                ConnectSmartTargetView(bleManager: bleManager)
                     .environmentObject(bleManager)
-//                MainPageView()
             }
         }
     }
