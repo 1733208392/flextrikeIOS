@@ -16,7 +16,7 @@ import SwiftUI
  - Consistent styling with app design system
  */
 
-struct AddTargetSectionView: View {
+struct TargetsSectionView: View {
     @Binding var isTargetListReceived: Bool
     @EnvironmentObject private var bleManager: BLEManager
     @Binding var targetConfigs: [DrillTargetsConfig]
@@ -49,7 +49,7 @@ struct DrillSetupSectionView_Previews: PreviewProvider {
         ZStack {
             Color.black.ignoresSafeArea()
             VStack(spacing: 20) {
-                AddTargetSectionView(
+                TargetsSectionView(
                     isTargetListReceived: .constant(true),
                     targetConfigs: .constant([
                         DrillTargetsConfig(seqNo: 1, targetName: "Target A", targetType: "Standard", timeout: 30, countedShots: 5),
