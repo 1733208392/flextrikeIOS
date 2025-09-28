@@ -107,7 +107,8 @@ struct AddDrillView: View {
                             // Drill Setup Field
                             TargetsSectionView(
                                 isTargetListReceived: $isTargetListReceived,
-                                targetConfigs: $targetConfigs
+                                targetConfigs: $targetConfigs,
+                                onTargetConfigDone: { targets = targetConfigs }
                             )
                             .padding(.horizontal)
                             Spacer()
@@ -115,10 +116,12 @@ struct AddDrillView: View {
                             // Bottom Buttons
                             HStack {
                                 Button(action: {
-                                    validateFields()
-                                    let setup = buildDrillSetup()
-                                    DrillSetupStorage.shared.addDrillSetup(setup)
-                                    presentationMode.wrappedValue.dismiss()
+                                    targets = targetConfigs
+                                    if validateFields() {
+                                        let setup = buildDrillSetup()
+                                        DrillSetupStorage.shared.addDrillSetup(setup)
+                                        presentationMode.wrappedValue.dismiss()
+                                    }
                                 }) {
                                     Text("Save Drill")
                                         .foregroundColor(.white)

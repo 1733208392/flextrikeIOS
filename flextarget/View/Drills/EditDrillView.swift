@@ -131,7 +131,8 @@ struct EditDrillView: View {
                             // Drill Setup Field
                             TargetsSectionView(
                                 isTargetListReceived: $isTargetListReceived,
-                                targetConfigs: $targetConfigs
+                                targetConfigs: $targetConfigs,
+                                onTargetConfigDone: { targets = targetConfigs }
                             )
                             .padding(.horizontal)
                             Spacer()
@@ -193,6 +194,7 @@ struct EditDrillView: View {
         for target in setup.targets {
             do {
                 let content: [String: Any] = [
+                    "command": "ready",
                     "delay": setup.delay,
                     "targetType": target.targetType,
                     "timeout": target.timeout,

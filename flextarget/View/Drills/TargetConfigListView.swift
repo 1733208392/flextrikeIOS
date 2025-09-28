@@ -5,15 +5,16 @@ struct TargetConfigListView: View {
     @Environment(\.dismiss) private var dismiss
     let deviceList: [NetworkDevice]
     @Binding var targetConfigs: [DrillTargetsConfig]
+    let onDone: () -> Void
 
     private let iconNames = [
-        "star.fill",
-        "heart.fill",
-        "bell.fill",
-        "camera.fill",
-        "gear",
-        "folder.fill",
-        "calendar"
+        "hostage",
+        "ipsc",
+        "paddle",
+        "popper",
+        "rotation",
+        "special_1",
+        "special_2"
     ]
 
     var body: some View {
@@ -29,6 +30,7 @@ struct TargetConfigListView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Done") {
+                        onDone()
                         dismiss()
                     }
                     .foregroundColor(.white)
@@ -110,7 +112,7 @@ struct TargetConfigListView: View {
         let newConfig = DrillTargetsConfig(
             seqNo: nextSeqNo,
             targetName: "",
-            targetType: "star.fill",
+            targetType: "hostage",
             timeout: 30.0,
             countedShots: 5
         )
@@ -146,13 +148,13 @@ struct TargetRowView: View {
     let availableDevices: [NetworkDevice]
 
     private let iconNames = [
-        "star.fill",
-        "heart.fill",
-        "bell.fill",
-        "camera.fill",
-        "gear",
-        "folder.fill",
-        "calendar"
+        "hostage",
+        "ipsc",
+        "paddle",
+        "popper",
+        "rotation",
+        "special_1",
+        "special_2"
     ]
 
     var body: some View {
@@ -172,13 +174,19 @@ struct TargetRowView: View {
 
             Spacer()
 
-            Image(systemName: config.targetType)
+            Image(config.targetType)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 24, height: 24)
                 .foregroundColor(.white)
 
             Picker("Target Type", selection: $config.targetType) {
                 ForEach(iconNames, id: \.self) { icon in
                     HStack {
-                        Image(systemName: icon)
+                        Image(icon)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 24, height: 24)
                         Text(icon)
                     }.tag(icon)
                 }
@@ -192,5 +200,5 @@ struct TargetRowView: View {
 }
 
 #Preview {
-    TargetConfigListView(deviceList: [], targetConfigs: .constant([]))
+    TargetConfigListView(deviceList: [], targetConfigs: .constant([]), onDone: {})
 }

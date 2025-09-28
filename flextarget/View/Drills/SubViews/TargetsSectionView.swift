@@ -7,9 +7,10 @@ struct TargetsSectionView: View {
     @Binding var isTargetListReceived: Bool
     @EnvironmentObject private var bleManager: BLEManager
     @Binding var targetConfigs: [DrillTargetsConfig]
+    let onTargetConfigDone: () -> Void
 
     var body: some View {
-        NavigationLink(destination: TargetConfigListView(deviceList: bleManager.networkDevices, targetConfigs: $targetConfigs)) {
+        NavigationLink(destination: TargetConfigListView(deviceList: bleManager.networkDevices, targetConfigs: $targetConfigs, onDone: onTargetConfigDone)) {
             HStack(spacing: 8) {
                 Text("Add Target")
                     .foregroundColor(.white)
@@ -42,7 +43,8 @@ struct DrillSetupSectionView_Previews: PreviewProvider {
                         DrillTargetsConfig(seqNo: 1, targetName: "Target A", targetType: "Standard", timeout: 30, countedShots: 5),
                         DrillTargetsConfig(seqNo: 2, targetName: "Target B", targetType: "Paper", timeout: 25, countedShots: 3),
                         DrillTargetsConfig(seqNo: 3, targetName: "Target C", targetType: "Electronic", timeout: 20, countedShots: 10)
-                    ])
+                    ]),
+                    onTargetConfigDone: {}
                 )
             }
             .padding()
