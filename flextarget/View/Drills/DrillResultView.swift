@@ -1,11 +1,43 @@
 import SwiftUI
 import CoreData
 
+// Codable structs for JSON decoding
+struct ShotData: Codable {
+    let target: String?
+    let content: Content
+    let type: String?
+    let action: String?
+    let device: String?
+}
+
+struct Content: Codable {
+    let command: String
+    let hitArea: String
+    let hitPosition: HitPosition
+    let rotationAngle: Int
+    let targetType: String
+    let timeDiff: Double
+
+    enum CodingKeys: String, CodingKey {
+        case command
+        case hitArea = "hit_area"
+        case hitPosition = "hit_position"
+        case rotationAngle = "rotation_angle"
+        case targetType = "target_type"
+        case timeDiff = "time_diff"
+    }
+}
+
+struct HitPosition: Codable {
+    let x: Double
+    let y: Double
+}
+
 struct DrillResultView: View {
     let drillSetup: DrillSetup
     
     // Array to store received shots
-    @State private var shots: [[String: Any]] = []
+    @State private var shots: [ShotData] = []
     
     // Timer for drill duration
     @State private var drillTimer: Timer?
@@ -13,9 +45,6 @@ struct DrillResultView: View {
     
     // Mock data for target icons (keeping for now)
     let targetIcons = ["hostage", "ipsc", "paddle", "popper", "rotation", "special_1", "special_2"]
-    
-    // Mock data for time differences (in seconds) - will be replaced with real data
-    let timeDiffs = [0.5, 1.2, 0.8, 2.1, 1.5, 0.9, 1.8]
     
     @State private var selectedIcon: String = "hostage"
     
@@ -31,68 +60,10 @@ struct DrillResultView: View {
     
     var body: some View {
         GeometryReader { geometry in
+            let screenWidth = geometry.size.width
             let screenHeight = geometry.size.height
-            let frameHeight = screenHeight * 2 / 3
-            let frameWidth = frameHeight * (268 / 476.4)
-            
+
             ZStack {
-                VStack(spacing: 20) {
-                    // Black rectangular frame in the center
-                    ZStack {
-                        Rectangle()
-                            .fill(Color.black)
-                            .frame(width: frameWidth, height: frameHeight)
-                        
-                        Image(selectedIcon)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: frameWidth * 0.8, height: frameHeight * 0.8)
-                        
-                        // Display shots as red circles
-                        ForEach(shots.indices, id: \.self) { index in
-                            let shot = shots[index]
-                            if let content = shot["content"] as? [String: Any],
-                               let hitPosition = content["hit_position"] as? [String: Any],
-                               let xStr = hitPosition["x"] as? String,
-                               let yStr = hitPosition["y"] as? String,
-                               let x = Double(xStr),
-                               let y = Double(yStr) {
-                                let imageWidth = frameWidth * 0.8
-                                let imageHeight = frameHeight * 0.8
-                                let scaleX = imageWidth / 720.0
-                                let scaleY = imageHeight / 1280.0
-                                let offsetX = frameWidth * 0.1
-                                let offsetY = frameHeight * 0.1
-                                let posX = offsetX + x * scaleX
-                                let posY = offsetY + y * scaleY
-                                
-                                Circle()
-                                    .fill(Color.red)
-                                    .frame(width: 10, height: 10)
-                                    .position(x: posX, y: posY)
-                            }
-                        }
-                        
-                        // Display shots as red circles
-                        ForEach(shots.indices, id: \.self) { index in
-                            let shot = shots[index]
-                            if let x = shot["x"] as? Double, let y = shot["y"] as? Double {
-                                let imageWidth = frameWidth * 0.8
-                                let imageHeight = frameHeight * 0.8
-                                let scaleX = imageWidth / 720.0
-                                let scaleY = imageHeight / 1280.0
-                                let offsetX = frameWidth * 0.1
-                                let offsetY = frameHeight * 0.1
-                                let posX = offsetX + x * scaleX
-                                let posY = offsetY + y * scaleY
-                                
-                                Circle()
-                                    .fill(Color.red)
-                                    .frame(width: 10, height: 10)
-                                    .position(x: posX, y: posY)
-                            }
-                        }
-                    }
                     
                     // Horizontal scroller below the frame
                     ScrollView(.horizontal, showsIndicators: false) {
@@ -113,6 +84,31 @@ struct DrillResultView: View {
                         .padding(.horizontal)
                     }
                     .frame(height: 100)
+        
+                    // Center display for shot count
+                    VStack {
+                        Spacer()
+                        Text("Shots: \(shots.count)")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                            .padding()
+                            .background(Color.black.opacity(0.7))
+                            .cornerRadius(10)
+                        Spacer()
+                    }
+                
+                // Shot position markers
+                ForEach(shots.indices, id: \.self) { index in
+                    let shot = shots[index]
+                    let x = shot.content.hitPosition.x
+                    let y = shot.content.hitPosition.y
+                    // Transform coordinates from 720×1280 source to screen dimensions
+                    let transformedX = x * (screenWidth / 720.0)
+                    let transformedY = y * (screenHeight / 1280.0)
+                    Text("⭐")
+                        .font(.title)
+                        .position(x: transformedX, y: transformedY)
                 }
                 
                 // Bottom right overlay list
@@ -121,10 +117,16 @@ struct DrillResultView: View {
                         HStack {
                         Spacer()
                         VStack(alignment: .leading, spacing: 5) {
-                            Text("Time Diffs:")
+                            Text("Hit Positions:")
                                 .font(.headline)
-                            ForEach(timeDiffs.indices, id: \.self) { index in
-                                Text("Shot \(index + 1): \(String(format: "%.1f", timeDiffs[index]))s")
+                            ForEach(shots.indices, id: \.self) { index in
+                                let shot = shots[index]
+                                let x = shot.content.hitPosition.x
+                                let y = shot.content.hitPosition.y
+                                // Transform coordinates from 720×1280 source to screen dimensions
+                                let transformedX = x * (screenWidth / 720.0)
+                                let transformedY = y * (screenHeight / 1280.0)
+                                Text("Shot \(index + 1): (\(String(format: "%.1f", transformedX)), \(String(format: "%.1f", transformedY)))")
                                     .font(.subheadline)
                             }
                         }
@@ -132,7 +134,7 @@ struct DrillResultView: View {
                         .background(Color.white.opacity(0.9))
                         .cornerRadius(10)
                         .shadow(radius: 5)
-                        .frame(width: 150)
+                        .frame(width: 200)
                     }
                     .padding(.trailing, 20)
                     .padding(.bottom, 20)
@@ -175,8 +177,27 @@ struct DrillResultView: View {
             object: nil,
             queue: .main
         ) { notification in
-            if let shotData = notification.userInfo?["shot_data"] as? [String: Any] {
-                shots.append(shotData)
+            if let shotDict = notification.userInfo?["shot_data"] as? [String: Any] {
+                do {
+                    // Convert dict to JSON data for decoding
+                    let jsonData = try JSONSerialization.data(withJSONObject: shotDict, options: [])
+                    let shotData = try JSONDecoder().decode(ShotData.self, from: jsonData)
+                    
+                    // Check for duplicates based on hit position
+                    let isDuplicate = shots.contains { existingShot in
+                        existingShot.content.hitPosition.x == shotData.content.hitPosition.x &&
+                        existingShot.content.hitPosition.y == shotData.content.hitPosition.y
+                    }
+                    
+                    if !isDuplicate {
+                        shots.append(shotData)
+                        print("Added new shot at position: (\(shotData.content.hitPosition.x), \(shotData.content.hitPosition.y))")
+                    } else {
+                        print("Ignored duplicate shot")
+                    }
+                } catch {
+                    print("Failed to decode shot data: \(error)")
+                }
             }
         }
     }
@@ -188,7 +209,7 @@ struct DrillResultView: View {
     private func onDrillTimerExpired() {
         print("Drill timer expired. Shots received:")
         for (index, shot) in shots.enumerated() {
-            print("Shot \(index + 1): \(shot)")
+            print("Shot \(index + 1): (\(shot.content.hitPosition.x), \(shot.content.hitPosition.y))")
         }
         
         // Save drill results to Core Data
@@ -202,15 +223,14 @@ struct DrillResultView: View {
         
         for shotData in shots {
             let shot = Shot(context: viewContext)
-            // Convert shot data to JSON string
             do {
-                let jsonData = try JSONSerialization.data(withJSONObject: shotData, options: [])
+                let jsonData = try JSONEncoder().encode(shotData)
                 shot.data = String(data: jsonData, encoding: .utf8)
             } catch {
                 print("Failed to encode shot data: \(error)")
                 shot.data = nil
             }
-            shot.timestamp = Date() // You might want to extract timestamp from shotData if available
+            shot.timestamp = Date()
             shot.drillResult = drillResult
         }
         
