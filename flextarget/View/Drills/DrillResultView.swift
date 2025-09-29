@@ -47,6 +47,51 @@ struct DrillResultView: View {
                             .resizable()
                             .scaledToFit()
                             .frame(width: frameWidth * 0.8, height: frameHeight * 0.8)
+                        
+                        // Display shots as red circles
+                        ForEach(shots.indices, id: \.self) { index in
+                            let shot = shots[index]
+                            if let content = shot["content"] as? [String: Any],
+                               let hitPosition = content["hit_position"] as? [String: Any],
+                               let xStr = hitPosition["x"] as? String,
+                               let yStr = hitPosition["y"] as? String,
+                               let x = Double(xStr),
+                               let y = Double(yStr) {
+                                let imageWidth = frameWidth * 0.8
+                                let imageHeight = frameHeight * 0.8
+                                let scaleX = imageWidth / 720.0
+                                let scaleY = imageHeight / 1280.0
+                                let offsetX = frameWidth * 0.1
+                                let offsetY = frameHeight * 0.1
+                                let posX = offsetX + x * scaleX
+                                let posY = offsetY + y * scaleY
+                                
+                                Circle()
+                                    .fill(Color.red)
+                                    .frame(width: 10, height: 10)
+                                    .position(x: posX, y: posY)
+                            }
+                        }
+                        
+                        // Display shots as red circles
+                        ForEach(shots.indices, id: \.self) { index in
+                            let shot = shots[index]
+                            if let x = shot["x"] as? Double, let y = shot["y"] as? Double {
+                                let imageWidth = frameWidth * 0.8
+                                let imageHeight = frameHeight * 0.8
+                                let scaleX = imageWidth / 720.0
+                                let scaleY = imageHeight / 1280.0
+                                let offsetX = frameWidth * 0.1
+                                let offsetY = frameHeight * 0.1
+                                let posX = offsetX + x * scaleX
+                                let posY = offsetY + y * scaleY
+                                
+                                Circle()
+                                    .fill(Color.red)
+                                    .frame(width: 10, height: 10)
+                                    .position(x: posX, y: posY)
+                            }
+                        }
                     }
                     
                     // Horizontal scroller below the frame

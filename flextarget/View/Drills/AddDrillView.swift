@@ -66,10 +66,27 @@ struct AddDrillView: View {
                         }
                         VStack(spacing: 20) {
                             // History Record Button
-                            HistoryRecordButtonView {
-                                // TODO: Implement history record functionality
-                                print("History Record button tapped")
+                            NavigationLink(destination: DrillRecordView()) {
+                                HStack {
+                                    RoundedRectangle(cornerRadius: 24)
+                                        .stroke(Color.red, lineWidth: 1)
+                                        .background(RoundedRectangle(cornerRadius: 16).fill(Color.clear))
+                                        .frame(height: 36)
+                                        .overlay(
+                                            HStack(spacing: 8) {
+                                                Image(systemName: "clock.arrow.circlepath")
+                                                    .foregroundColor(.red)
+                                                    .font(.title3)
+                                                Text("History Record")
+                                                    .foregroundColor(.white)
+                                                    .font(.footnote)
+                                            }
+                                        )
+                                        .padding(.horizontal)
+                                        .padding(.top)
+                                }
                             }
+                            .buttonStyle(PlainButtonStyle())
                             ScrollView {
                             // Grouped Section: Drill Name, Description, Add Video
                             VStack(spacing: 20) {
