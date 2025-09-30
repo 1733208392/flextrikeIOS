@@ -33,10 +33,18 @@ struct DeviceListResponse: Codable {
     let data: [NetworkDevice]
 }
 
-struct DiscoveredPeripheral: Identifiable {
+struct DiscoveredPeripheral: Identifiable, Hashable {
     let id: UUID
     let name: String
     let peripheral: CBPeripheral
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+    
+    static func == (lhs: DiscoveredPeripheral, rhs: DiscoveredPeripheral) -> Bool {
+        lhs.id == rhs.id
+    }
 }
 
 enum BLEError: Error, LocalizedError {
@@ -61,6 +69,10 @@ protocol BLEManagerProtocol {
     var isConnected: Bool { get }
     func write(data: Data, completion: @escaping (Bool) -> Void)
 }
+
+// Backwards-compatibility: some views reference an older protocol name `ConnectSmartTargetBLEProtocol`.
+// Provide a typealias so both names refer to the same protocol and avoid compilation errors.
+typealias ConnectSmartTargetBLEProtocol = BLEManagerProtocol
 
 class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeripheralDelegate {
     // Shared singleton instance for app-wide use
@@ -90,8 +102,17 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
     private let targetServiceUUID = CBUUID(string: "0000FFC9-0000-1000-8000-00805F9B34FB")
 
     
-    private var serviceDiscoveryRetries: [UUID: Int] = [:]
-    private let maxServiceDiscoveryRetries = 5
+    private var connectionAttemptFailed = false
+    private var connectionTimer: Timer?
+    
+    private func timeoutConnection() {
+        print("Connection timeout after 30 seconds")
+        stopScan()
+        disconnect()
+        connectionAttemptFailed = true
+        connectionTimer?.invalidate()
+        connectionTimer = nil
+    }
     
 //    private let notifyCharacteristicUUID = CBUUID(string: "0C8E3F1E-5654-4C41-B93B-CEA35001ED01")
     private let notifyCharacteristicUUID = CBUUID(string: "0000FFE1-0000-1000-8000-00805F9B34FB")
@@ -141,6 +162,12 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
         // Start with a targeted scan for the service UUID
         centralManager.scanForPeripherals(withServices: [advServiceUUID], options: [CBCentralManagerScanOptionAllowDuplicatesKey: false])
 
+        // Start 20s scan timer
+        connectionTimer?.invalidate()
+        connectionTimer = Timer.scheduledTimer(withTimeInterval: 20.0, repeats: false) { [weak self] _ in
+            self?.completeScan()
+        }
+
         // Schedule fallback to broad scan if nothing found within targetedScanDuration
         fallbackScanTimer?.invalidate()
         fallbackScanTimer = Timer.scheduledTimer(withTimeInterval: targetedScanDuration, repeats: false) { [weak self] _ in
@@ -159,6 +186,12 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
         fallbackScanTimer?.invalidate()
         fallbackScanTimer = nil
         pendingStartScan = false
+        connectionTimer?.invalidate()
+        connectionTimer = nil
+    }
+    
+    func completeScan() {
+        stopScan()
     }
     
     // MARK: - Connect
@@ -173,7 +206,22 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
         centralManager.connect(peripheral, options: nil)
     }
     
+    func connectToSelectedPeripheral(_ discoveredPeripheral: DiscoveredPeripheral) {
+        error = nil
+        stopScan()
+        connectingPeripheral = discoveredPeripheral.peripheral
+        discoveredPeripheral.peripheral.delegate = self
+        centralManager.connect(discoveredPeripheral.peripheral, options: nil)
+        
+        // Start 10s connection timer
+        connectionTimer?.invalidate()
+        connectionTimer = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: false) { [weak self] _ in
+            self?.timeoutConnection()
+        }
+    }
+    
     func disconnect() {
+        connectionAttemptFailed = true
         if let peripheral = connectingPeripheral {
             //print device is disconnected
             print("Device is disconnected")
@@ -222,10 +270,7 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
                 let discovered = DiscoveredPeripheral(id: peripheral.identifier, name: name, peripheral: peripheral)
                 discoveredPeripherals.append(discovered)
             }
-            // Connect if not already connecting/connected
-            if connectingPeripheral == nil && connectedPeripheral?.id != peripheral.identifier {
-                connect(to: peripheral)
-            }
+            // Do not auto-connect, let the view handle selection
         }
     }
     
@@ -235,9 +280,9 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
             connectedPeripheral = found
         }
         peripheral.delegate = self
-        serviceDiscoveryRetries[peripheral.identifier] = 0
         // Discover only the target service
-        peripheral.discoverServices([targetServiceUUID])    }
+        peripheral.discoverServices([targetServiceUUID])
+    }
     
     func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
         isConnected = false
@@ -252,11 +297,9 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
         if let err = error {
             self.error = .disconnected(err.localizedDescription)
         }
-        // Retry service discovery if disconnected
-        self.startScan()
+        // Do not auto-retry scan, let the view handle reconnection logic
     }
     
-    // MARK: - CBPeripheralDelegate (implement as needed)
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
         if let error = error {
             print("Service discovery failed: \(error.localizedDescription)")
@@ -265,23 +308,11 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
         guard let services = peripheral.services else { return }
         if let targetService = services.first(where: { $0.uuid == targetServiceUUID }) {
             print("Found target service: \(targetService.uuid)")
-            serviceDiscoveryRetries[peripheral.identifier] = nil
-             peripheral.discoverCharacteristics(nil, for: targetService)
+            peripheral.discoverCharacteristics(nil, for: targetService)
         } else {
-            let retries = (serviceDiscoveryRetries[peripheral.identifier] ?? 0) + 1
-            if retries <= maxServiceDiscoveryRetries {
-                print("Target service not found, retrying (\(retries))...")
-                serviceDiscoveryRetries[peripheral.identifier] = retries
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    peripheral.discoverServices([self.targetServiceUUID])
-                }
-            } else {
-                print("Target service not found after \(maxServiceDiscoveryRetries) retries.")
-                serviceDiscoveryRetries[peripheral.identifier] = nil
-                //Send disconnect to peripheral
-                centralManager.cancelPeripheralConnection(peripheral)
-            }
-            
+            print("Target service not found.")
+            connectionAttemptFailed = true
+            centralManager.cancelPeripheralConnection(peripheral)
             isConnected = false
         }
     }
@@ -308,6 +339,10 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
         let ready = (writeCharacteristic != nil) && (notifyCharacteristic != nil)
         DispatchQueue.main.async {
             self.isReady = ready
+            if ready {
+                self.connectionTimer?.invalidate()
+                self.connectionTimer = nil
+            }
         }
     }
     

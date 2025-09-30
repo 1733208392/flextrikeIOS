@@ -46,7 +46,7 @@ struct OrientationView: View {
                 }
             }
             .navigationDestination(isPresented: $navigateToConnect) {
-                ConnectSmartTargetView(bleManager: bleManager)
+                ConnectSmartTargetView(bleManager: bleManager, navigateToMain: .constant(false))
                     .toolbar(.hidden, for: .navigationBar)
                     .navigationBarBackButtonHidden(true)
             }
