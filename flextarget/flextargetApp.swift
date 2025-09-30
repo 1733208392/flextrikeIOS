@@ -40,9 +40,11 @@ struct flextargetApp: App {
             } else {
 //                OrientationView() // Replace with your main view
 //                    .environmentObject(bleManager)
-                ConnectSmartTargetView(bleManager: bleManager)
-                    .environmentObject(bleManager)
-                    .environment(\.managedObjectContext, persistenceController.container.viewContext)
+                NavigationStack {
+                    DrillMainPageView()
+                        .environmentObject(bleManager)
+                        .environment(\.managedObjectContext, persistenceController.container.viewContext)
+                }
             }
         }
     }

@@ -1,8 +1,10 @@
 import SwiftUI
 
-struct MainPageView: View {
+struct DrillMainPageView: View {
     @EnvironmentObject var bleManager: BLEManager
     @State private var showDrillList = false
+    @State private var showConnectView = false
+    @State private var showInfo = false
     var body: some View {
         NavigationStack {
             ZStack {
@@ -12,10 +14,18 @@ struct MainPageView: View {
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
                             HStack(spacing: 8) {
-                                //system icon "bluetooth" (blue) when bleManager.isConnected == true
-                                Image(systemName: bleManager.isConnected ? "bolt.horizontal.circle.fill" : "bolt.horizontal.circle")
-                                    .foregroundColor(bleManager.isConnected ? .blue : .gray)
-                                Text(bleManager.connectedPeripheral?.name ?? (bleManager.isConnected ? "CONNECTED" : "Device Disconnected"))
+                                Button(action: {
+                                    if !bleManager.isConnected {
+                                        showConnectView = true
+                                    }
+                                }) {
+                                    Image(bleManager.isConnected ? "BleConnect": "BleDisconnect")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 22, height: 22)
+                                }
+
+                                Text(bleManager.connectedPeripheral?.name ?? (bleManager.isConnected ? "Target Connected" : "Target Disconnected"))
                                     .font(.footnote)
                                     .foregroundColor(.gray)
                             }
@@ -25,11 +35,10 @@ struct MainPageView: View {
                             .cornerRadius(16)
                         }
                         Spacer()
-                        Button(action: {}) {
-                            Image(systemName: "gearshape.fill")
-                                .foregroundColor(.orange)
-                                .font(.system(size: 28))
-                                .padding(8)
+                        Button(action: { showInfo = true }) {
+                            Image(systemName: "info.circle")
+                                .foregroundColor(.white)
+                                .font(.title2)
                         }
                     }
                     .padding(.horizontal)
@@ -54,7 +63,7 @@ struct MainPageView: View {
                                 .padding(.top, 12)
                                 .padding(.horizontal, 16)
                                 // Demo Image
-                                Image("test")
+                                Image(systemName: "photo")
                                     .resizable()
                                     .aspectRatio(contentMode: .fill)
                                     .frame(height: 160)
@@ -129,6 +138,22 @@ struct MainPageView: View {
                 DrillListView()
                 /*DrillSetupEntryView()*/
             }
+            .sheet(isPresented: $showConnectView) {
+                ConnectSmartTargetWrapper(onDismiss: { showConnectView = false })
+            }
+            .sheet(isPresented: $showInfo) {
+                InformationPage()
+            }
+            .onAppear {
+                if !bleManager.isConnected {
+                    showConnectView = true
+                }
+            }
+            .onChange(of: bleManager.isConnected) { oldValue, newValue in
+                if !newValue {
+                    showConnectView = true
+                }
+            }
         }
     }
 }
@@ -157,7 +182,15 @@ struct MainMenuButton: View {
     }
 }
 
+struct ConnectSmartTargetWrapper: View {
+    @EnvironmentObject var bleManager: BLEManager
+    let onDismiss: () -> Void
+    var body: some View {
+        ConnectSmartTargetView(bleManager: bleManager, navigateToMain: .constant(false), onConnected: onDismiss)
+    }
+}
+
 #Preview {
-    MainPageView()
+    DrillMainPageView()
         .environmentObject(BLEManager.shared)
 }
