@@ -15,6 +15,7 @@ extension DrillResult {
     @NSManaged public var date: Date?
     @NSManaged public var drillId: UUID?
     @NSManaged public var shots: NSSet?
+    @NSManaged public var drillSetup: DrillSetup?
 
 }
 

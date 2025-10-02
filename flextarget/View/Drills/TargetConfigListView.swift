@@ -4,7 +4,7 @@ import SwiftUI
 struct TargetConfigListView: View {
     @Environment(\.dismiss) private var dismiss
     let deviceList: [NetworkDevice]
-    @Binding var targetConfigs: [DrillTargetsConfig]
+    @Binding var targetConfigs: [DrillTargetsConfigData]
     let onDone: () -> Void
 
     private let iconNames = [
@@ -101,7 +101,7 @@ struct TargetConfigListView: View {
         .padding(.bottom, 24)
     }
 
-    private func availableDevices(for config: DrillTargetsConfig) -> [NetworkDevice] {
+    private func availableDevices(for config: DrillTargetsConfigData) -> [NetworkDevice] {
         deviceList.filter { device in
             !targetConfigs.contains(where: { $0.targetName == device.name && $0.id != config.id })
         }
@@ -109,7 +109,7 @@ struct TargetConfigListView: View {
 
     private func addNewTarget() {
         let nextSeqNo = (targetConfigs.map { $0.seqNo }.max() ?? 0) + 1
-        let newConfig = DrillTargetsConfig(
+        let newConfig = DrillTargetsConfigData(
             seqNo: nextSeqNo,
             targetName: "",
             targetType: "hostage",
@@ -144,7 +144,7 @@ struct TargetConfigListView: View {
 }
 
 struct TargetRowView: View {
-    @Binding var config: DrillTargetsConfig
+    @Binding var config: DrillTargetsConfigData
     let availableDevices: [NetworkDevice]
 
     private let iconNames = [

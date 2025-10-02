@@ -7,6 +7,7 @@ import PhotosUI
  */
 
 struct AddDrillView: View {
+    let bleManager: BLEManager
     @State private var drillName: String = ""
     @State private var description: String = ""
     @State private var demoVideoURL: URL? = nil
@@ -16,20 +17,20 @@ struct AddDrillView: View {
     @State private var showVideoPlayer: Bool = false
     @State private var delayType: DelayConfigurationView.DelayType = .fixed
     @State private var delayValue: Double = 0
-    @State private var targets: [DrillTargetsConfig] = []
+    @State private var targets: [DrillTargetsConfigData] = []
     @State private var isTargetListReceived: Bool = false
-    @EnvironmentObject private var bleManager: BLEManager
     @Environment(\.presentationMode) var presentationMode
-    @State private var targetConfigs: [DrillTargetsConfig] = []
+    @State private var targetConfigs: [DrillTargetsConfigData] = []
+    @State private var networkDevices: [NetworkDevice] = []
     
-    private func buildDrillSetup() -> DrillSetup {
-        return DrillSetup(
+    private func buildDrillSetup() -> DrillSetupData {
+        return DrillSetupData(
             name: drillName,
             description: description,
             demoVideoURL: demoVideoURL,
             thumbnailURL: thumbnailFileURL,
             delay: delayValue,
-            targets: targets
+            targets: targetConfigs
         )
     }
     
@@ -124,6 +125,7 @@ struct AddDrillView: View {
                             // Drill Setup Field
                             TargetsSectionView(
                                 isTargetListReceived: $isTargetListReceived,
+                                bleManager: bleManager,
                                 targetConfigs: $targetConfigs,
                                 onTargetConfigDone: { targets = targetConfigs }
                             )
@@ -133,11 +135,17 @@ struct AddDrillView: View {
                             // Bottom Buttons
                             HStack {
                                 Button(action: {
+                                    guard bleManager.isConnected else { return }
+                                    guard !networkDevices.isEmpty else { return }
                                     targets = targetConfigs
                                     if validateFields() {
                                         let setup = buildDrillSetup()
-                                        DrillSetupStorage.shared.addDrillSetup(setup)
-                                        presentationMode.wrappedValue.dismiss()
+                                        do {
+                                            try DrillRepository.shared.saveDrillSetup(setup)
+                                            presentationMode.wrappedValue.dismiss()
+                                        } catch {
+                                            print("Failed to save drill setup: \(error)")
+                                        }
                                     }
                                 }) {
                                     Text("Save Drill")
@@ -191,6 +199,7 @@ struct AddDrillView: View {
            let deviceList = userInfo["device_list"] as? [NetworkDevice] {
             print("Device list received with \(deviceList.count) devices")
             DispatchQueue.main.async {
+                self.networkDevices = deviceList
                 self.isTargetListReceived = true
             }
         }
@@ -199,21 +208,37 @@ struct AddDrillView: View {
 
 struct AddDrillView_Previews: PreviewProvider {
     static var previews: some View {
-        AddDrillView()
+        AddDrillView(bleManager: BLEManager.shared)
+            .environmentObject(BLEManager.shared)
     }
 }
 
 import SwiftUI
 
 struct AddDrillEntryView: View {
-    @ObservedObject private var storage = DrillSetupStorage.shared
+    @EnvironmentObject var bleManager: BLEManager
+    @State private var drillSetups: [DrillSetupData] = []
     
     var body: some View {
-        if storage.drillSetups.isEmpty {
-            AddDrillView()
-        } else {
-            // TODO: Handle the case when there are existing DrillSetups
-            Text("Drill setups exist. TODO: Show list or main view.")
+        VStack {
+            if drillSetups.isEmpty {
+                AddDrillView(bleManager: bleManager)
+            } else {
+                // TODO: Handle the case when there are existing DrillSetups
+                Text("Drill setups exist. TODO: Show list or main view.")
+            }
+        }
+        .onAppear {
+            loadDrills()
+        }
+    }
+    
+    private func loadDrills() {
+        do {
+            drillSetups = try DrillRepository.shared.fetchAllDrillSetups()
+        } catch {
+            print("Failed to load drills: \(error)")
+            drillSetups = []
         }
     }
 }

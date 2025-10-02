@@ -5,8 +5,8 @@ import SwiftUI
 
 struct TargetsSectionView: View {
     @Binding var isTargetListReceived: Bool
-    @EnvironmentObject private var bleManager: BLEManager
-    @Binding var targetConfigs: [DrillTargetsConfig]
+    let bleManager: BLEManager
+    @Binding var targetConfigs: [DrillTargetsConfigData]
     let onTargetConfigDone: () -> Void
 
     var body: some View {
@@ -39,15 +39,17 @@ struct DrillSetupSectionView_Previews: PreviewProvider {
             VStack(spacing: 20) {
                 TargetsSectionView(
                     isTargetListReceived: .constant(true),
+                    bleManager: BLEManager.shared,
                     targetConfigs: .constant([
-                        DrillTargetsConfig(seqNo: 1, targetName: "Target A", targetType: "Standard", timeout: 30, countedShots: 5),
-                        DrillTargetsConfig(seqNo: 2, targetName: "Target B", targetType: "Paper", timeout: 25, countedShots: 3),
-                        DrillTargetsConfig(seqNo: 3, targetName: "Target C", targetType: "Electronic", timeout: 20, countedShots: 10)
+                        DrillTargetsConfigData(seqNo: 1, targetName: "Target A", targetType: "Standard", timeout: 30, countedShots: 5),
+                        DrillTargetsConfigData(seqNo: 2, targetName: "Target B", targetType: "Paper", timeout: 25, countedShots: 3),
+                        DrillTargetsConfigData(seqNo: 3, targetName: "Target C", targetType: "Electronic", timeout: 20, countedShots: 10)
                     ]),
                     onTargetConfigDone: {}
                 )
             }
             .padding()
         }
+        .environmentObject(BLEManager.shared)
     }
 }

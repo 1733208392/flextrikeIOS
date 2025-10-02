@@ -66,7 +66,7 @@ struct DrillMainPageView: View {
                 }
             }
             .navigationDestination(isPresented: $showDrillList) {
-                DrillListView()
+                DrillListView(bleManager: bleManager)
                 /*DrillSetupEntryView()*/
             }
             .sheet(isPresented: $showConnectView) {

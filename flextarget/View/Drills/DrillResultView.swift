@@ -53,8 +53,9 @@ struct DrillResultView: View {
     init(drillSetup: DrillSetup) {
         self.drillSetup = drillSetup
         // Set selected icon based on first target type if available
-        if let firstTarget = drillSetup.targets.first {
-            _selectedIcon = State(initialValue: firstTarget.targetType)
+        if let targets = drillSetup.targets as? Set<DrillTargetsConfig>,
+           let firstTarget = targets.first {
+            _selectedIcon = State(initialValue: firstTarget.targetType ?? "")
         }
     }
     
@@ -153,7 +154,8 @@ struct DrillResultView: View {
     }
     
     private func startDrillTimer() {
-        guard let firstTarget = drillSetup.targets.first else { return }
+        guard let targets = drillSetup.targets as? Set<DrillTargetsConfig>,
+              let firstTarget = targets.first else { return }
         let duration = drillSetup.delay + firstTarget.timeout + 1
         timeRemaining = duration
         
@@ -244,13 +246,13 @@ struct DrillResultView: View {
 }
 
 #Preview {
-    let mockDrillSetup = DrillSetup(
-        name: "Test Drill",
-        description: "Test drill description",
-        delay: 2.0,
-        targets: [
-            DrillTargetsConfig(seqNo: 1, targetName: "target1", targetType: "paddle", timeout: 5.0, countedShots: 3)
-        ]
-    )
-    DrillResultView(drillSetup: mockDrillSetup)
+    let context = PersistenceController.preview.container.viewContext
+    let mockDrillSetup = DrillSetup(context: context)
+    mockDrillSetup.id = UUID()
+    mockDrillSetup.name = "Test Drill"
+    mockDrillSetup.desc = "Test drill description"
+    mockDrillSetup.delay = 2.0
+    
+    return DrillResultView(drillSetup: mockDrillSetup)
+        .environment(\.managedObjectContext, context)
 }

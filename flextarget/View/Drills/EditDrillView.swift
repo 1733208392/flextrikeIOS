@@ -8,6 +8,7 @@ import PhotosUI
 
 struct EditDrillView: View {
     let drillSetup: DrillSetup
+    let bleManager: BLEManager
     @State private var drillName: String = ""
     @State private var description: String = ""
     @State private var demoVideoURL: URL? = nil
@@ -17,22 +18,26 @@ struct EditDrillView: View {
     @State private var showVideoPlayer: Bool = false
     @State private var delayType: DelayConfigurationView.DelayType = .fixed
     @State private var delayValue: Double = 0
-    @State private var targets: [DrillTargetsConfig] = []
+    @State private var targets: [DrillTargetsConfigData] = []
     @State private var isTargetListReceived: Bool = false
-    @EnvironmentObject private var bleManager: BLEManager
     @Environment(\.presentationMode) var presentationMode
-    @State private var targetConfigs: [DrillTargetsConfig] = []
+    @State private var targetConfigs: [DrillTargetsConfigData] = []
     @State private var navigateToDrillResult: Bool = false
     
-    init(drillSetup: DrillSetup) {
+    init(drillSetup: DrillSetup, bleManager: BLEManager) {
         self.drillSetup = drillSetup
-        _drillName = State(initialValue: drillSetup.name)
-        _description = State(initialValue: drillSetup.description)
+        self.bleManager = bleManager
+        _drillName = State(initialValue: drillSetup.name ?? "")
+        _description = State(initialValue: drillSetup.desc ?? "")
         _demoVideoURL = State(initialValue: drillSetup.demoVideoURL)
         _thumbnailFileURL = State(initialValue: drillSetup.thumbnailURL)
         _delayValue = State(initialValue: drillSetup.delay)
-        _targets = State(initialValue: drillSetup.targets)
-        _targetConfigs = State(initialValue: drillSetup.targets)
+        
+        // Convert NSSet to Array and transform to Data structs
+        let coreDataTargets = (drillSetup.targets as? Set<DrillTargetsConfig>) ?? []
+        let targetsArray = coreDataTargets.sorted(by: { $0.seqNo < $1.seqNo }).map { $0.toStruct() }
+        _targets = State(initialValue: targetsArray)
+        _targetConfigs = State(initialValue: targetsArray)
     }
     
     private func loadThumbnail() {
@@ -47,15 +52,31 @@ struct EditDrillView: View {
     }
     
     private func buildDrillSetup() -> DrillSetup {
-        return DrillSetup(
-            id: drillSetup.id,
-            name: drillName,
-            description: description,
-            demoVideoURL: demoVideoURL,
-            thumbnailURL: thumbnailFileURL,
-            delay: delayValue,
-            targets: targets
-        )
+        // Update the existing drill setup with new values
+        drillSetup.name = drillName
+        drillSetup.desc = description
+        drillSetup.demoVideoURL = demoVideoURL
+        drillSetup.thumbnailURL = thumbnailFileURL
+        drillSetup.delay = delayValue
+        
+        // Clear existing targets and add updated ones
+        if let existingTargets = drillSetup.targets {
+            drillSetup.removeFromTargets(existingTargets)
+        }
+        
+        // Convert targetConfigs back to CoreData objects and add them
+        for targetData in targetConfigs {
+            let target = DrillTargetsConfig(context: drillSetup.managedObjectContext!)
+            target.id = targetData.id
+            target.seqNo = Int32(targetData.seqNo)
+            target.targetName = targetData.targetName
+            target.targetType = targetData.targetType
+            target.timeout = targetData.timeout
+            target.countedShots = Int32(targetData.countedShots)
+            target.drillSetup = drillSetup
+        }
+        
+        return drillSetup
     }
     
     private func validateFields() -> Bool {
@@ -149,6 +170,7 @@ struct EditDrillView: View {
                             // Drill Setup Field
                             TargetsSectionView(
                                 isTargetListReceived: $isTargetListReceived,
+                                bleManager: BLEManager.shared,
                                 targetConfigs: $targetConfigs,
                                 onTargetConfigDone: { targets = targetConfigs }
                             )
@@ -161,8 +183,12 @@ struct EditDrillView: View {
                                     targets = targetConfigs
                                     if validateFields() {
                                         let setup = buildDrillSetup()
-                                        DrillSetupStorage.shared.updateDrillSetup(setup)
-                                        presentationMode.wrappedValue.dismiss()
+                                        do {
+                                            try DrillRepository.shared.saveDrillSetup(setup.toStruct())
+                                            presentationMode.wrappedValue.dismiss()
+                                        } catch {
+                                            print("Failed to save drill setup: \(error)")
+                                        }
                                     }
                                 }) {
                                     Text("Save Changes")
@@ -212,7 +238,12 @@ struct EditDrillView: View {
         }
         let setup = buildDrillSetup()
         targets = targetConfigs
-        for (index, target) in setup.targets.enumerated() {
+        
+        // Convert NSSet to Array and enumerate
+        guard let targetsSet = setup.targets as? Set<DrillTargetsConfig> else { return }
+        let sortedTargets = targetsSet.sorted { $0.seqNo < $1.seqNo }
+        
+        for (index, target) in sortedTargets.enumerated() {
             do {
                 let delay = index == 0 ? setup.delay : 0
                 let content: [String: Any] = [
@@ -270,14 +301,24 @@ struct EditDrillView: View {
 
 struct EditDrillView_Previews: PreviewProvider {
     static var previews: some View {
-        let sampleDrillSetup = DrillSetup(
-            name: "Sample Drill",
-            description: "A sample drill for testing",
-            delay: 5.0,
-            targets: [
-                DrillTargetsConfig(seqNo: 1, targetName: "Target 1", targetType: "Standard", timeout: 30, countedShots: 5)
-            ]
-        )
-        EditDrillView(drillSetup: sampleDrillSetup)
+        let context = PersistenceController.preview.container.viewContext
+        let sampleDrillSetup = DrillSetup(context: context)
+        sampleDrillSetup.id = UUID()
+        sampleDrillSetup.name = "Sample Drill"
+        sampleDrillSetup.desc = "A sample drill for testing"
+        sampleDrillSetup.delay = 5.0
+        
+        let sampleTarget = DrillTargetsConfig(context: context)
+        sampleTarget.id = UUID()
+        sampleTarget.seqNo = 1
+        sampleTarget.targetName = "Target 1"
+        sampleTarget.targetType = "Standard"
+        sampleTarget.timeout = 30
+        sampleTarget.countedShots = 5
+        sampleTarget.drillSetup = sampleDrillSetup
+        
+        return EditDrillView(drillSetup: sampleDrillSetup, bleManager: BLEManager.shared)
+            .environment(\.managedObjectContext, context)
+            .environmentObject(BLEManager.shared)
     }
 }

@@ -9,9 +9,11 @@
 import SwiftUI
 
 struct DrillListView: View {
+    let bleManager: BLEManager
     @State private var searchText: String = ""
     @State private var drills: [DrillSetup] = []
     @Environment(\.dismiss) private var dismiss
+    @StateObject private var repository = DrillRepository.shared
     // For showing alerts
     @State private var showDeleteAlert = false
     @State private var drillToDelete: DrillSetup?
@@ -20,13 +22,13 @@ struct DrillListView: View {
         if searchText.isEmpty {
             return drills
         } else {
-            return drills.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
+            return drills.filter { $0.name?.localizedCaseInsensitiveContains(searchText) ?? false }
         }
     }
 
     private func drillRow(for drill: DrillSetup, at index: Int) -> some View {
         ZStack {
-            NavigationLink(destination: EditDrillView(drillSetup: drill)) {
+            NavigationLink(destination: EditDrillView(drillSetup: drill, bleManager: bleManager)) {
                 EmptyView()
             }
             .opacity(0)
@@ -46,18 +48,22 @@ struct DrillListView: View {
     
     private func copyButton(for drill: DrillSetup) -> some View {
         Button {
-            var newDrill = drill
-            newDrill = DrillSetup(
-                id: UUID(),
-                name: drill.name + " Copy",
-                description: drill.description,
-                demoVideoURL: drill.demoVideoURL,
-                thumbnailURL: drill.thumbnailURL,
-                delay: drill.delay,
-                targets: drill.targets
-            )
-            DrillSetupStorage.shared.addDrillSetup(newDrill)
-            drills = DrillSetupStorage.shared.drillSetups
+            do {
+                let drillData = drill.toStruct()
+                let newDrillData = DrillSetupData(
+                    id: UUID(),
+                    name: drillData.name + " Copy",
+                    description: drillData.description,
+                    demoVideoURL: drillData.demoVideoURL,
+                    thumbnailURL: drillData.thumbnailURL,
+                    delay: drillData.delay,
+                    targets: drillData.targets
+                )
+                try repository.saveDrillSetup(newDrillData)
+                drills = try repository.fetchAllDrillSetupsAsCoreData()
+            } catch {
+                print("Failed to copy drill: \(error)")
+            }
         } label: {
             Label("Copy", systemImage: "doc.on.doc")
         }
@@ -72,66 +78,68 @@ struct DrillListView: View {
             Label("Delete", systemImage: "trash")
         }
     }
-
-    var body: some View {
-        ZStack {
-            Color.black.ignoresSafeArea()
-            VStack {
-                // Search Field (unchanged)
-                HStack {
-                    Image(systemName: "magnifyingglass")
-                        .foregroundColor(.gray)
-                    Text("Search")
-                        .foregroundColor(.gray)
-                    TextField("", text: $searchText)
-                        .foregroundColor(.white)
-                }
-                .padding(10)
-                .background(Color(.systemGray6).opacity(0.3))
-                .cornerRadius(24)
-                .padding([.top, .horizontal])
-
-                // Drill List
-                List {
-                    ForEach(Array(filteredDrills.enumerated()), id: \.element.id) { (index, drill) in
-                        drillRow(for: drill, at: index)
-                    }
-                }
-                .listStyle(PlainListStyle())
-                .scrollContentBackground(.hidden)
-                Spacer()
-                // Add New Drill Button (unchanged)
-                NavigationLink(destination: AddDrillView()) {
-                    Text("Add New Drill")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.red)
-                        .cornerRadius(12)
-                        .padding([.horizontal, .bottom])
-                }
-            }
-            .navigationTitle("")
-            .toolbar {
-                ToolbarItem(placement: .principal) {
-                    Text("Drill List")
-                        .font(.headline)
-                        .foregroundColor(.red)
-                }
-            }
-            .onAppear {
-                drills = DrillSetupStorage.shared.drillSetups
+    
+    private var headerView: some View {
+        Text("Select a Drill")
+            .font(.title)
+            .foregroundColor(.white)
+            .padding()
+    }
+    
+    private var listView: some View {
+        List {
+            ForEach(filteredDrills.indices, id: \.self) { index in
+                drillRow(for: filteredDrills[index], at: index)
             }
         }
-        .alert("Delete Drill?", isPresented: $showDeleteAlert, presenting: drillToDelete) { drill in
-            Button("Delete", role: .destructive) {
-                DrillSetupStorage.shared.deleteDrillSetup(withId: drill.id)
-                drills = DrillSetupStorage.shared.drillSetups
+        .listStyle(.plain)
+        .background(Color.clear)
+    }
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Color.black.ignoresSafeArea()
+                VStack {
+                    headerView
+                    listView
+                }
             }
-            Button("Cancel", role: .cancel) {}
-        } message: { drill in
-            Text("Are you sure you want to delete \(drill.name)? This cannot be undone.")
+            .navigationTitle("Drills")
+            .navigationBarTitleDisplayMode(.inline)
+            .searchable(text: $searchText, prompt: "Search drills")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    NavigationLink(destination: AddDrillView(bleManager: bleManager)) {
+                        Image(systemName: "plus")
+                    }
+                }
+            }
+            .alert("Delete Drill", isPresented: $showDeleteAlert, presenting: drillToDelete) { drill in
+                Button("Delete", role: .destructive) {
+                    do {
+                        try repository.deleteDrillSetup(withId: drill.id ?? UUID())
+                        drills = try repository.fetchAllDrillSetupsAsCoreData()
+                    } catch {
+                        print("Failed to delete drill: \(error)")
+                    }
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: { drill in
+                Text("Are you sure you want to delete \(drill.name ?? "this drill")? This cannot be undone.")
+            }
+        }
+        .onAppear {
+            do {
+                drills = try repository.fetchAllDrillSetupsAsCoreData()
+            } catch {
+                print("Failed to load drills: \(error)")
+            }
         }
     }
 }
@@ -142,15 +150,17 @@ struct DrillListItemView: View {
     let index: Int
     
     var totalSets: Int {
-        drill.targets.count
+        drill.targets?.count ?? 0
     }
     
     var totalDuration: Int {
-        Int(drill.targets.reduce(0) { $0 + $1.timeout })
+        let targets = drill.targets?.allObjects as? [DrillTargetsConfig] ?? []
+        return Int(targets.reduce(0) { $0 + $1.timeout })
     }
     
     var totalShots: Int {
-        drill.targets.reduce(0) { $0 + $1.countedShots }
+        let targets = drill.targets?.allObjects as? [DrillTargetsConfig] ?? []
+        return targets.reduce(0) { $0 + Int($1.countedShots) }
     }
     
     var body: some View {
@@ -163,7 +173,7 @@ struct DrillListItemView: View {
                     Text("#\(index)")
                         .font(.subheadline)
                         .foregroundColor(.gray)
-                    Text(drill.name)
+                    Text(drill.name ?? "Unnamed Drill")
                         .font(.headline)
                         .foregroundColor(.white)
                     Spacer()

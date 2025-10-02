@@ -1,6 +1,6 @@
 import Foundation
 
-struct DrillTargetsConfig: Identifiable, Codable, Equatable {
+struct DrillTargetsConfigData: Identifiable, Codable, Equatable {
     let id: UUID
     var seqNo: Int
     var targetName: String

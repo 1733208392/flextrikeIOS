@@ -1,7 +1,7 @@
 import Foundation
 
 /// Summary data for a completed drill
-struct DrillSummary: Identifiable, Codable {
+struct DrillSummary: Identifiable, Codable, Equatable {
     let id: UUID
     var drillName: String
     var targetType: [String]

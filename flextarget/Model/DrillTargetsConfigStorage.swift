@@ -1,7 +1,7 @@
 import Foundation
 
 class DrillTargetsConfigStorage: ObservableObject {
-    @Published var drillTargetsConfigs: [DrillTargetsConfig] = []
+    @Published var drillTargetsConfigs: [DrillTargetsConfigData] = []
     
     private let userDefaults = UserDefaults.standard
     private let storageKey = "DrillTargetsConfigs"
@@ -29,7 +29,7 @@ class DrillTargetsConfigStorage: ObservableObject {
         }
         
         do {
-            drillTargetsConfigs = try JSONDecoder().decode([DrillTargetsConfig].self, from: data)
+            drillTargetsConfigs = try JSONDecoder().decode([DrillTargetsConfigData].self, from: data)
             print("DrillTargetsConfigs loaded successfully: \(drillTargetsConfigs.count) items")
         } catch {
             print("Failed to load DrillTargetsConfigs: \(error)")
@@ -39,12 +39,12 @@ class DrillTargetsConfigStorage: ObservableObject {
     
     // MARK: - CRUD Operations
     
-    func addDrillTargetsConfig(_ config: DrillTargetsConfig) {
+    func addDrillTargetsConfig(_ config: DrillTargetsConfigData) {
         drillTargetsConfigs.append(config)
         saveDrillTargetsConfigs()
     }
     
-    func updateDrillTargetsConfig(_ config: DrillTargetsConfig) {
+    func updateDrillTargetsConfig(_ config: DrillTargetsConfigData) {
         if let index = drillTargetsConfigs.firstIndex(where: { $0.id == config.id }) {
             drillTargetsConfigs[index] = config
             saveDrillTargetsConfigs()
@@ -61,11 +61,11 @@ class DrillTargetsConfigStorage: ObservableObject {
         saveDrillTargetsConfigs()
     }
     
-    func getDrillTargetsConfig(withId id: UUID) -> DrillTargetsConfig? {
+    func getDrillTargetsConfig(withId id: UUID) -> DrillTargetsConfigData? {
         return drillTargetsConfigs.first { $0.id == id }
     }
     
-    func getDrillTargetsConfigsSorted() -> [DrillTargetsConfig] {
+    func getDrillTargetsConfigsSorted() -> [DrillTargetsConfigData] {
         return drillTargetsConfigs.sorted { $0.seqNo < $1.seqNo }
     }
     
