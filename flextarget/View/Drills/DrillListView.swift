@@ -50,12 +50,17 @@ struct DrillListView: View {
         Button {
             do {
                 let drillData = drill.toStruct()
+                
+                // Copy the actual video and thumbnail files to new locations
+                let copiedVideoURL = drillData.demoVideoURL.flatMap { copyFile(from: $0) }
+                let copiedThumbnailURL = drillData.thumbnailURL.flatMap { copyFile(from: $0) }
+                
                 let newDrillData = DrillSetupData(
                     id: UUID(),
                     name: drillData.name + " Copy",
                     description: drillData.description,
-                    demoVideoURL: drillData.demoVideoURL,
-                    thumbnailURL: drillData.thumbnailURL,
+                    demoVideoURL: copiedVideoURL,
+                    thumbnailURL: copiedThumbnailURL,
                     delay: drillData.delay,
                     targets: drillData.targets
                 )
@@ -68,6 +73,30 @@ struct DrillListView: View {
             Label("Copy", systemImage: "doc.on.doc")
         }
         .tint(Color.gray)
+    }
+    
+    private func copyFile(from sourceURL: URL) -> URL? {
+        let fileManager = FileManager.default
+        
+        // Check if source file exists
+        guard fileManager.fileExists(atPath: sourceURL.path) else {
+            print("Source file does not exist at: \(sourceURL.path)")
+            return nil
+        }
+        
+        // Create destination URL with new UUID
+        let docs = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let ext = sourceURL.pathExtension.isEmpty ? "dat" : sourceURL.pathExtension
+        let dest = docs.appendingPathComponent(UUID().uuidString + "." + ext)
+        
+        do {
+            try fileManager.copyItem(at: sourceURL, to: dest)
+            print("Successfully copied file to: \(dest.lastPathComponent)")
+            return dest
+        } catch {
+            print("Failed to copy file: \(error.localizedDescription)")
+            return nil
+        }
     }
     
     private func deleteButton(for drill: DrillSetup) -> some View {

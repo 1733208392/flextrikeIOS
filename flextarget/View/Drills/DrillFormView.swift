@@ -438,6 +438,34 @@ struct DrillFormView: View {
     }
     
     private func updateExistingDrillSetup(_ drillSetup: DrillSetup) {
+        // Clean up old video file if we're replacing it with a new one
+        if let oldVideoURL = drillSetup.demoVideoURL,
+           let newVideoURL = demoVideoURL,
+           oldVideoURL != newVideoURL {
+            do {
+                if FileManager.default.fileExists(atPath: oldVideoURL.path) {
+                    try FileManager.default.removeItem(at: oldVideoURL)
+                    print("Deleted old video file: \(oldVideoURL.lastPathComponent)")
+                }
+            } catch {
+                print("Failed to delete old video file: \(error)")
+            }
+        }
+        
+        // Clean up old thumbnail file if we're replacing it with a new one
+        if let oldThumbnailURL = drillSetup.thumbnailURL,
+           let newThumbnailURL = thumbnailFileURL,
+           oldThumbnailURL != newThumbnailURL {
+            do {
+                if FileManager.default.fileExists(atPath: oldThumbnailURL.path) {
+                    try FileManager.default.removeItem(at: oldThumbnailURL)
+                    print("Deleted old thumbnail file: \(oldThumbnailURL.lastPathComponent)")
+                }
+            } catch {
+                print("Failed to delete old thumbnail file: \(error)")
+            }
+        }
+        
         drillSetup.name = drillName
         drillSetup.desc = description
         drillSetup.demoVideoURL = demoVideoURL
@@ -466,13 +494,32 @@ struct DrillFormView: View {
     // MARK: - Helper Methods
     
     private func loadThumbnailIfNeeded() {
-        if let url = thumbnailFileURL {
-            do {
-                let data = try Data(contentsOf: url)
-                demoVideoThumbnail = UIImage(data: data)
-            } catch {
-                print("Failed to load thumbnail: \(error)")
+        guard let url = thumbnailFileURL else { return }
+        
+        // Check if file exists before attempting to load
+        guard FileManager.default.fileExists(atPath: url.path) else {
+            print("Thumbnail file does not exist at: \(url.path)")
+            print("Clearing invalid thumbnail reference")
+            thumbnailFileURL = nil
+            demoVideoThumbnail = nil
+            return
+        }
+        
+        do {
+            let data = try Data(contentsOf: url)
+            if let image = UIImage(data: data) {
+                demoVideoThumbnail = image
+                print("Successfully loaded thumbnail: \(url.lastPathComponent)")
+            } else {
+                print("Failed to create UIImage from thumbnail data")
+                thumbnailFileURL = nil
+                demoVideoThumbnail = nil
             }
+        } catch {
+            print("Failed to load thumbnail: \(error)")
+            print("Clearing invalid thumbnail reference")
+            thumbnailFileURL = nil
+            demoVideoThumbnail = nil
         }
     }
 

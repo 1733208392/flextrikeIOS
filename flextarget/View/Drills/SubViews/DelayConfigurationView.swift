@@ -54,8 +54,7 @@ struct DelayConfigurationView: View {
             
             Spacer()
             
-            if delayType == .random {
-                // Random mode: show spinner for 2...4
+            if delayType == .fixed {
                 Picker("Random Delay", selection: $delayValue) {
                     ForEach(1...60, id: \.self) { value in
                         Text("\(value)")
@@ -64,11 +63,10 @@ struct DelayConfigurationView: View {
                     }
                 }
                 .pickerStyle(.wheel)
-                .frame(width: 60, height: 60)
+                .frame(width: 60, height: 80)
                 .clipped()
             } else {
-                // Fixed mode: show stepper
-                Text("2...4")
+                Text("2...5")
                     .fontWeight(.bold)
                     .foregroundColor(.red)
             }
