@@ -79,13 +79,6 @@ struct DrillListView: View {
         }
     }
     
-    private var headerView: some View {
-        Text("Select a Drill")
-            .font(.title)
-            .foregroundColor(.white)
-            .padding()
-    }
-    
     private var listView: some View {
         List {
             ForEach(filteredDrills.indices, id: \.self) { index in
@@ -101,19 +94,14 @@ struct DrillListView: View {
             ZStack {
                 Color.black.ignoresSafeArea()
                 VStack {
-                    headerView
                     listView
                 }
             }
-            .navigationTitle("Drills")
+            .navigationTitle("Drill List")
             .navigationBarTitleDisplayMode(.inline)
-            .searchable(text: $searchText, prompt: "Search drills")
+            .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search drills")
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                }
+                // Removed Cancel button per design - rely on system back button
                 ToolbarItem(placement: .navigationBarTrailing) {
                     NavigationLink(destination: AddDrillView(bleManager: bleManager)) {
                         Image(systemName: "plus")
@@ -134,6 +122,7 @@ struct DrillListView: View {
                 Text("Are you sure you want to delete \(drill.name ?? "this drill")? This cannot be undone.")
             }
         }
+        .tint(.red)
         .onAppear {
             do {
                 drills = try repository.fetchAllDrillSetupsAsCoreData()
@@ -149,7 +138,7 @@ struct DrillListItemView: View {
     let drill: DrillSetup
     let index: Int
     
-    var totalSets: Int {
+    var totalTargets: Int {
         drill.targets?.count ?? 0
     }
     
@@ -186,10 +175,10 @@ struct DrillListItemView: View {
                     HStack(spacing: 0) {
                         Spacer()
                         VStack {
-                            Text("\(totalSets)")
+                            Text("\(totalTargets)")
                                 .font(.title3.bold())
                                 .foregroundColor(.white)
-                            Text("Sets")
+                            Text("Targets")
                                 .font(.caption2)
                                 .foregroundColor(.gray)
                         }
@@ -231,5 +220,152 @@ struct DrillListItemView: View {
             .padding(.vertical, 4)
         }
         .frame(height: 100) // Adjust height as needed
+    }
+}
+
+struct DrillListView_Previews: PreviewProvider {
+    static var previews: some View {
+        // Use shared BLEManager instance for preview
+        PreviewDrillListView(bleManager: BLEManager.shared)
+            .preferredColorScheme(.dark)
+    }
+}
+
+struct PreviewDrillListView: View {
+    let bleManager: BLEManager
+    @State private var searchText: String = ""
+    @State private var drills: [DrillSetup] = []
+    
+    var filteredDrills: [DrillSetup] {
+        if searchText.isEmpty {
+            return drills
+        } else {
+            return drills.filter { $0.name?.localizedCaseInsensitiveContains(searchText) ?? false }
+        }
+    }
+    
+    private func drillRow(for drill: DrillSetup, at index: Int) -> some View {
+        ZStack {
+            NavigationLink(destination: Text("Edit Drill")) { // Mock destination
+                EmptyView()
+            }
+            .opacity(0)
+            
+            let itemView = DrillListItemView(drill: drill, index: index + 1)
+                .listRowInsets(EdgeInsets())
+            
+            itemView
+                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                    Button {
+                        // Mock copy action
+                    } label: {
+                        Label("Copy", systemImage: "doc.on.doc")
+                    }
+                    .tint(Color.gray)
+                    
+                    Button(role: .destructive) {
+                        // Mock delete action
+                    } label: {
+                        Label("Delete", systemImage: "trash")
+                    }
+                }
+        }
+        .listRowBackground(Color.clear)
+        .background(Color.clear)
+    }
+    
+    private var listView: some View {
+        List {
+            ForEach(filteredDrills.indices, id: \.self) { index in
+                drillRow(for: filteredDrills[index], at: index)
+            }
+        }
+        .listStyle(.plain)
+        .background(Color.clear)
+    }
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Color.black.ignoresSafeArea()
+                VStack {
+                    listView
+                }
+            }
+            .navigationTitle("Drill List")
+            .navigationBarTitleDisplayMode(.inline)
+            .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search drills")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: {}) {
+                        Image(systemName: "plus")
+                    }
+                }
+            }
+        }
+        .tint(.red)
+        .onAppear {
+            drills = createMockDrills()
+        }
+    }
+    
+    private func createMockDrills() -> [DrillSetup] {
+        let context = PersistenceController.preview.container.viewContext
+        
+        let drill1 = DrillSetup(context: context)
+        drill1.id = UUID()
+        drill1.name = "Basic Pistol Drill"
+        drill1.desc = "A fundamental drill for pistol marksmanship"
+        drill1.delay = 2.0
+        
+        let target1 = DrillTargetsConfig(context: context)
+        target1.id = UUID()
+        target1.seqNo = 1
+        target1.targetName = "Target A"
+        target1.targetType = "Standard"
+        target1.timeout = 5.0
+        target1.countedShots = 5
+        target1.drillSetup = drill1
+        
+        let drill2 = DrillSetup(context: context)
+        drill2.id = UUID()
+        drill2.name = "Advanced Rifle Course"
+        drill2.desc = "Complex rifle drill with multiple targets"
+        drill2.delay = 3.0
+        
+        let target2 = DrillTargetsConfig(context: context)
+        target2.id = UUID()
+        target2.seqNo = 1
+        target2.targetName = "Target B"
+        target2.targetType = "Popper"
+        target2.timeout = 8.0
+        target2.countedShots = 3
+        target2.drillSetup = drill2
+        
+        let target3 = DrillTargetsConfig(context: context)
+        target3.id = UUID()
+        target3.seqNo = 2
+        target3.targetName = "Target C"
+        target3.targetType = "Steel"
+        target3.timeout = 6.0
+        target3.countedShots = 2
+        target3.drillSetup = drill2
+        
+        let drill3 = DrillSetup(context: context)
+        drill3.id = UUID()
+        drill3.name = "Speed Shooting"
+        drill3.desc = "Fast-paced drill for reaction time"
+        drill3.delay = 1.0
+        
+        let target4 = DrillTargetsConfig(context: context)
+        target4.id = UUID()
+        target4.seqNo = 1
+        target4.targetName = "Target D"
+        target4.targetType = "Hostage"
+        target4.timeout = 3.0
+        target4.countedShots = 1
+        target4.drillSetup = drill3
+        
+        return [drill1, drill2, drill3]
     }
 }

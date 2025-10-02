@@ -6,9 +6,8 @@ struct DrillMainPageView: View {
     @State private var showConnectView = false
     @State private var showInfo = false
     var body: some View {
-        NavigationStack {
-            ZStack {
-                Color.black.ignoresSafeArea()
+        ZStack {
+            Color.black.ignoresSafeArea()
                 VStack(spacing: 0) {
                     // Top Bar
                     HStack {
@@ -24,7 +23,7 @@ struct DrillMainPageView: View {
                                         .scaledToFit()
                                         .frame(width: 22, height: 22)
                                 }
-
+                                
                                 Text(bleManager.connectedPeripheral?.name ?? (bleManager.isConnected ? "Target Connected" : "Target Disconnected"))
                                     .font(.footnote)
                                     .foregroundColor(.gray)
@@ -85,39 +84,38 @@ struct DrillMainPageView: View {
                     showConnectView = true
                 }
             }
+    }
+    
+    struct MainMenuButton: View {
+        let icon: String
+        let text: String
+        let color: Color
+        var body: some View {
+            HStack {
+                Image(systemName: icon)
+                    .foregroundColor(color)
+                    .font(.system(size: 28))
+                Text(text)
+                    .foregroundColor(.white)
+                    .font(.headline)
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .foregroundColor(color)
+                    .font(.system(size: 20))
+            }
+            .padding()
+            .background(Color.gray.opacity(0.3))
+            .cornerRadius(24)
+            .padding(.horizontal)
         }
     }
-}
-
-struct MainMenuButton: View {
-    let icon: String
-    let text: String
-    let color: Color
-    var body: some View {
-        HStack {
-            Image(systemName: icon)
-                .foregroundColor(color)
-                .font(.system(size: 28))
-            Text(text)
-                .foregroundColor(.white)
-                .font(.headline)
-            Spacer()
-            Image(systemName: "chevron.right")
-                .foregroundColor(color)
-                .font(.system(size: 20))
+    
+    struct ConnectSmartTargetWrapper: View {
+        @EnvironmentObject var bleManager: BLEManager
+        let onDismiss: () -> Void
+        var body: some View {
+            ConnectSmartTargetView(bleManager: bleManager, navigateToMain: .constant(false), onConnected: onDismiss)
         }
-        .padding()
-        .background(Color.gray.opacity(0.3))
-        .cornerRadius(24)
-        .padding(.horizontal)
-    }
-}
-
-struct ConnectSmartTargetWrapper: View {
-    @EnvironmentObject var bleManager: BLEManager
-    let onDismiss: () -> Void
-    var body: some View {
-        ConnectSmartTargetView(bleManager: bleManager, navigateToMain: .constant(false), onConnected: onDismiss)
     }
 }
 
