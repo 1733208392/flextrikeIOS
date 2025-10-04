@@ -43,10 +43,11 @@ struct DrillResultView: View {
     @State private var drillTimer: Timer?
     @State private var timeRemaining: TimeInterval = 0
     
-    // Mock data for target icons (keeping for now)
-    let targetIcons = ["hostage", "ipsc", "paddle", "popper", "rotation", "special_1", "special_2"]
+    // Drill status for title
+    @State private var drillStatus: String = "In Progress"
     
     @State private var selectedIcon: String = "hostage"
+    @State private var selectedShotIndex: Int? = nil
     
     @Environment(\.managedObjectContext) private var viewContext
     
@@ -72,123 +73,123 @@ struct DrillResultView: View {
                 // Black background
                 Color.black.edgesIgnoringSafeArea(.all)
                 
-                // Status text label above the frame
-                VStack {
-                    Spacer()
-                        .frame(height: (screenHeight / 2) - (frameHeight / 2) - 60)
-                    
-                    Text("Drill In Progress...")
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.red)
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 20)
-                        .cornerRadius(10)
-                    
-                    Spacer()
-                }
-                
-                // White rectangular frame representing target device with gray fill
+                // White rectangular frame representing target device with gray fill (moved to top)
                 Rectangle()
                     .fill(Color.gray.opacity(0.3))
                     .frame(width: frameWidth, height: frameHeight)
                     .overlay(
                         Rectangle()
-                            .stroke(Color.white, lineWidth: 8)
+                            .stroke(Color.white, lineWidth: 12)
                     )
-                    .position(x: screenWidth / 2, y: screenHeight / 2)
+                    .position(x: screenWidth / 2, y: frameHeight / 2 + 10)
                 
                 // Target icon inside the frame (90% of frame size)
                 Image(selectedIcon)
                     .resizable()
                     .scaledToFit()
                     .frame(width: frameWidth, height: frameHeight )
-                    .position(x: screenWidth / 2, y: screenHeight / 2)
+                    .position(x: screenWidth / 2, y: frameHeight / 2 + 10)
         
-                    // Center display for shot count
+                    // Horizontal scroller below the frame
                     VStack {
                         Spacer()
-                        Text("Shots: \(shots.count)")
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                            .foregroundColor(.white)
-                            .padding()
-                            .background(Color.black.opacity(0.7))
-                            .cornerRadius(10)
-                        Spacer()
-                    }
-                
-                // Horizontal scroller below the frame
-                VStack {
-                    Spacer()
-                        .frame(height: screenHeight / 2 + frameHeight / 2 + 20)
-                    
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 20) {
-                            ForEach(targetIcons, id: \.self) { icon in
-                                Button(action: {
-                                    selectedIcon = icon
-                                }) {
-                                    Image(icon)
-                                        .resizable()
-                                        .scaledToFit()
-                                        .frame(width: 60, height: 60)
-                                        .clipShape(Circle())
-                                        .overlay(Circle().stroke(selectedIcon == icon ? Color.blue : Color.gray, lineWidth: 1))
+                            .frame(height: frameHeight + 40)
+                        
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 20) {
+                                // Only show target icons that are in drillSetup.targets
+                                if let targets = drillSetup.targets as? Set<DrillTargetsConfig> {
+                                    ForEach(Array(targets).sorted(by: { $0.seqNo < $1.seqNo }), id: \.self) { target in
+                                        if let targetType = target.targetType {
+                                            Button(action: {
+                                                selectedIcon = targetType
+                                            }) {
+                                                Image(targetType)
+                                                    .resizable()
+                                                    .scaledToFit()
+                                                    .frame(width: 60, height: 60)
+                                                    .clipShape(Circle())
+                                                    .overlay(Circle().stroke(selectedIcon == targetType ? Color.blue : Color.gray, lineWidth: 1))
+                                            }
+                                        }
+                                    }
                                 }
                             }
+                            .padding(.horizontal)
                         }
-                        .padding(.horizontal)
+                        .frame(height: 100)
+                        
+                        // Shot timing list below the scroller
+                        ScrollView(.vertical, showsIndicators: true) {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Shot Timing:")
+                                    .font(.headline)
+                                    .padding(.horizontal)
+                                
+                                ForEach(shots.indices, id: \.self) { index in
+                                    let shot = shots[index]
+                                    Button(action: {
+                                        selectedShotIndex = (selectedShotIndex == index) ? nil : index
+                                    }) {
+                                        HStack {
+                                            Text("Shot \(index + 1): \(String(format: "%.2f", shot.content.timeDiff))s")
+                                                .font(.subheadline)
+                                                .foregroundColor(selectedShotIndex == index ? .blue : .primary)
+                                            Spacer()
+                                            if selectedShotIndex == index {
+                                                Image(systemName: "checkmark.circle.fill")
+                                                    .foregroundColor(.blue)
+                                            }
+                                        }
+                                        .padding(.horizontal)
+                                        .padding(.vertical, 8)
+                                        .background(selectedShotIndex == index ? Color.blue.opacity(0.1) : Color.clear)
+                                        .cornerRadius(8)
+                                    }
+                                    .buttonStyle(PlainButtonStyle())
+                                }
+                            }
+                            .padding(.vertical, 10)
+                        }
+                        .frame(height: 200) // Fixed height for the scrollable area
+                        .background(Color.white.opacity(0.7))
+                        .cornerRadius(10)
+                        .shadow(radius: 5)
+                        .padding(.horizontal, 20)
+                        .padding(.top, 10)
+                        
+                        Spacer()
                     }
-                    .frame(height: 100)
-                    
-                    Spacer()
-                }
                 
                 // Shot position markers
                 ForEach(shots.indices, id: \.self) { index in
                     let shot = shots[index]
                     let x = shot.content.hitPosition.x
                     let y = shot.content.hitPosition.y
-                    // Transform coordinates from 720×1280 source to screen dimensions
-                    let transformedX = x * (screenWidth / 720.0)
-                    let transformedY = y * (screenHeight / 1280.0)
-                    Text("⭐")
-                        .font(.title)
-                        .position(x: transformedX, y: transformedY)
-                }
-                
-                // Bottom right overlay list
-                VStack {
-                    Spacer()
-                        HStack {
-                        Spacer()
-                        VStack(alignment: .leading, spacing: 5) {
-                            Text("Hit Positions:")
-                                .font(.headline)
-                            ForEach(shots.indices, id: \.self) { index in
-                                let shot = shots[index]
-                                let x = shot.content.hitPosition.x
-                                let y = shot.content.hitPosition.y
-                                // Transform coordinates from 720×1280 source to screen dimensions
-                                let transformedX = x * (screenWidth / 720.0)
-                                let transformedY = y * (screenHeight / 1280.0)
-                                Text("Shot \(index + 1): (\(String(format: "%.1f", transformedX)), \(String(format: "%.1f", transformedY)))")
-                                    .font(.subheadline)
-                            }
+                    // Transform coordinates from 720×1280 source to frame dimensions
+                    let frameCenterX = screenWidth / 2
+                    let frameCenterY = frameHeight / 2 + 20
+                    let transformedX = frameCenterX - (frameWidth / 2) + (x / 720.0) * frameWidth
+                    let transformedY = frameCenterY - (frameHeight / 2) + (y / 1280.0) * frameHeight
+                    
+                    ZStack {
+                        Image(randomBulletHoleImage())
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 30, height: 30)
+                        
+                        // Highlight selected shot
+                        if selectedShotIndex == index {
+                            Circle()
+                                .stroke(Color.yellow, lineWidth: 3)
+                                .frame(width: 40, height: 40)
                         }
-                        .padding()
-                        .background(Color.white.opacity(0.9))
-                        .cornerRadius(10)
-                        .shadow(radius: 5)
-                        .frame(width: 200)
                     }
-                    .padding(.trailing, 20)
-                    .padding(.bottom, 20)
+                    .position(x: transformedX, y: transformedY)
                 }
             }
         }
-        .navigationTitle("Drill Result")
+        .navigationTitle(drillStatus)
         .onAppear {
             startDrillTimer()
             setupNotificationObserver()
@@ -197,6 +198,11 @@ struct DrillResultView: View {
             stopDrillTimer()
             removeNotificationObserver()
         }
+    }
+    
+    private func randomBulletHoleImage() -> String {
+        let bulletHoleImages = ["bullet_hole2", "bullet_hole3", "bullet_hole4", "bullet_hole5", "bullet_hole6"]
+        return bulletHoleImages.randomElement() ?? "bullet_hole2"
     }
     
     private func startDrillTimer() {
@@ -255,6 +261,8 @@ struct DrillResultView: View {
     }
     
     private func onDrillTimerExpired() {
+        drillStatus = "Drill Ended"
+        
         print("Drill timer expired. Shots received:")
         for (index, shot) in shots.enumerated() {
             print("Shot \(index + 1): (\(shot.content.hitPosition.x), \(shot.content.hitPosition.y))")
