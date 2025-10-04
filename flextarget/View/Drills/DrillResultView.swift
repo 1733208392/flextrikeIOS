@@ -51,8 +51,12 @@ struct DrillResultView: View {
     @State private var currentProgress: Double = 0.0
     @State private var isPlaying: Bool = false
     @State private var dots: String = ""
+    @State private var replayTimer: Timer?
+    @State private var visibleShotIndices: Set<Int> = []
+    
     var totalDuration: Double {
-        shots.max(by: { $0.content.timeDiff < $1.content.timeDiff })?.content.timeDiff ?? 10.0
+        guard let targets = drillSetup.targets as? Set<DrillTargetsConfig> else { return 10.0 }
+        return targets.map { $0.timeout }.max() ?? 10.0
     }
     
     @Environment(\.managedObjectContext) private var viewContext
@@ -95,29 +99,31 @@ struct DrillResultView: View {
                             .scaledToFit()
                             .frame(width: frameWidth, height: frameHeight)
                         
-                        // Shot position markers
+                        // Shot position markers (only show visible shots during replay)
                         ForEach(shots.indices, id: \.self) { index in
-                            let shot = shots[index]
-                            let x = shot.content.hitPosition.x
-                            let y = shot.content.hitPosition.y
-                            // Transform coordinates from 720×1280 source to frame dimensions
-                            let transformedX = (x / 720.0) * frameWidth
-                            let transformedY = (y / 1280.0) * frameHeight
-                            
-                            ZStack {
-                                Image(randomBulletHoleImage())
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 30, height: 30)
+                            if visibleShotIndices.contains(index) {
+                                let shot = shots[index]
+                                let x = shot.content.hitPosition.x
+                                let y = shot.content.hitPosition.y
+                                // Transform coordinates from 720×1280 source to frame dimensions
+                                let transformedX = (x / 720.0) * frameWidth
+                                let transformedY = (y / 1280.0) * frameHeight
                                 
-                                // Highlight selected shot
-                                if selectedShotIndex == index {
-                                    Circle()
-                                        .stroke(Color.yellow, lineWidth: 3)
-                                        .frame(width: 40, height: 40)
+                                ZStack {
+                                    Image("bullet_hole2")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 30, height: 30)
+                                    
+                                    // Highlight selected shot
+                                    if selectedShotIndex == index {
+                                        Circle()
+                                            .stroke(Color.yellow, lineWidth: 3)
+                                            .frame(width: 40, height: 40)
+                                    }
                                 }
+                                .position(x: transformedX, y: transformedY)
                             }
-                            .position(x: transformedX, y: transformedY)
                         }
                     }
                     .frame(width: frameWidth, height: frameHeight)
@@ -139,31 +145,44 @@ struct DrillResultView: View {
                     HStack(spacing: 40) {
                         Button(action: {
                             // Previous shot
+                            previousShot()
                         }) {
                             Image(systemName: "backward.end")
                                 .resizable()
                                 .frame(width: 30, height: 30)
                                 .foregroundColor(.white)
                         }
+                        .disabled(drillStatus == "In Progress")
                         
                         Button(action: {
                             // Play/Pause
+                            if drillStatus == "In Progress" {
+                                return // Don't allow replay during drill
+                            }
                             isPlaying.toggle()
+                            if isPlaying {
+                                startReplay()
+                            } else {
+                                pauseReplay()
+                            }
                         }) {
                             Image(systemName: isPlaying ? "pause.fill" : "play.fill")
                                 .resizable()
                                 .frame(width: 30, height: 30)
                                 .foregroundColor(.white)
                         }
+                        .disabled(drillStatus == "In Progress")
                         
                         Button(action: {
                             // Next shot
+                            nextShot()
                         }) {
                             Image(systemName: "forward.end")
                                 .resizable()
                                 .frame(width: 30, height: 30)
                                 .foregroundColor(.white)
                         }
+                        .disabled(drillStatus == "In Progress")
                     }
                     .padding(.vertical, 20)
                     
@@ -204,9 +223,76 @@ struct DrillResultView: View {
         }
     }
 
-    private func randomBulletHoleImage() -> String {
-        let bulletHoleImages = ["bullet_hole2", "bullet_hole3", "bullet_hole4", "bullet_hole5", "bullet_hole6"]
-        return bulletHoleImages.randomElement() ?? "bullet_hole2"
+    private func startReplay() {
+        // Reset to beginning
+        currentProgress = 0.0
+        visibleShotIndices.removeAll()
+        selectedShotIndex = nil
+        
+        // Start replay timer
+        replayTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
+            currentProgress += 0.1
+            
+            // Check if any shots should be visible at current progress
+            for (index, shot) in shots.enumerated() {
+                if shot.content.timeDiff <= currentProgress && !visibleShotIndices.contains(index) {
+                    visibleShotIndices.insert(index)
+                }
+            }
+            
+            // Update selected shot to the current one
+            let currentShotIndex = shots.enumerated()
+                .filter { $0.element.content.timeDiff <= currentProgress }
+                .max(by: { $0.element.content.timeDiff < $1.element.content.timeDiff })?
+                .offset
+            selectedShotIndex = currentShotIndex
+            
+            // Stop at end of drill
+            if currentProgress >= totalDuration {
+                pauseReplay()
+                currentProgress = totalDuration
+                isPlaying = false
+            }
+        }
+    }
+    
+    private func pauseReplay() {
+        replayTimer?.invalidate()
+        replayTimer = nil
+    }
+    
+    private func previousShot() {
+        // Find the previous shot before current progress
+        let previousShots = shots.enumerated().filter { $0.element.content.timeDiff < currentProgress }.sorted { $0.element.content.timeDiff > $1.element.content.timeDiff }
+        
+        if let previousShot = previousShots.first {
+            currentProgress = previousShot.element.content.timeDiff
+            // Update visible shots
+            visibleShotIndices = Set(shots.enumerated().filter { $0.element.content.timeDiff <= currentProgress }.map { $0.offset })
+            selectedShotIndex = previousShot.offset
+        } else {
+            // Go to beginning
+            currentProgress = 0.0
+            visibleShotIndices.removeAll()
+            selectedShotIndex = nil
+        }
+    }
+    
+    private func nextShot() {
+        // Find the next shot after current progress
+        let nextShots = shots.enumerated().filter { $0.element.content.timeDiff > currentProgress }.sorted { $0.element.content.timeDiff < $1.element.content.timeDiff }
+        
+        if let nextShot = nextShots.first {
+            currentProgress = nextShot.element.content.timeDiff
+            // Update visible shots
+            visibleShotIndices = Set(shots.enumerated().filter { $0.element.content.timeDiff <= currentProgress }.map { $0.offset })
+            selectedShotIndex = nextShot.offset
+        } else {
+            // Go to end
+            currentProgress = totalDuration
+            visibleShotIndices = Set(shots.indices)
+            selectedShotIndex = shots.enumerated().max(by: { $0.element.content.timeDiff < $1.element.content.timeDiff })?.offset
+        }
     }
     
     private func startDrillTimer() {
@@ -227,6 +313,7 @@ struct DrillResultView: View {
     private func stopDrillTimer() {
         drillTimer?.invalidate()
         drillTimer = nil
+        pauseReplay() // Also stop replay timer if running
     }
     
     private func setupNotificationObserver() {
@@ -343,6 +430,52 @@ struct DrillResultView: View {
     mockTarget.timeout = 10.0
     mockDrillSetup.addToTargets(mockTarget)
     
-    return DrillResultView(drillSetup: mockDrillSetup)
+    // Create mock shots and simulate them being received
+    let mockView = DrillResultView(drillSetup: mockDrillSetup)
+    
+    // Post mock shots to simulate drill completion
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+        let mockShotsData: [[String: Any]] = [
+            [
+                "target": "target1",
+                "content": [
+                    "command": "shot",
+                    "hit_area": "A",
+                    "hit_position": ["x": 200.0, "y": 300.0],
+                    "rotation_angle": 0,
+                    "target_type": "hostage",
+                    "time_diff": 1.5
+                ],
+                "type": "shot",
+                "action": "hit",
+                "device": "device1"
+            ],
+            [
+                "target": "target1",
+                "content": [
+                    "command": "shot",
+                    "hit_area": "B",
+                    "hit_position": ["x": 400.0, "y": 500.0],
+                    "rotation_angle": 0,
+                    "target_type": "hostage",
+                    "time_diff": 0.2
+                ],
+                "type": "shot",
+                "action": "hit",
+                "device": "device1"
+            ]
+        ]
+        
+        // Simulate shot notifications for preview
+        for shotData in mockShotsData {
+            NotificationCenter.default.post(
+                name: .bleShotReceived,
+                object: nil,
+                userInfo: ["shot_data": shotData]
+            )
+        }
+    }
+    
+    return mockView
         .environment(\.managedObjectContext, context)
 }
