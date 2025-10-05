@@ -2,21 +2,19 @@ import SwiftUI
 import CoreData
 
 struct DrillRecordView: View {
-    @Environment(\.managedObjectContext) private var environmentContext
-
-    private var viewContext: NSManagedObjectContext {
-        if let coordinator = environmentContext.persistentStoreCoordinator,
-           coordinator.persistentStores.isEmpty == false {
-            return environmentContext
-        }
-        return PersistenceController.shared.container.viewContext
+    let drillSetup: DrillSetup
+    
+    @FetchRequest private var drillResults: FetchedResults<DrillResult>
+    
+    init(drillSetup: DrillSetup) {
+        self.drillSetup = drillSetup
+        _drillResults = FetchRequest(
+            entity: DrillResult.entity(),
+            sortDescriptors: [NSSortDescriptor(keyPath: \DrillResult.date, ascending: false)],
+            predicate: NSPredicate(format: "drillSetup == %@", drillSetup),
+            animation: .default
+        )
     }
-
-    @FetchRequest(
-        entity: DrillResult.entity(),
-        sortDescriptors: [NSSortDescriptor(keyPath: \DrillResult.date, ascending: false)],
-        animation: .default)
-    private var drillResults: FetchedResults<DrillResult>
 
     private func convertShots(_ shots: NSSet?) -> [ShotData] {
         guard let shots = shots as? Set<Shot> else { return [] }
@@ -44,40 +42,40 @@ struct DrillRecordView: View {
     }
 
     var body: some View {
-        NavigationView {
-            ZStack {
-                Color.black.ignoresSafeArea()
-                
-                List {
-                    ForEach(groupedResults, id: \.key) { group in
-                        Section(header: Text(group.key.uppercased())
-                            .foregroundColor(.white)
-                            .font(.headline)
-                            .padding(.vertical, 8)) {
-                            ForEach(group.results) { result in
-                                NavigationLink(destination: DrillResultView(drillSetup: result.drillSetup!, shots: convertShots(result.shots))) {
-                                    DrillRecordRowView(
-                                        model: DrillRecordRowView.Model(
-                                            id: result.objectID,
-                                            date: result.date ?? Date(),
-                                            hitFactor: result.hitFactor,
-                                            totalShots: result.shotStatistics.totalShots,
-                                            fastestShot: result.fastestShot
-                                        )
+        ZStack {
+            Color.black.ignoresSafeArea()
+            
+            List {
+                ForEach(groupedResults, id: \.key) { group in
+                    Section(header: Text(group.key.uppercased())
+                        .foregroundColor(.white)
+                        .font(.headline)
+                        .padding(.vertical, 8)
+                        .listRowBackground(Color.clear)) {
+                        ForEach(group.results) { result in
+                            NavigationLink(destination: DrillResultView(drillSetup: result.drillSetup!, shots: convertShots(result.shots))) {
+                                DrillRecordRowView(
+                                    model: DrillRecordRowView.Model(
+                                        id: result.objectID,
+                                        date: result.date ?? Date(),
+                                        hitFactor: result.hitFactor,
+                                        totalShots: result.shotStatistics.totalShots,
+                                        fastestShot: result.fastestShot
                                     )
-                                }
-                                .listRowSeparator(.hidden)
-                                .listRowBackground(Color.clear)
+                                )
                             }
+                            .listRowSeparator(.hidden)
+                            .listRowBackground(Color.clear)
                         }
                     }
                 }
-                .listStyle(.plain)
-                .navigationTitle("Drill History")
-                .background(Color.clear)
             }
+            .listStyle(.plain)
+            .background(Color.clear)
+            .scrollContentBackground(.hidden)
         }
-        .environment(\.managedObjectContext, viewContext)
+        .navigationTitle("Drill History")
+        .navigationBarTitleDisplayMode(.inline)
     }
 
 }
@@ -168,19 +166,20 @@ struct DrillRecordRowView: View {
                         .frame(height: 44)
                         .background(Color.red)
 
-                    DrillMetricColumn(value: model.totalShotsText, label: "Total Shots")
+                    DrillMetricColumn(value: model.totalShotsText, label: "#Shots")
 
                     Divider()
                         .frame(height: 44)
                         .background(Color.red)
 
-                    DrillMetricColumn(value: model.fastestShotText, label: "Fastest Fire")
+                    DrillMetricColumn(value: model.fastestShotText, label: "Fastest")
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
             }
         }
         .padding(.vertical, 4)
+        .padding(.trailing, 8)
         .contentShape(Rectangle())
     }
 }

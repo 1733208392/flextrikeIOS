@@ -50,6 +50,13 @@ struct DrillFormView: View {
         }
         return PersistenceController.shared.container.viewContext
     }
+
+    private var currentDrillSetup: DrillSetup? {
+        if case .edit(let setup) = mode {
+            return setup
+        }
+        return nil
+    }
     
     init(bleManager: BLEManager, mode: DrillFormMode) {
         self.bleManager = bleManager
@@ -83,31 +90,33 @@ struct DrillFormView: View {
                         }
                     
                     VStack(spacing: 20) {
-                        // History Record Button
-                        NavigationLink {
-                            DrillRecordView()
-                                .environment(\.managedObjectContext, viewContext)
-                        } label: {
-                            HStack {
-                                RoundedRectangle(cornerRadius: 24)
-                                    .stroke(Color.red, lineWidth: 1)
-                                    .background(RoundedRectangle(cornerRadius: 16).fill(Color.clear))
-                                    .frame(height: 36)
-                                    .overlay(
-                                        HStack(spacing: 8) {
-                                            Image(systemName: "clock.arrow.circlepath")
-                                                .foregroundColor(.red)
-                                                .font(.title3)
-                                            Text("History Record")
-                                                .foregroundColor(.white)
-                                                .font(.footnote)
-                                        }
-                                    )
-                                    .padding(.horizontal)
-                                    .padding(.top)
+                        // History Record Button - only show in edit mode
+                        if let drillSetup = currentDrillSetup {
+                            NavigationLink {
+                                DrillRecordView(drillSetup: drillSetup)
+                                    .environment(\.managedObjectContext, viewContext)
+                            } label: {
+                                HStack {
+                                    RoundedRectangle(cornerRadius: 24)
+                                        .stroke(Color.red, lineWidth: 1)
+                                        .background(RoundedRectangle(cornerRadius: 16).fill(Color.clear))
+                                        .frame(height: 36)
+                                        .overlay(
+                                            HStack(spacing: 8) {
+                                                Image(systemName: "clock.arrow.circlepath")
+                                                    .foregroundColor(.red)
+                                                    .font(.title3)
+                                                Text("History Record")
+                                                    .foregroundColor(.white)
+                                                    .font(.footnote)
+                                            }
+                                        )
+                                        .padding(.horizontal)
+                                        .padding(.top)
+                                }
                             }
+                            .buttonStyle(PlainButtonStyle())
                         }
-                        .buttonStyle(PlainButtonStyle())
                         
                         ScrollView {
                             // Grouped Section: Drill Name, Description, Add Video
@@ -419,7 +428,7 @@ struct DrillFormView: View {
         // Add targets - use the Core Data relationship method instead of direct assignment
         for (index, targetData) in targetConfigs.enumerated() {
             let target = DrillTargetsConfig(context: viewContext)
-            target.id = targetData.id ?? UUID()  // Ensure id is never nil
+            target.id = targetData.id  // Ensure id is never nil
             target.seqNo = Int32(targetData.seqNo)
             target.targetName = targetData.targetName
             target.targetType = targetData.targetType
@@ -493,7 +502,7 @@ struct DrillFormView: View {
         
         for targetData in targetConfigs {
             let target = DrillTargetsConfig(context: viewContext)
-            target.id = targetData.id ?? UUID()  // Ensure id is never nil
+            target.id = targetData.id  // Ensure id is never nil
             target.seqNo = Int32(targetData.seqNo)
             target.targetName = targetData.targetName
             target.targetType = targetData.targetType
