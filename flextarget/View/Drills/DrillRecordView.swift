@@ -18,7 +18,18 @@ struct DrillRecordView: View {
         animation: .default)
     private var drillResults: FetchedResults<DrillResult>
 
-    @State private var selectedResult: DrillResult?
+    private func convertShots(_ shots: NSSet?) -> [ShotData] {
+        guard let shots = shots as? Set<Shot> else { return [] }
+        return shots.compactMap { shot in
+            guard let data = shot.data, let jsonData = data.data(using: .utf8) else { return nil }
+            do {
+                return try JSONDecoder().decode(ShotData.self, from: jsonData)
+            } catch {
+                print("Failed to decode shot: \(error)")
+                return nil
+            }
+        }
+    }
 
     private var groupedResults: [(key: String, results: [DrillResult])] {
         let grouped = Dictionary(grouping: drillResults) { result in
@@ -44,20 +55,19 @@ struct DrillRecordView: View {
                             .font(.headline)
                             .padding(.vertical, 8)) {
                             ForEach(group.results) { result in
-                                DrillRecordRowView(
-                                    model: DrillRecordRowView.Model(
-                                        id: result.objectID,
-                                        date: result.date ?? Date(),
-                                        hitFactor: result.hitFactor,
-                                        totalShots: result.shotStatistics.totalShots,
-                                        fastestShot: result.fastestShot
+                                NavigationLink(destination: DrillResultView(drillSetup: result.drillSetup!, shots: convertShots(result.shots))) {
+                                    DrillRecordRowView(
+                                        model: DrillRecordRowView.Model(
+                                            id: result.objectID,
+                                            date: result.date ?? Date(),
+                                            hitFactor: result.hitFactor,
+                                            totalShots: result.shotStatistics.totalShots,
+                                            fastestShot: result.fastestShot
+                                        )
                                     )
-                                )
+                                }
                                 .listRowSeparator(.hidden)
                                 .listRowBackground(Color.clear)
-                                .onTapGesture {
-                                    selectedResult = result
-                                }
                             }
                         }
                     }
@@ -65,9 +75,6 @@ struct DrillRecordView: View {
                 .listStyle(.plain)
                 .navigationTitle("Drill History")
                 .background(Color.clear)
-                .sheet(item: $selectedResult) { result in
-                    DrillResultDetailView(result: result)
-                }
             }
         }
         .environment(\.managedObjectContext, viewContext)
@@ -257,21 +264,4 @@ struct DrillRecordView_Previews: PreviewProvider {
 }
 
 
-struct DrillResultDetailView: View {
-    let result: DrillResult
 
-    var body: some View {
-        List {
-            ForEach(Array(result.shots as! Set<Shot>), id: \.self) { shot in
-                VStack(alignment: .leading) {
-                    if let dataString = shot.data {
-                        Text(dataString)
-                    } else {
-                        Text("No data")
-                    }
-                }
-            }
-        }
-        .navigationTitle("Shots for \(result.drillId?.uuidString ?? "Unknown")")
-    }
-}

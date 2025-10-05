@@ -78,6 +78,17 @@ struct DrillResultView: View {
         }
     }
     
+    init(drillSetup: DrillSetup, shots: [ShotData]) {
+        self.drillSetup = drillSetup
+        _shots = State(initialValue: shots)
+        _drillStatus = State(initialValue: "Completed")
+        // Set selected icon based on first target type if available
+        if let targets = drillSetup.targets as? Set<DrillTargetsConfig>,
+           let firstTarget = targets.first {
+            _selectedIcon = State(initialValue: firstTarget.targetType ?? "")
+        }
+    }
+    
     var body: some View {
         ZStack {
             GeometryReader { geometry in
