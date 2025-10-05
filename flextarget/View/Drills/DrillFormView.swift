@@ -204,9 +204,10 @@ struct DrillFormView: View {
                     .fontWeight(.semibold)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.red)
+                    .background(bleManager.isConnected ? Color.red : Color.gray)
                     .cornerRadius(8)
             }
+            .disabled(!bleManager.isConnected)
             
             if case .edit = mode {
                 Button(action: startDrill) {
@@ -215,9 +216,10 @@ struct DrillFormView: View {
                         .fontWeight(.semibold)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color.green)
+                        .background(bleManager.isConnected ? Color.green : Color.gray)
                         .cornerRadius(8)
                 }
+                .disabled(!bleManager.isConnected)
             }
         }
         .padding(.horizontal)

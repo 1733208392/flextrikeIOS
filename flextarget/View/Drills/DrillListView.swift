@@ -12,6 +12,8 @@ import CoreData
 struct DrillListView: View {
     let bleManager: BLEManager
     @State private var searchText: String = ""
+    @State private var showConnectionAlert = false
+    @State private var alertMessage = ""
 
     @Environment(\.managedObjectContext) private var environmentContext
 
@@ -46,57 +48,7 @@ struct DrillListView: View {
 
                 List {
                     ForEach(filteredDrills, id: \.objectID) { drill in
-                        ZStack {
-                            NavigationLink(destination: EditDrillView(drillSetup: drill, bleManager: bleManager)) {
-                                EmptyView()
-                            }
-                            .opacity(0)
-                            // Inline simple row to avoid dependency on a missing subview
-                            HStack(spacing: 12) {
-                                // simple bullet
-                                Circle()
-                                    .fill(Color.gray)
-                                    .frame(width: 8, height: 8)
-
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(drill.name ?? "Untitled")
-                                        .foregroundColor(.white)
-                                        .font(.headline)
-                                    HStack(spacing: 8) {
-                                        Text("\((drill.targets as? Set<DrillTargetsConfig>)?.count ?? 0) targets")
-                                            .foregroundColor(.gray)
-                                            .font(.caption)
-                                        if drill.delay > 0 {
-                                            Text("delay: \(Int(drill.delay))s")
-                                                .foregroundColor(.gray)
-                                                .font(.caption)
-                                        }
-                                    }
-                                }
-
-                                Spacer()
-
-                                Image(systemName: "chevron.right")
-                                    .foregroundColor(.gray)
-                            }
-                            .padding(.vertical, 8)
-                            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                Button {
-                                    copyDrill(drill)
-                                } label: {
-                                    Label("Copy", systemImage: "doc.on.doc")
-                                }
-                                .tint(.gray)
-
-                                Button(role: .destructive) {
-                                    drillToDelete = drill
-                                    showDeleteAlert = true
-                                } label: {
-                                    Label("Delete", systemImage: "trash")
-                                }
-                            }
-                        }
-                        .listRowBackground(Color.clear)
+                        drillRow(for: drill)
                     }
                 }
                 .listStyle(.plain)
@@ -106,8 +58,18 @@ struct DrillListView: View {
             .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search drills")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    NavigationLink(destination: AddDrillView(bleManager: bleManager)) {
-                        Image(systemName: "plus")
+                    if bleManager.isConnected {
+                        NavigationLink(destination: AddDrillView(bleManager: bleManager)) {
+                            Image(systemName: "plus")
+                        }
+                    } else {
+                        Button(action: {
+                            alertMessage = "Please connect to the target device before adding drills."
+                            showConnectionAlert = true
+                        }) {
+                            Image(systemName: "plus")
+                                .foregroundColor(.gray)
+                        }
                     }
                 }
             }
@@ -120,8 +82,82 @@ struct DrillListView: View {
             } message: { drill in
                 Text("Are you sure you want to delete \(drill.name ?? "this drill")?")
             }
+            .alert("Connection Required", isPresented: $showConnectionAlert) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(alertMessage)
+            }
         }
         .environment(\.managedObjectContext, viewContext)
+    }
+
+    // MARK: - Row View
+    
+    @ViewBuilder
+    private func drillRow(for drill: DrillSetup) -> some View {
+        ZStack {
+            NavigationLink(destination: EditDrillView(drillSetup: drill, bleManager: bleManager)) {
+                EmptyView()
+            }
+            .opacity(0)
+            
+            drillRowContent(for: drill)
+        }
+        .listRowBackground(Color.clear)
+    }
+    
+    @ViewBuilder
+    private func drillRowContent(for drill: DrillSetup) -> some View {
+        HStack(spacing: 12) {
+            Circle()
+                .fill(Color.gray)
+                .frame(width: 8, height: 8)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(drill.name ?? "Untitled")
+                    .foregroundColor(.white)
+                    .font(.headline)
+                
+                drillInfo(for: drill)
+            }
+
+            Spacer()
+
+            Image(systemName: "chevron.right")
+                .foregroundColor(.gray)
+        }
+        .padding(.vertical, 8)
+        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+            Button {
+                copyDrill(drill)
+            } label: {
+                Label("Copy", systemImage: "doc.on.doc")
+            }
+            .tint(.gray)
+
+            Button(role: .destructive) {
+                drillToDelete = drill
+                showDeleteAlert = true
+            } label: {
+                Label("Delete", systemImage: "trash")
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private func drillInfo(for drill: DrillSetup) -> some View {
+        HStack(spacing: 8) {
+            let targetCount = (drill.targets as? Set<DrillTargetsConfig>)?.count ?? 0
+            Text("\(targetCount) targets")
+                .foregroundColor(.gray)
+                .font(.caption)
+            
+            if drill.delay > 0 {
+                Text("delay: \(Int(drill.delay))s")
+                    .foregroundColor(.gray)
+                    .font(.caption)
+            }
+        }
     }
 
     // MARK: - Actions
