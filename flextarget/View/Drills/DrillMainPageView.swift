@@ -56,8 +56,14 @@ struct DrillMainPageView: View {
                             .onTapGesture {
                                 showDrillList = true
                             }
-                        MainMenuButton(icon: "scope", text: "IPSC Questionaries", color: .red)
-                        MainMenuButton(icon: "shield", text: "IDPA Questionaries", color: .red)
+                        // Disabled IPSC button (non-interactive, visually muted)
+                        MainMenuButton(icon: "scope", text: "IPSC Questionaries", color: .gray)
+                            .allowsHitTesting(false)
+                            .opacity(0.6)
+                        // Disabled IDPA button (non-interactive, visually muted)
+                        MainMenuButton(icon: "shield", text: "IDPA Questionaries", color: .gray)
+                            .allowsHitTesting(false)
+                            .opacity(0.6)
                     }
                     .padding(.top, 24)
                     Spacer()
