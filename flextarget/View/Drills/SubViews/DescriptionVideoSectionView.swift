@@ -162,13 +162,20 @@ struct DescriptionVideoSectionView: View {
 
                 // 1) Try to get a URL representation and copy it into a temporary file (do NOT persist into Documents yet)
                 if let url = try? await item.loadTransferable(type: URL.self) {
-                    if let temp = copyFileToTemp(from: url) {
-                        await MainActor.run { demoVideoURL = temp }
-                        if let thumbnail = await generateThumbnail(for: temp) {
-                            let tempThumb = writeDataToTemp(data: thumbnail.jpegData(compressionQuality: 0.8) ?? Data(), ext: "jpg")
-                            await MainActor.run {
-                                demoVideoThumbnail = thumbnail
-                                thumbnailFileURL = tempThumb
+                    // Try to copy the selected file into app Documents for persistence
+                    if let persisted = copyFileToAppStorage(from: url) {
+                        await MainActor.run { demoVideoURL = persisted }
+                        if let thumbnail = await generateThumbnail(for: persisted) {
+                            // Save thumbnail into Documents as well
+                            if let thumbData = thumbnail.jpegData(compressionQuality: 0.8), let savedThumb = writeDataToAppStorage(data: thumbData, ext: "jpg") {
+                                await MainActor.run {
+                                    demoVideoThumbnail = thumbnail
+                                    thumbnailFileURL = savedThumb
+                                }
+                            } else {
+                                await MainActor.run {
+                                    demoVideoThumbnail = thumbnail
+                                }
                             }
                         }
                         return
@@ -178,13 +185,19 @@ struct DescriptionVideoSectionView: View {
                 // 2) Fallback: try to load raw Data and write to app storage
                 await MainActor.run { isDownloadingVideo = true }
                 if let data = try? await item.loadTransferable(type: Data.self) {
-                    if let written = writeDataToTemp(data: data, ext: "mov") {
+                    // Write the raw data into Documents for persistence
+                    if let written = writeDataToAppStorage(data: data, ext: "mov") {
                         await MainActor.run { demoVideoURL = written }
                         if let thumbnail = await generateThumbnail(for: written) {
-                            let tempThumb = writeDataToTemp(data: thumbnail.jpegData(compressionQuality: 0.8) ?? Data(), ext: "jpg")
-                            await MainActor.run {
-                                demoVideoThumbnail = thumbnail
-                                thumbnailFileURL = tempThumb
+                            if let thumbData = thumbnail.jpegData(compressionQuality: 0.8), let savedThumb = writeDataToAppStorage(data: thumbData, ext: "jpg") {
+                                await MainActor.run {
+                                    demoVideoThumbnail = thumbnail
+                                    thumbnailFileURL = savedThumb
+                                }
+                            } else {
+                                await MainActor.run {
+                                    demoVideoThumbnail = thumbnail
+                                }
                             }
                         }
                         return

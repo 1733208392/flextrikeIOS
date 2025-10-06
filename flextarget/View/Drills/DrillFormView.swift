@@ -2,6 +2,7 @@ import PhotosUI
 import SwiftUI
 import UIKit
 import CoreData
+import AVFoundation
 
 enum DrillFormMode {
     case add
@@ -518,32 +519,85 @@ struct DrillFormView: View {
     // MARK: - Helper Methods
     
     private func loadThumbnailIfNeeded() {
-        guard let url = thumbnailFileURL else { return }
-        
-        // Check if file exists before attempting to load
-        guard FileManager.default.fileExists(atPath: url.path) else {
-            print("Thumbnail file does not exist at: \(url.path)")
-            print("Clearing invalid thumbnail reference")
-            thumbnailFileURL = nil
-            demoVideoThumbnail = nil
-            return
-        }
-        
-        do {
-            let data = try Data(contentsOf: url)
-            if let image = UIImage(data: data) {
-                demoVideoThumbnail = image
-                print("Successfully loaded thumbnail: \(url.lastPathComponent)")
-            } else {
-                print("Failed to create UIImage from thumbnail data")
+        // If we have a thumbnail URL, try to load it and validate existence
+        if let url = thumbnailFileURL {
+            // Check if file exists before attempting to load
+            if !FileManager.default.fileExists(atPath: url.path) {
+                print("Thumbnail file does not exist at: \(url.path)")
+                print("Clearing invalid thumbnail reference")
                 thumbnailFileURL = nil
                 demoVideoThumbnail = nil
+            } else {
+                do {
+                    let data = try Data(contentsOf: url)
+                    if let image = UIImage(data: data) {
+                        demoVideoThumbnail = image
+                        print("Successfully loaded thumbnail: \(url.lastPathComponent)")
+                    } else {
+                        print("Failed to create UIImage from thumbnail data")
+                        thumbnailFileURL = nil
+                        demoVideoThumbnail = nil
+                    }
+                } catch {
+                    print("Failed to load thumbnail: \(error)")
+                    print("Clearing invalid thumbnail reference")
+                    thumbnailFileURL = nil
+                    demoVideoThumbnail = nil
+                }
             }
+            return
+        }
+
+        // If there's no thumbnail file but we do have a saved demo video, try to regenerate the thumbnail
+        if let videoURL = demoVideoURL, FileManager.default.fileExists(atPath: videoURL.path) {
+            print("No thumbnail file found, attempting to regenerate from video: \(videoURL.lastPathComponent)")
+            DispatchQueue.global(qos: .userInitiated).async {
+                if let image = self.generateThumbnailSync(for: videoURL), let jpeg = image.jpegData(compressionQuality: 0.8) {
+                    if let saved = self.saveThumbnailDataToDocuments(jpeg) {
+                        DispatchQueue.main.async {
+                            self.thumbnailFileURL = saved
+                            self.demoVideoThumbnail = image
+                            print("Regenerated and saved thumbnail: \(saved.lastPathComponent)")
+                        }
+                        return
+                    } else {
+                        print("Failed to save regenerated thumbnail to Documents")
+                    }
+                } else {
+                    print("Failed to generate thumbnail from video: \(videoURL)")
+                }
+            }
+        }
+    }
+
+    // Synchronous thumbnail generation helper (used from background thread)
+    private func generateThumbnailSync(for url: URL) -> UIImage? {
+        let asset = AVAsset(url: url)
+        let imageGenerator = AVAssetImageGenerator(asset: asset)
+        imageGenerator.appliesPreferredTrackTransform = true
+        let time = CMTime(seconds: 0.1, preferredTimescale: 600)
+        do {
+            let cgImage = try imageGenerator.copyCGImage(at: time, actualTime: nil)
+            let uiImage = UIImage(cgImage: cgImage)
+            // Optionally crop or scale if needed; return as-is for now
+            return uiImage
         } catch {
-            print("Failed to load thumbnail: \(error)")
-            print("Clearing invalid thumbnail reference")
-            thumbnailFileURL = nil
-            demoVideoThumbnail = nil
+            print("generateThumbnailSync error: \(error)")
+            return nil
+        }
+    }
+
+    // Save JPEG data into Documents and return URL
+    private func saveThumbnailDataToDocuments(_ data: Data) -> URL? {
+        let fileManager = FileManager.default
+        let docs = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let dest = docs.appendingPathComponent(UUID().uuidString + ".jpg")
+        do {
+            try data.write(to: dest)
+            return dest
+        } catch {
+            print("Failed to write thumbnail data to Documents: \(error)")
+            return nil
         }
     }
 
