@@ -53,7 +53,7 @@ struct DrillListView: View {
                 }
                 .listStyle(.plain)
             }
-            .navigationTitle("Drill List")
+            .navigationTitle("My Drills")
             .navigationBarTitleDisplayMode(.inline)
             .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search drills")
             .toolbar {

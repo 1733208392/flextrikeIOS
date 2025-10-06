@@ -33,7 +33,7 @@ struct DrillFormView: View {
     @State private var demoVideoThumbnail: UIImage? = nil
     @State private var thumbnailFileURL: URL? = nil
     @State private var showVideoPlayer: Bool = false
-    @State private var delayType: DelayConfigurationView.DelayType = .fixed
+    // delayType removed; only random mode is supported now
     @State private var delayValue: Double = 0
     @State private var targets: [DrillTargetsConfigData] = []
     @State private var isTargetListReceived: Bool = false
@@ -144,7 +144,6 @@ struct DrillFormView: View {
                             
                             // Delay of Set Starting
                             DelayConfigurationView(
-                                delayType: $delayType,
                                 delayValue: $delayValue
                             )
                             .padding(.horizontal)

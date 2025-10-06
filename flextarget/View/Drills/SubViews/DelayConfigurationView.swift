@@ -18,58 +18,31 @@ import SwiftUI
  */
 
 struct DelayConfigurationView: View {
-    @Binding var delayType: DelayType
+    // DelayType removed - this view now only supports random delay mode
     @Binding var delayValue: Double
-    
-    enum DelayType: String, CaseIterable { 
-        case fixed, random 
-    }
-    
+
     var body: some View {
         HStack {
             Text("Delay(s)")
                 .foregroundColor(.white)
-            
+
             Spacer()
-            
-            Button(action: {
-                withAnimation {
-                    delayType = (delayType == .random) ? .fixed : .random
-                    if delayType == .random {
-                        delayValue = 2 // default random min
-                    } else {
-                        delayValue = 0 // default fixed
-                    }
-                }
-            }) {
-                Image(systemName: "shuffle")
-                    .foregroundColor(delayType == .random ? .red : .gray)
-                    .padding(10)
-                    .background(Circle().fill(Color.white.opacity(0.1)))
-                    .overlay(
-                        Circle().stroke(delayType == .random ? Color.red : Color.gray, lineWidth: 2)
-                    )
-            }
-            .buttonStyle(PlainButtonStyle())
-            
+
+            // Keep shuffle icon as an indicator for randomness but remove toggle behavior
+            Image(systemName: "shuffle")
+                .foregroundColor(.red)
+                .padding(10)
+                .background(Circle().fill(Color.white.opacity(0.1)))
+                .overlay(
+                    Circle().stroke(Color.red, lineWidth: 2)
+                )
+
             Spacer()
-            
-            if delayType == .fixed {
-                Picker("Random Delay", selection: $delayValue) {
-                    ForEach(1...60, id: \.self) { value in
-                        Text("\(value)")
-                            .fontWeight(.bold)
-                            .foregroundColor(.red)
-                    }
-                }
-                .pickerStyle(.wheel)
-                .frame(width: 60, height: 80)
-                .clipped()
-            } else {
-                Text("2...5")
-                    .fontWeight(.bold)
-                    .foregroundColor(.red)
-            }
+
+            // Random range display - fixed value picker removed
+            Text("2...5")
+                .fontWeight(.bold)
+                .foregroundColor(.red)
         }
         .padding()
         .background(Color.gray.opacity(0.2))
@@ -83,11 +56,6 @@ struct DelayConfigurationView_Previews: PreviewProvider {
             Color.black.ignoresSafeArea()
             VStack(spacing: 20) {
                 DelayConfigurationView(
-                    delayType: .constant(.fixed),
-                    delayValue: .constant(0)
-                )
-                DelayConfigurationView(
-                    delayType: .constant(.random),
                     delayValue: .constant(3)
                 )
             }
