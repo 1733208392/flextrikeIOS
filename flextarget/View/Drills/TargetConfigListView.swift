@@ -28,11 +28,13 @@ struct TargetConfigListView: View {
             }
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Save") {
-                        onDone()
-                        dismiss()
+                    // moved Add into the navigation bar as a '+' button
+                    Button(action: { addNewTarget() }) {
+                        Image(systemName: "plus")
+                            .foregroundColor(.red)
                     }
-                    .foregroundColor(.red)
+                    .disabled(targetConfigs.count >= deviceList.count)
+                    .buttonStyle(.plain)
                 }
             }
         }
@@ -68,9 +70,10 @@ struct TargetConfigListView: View {
     private var AddButton: some View {
         HStack(spacing: 20) {
             Button(action: {
-                addNewTarget()
+                onDone()
+                dismiss()
             }) {
-                Text("Add")
+                Text("Save")
                     .font(.title3)
                     .fontWeight(.semibold)
                     .foregroundColor(.white)
@@ -79,7 +82,6 @@ struct TargetConfigListView: View {
                     .background(Color.red)
                     .cornerRadius(8)
             }
-            .disabled(targetConfigs.count >= deviceList.count)
         }
         .padding(.horizontal, 24)
         .padding(.bottom, 24)

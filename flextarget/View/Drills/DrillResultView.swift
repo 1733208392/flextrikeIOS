@@ -33,6 +33,25 @@ struct HitPosition: Codable {
     let y: Double
 }
 
+private struct TargetDisplay: Identifiable, Hashable {
+    let id: String
+    let config: DrillTargetsConfig
+    let icon: String
+    let deviceName: String?
+
+    func matches(_ shot: ShotData) -> Bool {
+        let shotIcon = shot.content.targetType.isEmpty ? "hostage" : shot.content.targetType
+        guard shotIcon == icon else { return false }
+        
+        if let deviceName = deviceName {
+            let shotDevice = shot.device?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            return shotDevice == deviceName
+        }
+        
+        return true
+    }
+}
+
 struct DrillResultView: View {
     let drillSetup: DrillSetup
     
@@ -47,7 +66,7 @@ struct DrillResultView: View {
     @State private var drillStatus: String = "In Progress"
     @State private var isLiveDrill: Bool
     
-    @State private var selectedIcon: String = "hostage"
+    @State private var selectedTargetKey: String = ""
     @State private var selectedShotIndex: Int? = nil
     @State private var currentProgress: Double = 0.0
     @State private var isPlaying: Bool = false
@@ -63,6 +82,71 @@ struct DrillResultView: View {
             .map { ($0.offset, $0.element.content.timeDiff) }
             .sorted { $0.1 < $1.1 }
     }
+
+    private var currentTargetTimelineData: [(index: Int, time: Double)] {
+        guard let display = targetDisplays.first(where: { $0.id == selectedTargetKey }) else { return [] }
+        return shots.enumerated()
+            .filter { display.matches($0.element) }
+            .map { ($0.offset, $0.element.content.timeDiff) }
+            .sorted { $0.1 < $1.1 }
+    }
+
+    private var targetDisplays: [TargetDisplay] {
+        let sortedTargets = drillSetup.sortedTargets
+        
+        // Find unique devices from shots for each target type
+        var devicesByTargetType: [String: Set<String>] = [:]
+        for shot in shots {
+            let targetType = shot.content.targetType.isEmpty ? "hostage" : shot.content.targetType
+            if let device = shot.device?.trimmingCharacters(in: .whitespacesAndNewlines), !device.isEmpty {
+                devicesByTargetType[targetType, default: []].insert(device)
+            }
+        }
+        
+        var displays: [TargetDisplay] = []
+        
+        for target in sortedTargets {
+            let iconName = target.targetType ?? ""
+            let resolvedIcon = iconName.isEmpty ? "hostage" : iconName
+            
+            // Get devices for this target type
+            let devices = devicesByTargetType[resolvedIcon] ?? []
+            
+            if devices.isEmpty {
+                // No shots yet, show config without device
+                let id = "\(target.id?.uuidString ?? UUID().uuidString)"
+                displays.append(TargetDisplay(
+                    id: id,
+                    config: target,
+                    icon: resolvedIcon,
+                    deviceName: nil
+                ))
+            } else {
+                // Create one display per device
+                for device in devices.sorted() {
+                    let id = "\(target.id?.uuidString ?? UUID().uuidString)_\(device)"
+                    displays.append(TargetDisplay(
+                        id: id,
+                        config: target,
+                        icon: resolvedIcon,
+                        deviceName: device
+                    ))
+                }
+            }
+        }
+        
+        // If no configs and no shots, show fallback
+        if displays.isEmpty {
+            displays.append(TargetDisplay(
+                id: UUID().uuidString,
+                config: DrillTargetsConfig(),
+                icon: "hostage",
+                deviceName: nil
+            ))
+        }
+        
+        return displays
+    }
     
     var totalDuration: Double {
         guard let targets = drillSetup.targets as? Set<DrillTargetsConfig> else { return 10.0 }
@@ -74,10 +158,10 @@ struct DrillResultView: View {
     init(drillSetup: DrillSetup) {
         self.drillSetup = drillSetup
         _isLiveDrill = State(initialValue: true)
-        // Set selected icon based on first target type if available
-        if let targets = drillSetup.targets as? Set<DrillTargetsConfig>,
-           let firstTarget = targets.first {
-            _selectedIcon = State(initialValue: firstTarget.targetType ?? "")
+        if let firstTarget = drillSetup.sortedTargets.first {
+            _selectedTargetKey = State(initialValue: firstTarget.id?.uuidString ?? UUID().uuidString)
+        } else {
+            _selectedTargetKey = State(initialValue: UUID().uuidString)
         }
     }
     
@@ -86,10 +170,10 @@ struct DrillResultView: View {
         _isLiveDrill = State(initialValue: false)
         _shots = State(initialValue: shots)
         _drillStatus = State(initialValue: "Completed")
-        // Set selected icon based on first target type if available
-        if let targets = drillSetup.targets as? Set<DrillTargetsConfig>,
-           let firstTarget = targets.first {
-            _selectedIcon = State(initialValue: firstTarget.targetType ?? "")
+        if let firstTarget = drillSetup.sortedTargets.first {
+            _selectedTargetKey = State(initialValue: firstTarget.id?.uuidString ?? UUID().uuidString)
+        } else {
+            _selectedTargetKey = State(initialValue: UUID().uuidString)
         }
     }
     
@@ -106,61 +190,83 @@ struct DrillResultView: View {
                 VStack {
                     Spacer()
                     
-                    ZStack {
-                        // White rectangular frame representing target device with gray fill
-                        Rectangle()
-                            .fill(Color.gray.opacity(0.3))
-                            .frame(width: frameWidth, height: frameHeight)
-                            .overlay(
+                    TabView(selection: $selectedTargetKey) {
+                        ForEach(targetDisplays) { display in
+                            ZStack {
+                                // White rectangular frame representing target device with gray fill
                                 Rectangle()
-                                    .stroke(Color.white, lineWidth: 12)
-                            )
-                        
-                        // Target icon inside the frame
-                        Image(selectedIcon)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: frameWidth, height: frameHeight)
-                        
-                        // Shot position markers (only show visible shots during replay)
-                        ForEach(shots.indices, id: \.self) { index in
-                            if visibleShotIndices.contains(index) {
-                                let shot = shots[index]
-                                let x = shot.content.hitPosition.x
-                                let y = shot.content.hitPosition.y
-                                // Transform coordinates from 720×1280 source to frame dimensions
-                                let transformedX = (x / 720.0) * frameWidth
-                                let transformedY = (y / 1280.0) * frameHeight
+                                    .fill(Color.gray.opacity(0.3))
+                                    .frame(width: frameWidth, height: frameHeight)
+                                    .overlay(
+                                        Rectangle()
+                                            .stroke(Color.white, lineWidth: 12)
+                                    )
                                 
-                                ZStack {
-                                    Image("bullet_hole2")
-                                        .resizable()
-                                        .scaledToFit()
-                                        .frame(width: 30, height: 30)
-                                    
-                                    // Highlight selected shot
-                                    if selectedShotIndex == index {
-                                        Circle()
-                                            .stroke(Color.yellow, lineWidth: 3)
-                                            .frame(width: 30, height: 30)
-                                            .scaleEffect(pulsingShotIndex == index ? pulseScale : 1.0)
+                                // Target icon inside the frame
+                                Image(display.icon)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: frameWidth, height: frameHeight)
+                                    .overlay(alignment: .topTrailing) {
+                                        if let deviceName = display.deviceName {
+                                            Text(deviceName)
+                                                .foregroundColor(.white)
+                                                .font(.caption)
+                                                .fontWeight(.semibold)
+                                                .padding(6)
+                                                .background(Color.black.opacity(0.8))
+                                                .cornerRadius(8)
+                                                .padding(10)
+                                        }
+                                    }
+                                
+                                // Shot position markers (only show visible shots during replay)
+                                ForEach(shots.indices, id: \.self) { index in
+                                    let shot = shots[index]
+                                    if display.matches(shot) && visibleShotIndices.contains(index) {
+                                        let x = shot.content.hitPosition.x
+                                        let y = shot.content.hitPosition.y
+                                        // Transform coordinates from 720×1280 source to frame dimensions
+                                        let transformedX = (x / 720.0) * frameWidth
+                                        let transformedY = (y / 1280.0) * frameHeight
+                                        
+                                        ZStack {
+                                            Image("bullet_hole2")
+                                                .resizable()
+                                                .scaledToFit()
+                                                .frame(width: 30, height: 30)
+                                            
+                                            // Highlight selected shot
+                                            if selectedShotIndex == index {
+                                                Circle()
+                                                    .stroke(Color.yellow, lineWidth: 3)
+                                                    .frame(width: 30, height: 30)
+                                                    .scaleEffect(pulsingShotIndex == index ? pulseScale : 1.0)
+                                            }
+                                        }
+                                        .position(x: transformedX, y: transformedY)
                                     }
                                 }
-                                .position(x: transformedX, y: transformedY)
                             }
+                            .frame(width: frameWidth, height: frameHeight)
+                            .tag(display.id)
                         }
                     }
                     .frame(width: frameWidth, height: frameHeight)
+                    .tabViewStyle(PageTabViewStyle(indexDisplayMode: targetDisplays.count > 1 ? .automatic : .never))
+                    .onChange(of: shots.count) { _ in
+                        ensureSelectedTargetIsValid()
+                    }
                     
                     // Progress bar with shot tick marks
                     HStack(alignment: .center, spacing: 12) {
                         ShotTimelineView(
-                            shots: shotTimelineData,
+                            shots: currentTargetTimelineData,
                             totalDuration: totalDuration,
                             currentProgress: currentProgress,
                             isEnabled: drillStatus != "In Progress",
                             onProgressChange: { newTime in
-                                seek(to: newTime, highlightIndex: nil, shouldPulse: false)
+                                seek(to: newTime, highlightIndex: nil, shouldPulse: false, restrictToSelectedTarget: true)
                             },
                             onShotFocus: { shotIndex in
                                 focusOnShot(shotIndex)
@@ -227,6 +333,7 @@ struct DrillResultView: View {
             }
             .navigationTitle("Drill Replay")
             .onAppear {
+                ensureSelectedTargetIsValid()
                 if isLiveDrill {
                     startDrillTimer()
                     setupNotificationObserver()
@@ -257,7 +364,7 @@ struct DrillResultView: View {
         }
     }
 
-    private func seek(to time: Double, highlightIndex: Int?, shouldPulse: Bool) {
+    private func seek(to time: Double, highlightIndex: Int?, shouldPulse: Bool, restrictToSelectedTarget: Bool = false) {
         let clampedTime = max(0.0, min(time, totalDuration))
         pauseReplay()
         isPlaying = false
@@ -266,12 +373,21 @@ struct DrillResultView: View {
         
         if let highlightIndex = highlightIndex, shots.indices.contains(highlightIndex) {
             selectedShotIndex = highlightIndex
+            updateSelectedTargetForCurrentShot()
             if shouldPulse {
                 triggerPulse(on: highlightIndex)
             } else {
                 pulsingShotIndex = highlightIndex
                 pulseScale = 1.0
             }
+        } else if restrictToSelectedTarget, let display = targetDisplays.first(where: { $0.id == selectedTargetKey }) {
+            let currentShotIndex = shots.enumerated()
+                .filter { display.matches($0.element) && $0.element.content.timeDiff <= clampedTime }
+                .max(by: { $0.element.content.timeDiff < $1.element.content.timeDiff })?
+                .offset
+            selectedShotIndex = currentShotIndex
+            pulsingShotIndex = currentShotIndex
+            pulseScale = 1.0
         } else {
             updateSelection(for: clampedTime)
             pulsingShotIndex = selectedShotIndex
@@ -298,6 +414,7 @@ struct DrillResultView: View {
             .max(by: { $0.element.content.timeDiff < $1.element.content.timeDiff })?
             .offset
         selectedShotIndex = currentShotIndex
+        updateSelectedTargetForCurrentShot()
     }
     
     private func triggerPulse(on index: Int) {
@@ -347,6 +464,7 @@ struct DrillResultView: View {
                 .max(by: { $0.element.content.timeDiff < $1.element.content.timeDiff })?
                 .offset
             selectedShotIndex = currentShotIndex
+            updateSelectedTargetForCurrentShot()
             pulsingShotIndex = currentShotIndex
             
             // Stop at end of drill
@@ -358,6 +476,22 @@ struct DrillResultView: View {
         }
     }
     
+    private func updateSelectedTargetForCurrentShot() {
+        guard let index = selectedShotIndex, shots.indices.contains(index) else { return }
+        let shot = shots[index]
+        
+        // Find matching display for this shot
+        if let matchingDisplay = targetDisplays.first(where: { $0.matches(shot) }) {
+            selectedTargetKey = matchingDisplay.id
+        }
+    }
+
+    private func ensureSelectedTargetIsValid() {
+        guard !targetDisplays.contains(where: { $0.id == selectedTargetKey }) else { return }
+        if let fallback = targetDisplays.first {
+            selectedTargetKey = fallback.id
+        }
+    }
     private func pauseReplay() {
         replayTimer?.invalidate()
         replayTimer = nil
@@ -512,231 +646,6 @@ struct DrillResultView: View {
     }
 }
 
-private struct ShotTimelineView: View {
-    let shots: [(index: Int, time: Double)]
-    let totalDuration: Double
-    let currentProgress: Double
-    let isEnabled: Bool
-    let onProgressChange: (Double) -> Void
-    let onShotFocus: (Int) -> Void
-    
-    @State private var lastFocusedClusterID: UUID?
-    @State private var activeCluster: ShotCluster?
-    @State private var tooltipX: CGFloat = 0
-    @State private var tooltipToken: UUID?
-    
-    private var clusterMergeWindow: Double {
-        max(0.12, totalDuration * 0.02)
-    }
-    
-    private var highlightThreshold: Double {
-        max(clusterMergeWindow * 1.2, totalDuration * 0.03)
-    }
-    
-    private var clusters: [ShotCluster] {
-        guard !shots.isEmpty else { return [] }
-        var result: [ShotCluster] = []
-        var currentMembers: [(index: Int, time: Double)] = [shots[0]]
-        for shot in shots.dropFirst() {
-            if let lastTime = currentMembers.last?.time, shot.time - lastTime <= clusterMergeWindow {
-                currentMembers.append(shot)
-            } else {
-                result.append(ShotCluster(members: currentMembers))
-                currentMembers = [shot]
-            }
-        }
-        result.append(ShotCluster(members: currentMembers))
-        return result
-    }
-    
-    var body: some View {
-        GeometryReader { geometry in
-            let width = max(geometry.size.width, 1)
-            let height = max(geometry.size.height, 1)
-            let clampedRatio = totalDuration > 0 ? min(max(currentProgress / totalDuration, 0), 1) : 0
-            let progressWidth = width * clampedRatio
-            
-            ZStack(alignment: .bottomLeading) {
-                ZStack(alignment: .leading) {
-                    Capsule()
-                        .fill(Color.white.opacity(0.25))
-                        .frame(height: 4)
-                    Capsule()
-                        .fill(Color.white)
-                        .frame(width: progressWidth, height: 4)
-                }
-                .frame(height: 4)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                .overlay(
-                    ZStack {
-                        ForEach(clusters) { cluster in
-                            let ratio = totalDuration > 0 ? min(max(cluster.representativeTime / totalDuration, 0), 1) : 0
-                            let xPosition = width * ratio
-                            let isPastCluster = cluster.latestTime <= currentProgress + 0.0001
-                            let tickWidth: CGFloat = cluster.count > 1 ? 4 : 2
-                            let baseColor: Color = cluster.count > 1 ? Color.orange : Color.white.opacity(0.7)
-                            let fillColor: Color = isPastCluster ? (cluster.count > 1 ? Color.orange : Color.yellow) : baseColor
-                            Rectangle()
-                                .fill(fillColor)
-                                .frame(width: tickWidth, height: cluster.count > 1 ? 18 : 12)
-                                .frame(width: 28, height: height)
-                                .position(x: xPosition, y: height / 2)
-                                .contentShape(Rectangle())
-                                .onTapGesture {
-                                    guard isEnabled else { return }
-                                    onProgressChange(cluster.representativeTime)
-                                    onShotFocus(cluster.firstIndex)
-                                    updateActiveCluster(cluster, xPosition: xPosition, autoHide: true)
-                                }
-                        }
-                    }
-                )
-                
-                if let cluster = activeCluster {
-                    let clampedX = min(max(tooltipX, 70), width - 70)
-                    ClusterTooltip(cluster: cluster)
-                        .fixedSize()
-                        .position(x: clampedX, y: 0)
-                        .offset(y: -height * 0.5 - 30)
-                        .transition(.opacity.combined(with: .scale))
-                }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .contentShape(Rectangle())
-            .gesture(isEnabled ? dragGesture(width: width) : nil)
-        }
-        .allowsHitTesting(isEnabled)
-        .animation(.easeInOut(duration: 0.12), value: activeCluster?.id)
-    }
-    
-    private func dragGesture(width: CGFloat) -> some Gesture {
-        DragGesture(minimumDistance: 0)
-            .onChanged { value in
-                let ratio = min(max(value.location.x / max(width, 1), 0), 1)
-                let newTime = ratio * totalDuration
-                onProgressChange(newTime)
-                if let nearest = nearestCluster(to: newTime) {
-                    if nearest.id != lastFocusedClusterID {
-                        lastFocusedClusterID = nearest.id
-                        onShotFocus(nearest.firstIndex)
-                    }
-                    let xPosition = xPosition(for: nearest, width: width)
-                    updateActiveCluster(nearest, xPosition: xPosition, autoHide: false)
-                } else {
-                    lastFocusedClusterID = nil
-                    updateActiveCluster(nil, xPosition: 0, autoHide: false)
-                }
-            }
-            .onEnded { value in
-                let ratio = min(max(value.location.x / max(width, 1), 0), 1)
-                let newTime = ratio * totalDuration
-                if let nearest = nearestCluster(to: newTime) {
-                    onProgressChange(nearest.representativeTime)
-                    onShotFocus(nearest.firstIndex)
-                    let xPosition = xPosition(for: nearest, width: width)
-                    updateActiveCluster(nearest, xPosition: xPosition, autoHide: true)
-                } else {
-                    onProgressChange(newTime)
-                    updateActiveCluster(nil, xPosition: 0, autoHide: false)
-                }
-                lastFocusedClusterID = nil
-            }
-    }
-    
-    private func nearestCluster(to time: Double) -> ShotCluster? {
-        guard !clusters.isEmpty else { return nil }
-        if let direct = clusters.first(where: { time >= $0.earliestTime - highlightThreshold && time <= $0.latestTime + highlightThreshold }) {
-            return direct
-        }
-        return clusters.min(by: { abs($0.representativeTime - time) < abs($1.representativeTime - time) })
-    }
-    
-    private func xPosition(for cluster: ShotCluster, width: CGFloat) -> CGFloat {
-        guard totalDuration > 0 else { return 0 }
-        let ratio = min(max(cluster.representativeTime / totalDuration, 0), 1)
-        return width * ratio
-    }
-    
-    private func updateActiveCluster(_ cluster: ShotCluster?, xPosition: CGFloat, autoHide: Bool) {
-        tooltipToken = nil
-        if let cluster = cluster {
-            activeCluster = cluster
-            tooltipX = xPosition
-            if autoHide {
-                let token = UUID()
-                tooltipToken = token
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
-                    if tooltipToken == token {
-                        activeCluster = nil
-                    }
-                }
-            }
-        } else {
-            activeCluster = nil
-        }
-    }
-    
-    private struct ShotCluster: Identifiable, Equatable {
-        let id = UUID()
-        let members: [(index: Int, time: Double)]
-        
-        init(members: [(index: Int, time: Double)]) {
-            self.members = members.sorted { $0.time < $1.time }
-        }
-        
-        static func == (lhs: ShotCluster, rhs: ShotCluster) -> Bool {
-            guard lhs.members.count == rhs.members.count else { return false }
-            for (left, right) in zip(lhs.members, rhs.members) {
-                if left.index != right.index { return false }
-                if abs(left.time - right.time) > 0.0001 { return false }
-            }
-            return true
-        }
-        
-        var count: Int { members.count }
-        var representativeTime: Double {
-            guard !members.isEmpty else { return 0 }
-            let total = members.reduce(0) { $0 + $1.time }
-            return total / Double(members.count)
-        }
-        var firstIndex: Int { members.first?.index ?? 0 }
-        var earliestTime: Double { members.first?.time ?? 0 }
-        var latestTime: Double { members.last?.time ?? earliestTime }
-    }
-    
-    private struct ClusterTooltip: View {
-        let cluster: ShotCluster
-        
-        var body: some View {
-            VStack(alignment: .leading, spacing: 4) {
-                if cluster.count > 1 {
-                    Text("\(cluster.count) shots")
-                        .font(.footnote)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.white)
-                } else if let member = cluster.members.first {
-                    Text("Shot \(member.index + 1)")
-                        .font(.footnote)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.white)
-                }
-                ForEach(Array(cluster.members.enumerated()), id: \.element.index) { _, member in
-                    Text("Shot \(member.index + 1): \(String(format: "%.2fs", member.time))")
-                        .font(.caption2)
-                        .foregroundColor(.white.opacity(0.85))
-                }
-            }
-            .padding(8)
-            .background(Color.black.opacity(0.85))
-            .cornerRadius(6)
-            .overlay(
-                RoundedRectangle(cornerRadius: 6)
-                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
-            )
-        }
-    }
-}
-
 #Preview {
     let context = PersistenceController.preview.container.viewContext
     let mockDrillSetup = DrillSetup(context: context)
@@ -752,150 +661,13 @@ private struct ShotTimelineView: View {
     mockTarget.timeout = 10.0
     mockDrillSetup.addToTargets(mockTarget)
     
-    // Create mock shots and simulate them being received
-    let mockView = DrillResultView(drillSetup: mockDrillSetup)
+    // Create mock shots with device info
+    let mockShots = [
+        ShotData(target: "target1", content: Content(command: "shot", hitArea: "B", hitPosition: HitPosition(x: 395.0, y: 495.0), rotationAngle: 0, targetType: "hostage", timeDiff: 0.18), type: "shot", action: "hit", device: "device1"),
+        ShotData(target: "target1", content: Content(command: "shot", hitArea: "B", hitPosition: HitPosition(x: 400.0, y: 500.0), rotationAngle: 0, targetType: "hostage", timeDiff: 0.21), type: "shot", action: "hit", device: "device1"),
+        ShotData(target: "target1", content: Content(command: "shot", hitArea: "A", hitPosition: HitPosition(x: 205.0, y: 295.0), rotationAngle: 0, targetType: "hostage", timeDiff: 1.35), type: "shot", action: "hit", device: "device2"),
+    ]
     
-    // Post mock shots to simulate drill completion
-    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-        let mockShotsData: [[String: Any]] = [
-            [
-                "target": "target1",
-                "content": [
-                    "command": "shot",
-                    "hit_area": "B",
-                    "hit_position": ["x": 395.0, "y": 495.0],
-                    "rotation_angle": 0,
-                    "target_type": "hostage",
-                    "time_diff": 0.18
-                ],
-                "type": "shot",
-                "action": "hit",
-                "device": "device1"
-            ],
-            [
-                "target": "target1",
-                "content": [
-                    "command": "shot",
-                    "hit_area": "B",
-                    "hit_position": ["x": 400.0, "y": 500.0],
-                    "rotation_angle": 0,
-                    "target_type": "hostage",
-                    "time_diff": 0.21
-                ],
-                "type": "shot",
-                "action": "hit",
-                "device": "device1"
-            ],
-            [
-                "target": "target1",
-                "content": [
-                    "command": "shot",
-                    "hit_area": "B",
-                    "hit_position": ["x": 403.0, "y": 502.0],
-                    "rotation_angle": 0,
-                    "target_type": "hostage",
-                    "time_diff": 0.22
-                ],
-                "type": "shot",
-                "action": "hit",
-                "device": "device1"
-            ],
-            [
-                "target": "target1",
-                "content": [
-                    "command": "shot",
-                    "hit_area": "B",
-                    "hit_position": ["x": 398.0, "y": 498.0],
-                    "rotation_angle": 0,
-                    "target_type": "hostage",
-                    "time_diff": 0.24
-                ],
-                "type": "shot",
-                "action": "hit",
-                "device": "device1"
-            ],
-            [
-                "target": "target1",
-                "content": [
-                    "command": "shot",
-                    "hit_area": "B",
-                    "hit_position": ["x": 405.0, "y": 505.0],
-                    "rotation_angle": 0,
-                    "target_type": "hostage",
-                    "time_diff": 0.27
-                ],
-                "type": "shot",
-                "action": "hit",
-                "device": "device1"
-            ],
-            [
-                "target": "target1",
-                "content": [
-                    "command": "shot",
-                    "hit_area": "A",
-                    "hit_position": ["x": 205.0, "y": 295.0],
-                    "rotation_angle": 0,
-                    "target_type": "hostage",
-                    "time_diff": 1.35
-                ],
-                "type": "shot",
-                "action": "hit",
-                "device": "device1"
-            ],
-            [
-                "target": "target1",
-                "content": [
-                    "command": "shot",
-                    "hit_area": "A",
-                    "hit_position": ["x": 208.0, "y": 298.0],
-                    "rotation_angle": 0,
-                    "target_type": "hostage",
-                    "time_diff": 1.37
-                ],
-                "type": "shot",
-                "action": "hit",
-                "device": "device1"
-            ],
-            [
-                "target": "target1",
-                "content": [
-                    "command": "shot",
-                    "hit_area": "C",
-                    "hit_position": ["x": 520.0, "y": 640.0],
-                    "rotation_angle": 0,
-                    "target_type": "hostage",
-                    "time_diff": 2.8
-                ],
-                "type": "shot",
-                "action": "hit",
-                "device": "device1"
-            ],
-            [
-                "target": "target1",
-                "content": [
-                    "command": "shot",
-                    "hit_area": "C",
-                    "hit_position": ["x": 523.0, "y": 643.0],
-                    "rotation_angle": 0,
-                    "target_type": "hostage",
-                    "time_diff": 2.83
-                ],
-                "type": "shot",
-                "action": "hit",
-                "device": "device1"
-            ]
-        ]
-        
-        // Simulate shot notifications for preview
-        for shotData in mockShotsData {
-            NotificationCenter.default.post(
-                name: .bleShotReceived,
-                object: nil,
-                userInfo: ["shot_data": shotData]
-            )
-        }
-    }
-    
-    return mockView
+    return DrillResultView(drillSetup: mockDrillSetup, shots: mockShots)
         .environment(\.managedObjectContext, context)
 }
