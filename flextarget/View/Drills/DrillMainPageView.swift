@@ -6,6 +6,7 @@ struct DrillMainPageView: View {
     @State private var showConnectView = false
     @State private var showInfo = false
     @State private var selectedDrillSetup: DrillSetup? = nil
+    @State private var selectedDrillShots: [ShotData]? = nil
     let persistenceController = PersistenceController.shared
     
     var body: some View {
@@ -46,7 +47,7 @@ struct DrillMainPageView: View {
                     .padding(.horizontal)
                     .padding(.top, 24)
                     // Recent Training (moved to subview)
-                    RecentTrainingView(selectedDrillSetup: $selectedDrillSetup)
+                    RecentTrainingView(selectedDrillSetup: $selectedDrillSetup, selectedDrillShots: $selectedDrillShots)
                         .padding(.horizontal)
                         .padding(.top, 16)
                     // Menu Buttons
@@ -72,8 +73,13 @@ struct DrillMainPageView: View {
                     .environment(\.managedObjectContext, persistenceController.container.viewContext)
             }
             .navigationDestination(item: $selectedDrillSetup) { drillSetup in
-                DrillResultView(drillSetup: drillSetup)
-                    .environment(\.managedObjectContext, persistenceController.container.viewContext)
+                if let shots = selectedDrillShots {
+                    DrillResultView(drillSetup: drillSetup, shots: shots)
+                        .environment(\.managedObjectContext, persistenceController.container.viewContext)
+                } else {
+                    DrillResultView(drillSetup: drillSetup)
+                        .environment(\.managedObjectContext, persistenceController.container.viewContext)
+                }
             }
             .sheet(isPresented: $showConnectView) {
                 ConnectSmartTargetWrapper(onDismiss: { showConnectView = false })
@@ -89,6 +95,11 @@ struct DrillMainPageView: View {
             .onChange(of: bleManager.isConnected) { oldValue, newValue in
                 if !newValue {
                     showConnectView = true
+                }
+            }
+            .onChange(of: selectedDrillSetup) { _, newValue in
+                if newValue == nil {
+                    selectedDrillShots = nil
                 }
             }
     }

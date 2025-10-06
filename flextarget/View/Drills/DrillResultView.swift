@@ -45,12 +45,14 @@ struct DrillResultView: View {
     
     // Drill status for title
     @State private var drillStatus: String = "In Progress"
+    @State private var isLiveDrill: Bool
     
     @State private var selectedIcon: String = "hostage"
     @State private var selectedShotIndex: Int? = nil
     @State private var currentProgress: Double = 0.0
     @State private var isPlaying: Bool = false
     @State private var dots: String = ""
+    @State private var dotsTimer: Timer?
     @State private var replayTimer: Timer?
     @State private var visibleShotIndices: Set<Int> = []
     @State private var pulsingShotIndex: Int? = nil
@@ -71,6 +73,7 @@ struct DrillResultView: View {
     
     init(drillSetup: DrillSetup) {
         self.drillSetup = drillSetup
+        _isLiveDrill = State(initialValue: true)
         // Set selected icon based on first target type if available
         if let targets = drillSetup.targets as? Set<DrillTargetsConfig>,
            let firstTarget = targets.first {
@@ -80,6 +83,7 @@ struct DrillResultView: View {
     
     init(drillSetup: DrillSetup, shots: [ShotData]) {
         self.drillSetup = drillSetup
+        _isLiveDrill = State(initialValue: false)
         _shots = State(initialValue: shots)
         _drillStatus = State(initialValue: "Completed")
         // Set selected icon based on first target type if available
@@ -138,7 +142,7 @@ struct DrillResultView: View {
                                     if selectedShotIndex == index {
                                         Circle()
                                             .stroke(Color.yellow, lineWidth: 3)
-                                            .frame(width: 40, height: 40)
+                                            .frame(width: 30, height: 30)
                                             .scaleEffect(pulsingShotIndex == index ? pulseScale : 1.0)
                                     }
                                 }
@@ -223,19 +227,19 @@ struct DrillResultView: View {
             }
             .navigationTitle("Drill Replay")
             .onAppear {
-                startDrillTimer()
-                setupNotificationObserver()
-                // Start dots animation
-                Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in
-                    dots = dots == "..." ? "" : dots + "."
+                if isLiveDrill {
+                    startDrillTimer()
+                    setupNotificationObserver()
+                    startDotsTimer()
                 }
             }
             .onDisappear {
                 stopDrillTimer()
                 removeNotificationObserver()
+                stopDotsTimer()
             }
             
-            if drillStatus == "In Progress" {
+            if isLiveDrill && drillStatus == "In Progress" {
                 VStack {
                     Spacer()
                     ZStack {
@@ -307,6 +311,20 @@ struct DrillResultView: View {
                 pulseScale = 1.0
             }
         }
+    }
+
+    private func startDotsTimer() {
+        dotsTimer?.invalidate()
+        dots = ""
+        dotsTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in
+            dots = dots == "..." ? "" : dots + "."
+        }
+    }
+
+    private func stopDotsTimer() {
+        dotsTimer?.invalidate()
+        dotsTimer = nil
+        dots = ""
     }
 
     private func startReplay() {
@@ -431,6 +449,7 @@ struct DrillResultView: View {
     
     private func onDrillTimerExpired() {
         drillStatus = "Drill Ended"
+        stopDotsTimer()
         
         print("Drill timer expired. Shots received:")
         for (index, shot) in shots.enumerated() {

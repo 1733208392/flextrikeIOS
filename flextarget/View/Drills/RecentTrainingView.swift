@@ -1,10 +1,12 @@
 import SwiftUI
 import UIKit
+import CoreData
 
 struct RecentTrainingView: View {
     @Binding var selectedDrillSetup: DrillSetup?
+    @Binding var selectedDrillShots: [ShotData]?
     @State private var selectedPage: Int = 0
-    @State private var drills: [(DrillSummary, DrillSetup)] = []
+    @State private var drills: [(DrillSummary, DrillResult)] = []
     @State private var isLoading = true
     @State private var errorMessage: String?
     
@@ -66,7 +68,7 @@ struct RecentTrainingView: View {
         TabView(selection: $selectedPage) {
             let toShow = Array(drills.prefix(pageCount))
             ForEach(Array(toShow.enumerated()), id: \ .offset) { idx, drill in
-                cardView(for: drill.0, drillSetup: drill.1)
+                cardView(for: drill.0, drillResult: drill.1)
                     .tag(idx)
             }
         }
@@ -74,7 +76,7 @@ struct RecentTrainingView: View {
         .frame(height: cardHeight)
     }
 
-    private func cardView(for summary: DrillSummary, drillSetup: DrillSetup) -> some View {
+    private func cardView(for summary: DrillSummary, drillResult: DrillResult) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             //Title
             HStack(spacing: 8) {
@@ -160,7 +162,9 @@ struct RecentTrainingView: View {
         .frame(height: cardHeight)
         .padding(.horizontal, 4)
         .onTapGesture {
-            selectedDrillSetup = drillSetup
+            guard let setup = drillResult.drillSetup else { return }
+            selectedDrillSetup = setup
+            selectedDrillShots = convertShots(drillResult.shots)
         }
     }
 
@@ -227,13 +231,22 @@ struct RecentTrainingView: View {
             }
         }
     }
+
+    private func convertShots(_ shots: NSSet?) -> [ShotData] {
+        guard let shots = shots as? Set<Shot> else { return [] }
+        let decoded = shots.compactMap { shot -> ShotData? in
+            guard let data = shot.data, let jsonData = data.data(using: .utf8) else { return nil }
+            return try? JSONDecoder().decode(ShotData.self, from: jsonData)
+        }
+        return decoded.sorted { $0.content.timeDiff < $1.content.timeDiff }
+    }
 }
 
 struct RecentTrainingView_Previews: PreviewProvider {
     static var previews: some View {
         ZStack {
             Color.black.ignoresSafeArea()
-            RecentTrainingView(selectedDrillSetup: .constant(nil))
+            RecentTrainingView(selectedDrillSetup: .constant(nil), selectedDrillShots: .constant(nil))
                 .padding()
         }
         .previewLayout(.sizeThatFits)

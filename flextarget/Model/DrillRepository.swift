@@ -18,7 +18,7 @@ protocol DrillRepositoryProtocol {
     
     // Summary operations
     func fetchRecentSummaries(limit: Int) throws -> [DrillSummary]
-    func fetchRecentDrills(limit: Int) throws -> [(DrillSummary, DrillSetup)]
+    func fetchRecentDrills(limit: Int) throws -> [(DrillSummary, DrillResult)]
 }
 
 /// Repository for drill data operations using CoreData
@@ -158,15 +158,14 @@ class DrillRepository: ObservableObject, DrillRepositoryProtocol {
         }
     }
     
-    func fetchRecentDrills(limit: Int = 3) throws -> [(DrillSummary, DrillSetup)] {
+    func fetchRecentDrills(limit: Int = 3) throws -> [(DrillSummary, DrillResult)] {
         let results = try fetchRecentResults(limit: limit)
         
         return results.compactMap { result in
-            guard let summary = result.toDrillSummary(),
-                  let drillSetup = result.drillSetup else {
+            guard let summary = result.toDrillSummary() else {
                 return nil
             }
-            return (summary, drillSetup)
+            return (summary, result)
         }
     }
     
