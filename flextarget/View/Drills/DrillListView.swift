@@ -53,9 +53,9 @@ struct DrillListView: View {
                 }
                 .listStyle(.plain)
             }
-            .navigationTitle("My Drills")
+            .navigationTitle(NSLocalizedString("my_drills", comment: "Navigation title for drill list"))
             .navigationBarTitleDisplayMode(.inline)
-            .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search drills")
+            .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: NSLocalizedString("search_drills", comment: "Search prompt for drills"))
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     if bleManager.isConnected {
@@ -64,7 +64,7 @@ struct DrillListView: View {
                         }
                     } else {
                         Button(action: {
-                            alertMessage = "Please connect to the target device before adding drills."
+                            alertMessage = NSLocalizedString("connection_required_message", comment: "Message when connection is required")
                             showConnectionAlert = true
                         }) {
                             Image(systemName: "plus")
@@ -74,16 +74,16 @@ struct DrillListView: View {
                 }
             }
             .tint(.red)
-            .alert("Delete Drill?", isPresented: $showDeleteAlert, presenting: drillToDelete) { drill in
-                Button("Delete", role: .destructive) {
+            .alert(NSLocalizedString("delete_drill_title", comment: "Alert title for deleting drill"), isPresented: $showDeleteAlert, presenting: drillToDelete) { drill in
+                Button(NSLocalizedString("delete", comment: "Delete button"), role: .destructive) {
                     deleteDrill(drill)
                 }
-                Button("Cancel", role: .cancel) {}
+                Button(NSLocalizedString("cancel", comment: "Cancel button"), role: .cancel) {}
             } message: { drill in
-                Text("Are you sure you want to delete \(drill.name ?? "this drill")?")
+                Text(String(format: NSLocalizedString("delete_drill_message", comment: "Alert message for deleting drill"), drill.name ?? NSLocalizedString("untitled", comment: "Default name for untitled drill")))
             }
-            .alert("Connection Required", isPresented: $showConnectionAlert) {
-                Button("OK", role: .cancel) {}
+            .alert(NSLocalizedString("connection_required", comment: "Alert title for connection required"), isPresented: $showConnectionAlert) {
+                Button(NSLocalizedString("ok", comment: "OK button"), role: .cancel) {}
             } message: {
                 Text(alertMessage)
             }
@@ -114,7 +114,7 @@ struct DrillListView: View {
                 .frame(width: 8, height: 8)
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(drill.name ?? "Untitled")
+                Text(drill.name ?? NSLocalizedString("untitled", comment: "Default name for untitled drill"))
                     .foregroundColor(.white)
                     .font(.headline)
                 
@@ -131,7 +131,7 @@ struct DrillListView: View {
             Button {
                 copyDrill(drill)
             } label: {
-                Label("Copy", systemImage: "doc.on.doc")
+                Label(NSLocalizedString("copy", comment: "Copy drill action"), systemImage: "doc.on.doc")
             }
             .tint(.gray)
 
@@ -139,7 +139,7 @@ struct DrillListView: View {
                 drillToDelete = drill
                 showDeleteAlert = true
             } label: {
-                Label("Delete", systemImage: "trash")
+                Label(NSLocalizedString("delete", comment: "Delete drill action"), systemImage: "trash")
             }
         }
     }
@@ -148,12 +148,12 @@ struct DrillListView: View {
     private func drillInfo(for drill: DrillSetup) -> some View {
         HStack(spacing: 8) {
             let targetCount = (drill.targets as? Set<DrillTargetsConfig>)?.count ?? 0
-            Text("\(targetCount) targets")
+            Text(String(format: NSLocalizedString("targets_count", comment: "Number of targets"), targetCount))
                 .foregroundColor(.gray)
                 .font(.caption)
             
             if drill.delay > 0 {
-                Text("delay: \(Int(drill.delay))s")
+                Text(String(format: NSLocalizedString("delay_seconds", comment: "Delay in seconds"), Int(drill.delay)))
                     .foregroundColor(.gray)
                     .font(.caption)
             }
@@ -165,7 +165,7 @@ struct DrillListView: View {
     private func copyDrill(_ drill: DrillSetup) {
         let new = DrillSetup(context: viewContext)
         new.id = UUID()
-        new.name = (drill.name ?? "") + " Copy"
+        new.name = (drill.name ?? "") + NSLocalizedString("copy_suffix", comment: "Suffix added to copied drill name")
         new.desc = drill.desc
         new.delay = drill.delay
 

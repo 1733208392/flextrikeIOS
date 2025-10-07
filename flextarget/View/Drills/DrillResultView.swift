@@ -279,7 +279,7 @@ struct DrillResultView: View {
                         )
                         .frame(height: 28)
                         
-                        Text("\(String(format: "%.2f", currentProgress))/\(String(format: "%.2f", totalDuration))s")
+                        Text(String(format: NSLocalizedString("progress_time", comment: "Progress time display"), currentProgress, totalDuration))
                             .font(.caption)
                             .foregroundColor(.white)
                     }
@@ -336,7 +336,7 @@ struct DrillResultView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(Color.black.edgesIgnoringSafeArea(.all))
             }
-            .navigationTitle("Drill Replay")
+            .navigationTitle(NSLocalizedString("drill_replay", comment: "Drill Replay navigation title"))
             .onAppear {
                 ensureSelectedTargetIsValid()
                 if isLiveDrill {
@@ -356,7 +356,7 @@ struct DrillResultView: View {
                     Spacer()
                     ZStack {
                         Color.red.opacity(0.7)
-                        Text("Drill In Progress" + dots)
+                        Text(NSLocalizedString("drill_in_progress", comment: "Drill in progress message") + dots)
                             .font(.system(size: 48, weight: .bold))
                             .foregroundColor(.white)
                             .italic()

@@ -23,7 +23,7 @@ struct DelayConfigurationView: View {
 
     var body: some View {
         HStack {
-            Text("Delay(s)")
+            Text(NSLocalizedString("delay_seconds_label", comment: "Delay in seconds label"))
                 .foregroundColor(.white)
 
             Spacer()
@@ -40,7 +40,7 @@ struct DelayConfigurationView: View {
             Spacer()
 
             // Random range display - fixed value picker removed
-            Text("2...5")
+            Text(NSLocalizedString("delay_range", comment: "Delay range display"))
                 .fontWeight(.bold)
                 .foregroundColor(.red)
         }

@@ -88,7 +88,7 @@ struct DrillRecordView: View {
             .background(Color.clear)
             .scrollContentBackground(.hidden)
         }
-        .navigationTitle("Drill History")
+        .navigationTitle(NSLocalizedString("drill_history", comment: "Drill History navigation title"))
         .navigationBarTitleDisplayMode(.inline)
     }
 
@@ -270,7 +270,7 @@ struct DrillRecordView_Previews: PreviewProvider {
                 .listStyle(.plain)
                 .padding(.top, 8)
                 .background(Color.clear)
-                .navigationTitle("Drill History")
+                .navigationTitle(NSLocalizedString("drill_history", comment: "Drill History navigation title"))
             }
         }
         .previewDisplayName("Drill Record List")

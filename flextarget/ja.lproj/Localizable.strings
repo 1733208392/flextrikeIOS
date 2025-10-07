@@ -1,0 +1,83 @@
+/* Localizable.strings - Japanese */
+
+/* DrillMainPageView */
+"target_connected" = "ターゲット接続済み";
+"target_disconnected" = "ターゲット未接続";
+"drills" = "ドリル";
+"ipsc_questionaries" = "IPSC質問票";
+"idpa_questionaries" = "IDPA質問票";
+
+/* DrillListView */
+"my_drills" = "マイドリル";
+"search_drills" = "ドリルを検索";
+"delete_drill_title" = "ドリルを削除";
+"delete" = "削除";
+"cancel" = "キャンセル";
+"delete_drill_message" = "%@を削除してもよろしいですか？";
+"connection_required" = "接続が必要です";
+"connection_required_message" = "ドリルを追加する前にターゲットデバイスに接続してください。";
+"ok" = "OK";
+"untitled" = "無題";
+"copy" = "コピー";
+"targets_count" = "%d個のターゲット";
+"delay_seconds" = "遅延: %d秒";
+
+/* BLE/ConnectSmartTargetView */
+"reconnect" = "再接続";
+"okay" = "OK";
+"select_target" = "ターゲットを選択";
+
+/* LaserDryFire/OverlayView */
+"fps_display" = "FPS: %d";
+
+/* ShotTimelineView */
+"shots_count" = "%d発のショット";
+"shot_number" = "ショット %d";
+"shot_with_time" = "ショット %d: %.2f秒";
+
+/* DrillResultView */
+"progress_time" = "%.2f/%.2f秒";
+"drill_in_progress" = "ドリル実行中";
+
+/* SubViews */
+"history_record" = "履歴記録";
+"delay_seconds_label" = "遅延(秒)";
+"delay_range" = "2...5";
+"description" = "説明";
+"enter_description_placeholder" = "説明を入力...";
+"add_demo_video" = "デモ動画を追加";
+"add_target" = "ターゲットを追加";
+"targets_count_label" = "%d";
+"gun" = "銃";
+"save" = "保存";
+"device" = "デバイス";
+"type" = "タイプ";
+
+/* AddDrillView */
+"drill_setups_exist" = "ドリル設定が存在します。TODO: リストまたはメイン画面を表示。";
+"failed_to_load_drills" = "ドリルの読み込みに失敗しました";
+
+/* RecentTrainingView */
+"no_recent_drills" = "最近のドリルはありません";
+"complete_drills_message" = "ここに表示するにはドリルを完了してください";
+"hit_factor" = "ヒットファクター";
+"date" = "日付";
+"fastest" = "最速";
+
+/* Information Views */
+"privacy_policy" = "プライバシーポリシー";
+"faq" = "FAQ";
+"about_us" = "私たちについて";
+"drill_history" = "ドリル履歴";
+"drill_replay" = "ドリル再生";
+"select_device" = "デバイスを選択";
+"select_target_type" = "ターゲットタイプを選択";
+
+/* DrillFormView */
+"start_drill" = "ドリルを開始";
+"save_drill" = "ドリルを保存";
+"save_changes" = "変更を保存";
+
+/* Additional */
+"copy_suffix" = " コピー";
+"retry" = "再試行";

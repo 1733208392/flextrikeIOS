@@ -10,8 +10,8 @@ enum DrillFormMode {
     
     var saveButtonText: String {
         switch self {
-        case .add: return "Save Drill"
-        case .edit: return "Save Changes"
+        case .add: return NSLocalizedString("save_drill", comment: "Save drill button")
+        case .edit: return NSLocalizedString("save_changes", comment: "Save changes button")
         }
     }
     
@@ -211,7 +211,7 @@ struct DrillFormView: View {
             
             if case .edit = mode {
                 Button(action: startDrill) {
-                    Text("Start Drill")
+                    Text(NSLocalizedString("start_drill", comment: "Start drill button"))
                         .foregroundColor(.white)
                         .fontWeight(.semibold)
                         .frame(maxWidth: .infinity)

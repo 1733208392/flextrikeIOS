@@ -12,11 +12,11 @@ struct TargetsSectionView: View {
     var body: some View {
         NavigationLink(destination: TargetConfigListView(deviceList: bleManager.networkDevices, targetConfigs: $targetConfigs, onDone: onTargetConfigDone)) {
             HStack(spacing: 8) {
-                Text("Add Target")
+                Text(NSLocalizedString("add_target", comment: "Add target button"))
                     .foregroundColor(.white)
                     .font(.headline)
                 Spacer()
-                Text("\(targetConfigs.count)")
+                Text(String(format: NSLocalizedString("targets_count_label", comment: "Number of targets"), targetConfigs.count))
                     .foregroundColor(.white)
                     .font(.headline)
                 Spacer()

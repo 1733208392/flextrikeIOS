@@ -32,7 +32,7 @@ struct HistoryRecordButtonView: View {
                             Image(systemName: "clock.arrow.circlepath")
                                 .foregroundColor(.red)
                                 .font(.title3)
-                            Text("History Record")
+                            Text(NSLocalizedString("history_record", comment: "History record button"))
                                 .foregroundColor(.white)
                                 .font(.footnote)
                         }

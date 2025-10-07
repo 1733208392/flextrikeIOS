@@ -28,7 +28,7 @@ struct RecentTrainingView: View {
             Image(systemName: "exclamationmark.triangle")
                 .font(.largeTitle)
                 .foregroundColor(.orange)
-            Text("Failed to load drills")
+            Text(NSLocalizedString("failed_to_load_drills", comment: "Failed to load drills message"))
                 .font(.headline)
                 .foregroundColor(.white)
             if let error = errorMessage {
@@ -37,7 +37,7 @@ struct RecentTrainingView: View {
                     .foregroundColor(.gray)
                     .multilineTextAlignment(.center)
             }
-            Button("Retry") {
+            Button(NSLocalizedString("retry", comment: "Retry button")) {
                 loadRecentDrills()
             }
             .padding(.top, 8)
@@ -52,10 +52,10 @@ struct RecentTrainingView: View {
             Image(systemName: "target")
                 .font(.largeTitle)
                 .foregroundColor(.gray)
-            Text("No recent drills")
+            Text(NSLocalizedString("no_recent_drills", comment: "No recent drills message"))
                 .font(.headline)
                 .foregroundColor(.white)
-            Text("Complete some drills to see them here")
+            Text(NSLocalizedString("complete_drills_message", comment: "Complete drills message"))
                 .font(.caption)
                 .foregroundColor(.gray)
                 .multilineTextAlignment(.center)
@@ -128,7 +128,7 @@ struct RecentTrainingView: View {
                     Text(String(format: "%.1f", summary.hitFactor))
                         .font(.headline)
                         .foregroundColor(.white)
-                    Text("Hit Factor")
+                    Text(NSLocalizedString("hit_factor", comment: "Hit Factor label"))
                         .font(.caption)
                         .foregroundColor(.gray)
                 }
@@ -138,7 +138,7 @@ struct RecentTrainingView: View {
                     Text(Self.dateFormatter.string(from: summary.drillDate))
                         .font(.headline)
                         .foregroundColor(.white)
-                    Text("Date")
+                    Text(NSLocalizedString("date", comment: "Date label"))
                         .font(.caption)
                         .foregroundColor(.gray)
                 }
@@ -147,7 +147,7 @@ struct RecentTrainingView: View {
                     Text(String(format: "%.2fs", summary.fastestShoot))
                         .font(.headline)
                         .foregroundColor(.white)
-                    Text("Fastest")
+                    Text(NSLocalizedString("fastest", comment: "Fastest label"))
                         .font(.caption)
                         .foregroundColor(.gray)
                 }

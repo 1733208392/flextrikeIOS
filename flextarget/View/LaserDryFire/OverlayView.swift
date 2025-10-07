@@ -15,7 +15,7 @@ struct OverlayView: View {
         GeometryReader { geometry in
             VStack {
                 HStack {
-                    Text("FPS: \(fps)")
+                    Text(String(format: NSLocalizedString("fps_display", comment: "FPS display"), fps))
                         .font(.title)
                         .foregroundColor(.white)
                         .padding()

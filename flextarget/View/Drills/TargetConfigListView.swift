@@ -73,7 +73,7 @@ struct TargetConfigListView: View {
                 onDone()
                 dismiss()
             }) {
-                Text("Save")
+                Text(NSLocalizedString("save", comment: "Save button"))
                     .font(.title3)
                     .fontWeight(.semibold)
                     .foregroundColor(.white)
@@ -163,7 +163,7 @@ struct TargetRowView: View {
 
             // 2) Device (targetName)
             VStack(alignment: .leading, spacing: 4) {
-                Text("Device")
+                Text(NSLocalizedString("device", comment: "Device label"))
                     .foregroundColor(.gray)
                     .font(.system(size: 12))
                 
@@ -203,7 +203,7 @@ struct TargetRowView: View {
 
             // 3) TargetType (icon)
             VStack(alignment: .leading, spacing: 4) {
-                Text("Type")
+                Text(NSLocalizedString("type", comment: "Type label"))
                     .foregroundColor(.gray)
                     .font(.system(size: 12))
                 
@@ -298,11 +298,11 @@ struct TargetNamePickerView: View {
                 .background(Color.black)
                 .scrollContentBackground(.hidden)
             }
-            .navigationTitle("Select Device")
+            .navigationTitle(NSLocalizedString("select_device", comment: "Select Device navigation title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Cancel") {
+                    Button(NSLocalizedString("cancel", comment: "Cancel button")) {
                         onDone?()
                     }
                     .foregroundColor(.red)
@@ -351,11 +351,11 @@ struct TargetTypePickerView: View {
                 .background(Color.black)
                 .scrollContentBackground(.hidden)
             }
-            .navigationTitle("Select Target Type")
+            .navigationTitle(NSLocalizedString("select_target_type", comment: "Select Target Type navigation title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Cancel") {
+                    Button(NSLocalizedString("cancel", comment: "Cancel button")) {
                         onDone?()
                     }
                     .foregroundColor(.red)

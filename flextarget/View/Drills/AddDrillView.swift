@@ -33,7 +33,7 @@ struct AddDrillEntryView: View {
                 AddDrillView(bleManager: bleManager)
             } else {
                 // TODO: Handle the case when there are existing DrillSetups
-                Text("Drill setups exist. TODO: Show list or main view.")
+                Text(NSLocalizedString("drill_setups_exist", comment: "Drill setups exist message"))
             }
         }
         .onAppear {

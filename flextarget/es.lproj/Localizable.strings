@@ -1,0 +1,83 @@
+/* Localizable.strings - Spanish */
+
+/* DrillMainPageView */
+"target_connected" = "Objetivo Conectado";
+"target_disconnected" = "Objetivo Desconectado";
+"drills" = "Ejercicios";
+"ipsc_questionaries" = "Cuestionarios IPSC";
+"idpa_questionaries" = "Cuestionarios IDPA";
+
+/* DrillListView */
+"my_drills" = "Mis Ejercicios";
+"search_drills" = "Buscar ejercicios";
+"delete_drill_title" = "Eliminar Ejercicio";
+"delete" = "Eliminar";
+"cancel" = "Cancelar";
+"delete_drill_message" = "¿Estás seguro de que quieres eliminar %@?";
+"connection_required" = "Conexión Requerida";
+"connection_required_message" = "Por favor conecta al dispositivo objetivo antes de añadir ejercicios.";
+"ok" = "OK";
+"untitled" = "Sin título";
+"copy" = "Copiar";
+"targets_count" = "%d objetivos";
+"delay_seconds" = "retraso: %ds";
+
+/* BLE/ConnectSmartTargetView */
+"reconnect" = "RECONECTAR";
+"okay" = "OK";
+"select_target" = "SELECCIONAR OBJETIVO";
+
+/* LaserDryFire/OverlayView */
+"fps_display" = "FPS: %d";
+
+/* ShotTimelineView */
+"shots_count" = "%d disparos";
+"shot_number" = "Disparo %d";
+"shot_with_time" = "Disparo %d: %.2fs";
+
+/* DrillResultView */
+"progress_time" = "%.2f/%.2fs";
+"drill_in_progress" = "Ejercicio en Progreso";
+
+/* SubViews */
+"history_record" = "Registro Histórico";
+"delay_seconds_label" = "Retraso(s)";
+"delay_range" = "2...5";
+"description" = "Descripción";
+"enter_description_placeholder" = "Introducir descripción...";
+"add_demo_video" = "Añadir Video Demo";
+"add_target" = "Añadir Objetivo";
+"targets_count_label" = "%d";
+"gun" = "Arma";
+"save" = "Guardar";
+"device" = "Dispositivo";
+"type" = "Tipo";
+
+/* AddDrillView */
+"drill_setups_exist" = "Las configuraciones de ejercicios existen. TODO: Mostrar lista o vista principal.";
+"failed_to_load_drills" = "Error al cargar ejercicios";
+
+/* RecentTrainingView */
+"no_recent_drills" = "No hay ejercicios recientes";
+"complete_drills_message" = "Completa algunos ejercicios para verlos aquí";
+"hit_factor" = "Factor de Impacto";
+"date" = "Fecha";
+"fastest" = "Más Rápido";
+
+/* Information Views */
+"privacy_policy" = "Política de Privacidad";
+"faq" = "FAQ";
+"about_us" = "Acerca de Nosotros";
+"drill_history" = "Historial de Ejercicios";
+"drill_replay" = "Repetición de Ejercicio";
+"select_device" = "Seleccionar Dispositivo";
+"select_target_type" = "Seleccionar Tipo de Objetivo";
+
+/* DrillFormView */
+"start_drill" = "Iniciar Ejercicio";
+"save_drill" = "Guardar Ejercicio";
+"save_changes" = "Guardar Cambios";
+
+/* Additional */
+"copy_suffix" = " Copia";
+"retry" = "Reintentar";

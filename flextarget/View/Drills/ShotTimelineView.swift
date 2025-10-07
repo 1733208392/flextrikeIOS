@@ -200,18 +200,18 @@ struct ClusterTooltip: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             if cluster.count > 1 {
-                Text("\(cluster.count) shots")
+                Text(String(format: NSLocalizedString("shots_count", comment: "Number of shots"), cluster.count))
                     .font(.footnote)
                     .fontWeight(.semibold)
                     .foregroundColor(.white)
             } else if let member = cluster.members.first {
-                Text("Shot \(member.index + 1)")
+                Text(String(format: NSLocalizedString("shot_number", comment: "Shot number"), member.index + 1))
                     .font(.footnote)
                     .fontWeight(.semibold)
                     .foregroundColor(.white)
             }
             ForEach(Array(cluster.members.enumerated()), id: \.element.index) { _, member in
-                Text("Shot \(member.index + 1): \(String(format: "%.2fs", member.diff))")
+                Text(String(format: NSLocalizedString("shot_with_time", comment: "Shot with time"), member.index + 1, member.diff))
                     .font(.caption2)
                     .foregroundColor(.white.opacity(0.85))
             }

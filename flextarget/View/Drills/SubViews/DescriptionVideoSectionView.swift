@@ -36,7 +36,7 @@ struct DescriptionVideoSectionView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text("Description")
+                Text(NSLocalizedString("description", comment: "Description label"))
                     .foregroundColor(.white)
                     .font(.body)
                 Spacer()
@@ -65,7 +65,7 @@ struct DescriptionVideoSectionView: View {
                     )
                 
                 if description.isEmpty && !isDescriptionFocused {
-                    Text("Enter description...")
+                    Text(NSLocalizedString("enter_description_placeholder", comment: "Enter description placeholder"))
                         .font(.footnote)
                         .foregroundColor(Color.white.opacity(0.4))
                         .padding(.top, 8)
@@ -143,7 +143,7 @@ struct DescriptionVideoSectionView: View {
                                             Image(systemName: "video.badge.plus")
                                                 .font(.system(size: 30))
                                                 .foregroundColor(.red)
-                                            Text("Add Demo Video")
+                                            Text(NSLocalizedString("add_demo_video", comment: "Add demo video button"))
                                                 .foregroundColor(.white)
                                                 .font(.footnote)
                                         }

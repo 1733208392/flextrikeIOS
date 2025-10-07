@@ -110,7 +110,7 @@ struct ConnectSmartTargetView: View {
 
                     if showReconnect {
                         Button(action: handleReconnect) {
-                            Text("RECONNECT")
+                            Text(NSLocalizedString("reconnect", comment: "Reconnect button"))
                                 .font(.custom("SFPro-Medium", size: 20))
                                 .foregroundColor(.white)
                                 .frame(width: geometry.size.width * 0.75, height: 44)
@@ -122,7 +122,7 @@ struct ConnectSmartTargetView: View {
 
                     if showOkay {
                         Button(action: { goToMain() }) {
-                            Text("OKAY")
+                            Text(NSLocalizedString("okay", comment: "Okay button"))
                                 .font(.custom("SFPro-Medium", size: 20))
                                 .foregroundColor(.white)
                                 .frame(width: geometry.size.width * 0.75, height: 44)
@@ -144,7 +144,7 @@ struct ConnectSmartTargetView: View {
                 Color.black.ignoresSafeArea()
                 
                 VStack(spacing: 20) {
-                    Text("SELECT TARGET")
+                    Text(NSLocalizedString("select_target", comment: "Select target title"))
                         .font(.custom("SFPro-Medium", size: 20))
                         .foregroundColor(.white)
                     

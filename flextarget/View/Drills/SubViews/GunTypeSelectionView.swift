@@ -23,7 +23,7 @@ struct GunTypeSelectionView: View {
     
     var body: some View {
         HStack {
-            Text("Gun")
+            Text(NSLocalizedString("gun", comment: "Gun type selection label"))
                 .foregroundColor(.red)
             Spacer()
             HStack(spacing: 20) {

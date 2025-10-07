@@ -28,7 +28,7 @@ struct DrillMainPageView: View {
                                         .frame(width: 22, height: 22)
                                 }
                                 
-                                Text(bleManager.connectedPeripheral?.name ?? (bleManager.isConnected ? "Target Connected" : "Target Disconnected"))
+                                Text(bleManager.connectedPeripheral?.name ?? (bleManager.isConnected ? NSLocalizedString("target_connected", comment: "Status when target is connected") : NSLocalizedString("target_disconnected", comment: "Status when target is disconnected")))
                                     .font(.footnote)
                                     .foregroundColor(.gray)
                             }
@@ -52,16 +52,16 @@ struct DrillMainPageView: View {
                         .padding(.top, 16)
                     // Menu Buttons
                     VStack(spacing: 20) {
-                        MainMenuButton(icon: "target", text: "Drills", color: .red)
+                        MainMenuButton(icon: "target", text: NSLocalizedString("drills", comment: "Drills menu button"), color: .red)
                             .onTapGesture {
                                 showDrillList = true
                             }
                         // Disabled IPSC button (non-interactive, visually muted)
-                        MainMenuButton(icon: "scope", text: "IPSC Questionaries", color: .gray)
+                        MainMenuButton(icon: "scope", text: NSLocalizedString("ipsc_questionaries", comment: "IPSC Questionaries menu button"), color: .gray)
                             .allowsHitTesting(false)
                             .opacity(0.6)
                         // Disabled IDPA button (non-interactive, visually muted)
-                        MainMenuButton(icon: "shield", text: "IDPA Questionaries", color: .gray)
+                        MainMenuButton(icon: "shield", text: NSLocalizedString("idpa_questionaries", comment: "IDPA Questionaries menu button"), color: .gray)
                             .allowsHitTesting(false)
                             .opacity(0.6)
                     }
