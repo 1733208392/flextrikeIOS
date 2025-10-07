@@ -6,6 +6,8 @@ struct DrillRecordView: View {
     
     @FetchRequest private var drillResults: FetchedResults<DrillResult>
     
+    @Environment(\.managedObjectContext) private var viewContext
+    
     init(drillSetup: DrillSetup) {
         self.drillSetup = drillSetup
         _drillResults = FetchRequest(
@@ -66,6 +68,18 @@ struct DrillRecordView: View {
                             }
                             .listRowSeparator(.hidden)
                             .listRowBackground(Color.clear)
+                            .swipeActions(edge: .trailing) {
+                                Button(role: .destructive) {
+                                    viewContext.delete(result)
+                                    do {
+                                        try viewContext.save()
+                                    } catch {
+                                        print("Failed to delete: \(error)")
+                                    }
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
+                            }
                         }
                     }
                 }
@@ -141,7 +155,7 @@ struct DrillRecordRowView: View {
     let model: Model
 
     var body: some View {
-        HStack(alignment: .center, spacing: 16) {
+        HStack(alignment: .center, spacing: 8) {
             VStack(alignment: .leading, spacing: 2) {
                 ZStack {
                     Circle()
@@ -174,12 +188,13 @@ struct DrillRecordRowView: View {
 
                     DrillMetricColumn(value: model.fastestShotText, label: "Fastest")
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
-            }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 8)}
+                        
+            Image(systemName: "chevron.right")
+                .foregroundColor(.gray)
         }
-        .padding(.vertical, 4)
-        .padding(.trailing, 8)
+//        .padding(.vertical, 4)
         .contentShape(Rectangle())
     }
 }

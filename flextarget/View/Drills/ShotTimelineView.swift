@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ShotTimelineView: View {
-    let shots: [(index: Int, time: Double)]
+    let shots: [(index: Int, time: Double, diff: Double)]
     let totalDuration: Double
     let currentProgress: Double
     let isEnabled: Bool
@@ -24,7 +24,7 @@ struct ShotTimelineView: View {
     private var clusters: [ShotCluster] {
         guard !shots.isEmpty else { return [] }
         var result: [ShotCluster] = []
-        var currentMembers: [(index: Int, time: Double)] = [shots[0]]
+        var currentMembers: [(index: Int, time: Double, diff: Double)] = [shots[0]]
         for shot in shots.dropFirst() {
             if let lastTime = currentMembers.last?.time, shot.time - lastTime <= clusterMergeWindow {
                 currentMembers.append(shot)
@@ -167,9 +167,9 @@ struct ShotTimelineView: View {
 
 struct ShotCluster: Identifiable, Equatable {
     let id = UUID()
-    let members: [(index: Int, time: Double)]
+    let members: [(index: Int, time: Double, diff: Double)]
 
-    init(members: [(index: Int, time: Double)]) {
+    init(members: [(index: Int, time: Double, diff: Double)]) {
         self.members = members.sorted { $0.time < $1.time }
     }
 
@@ -178,6 +178,7 @@ struct ShotCluster: Identifiable, Equatable {
         for (left, right) in zip(lhs.members, rhs.members) {
             if left.index != right.index { return false }
             if abs(left.time - right.time) > 0.0001 { return false }
+            if abs(left.diff - right.diff) > 0.0001 { return false }
         }
         return true
     }
@@ -210,7 +211,7 @@ struct ClusterTooltip: View {
                     .foregroundColor(.white)
             }
             ForEach(Array(cluster.members.enumerated()), id: \.element.index) { _, member in
-                Text("Shot \(member.index + 1): \(String(format: "%.2fs", member.time))")
+                Text("Shot \(member.index + 1): \(String(format: "%.2fs", member.diff))")
                     .font(.caption2)
                     .foregroundColor(.white.opacity(0.85))
             }

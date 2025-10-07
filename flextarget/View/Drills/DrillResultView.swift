@@ -17,6 +17,7 @@ struct Content: Codable {
     let rotationAngle: Int
     let targetType: String
     let timeDiff: Double
+    let device: String?
 
     enum CodingKeys: String, CodingKey {
         case command
@@ -25,6 +26,17 @@ struct Content: Codable {
         case rotationAngle = "rotation_angle"
         case targetType = "target_type"
         case timeDiff = "time_diff"
+        case device
+    }
+
+    init(command: String, hitArea: String, hitPosition: HitPosition, rotationAngle: Int, targetType: String, timeDiff: Double, device: String? = nil) {
+        self.command = command
+        self.hitArea = hitArea
+        self.hitPosition = hitPosition
+        self.rotationAngle = rotationAngle
+        self.targetType = targetType
+        self.timeDiff = timeDiff
+        self.device = device
     }
 }
 
@@ -40,15 +52,96 @@ private struct TargetDisplay: Identifiable, Hashable {
     let deviceName: String?
 
     func matches(_ shot: ShotData) -> Bool {
-        let shotIcon = shot.content.targetType.isEmpty ? "hostage" : shot.content.targetType
-        guard shotIcon == icon else { return false }
-        
         if let deviceName = deviceName {
             let shotDevice = shot.device?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
             return shotDevice == deviceName
+        } else {
+            let shotIcon = shot.content.targetType.isEmpty ? "hostage" : shot.content.targetType
+            return shotIcon == icon
         }
-        
-        return true
+    }
+}
+
+private struct TargetDisplayView: View {
+    let targetDisplays: [TargetDisplay]
+    @Binding var selectedTargetKey: String
+    let shots: [ShotData]
+    let visibleShotIndices: Set<Int>
+    let selectedShotIndex: Int?
+    let pulsingShotIndex: Int?
+    let pulseScale: CGFloat
+    let frameWidth: CGFloat
+    let frameHeight: CGFloat
+    
+    var body: some View {
+        TabView(selection: $selectedTargetKey) {
+            ForEach(targetDisplays) { display in
+                ZStack {
+                    // White rectangular frame representing target device with gray fill
+                    Rectangle()
+                        .fill(Color.gray.opacity(0.3))
+                        .frame(width: frameWidth, height: frameHeight)
+                        .overlay(
+                            Rectangle()
+                                .stroke(Color.white, lineWidth: 12)
+                        )
+                    
+                    // Target icon inside the frame
+                    Image(display.icon)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: frameWidth, height: frameHeight)
+                        .overlay(alignment: .topTrailing) {
+                            if let deviceName = display.deviceName {
+                                Text(deviceName)
+                                    .foregroundColor(.white)
+                                    .font(.caption)
+                                    .fontWeight(.semibold)
+                                    .padding(6)
+                                    .background(Color.black.opacity(0.8))
+                                    .cornerRadius(8)
+                                    .padding(10)
+                            }
+                        }
+                    
+                    // Shot position markers (only show visible shots during replay)
+                    ForEach(shots.indices, id: \.self) { index in
+                        let shot = shots[index]
+                        if display.matches(shot) && visibleShotIndices.contains(index) {
+                            let x = shot.content.hitPosition.x
+                            let y = shot.content.hitPosition.y
+                            // Transform coordinates from 720×1280 source to frame dimensions
+                            let transformedX = (x / 720.0) * frameWidth
+                            let transformedY = (y / 1280.0) * frameHeight
+                            
+                            ZStack {
+                                Image("bullet_hole2")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 30, height: 30)
+                                
+                                // Highlight selected shot
+                                if selectedShotIndex == index {
+                                    Circle()
+                                        .stroke(Color.yellow, lineWidth: 3)
+                                        .frame(width: 30, height: 30)
+                                        .scaleEffect(pulsingShotIndex == index ? pulseScale : 1.0)
+                                }
+                            }
+                            .position(x: transformedX, y: transformedY)
+                        }
+                    }
+                }
+                .frame(width: frameWidth, height: frameHeight)
+                .tag(display.id)
+            }
+        }
+        .frame(width: frameWidth, height: frameHeight)
+        .tabViewStyle(PageTabViewStyle(indexDisplayMode: targetDisplays.count > 1 ? .automatic : .never))
+                    .onChange(of: shots.count) {
+            // This would need to be passed as a closure or handled differently
+            // For now, we'll handle this in the parent view
+        }
     }
 }
 
@@ -77,75 +170,41 @@ struct DrillResultView: View {
     @State private var pulsingShotIndex: Int? = nil
     @State private var pulseScale: CGFloat = 1.0
     
-    private var shotTimelineData: [(index: Int, time: Double)] {
-        shots.enumerated()
-            .map { ($0.offset, $0.element.content.timeDiff) }
-            .sorted { $0.1 < $1.1 }
+    private var shotTimelineData: [(index: Int, time: Double, diff: Double)] {
+        var cumulativeTime = 0.0
+        return shots.enumerated().map { (index, shot) in
+            let interval = shot.content.timeDiff
+            cumulativeTime += interval
+            return (index, cumulativeTime, interval)
+        }
     }
 
-    private var currentTargetTimelineData: [(index: Int, time: Double)] {
+    private var currentTargetTimelineData: [(index: Int, time: Double, diff: Double)] {
         guard let display = targetDisplays.first(where: { $0.id == selectedTargetKey }) else { return [] }
-        return shots.enumerated()
-            .filter { display.matches($0.element) }
-            .map { ($0.offset, $0.element.content.timeDiff) }
-            .sorted { $0.1 < $1.1 }
+        let filteredShots = shots.enumerated().filter { display.matches($0.element) }
+        var cumulativeTime = 0.0
+        return filteredShots.map { enumeratedShot in
+            let interval = enumeratedShot.element.content.timeDiff
+            cumulativeTime += interval
+            return (enumeratedShot.offset, cumulativeTime, interval)
+        }
+    }
+
+    private func absoluteTime(for shotIndex: Int) -> Double {
+        guard shots.indices.contains(shotIndex) else { return 0.0 }
+        let sortedShots = shots.prefix(shotIndex + 1)
+        return sortedShots.reduce(0) { $0 + $1.content.timeDiff }
     }
 
     private var targetDisplays: [TargetDisplay] {
         let sortedTargets = drillSetup.sortedTargets
         
-        // Find unique devices from shots for each target type
-        var devicesByTargetType: [String: Set<String>] = [:]
-        for shot in shots {
-            let targetType = shot.content.targetType.isEmpty ? "hostage" : shot.content.targetType
-            if let device = shot.device?.trimmingCharacters(in: .whitespacesAndNewlines), !device.isEmpty {
-                devicesByTargetType[targetType, default: []].insert(device)
-            }
-        }
-        
-        var displays: [TargetDisplay] = []
-        
-        for target in sortedTargets {
+        return sortedTargets.map { target in
             let iconName = target.targetType ?? ""
             let resolvedIcon = iconName.isEmpty ? "hostage" : iconName
-            
-            // Get devices for this target type
-            let devices = devicesByTargetType[resolvedIcon] ?? []
-            
-            if devices.isEmpty {
-                // No shots yet, show config without device
-                let id = "\(target.id?.uuidString ?? UUID().uuidString)"
-                displays.append(TargetDisplay(
-                    id: id,
-                    config: target,
-                    icon: resolvedIcon,
-                    deviceName: nil
-                ))
-            } else {
-                // Create one display per device
-                for device in devices.sorted() {
-                    let id = "\(target.id?.uuidString ?? UUID().uuidString)_\(device)"
-                    displays.append(TargetDisplay(
-                        id: id,
-                        config: target,
-                        icon: resolvedIcon,
-                        deviceName: device
-                    ))
-                }
-            }
+            let id = target.id?.uuidString ?? UUID().uuidString
+            return TargetDisplay(id: id, config: target, icon: resolvedIcon, deviceName: target.targetName)
         }
-        
-        // If no configs and no shots, show fallback
-        if displays.isEmpty {
-            displays.append(TargetDisplay(
-                id: UUID().uuidString,
-                config: DrillTargetsConfig(),
-                icon: "hostage",
-                deviceName: nil
-            ))
-        }
-        
-        return displays
     }
     
     var totalDuration: Double {
@@ -180,7 +239,6 @@ struct DrillResultView: View {
     var body: some View {
         ZStack {
             GeometryReader { geometry in
-                let screenWidth = geometry.size.width
                 let screenHeight = geometry.size.height
                 
                 // Calculate frame dimensions (9:16 aspect ratio, 2/3 of page height)
@@ -190,71 +248,18 @@ struct DrillResultView: View {
                 VStack {
                     Spacer()
                     
-                    TabView(selection: $selectedTargetKey) {
-                        ForEach(targetDisplays) { display in
-                            ZStack {
-                                // White rectangular frame representing target device with gray fill
-                                Rectangle()
-                                    .fill(Color.gray.opacity(0.3))
-                                    .frame(width: frameWidth, height: frameHeight)
-                                    .overlay(
-                                        Rectangle()
-                                            .stroke(Color.white, lineWidth: 12)
-                                    )
-                                
-                                // Target icon inside the frame
-                                Image(display.icon)
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: frameWidth, height: frameHeight)
-                                    .overlay(alignment: .topTrailing) {
-                                        if let deviceName = display.deviceName {
-                                            Text(deviceName)
-                                                .foregroundColor(.white)
-                                                .font(.caption)
-                                                .fontWeight(.semibold)
-                                                .padding(6)
-                                                .background(Color.black.opacity(0.8))
-                                                .cornerRadius(8)
-                                                .padding(10)
-                                        }
-                                    }
-                                
-                                // Shot position markers (only show visible shots during replay)
-                                ForEach(shots.indices, id: \.self) { index in
-                                    let shot = shots[index]
-                                    if display.matches(shot) && visibleShotIndices.contains(index) {
-                                        let x = shot.content.hitPosition.x
-                                        let y = shot.content.hitPosition.y
-                                        // Transform coordinates from 720×1280 source to frame dimensions
-                                        let transformedX = (x / 720.0) * frameWidth
-                                        let transformedY = (y / 1280.0) * frameHeight
-                                        
-                                        ZStack {
-                                            Image("bullet_hole2")
-                                                .resizable()
-                                                .scaledToFit()
-                                                .frame(width: 30, height: 30)
-                                            
-                                            // Highlight selected shot
-                                            if selectedShotIndex == index {
-                                                Circle()
-                                                    .stroke(Color.yellow, lineWidth: 3)
-                                                    .frame(width: 30, height: 30)
-                                                    .scaleEffect(pulsingShotIndex == index ? pulseScale : 1.0)
-                                            }
-                                        }
-                                        .position(x: transformedX, y: transformedY)
-                                    }
-                                }
-                            }
-                            .frame(width: frameWidth, height: frameHeight)
-                            .tag(display.id)
-                        }
-                    }
-                    .frame(width: frameWidth, height: frameHeight)
-                    .tabViewStyle(PageTabViewStyle(indexDisplayMode: targetDisplays.count > 1 ? .automatic : .never))
-                    .onChange(of: shots.count) { _ in
+                    TargetDisplayView(
+                        targetDisplays: targetDisplays,
+                        selectedTargetKey: $selectedTargetKey,
+                        shots: shots,
+                        visibleShotIndices: visibleShotIndices,
+                        selectedShotIndex: selectedShotIndex,
+                        pulsingShotIndex: pulsingShotIndex,
+                        pulseScale: pulseScale,
+                        frameWidth: frameWidth,
+                        frameHeight: frameHeight
+                    )
+                    .onChange(of: shots.count) { oldValue, newValue in
                         ensureSelectedTargetIsValid()
                     }
                     
@@ -274,7 +279,7 @@ struct DrillResultView: View {
                         )
                         .frame(height: 28)
                         
-                        Text("\(String(format: "%.1f", currentProgress))/\(String(format: "%.1f", totalDuration))s")
+                        Text("\(String(format: "%.2f", currentProgress))/\(String(format: "%.2f", totalDuration))s")
                             .font(.caption)
                             .foregroundColor(.white)
                     }
@@ -382,8 +387,8 @@ struct DrillResultView: View {
             }
         } else if restrictToSelectedTarget, let display = targetDisplays.first(where: { $0.id == selectedTargetKey }) {
             let currentShotIndex = shots.enumerated()
-                .filter { display.matches($0.element) && $0.element.content.timeDiff <= clampedTime }
-                .max(by: { $0.element.content.timeDiff < $1.element.content.timeDiff })?
+                .filter { display.matches($0.element) && absoluteTime(for: $0.offset) <= clampedTime }
+                .max(by: { absoluteTime(for: $0.offset) < absoluteTime(for: $1.offset) })?
                 .offset
             selectedShotIndex = currentShotIndex
             pulsingShotIndex = currentShotIndex
@@ -397,21 +402,21 @@ struct DrillResultView: View {
     
     private func focusOnShot(_ shotIndex: Int) {
         guard shots.indices.contains(shotIndex) else { return }
-        let shotTime = shots[shotIndex].content.timeDiff
+        let shotTime = absoluteTime(for: shotIndex)
         seek(to: shotTime, highlightIndex: shotIndex, shouldPulse: true)
     }
     
     private func updateVisibleShots(upTo progress: Double) {
         let indices = shots.enumerated()
-            .filter { $0.element.content.timeDiff <= progress }
+            .filter { absoluteTime(for: $0.offset) <= progress }
             .map { $0.offset }
         visibleShotIndices = Set(indices)
     }
     
     private func updateSelection(for progress: Double) {
         let currentShotIndex = shots.enumerated()
-            .filter { $0.element.content.timeDiff <= progress }
-            .max(by: { $0.element.content.timeDiff < $1.element.content.timeDiff })?
+            .filter { absoluteTime(for: $0.offset) <= progress }
+            .max(by: { absoluteTime(for: $0.offset) < absoluteTime(for: $1.offset) })?
             .offset
         selectedShotIndex = currentShotIndex
         updateSelectedTargetForCurrentShot()
@@ -460,8 +465,8 @@ struct DrillResultView: View {
             
             // Update selected shot to the current one
             let currentShotIndex = shots.enumerated()
-                .filter { $0.element.content.timeDiff <= currentProgress }
-                .max(by: { $0.element.content.timeDiff < $1.element.content.timeDiff })?
+                .filter { absoluteTime(for: $0.offset) <= currentProgress }
+                .max(by: { absoluteTime(for: $0.offset) < absoluteTime(for: $1.offset) })?
                 .offset
             selectedShotIndex = currentShotIndex
             updateSelectedTargetForCurrentShot()
@@ -499,10 +504,10 @@ struct DrillResultView: View {
     
     private func previousShot() {
         // Find the previous shot before current progress
-        let previousShots = shots.enumerated().filter { $0.element.content.timeDiff < currentProgress }.sorted { $0.element.content.timeDiff > $1.element.content.timeDiff }
+        let previousShots = shots.enumerated().filter { absoluteTime(for: $0.offset) < currentProgress }.sorted { absoluteTime(for: $0.offset) > absoluteTime(for: $1.offset) }
         
         if let previousShot = previousShots.first {
-            seek(to: previousShot.element.content.timeDiff, highlightIndex: previousShot.offset, shouldPulse: true)
+            seek(to: absoluteTime(for: previousShot.offset), highlightIndex: previousShot.offset, shouldPulse: true)
         } else {
             // Go to beginning
             seek(to: 0.0, highlightIndex: nil, shouldPulse: false)
@@ -511,10 +516,10 @@ struct DrillResultView: View {
     
     private func nextShot() {
         // Find the next shot after current progress
-        let nextShots = shots.enumerated().filter { $0.element.content.timeDiff > currentProgress }.sorted { $0.element.content.timeDiff < $1.element.content.timeDiff }
+        let nextShots = shots.enumerated().filter { absoluteTime(for: $0.offset) > currentProgress }.sorted { absoluteTime(for: $0.offset) < absoluteTime(for: $1.offset) }
         
         if let nextShot = nextShots.first {
-            seek(to: nextShot.element.content.timeDiff, highlightIndex: nextShot.offset, shouldPulse: true)
+            seek(to: absoluteTime(for: nextShot.offset), highlightIndex: nextShot.offset, shouldPulse: true)
         } else {
             // Go to end
             if let lastShot = shotTimelineData.last {
@@ -647,27 +652,43 @@ struct DrillResultView: View {
 }
 
 #Preview {
-    let context = PersistenceController.preview.container.viewContext
-    let mockDrillSetup = DrillSetup(context: context)
-    mockDrillSetup.id = UUID()
-    mockDrillSetup.name = "Test Drill"
-    mockDrillSetup.desc = "Test drill description"
-    mockDrillSetup.delay = 2.0
+    PreviewContent()
+}
+
+struct PreviewContent: View {
+    var context: NSManagedObjectContext
+    let mockDrillSetup: DrillSetup
+    let mockShots: [ShotData]
     
-    // Add mock targets
-    let mockTarget = DrillTargetsConfig(context: context)
-    mockTarget.targetType = "hostage"
-    mockTarget.seqNo = 1
-    mockTarget.timeout = 10.0
-    mockDrillSetup.addToTargets(mockTarget)
+    init() {
+        let context = PersistenceController.preview.container.viewContext
+        let mockDrillSetup = DrillSetup(context: context)
+        mockDrillSetup.id = UUID()
+        mockDrillSetup.name = "Test Drill"
+        mockDrillSetup.desc = "Test drill description"
+        mockDrillSetup.delay = 2.0
+        
+        // Add mock targets
+        let mockTarget = DrillTargetsConfig(context: context)
+        mockTarget.targetType = "hostage"
+        mockTarget.seqNo = 1
+        mockTarget.timeout = 10.0
+        mockDrillSetup.addToTargets(mockTarget)
+        
+        // Create mock shots with device info
+        let mockShots = [
+            ShotData(target: "target1", content: Content(command: "shot", hitArea: "B", hitPosition: HitPosition(x: 395.0, y: 495.0), rotationAngle: 0, targetType: "hostage", timeDiff: 0.18), type: "shot", action: "hit", device: "device1"),
+            ShotData(target: "target1", content: Content(command: "shot", hitArea: "B", hitPosition: HitPosition(x: 400.0, y: 500.0), rotationAngle: 0, targetType: "hostage", timeDiff: 0.21), type: "shot", action: "hit", device: "device1"),
+            ShotData(target: "target1", content: Content(command: "shot", hitArea: "A", hitPosition: HitPosition(x: 205.0, y: 295.0), rotationAngle: 0, targetType: "hostage", timeDiff: 1.35), type: "shot", action: "hit", device: "device2"),
+        ]
+        
+        self.context = context
+        self.mockDrillSetup = mockDrillSetup
+        self.mockShots = mockShots
+    }
     
-    // Create mock shots with device info
-    let mockShots = [
-        ShotData(target: "target1", content: Content(command: "shot", hitArea: "B", hitPosition: HitPosition(x: 395.0, y: 495.0), rotationAngle: 0, targetType: "hostage", timeDiff: 0.18), type: "shot", action: "hit", device: "device1"),
-        ShotData(target: "target1", content: Content(command: "shot", hitArea: "B", hitPosition: HitPosition(x: 400.0, y: 500.0), rotationAngle: 0, targetType: "hostage", timeDiff: 0.21), type: "shot", action: "hit", device: "device1"),
-        ShotData(target: "target1", content: Content(command: "shot", hitArea: "A", hitPosition: HitPosition(x: 205.0, y: 295.0), rotationAngle: 0, targetType: "hostage", timeDiff: 1.35), type: "shot", action: "hit", device: "device2"),
-    ]
-    
-    return DrillResultView(drillSetup: mockDrillSetup, shots: mockShots)
-        .environment(\.managedObjectContext, context)
+    var body: some View {
+        DrillResultView(drillSetup: mockDrillSetup, shots: mockShots)
+            .environment(\.managedObjectContext, context)
+    }
 }

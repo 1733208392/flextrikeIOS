@@ -34,7 +34,7 @@ extension DrillTargetsConfig {
         return DrillTargetsConfigData(
             id: id ?? UUID(),
             seqNo: Int(seqNo),
-            targetName: targetName ?? "",
+            targetName: targetName ?? "", //Device Name
             targetType: targetType ?? "",
             timeout: timeout,
             countedShots: Int(countedShots)
