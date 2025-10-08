@@ -87,10 +87,10 @@ private struct TargetDisplayView: View {
                         )
                     
                     // Target icon inside the frame
-                    Image(display.icon)
+                    Image("\(display.icon).live.target")
                         .resizable()
                         .scaledToFit()
-                        .frame(width: frameWidth, height: frameHeight)
+                        .frame(width: frameWidth - 20, height: frameHeight - 20)
                         .overlay(alignment: .topTrailing) {
                             if let deviceName = display.deviceName {
                                 Text(deviceName)
