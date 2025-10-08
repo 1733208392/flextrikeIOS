@@ -531,9 +531,7 @@ struct DrillResultView: View {
     }
     
     private func startDrillTimer() {
-        guard let targets = drillSetup.targets as? Set<DrillTargetsConfig>,
-              let firstTarget = targets.first else { return }
-        let duration = drillSetup.delay + firstTarget.timeout + 1
+        let duration = drillSetup.delay + drillSetup.drillDuration
         timeRemaining = duration
         
         drillTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { timer in

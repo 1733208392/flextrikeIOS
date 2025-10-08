@@ -42,6 +42,7 @@
 /* SubViews */
 "history_record" = "履歴記録";
 "delay_seconds_label" = "遅延(秒)";
+"drill_duration_seconds_label" = "期間(秒)";
 "delay_range" = "2...5";
 "description" = "説明";
 "enter_description_placeholder" = "説明を入力...";

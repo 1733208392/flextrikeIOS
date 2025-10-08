@@ -42,6 +42,7 @@
 /* SubViews */
 "history_record" = "Registro Histórico";
 "delay_seconds_label" = "Retraso(s)";
+"drill_duration_seconds_label" = "Duración(s)";
 "delay_range" = "2...5";
 "description" = "Descripción";
 "enter_description_placeholder" = "Introducir descripción...";

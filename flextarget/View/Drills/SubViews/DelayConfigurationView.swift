@@ -23,12 +23,7 @@ struct DelayConfigurationView: View {
 
     var body: some View {
         HStack {
-            Text(NSLocalizedString("delay_seconds_label", comment: "Delay in seconds label"))
-                .foregroundColor(.white)
-
-            Spacer()
-
-            // Keep shuffle icon as an indicator for randomness but remove toggle behavior
+            // Icon on the left
             Image(systemName: "shuffle")
                 .foregroundColor(.red)
                 .padding(10)
@@ -37,12 +32,15 @@ struct DelayConfigurationView: View {
                     Circle().stroke(Color.red, lineWidth: 2)
                 )
 
+            // Text label next to icon
+            Text(NSLocalizedString("delay_seconds_label", comment: "Delay in seconds label"))
+                .foregroundColor(.white)
+
             Spacer()
 
-            // Random range display - fixed value picker removed
+            // Random range display - grey indicating not changeable
             Text(NSLocalizedString("delay_range", comment: "Delay range display"))
-                .fontWeight(.bold)
-                .foregroundColor(.red)
+                .foregroundColor(.gray)
         }
         .padding()
         .background(Color.gray.opacity(0.2))

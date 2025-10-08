@@ -42,6 +42,7 @@
 /* SubViews */
 "history_record" = "History Record";
 "delay_seconds_label" = "Delay(s)";
+"drill_duration_seconds_label" = "Duration(s)";
 "delay_range" = "2...5";
 "description" = "Description";
 "enter_description_placeholder" = "Enter description...";

@@ -12,16 +12,33 @@ struct TargetsSectionView: View {
     var body: some View {
         NavigationLink(destination: TargetConfigListView(deviceList: bleManager.networkDevices, targetConfigs: $targetConfigs, onDone: onTargetConfigDone)) {
             HStack(spacing: 8) {
-                Text(NSLocalizedString("add_target", comment: "Add target button"))
+                // Shield icon on the left
+                Image(systemName: "shield")
+                    .foregroundColor(.red)
+                    .padding(10)
+                    .background(Circle().fill(Color.white.opacity(0.1)))
+                    .overlay(
+                        Circle().stroke(Color.red, lineWidth: 2)
+                    )
+
+                // Text label
+                Text(NSLocalizedString("targets", comment: "Targets label"))
                     .foregroundColor(.white)
                     .font(.headline)
+
                 Spacer()
+
+                // Count
                 Text(String(format: NSLocalizedString("targets_count_label", comment: "Number of targets"), targetConfigs.count))
                     .foregroundColor(.white)
                     .font(.headline)
+
                 Spacer()
-                Image(systemName: "chevron.right")
+
+                // > symbol
+                Text(">")
                     .foregroundColor(.gray)
+                    .font(.headline)
             }
             .padding()
             .background(Color.gray.opacity(targetConfigs.count > 0 ? 0.2 : 0.1))

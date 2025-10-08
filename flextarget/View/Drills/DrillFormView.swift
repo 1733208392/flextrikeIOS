@@ -36,6 +36,7 @@ struct DrillFormView: View {
     @State private var showVideoPlayer: Bool = false
     // delayType removed; only random mode is supported now
     @State private var delayValue: Double = 0
+    @State private var drillDuration: Double = 5
     @State private var targets: [DrillTargetsConfigData] = []
     @State private var isTargetListReceived: Bool = false
     @State private var targetConfigs: [DrillTargetsConfigData] = []
@@ -70,6 +71,7 @@ struct DrillFormView: View {
             _demoVideoURL = State(initialValue: drillSetup.demoVideoURL)
             _thumbnailFileURL = State(initialValue: drillSetup.thumbnailURL)
             _delayValue = State(initialValue: drillSetup.delay)
+            _drillDuration = State(initialValue: drillSetup.drillDuration)
             
             let coreDataTargets = (drillSetup.targets as? Set<DrillTargetsConfig>) ?? []
             let targetsArray = coreDataTargets.sorted(by: { $0.seqNo < $1.seqNo }).map { $0.toStruct() }
@@ -146,6 +148,12 @@ struct DrillFormView: View {
                             // Delay of Set Starting
                             DelayConfigurationView(
                                 delayValue: $delayValue
+                            )
+                            .padding(.horizontal)
+                            
+                            // Drill Duration
+                            DrillDurationConfigurationView(
+                                drillDuration: $drillDuration
                             )
                             .padding(.horizontal)
                             
@@ -420,11 +428,13 @@ struct DrillFormView: View {
         }
         
         drillSetup.delay = delayValue
+        drillSetup.drillDuration = drillDuration
         
         print("Creating drill setup with:")
         print("  name: \(drillName)")
         print("  desc: \(description)")
         print("  delay: \(delayValue)")
+        print("  drillDuration: \(drillDuration)")
         print("  targetConfigs count: \(targetConfigs.count)")
         
         // Add targets - use the Core Data relationship method instead of direct assignment
@@ -496,6 +506,7 @@ struct DrillFormView: View {
         drillSetup.demoVideoURL = demoVideoURL
         drillSetup.thumbnailURL = thumbnailFileURL
         drillSetup.delay = delayValue
+        drillSetup.drillDuration = drillDuration
         
         // Clear and update targets
         if let existingTargets = drillSetup.targets {
@@ -784,6 +795,7 @@ struct DrillFormView_Previews: PreviewProvider {
         drillSetup.name = "Sample Drill"
         drillSetup.desc = "A sample drill for testing"
         drillSetup.delay = 5.0
+        drillSetup.drillDuration = 15.0
         
         let target = DrillTargetsConfig(context: context)
         target.id = UUID()

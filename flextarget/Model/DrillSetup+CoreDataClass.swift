@@ -18,6 +18,7 @@ extension DrillSetup {
     @NSManaged public var demoVideoURL: URL?
     @NSManaged public var thumbnailURL: URL?
     @NSManaged public var delay: Double
+    @NSManaged public var drillDuration: Double
     @NSManaged public var targets: NSSet?
     @NSManaged public var results: NSSet?
 
@@ -73,6 +74,7 @@ extension DrillSetup {
         self.demoVideoURL = setup.demoVideoURL
         self.thumbnailURL = setup.thumbnailURL
         self.delay = setup.delay
+        self.drillDuration = setup.drillDuration
         
         // Create target configs
         for targetConfig in setup.targets {
@@ -107,6 +109,7 @@ extension DrillSetup {
             demoVideoURL: demoVideoURL,
             thumbnailURL: thumbnailURL,
             delay: delay,
+            drillDuration: drillDuration,
             targets: targetConfigs
         )
     }
