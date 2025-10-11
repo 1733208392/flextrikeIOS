@@ -495,13 +495,43 @@ struct DrillFormView: View {
         ackTimeoutTimer = nil
 
         if success {
-            // Proceed to drill result
-            DispatchQueue.main.async {
-                navigateToDrillResult = true
+            // Send start commands to all expected targets, then proceed to drill result
+            DispatchQueue.global(qos: .userInitiated).async {
+                sendStartCommands()
+                DispatchQueue.main.async {
+                    navigateToDrillResult = true
+                }
             }
         } else {
             // Show timeout alert
             showAckTimeoutAlert = true
+        }
+    }
+
+    // Send a start command to each expected target (targetName == device identifier)
+    private func sendStartCommands() {
+        guard bleManager.isConnected else {
+            print("BLE not connected - cannot send start commands")
+            return
+        }
+
+        for targetName in expectedDevices {
+            let message: [String: Any] = [
+                "type": "netlink",
+                "action": "forward",
+                "dest": targetName,
+                "content": ["command": "start"]
+            ]
+
+            do {
+                let data = try JSONSerialization.data(withJSONObject: message, options: [])
+                if let jsonString = String(data: data, encoding: .utf8) {
+                    print("Sending start command to \(targetName): \(jsonString)")
+                    bleManager.writeJSON(jsonString)
+                }
+            } catch {
+                print("Failed to serialize start command for \(targetName): \(error)")
+            }
         }
     }
     
