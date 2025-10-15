@@ -42,6 +42,8 @@
 /* SubViews */
 "history_record" = "Registro Histórico";
 "delay_seconds_label" = "Retraso(s)";
+"num_repeats_label" = "Número de repeticiones";
+"select_repeats" = "Seleccionar repeticiones";
 "drill_duration_seconds_label" = "Duración(s)";
 "delay_range" = "2...5";
 "description" = "Descripción";

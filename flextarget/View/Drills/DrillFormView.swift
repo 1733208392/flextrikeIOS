@@ -35,25 +35,24 @@ struct DrillFormView: View {
     @State private var thumbnailFileURL: URL? = nil
     @State private var showVideoPlayer: Bool = false
     // delayType removed; only random mode is supported now
-    @State private var delayValue: Double = 0
+    // Default to be 2-5s non configurable
+    @State private var repeatsValue: Int = 1
+    @State private var pauseValue: Int = 5
     @State private var drillDuration: Double = 5
     @State private var targets: [DrillTargetsConfigData] = []
     @State private var isTargetListReceived: Bool = false
     @State private var targetConfigs: [DrillTargetsConfigData] = []
     @State private var navigateToDrillResult: Bool = false
-    // ACK tracking for start drill
-    @State private var waitingForAcks: Bool = false
-    @State private var ackedDevices: Set<String> = []
     // expected devices are derived from drill targetConfigs (by targetName)
     @State private var expectedDevices: [String] = []
-    @State private var ackTimeoutTimer: Timer? = nil
+    @State private var executionManager: DrillExecutionManager? = nil
     @State private var showAckTimeoutAlert: Bool = false
     
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.managedObjectContext) private var environmentContext
 
     private var viewContext: NSManagedObjectContext {
-        if let coordinator = environmentContext.persistentStoreCoordinator,
+        if let coordinator =  environmentContext.persistentStoreCoordinator,
            coordinator.persistentStores.isEmpty == false {
             return environmentContext
         }
@@ -77,7 +76,9 @@ struct DrillFormView: View {
             _description = State(initialValue: drillSetup.desc ?? "")
             _demoVideoURL = State(initialValue: drillSetup.demoVideoURL)
             _thumbnailFileURL = State(initialValue: drillSetup.thumbnailURL)
-            _delayValue = State(initialValue: drillSetup.delay)
+//            _delayValue = State(initialValue: drillSetup.delay)
+            _repeatsValue = State(initialValue: Int(drillSetup.repeats))
+            _pauseValue = State(initialValue: Int(drillSetup.pause))
             _drillDuration = State(initialValue: drillSetup.drillDuration)
             
             let coreDataTargets = (drillSetup.targets as? Set<DrillTargetsConfig>) ?? []
@@ -153,8 +154,8 @@ struct DrillFormView: View {
                             .padding(.horizontal)
                             
                             // Delay of Set Starting
-                            DelayConfigurationView(
-                                delayValue: $delayValue
+                            RepeatsConfigView(
+                                repeatsValue: $repeatsValue
                             )
                             .padding(.horizontal)
                             
@@ -212,24 +213,6 @@ struct DrillFormView: View {
         .alert(isPresented: $showAckTimeoutAlert) {
             Alert(title: Text(NSLocalizedString("ack_timeout_title", comment: "ACK timeout")), message: Text(NSLocalizedString("ack_timeout_message", comment: "Not all devices responded in time")), dismissButton: .default(Text("OK")))
         }
-        .overlay(
-            Group {
-                if waitingForAcks {
-                    VStack(spacing: 12) {
-                        ProgressView(NSLocalizedString("waiting_for_devices", comment: "Waiting for devices"))
-                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                            .foregroundColor(.white)
-                        Text(String(format: NSLocalizedString("waiting_devices_count", comment: "Waiting count"), ackedDevices.count, expectedDevices.count))
-                            .foregroundColor(.white)
-                            .font(.caption)
-                    }
-                    .padding()
-                    .background(Color.black.opacity(0.7))
-                    .cornerRadius(10)
-                    .padding()
-                }
-            }
-        )
     }
     
     // MARK: - Action Buttons
@@ -423,116 +406,33 @@ struct DrillFormView: View {
             print("Failed to save drill setup before starting: \(error)")
         }
         
-        sendStartDrillMessages(for: drillSetup)
-        // Begin waiting for ACKs from devices
-        beginWaitingForAcks(for: drillSetup)
-    }
-
-    private func beginWaitingForAcks(for drillSetup: DrillSetup) {
-        guard bleManager.isConnected else { return }
-
-        // Reset tracking
-        ackedDevices.removeAll()
         // Use the current drill targetConfigs as the expected devices
         expectedDevices = targetConfigs.compactMap { $0.targetName }
-        waitingForAcks = true
-
-        // Start 10s guard timer
-        ackTimeoutTimer?.invalidate()
-        ackTimeoutTimer = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: false) { _ in
-            handleAckTimeout()
-        }
-
-        // If no expected devices, proceed immediately
-        if expectedDevices.isEmpty {
-            finishWaitingForAcks(success: true)
-        }
+        
+        // Create and start drill execution manager
+        let executionManager = DrillExecutionManager(
+            bleManager: bleManager,
+            drillSetup: drillSetup,
+            expectedDevices: expectedDevices,
+            onComplete: {
+                DispatchQueue.main.async {
+                    self.navigateToDrillResult = true
+                }
+            },
+            onFailure: {
+                DispatchQueue.main.async {
+                    self.showAckTimeoutAlert = true
+                }
+            }
+        )
+        
+        // Store reference to handle notifications
+        self.executionManager = executionManager
+        executionManager.startExecution()
     }
 
     private func handleNetlinkForward(_ notification: Notification) {
-        guard waitingForAcks else { return }
-        guard let userInfo = notification.userInfo, let json = userInfo["json"] as? [String: Any] else { return }
-
-        // Expected JSON example: ["action": "forward", "device": "B", "type": "netlink", "content": "ready"]
-    if let device = json["device"] as? String {
-            // Content may be a string or object; we only care about "ready"
-            if let content = json["content"] as? String, content == "ready" {
-                ackedDevices.insert(device)
-                print("Device ack received: \(device) (string content)")
-            } else if let content = json["content"] as? [String: Any], let command = content["command"] as? String, command == "ready" {
-                ackedDevices.insert(device)
-                print("Device ack received: \(device) (object content)")
-            }
-
-            // Check if we've received all expected ACKs
-            let expectedNames = Set(expectedDevices)
-            if expectedNames.isSubset(of: ackedDevices) {
-                finishWaitingForAcks(success: true)
-            }
-        }
-    }
-
-    private func handleAckTimeout() {
-        waitingForAcks = false
-        ackTimeoutTimer?.invalidate()
-        ackTimeoutTimer = nil
-
-        let expectedNames = Set(expectedDevices)
-        let missing = expectedNames.subtracting(ackedDevices)
-        if missing.isEmpty {
-            // all acked just before timeout
-            finishWaitingForAcks(success: true)
-        } else {
-            // Show alert to user and stay
-            print("ACK timeout — missing: \(missing)")
-            showAckTimeoutAlert = true
-        }
-    }
-
-    private func finishWaitingForAcks(success: Bool) {
-        waitingForAcks = false
-        ackTimeoutTimer?.invalidate()
-        ackTimeoutTimer = nil
-
-        if success {
-            // Send start commands to all expected targets, then proceed to drill result
-            DispatchQueue.global(qos: .userInitiated).async {
-                sendStartCommands()
-                DispatchQueue.main.async {
-                    navigateToDrillResult = true
-                }
-            }
-        } else {
-            // Show timeout alert
-            showAckTimeoutAlert = true
-        }
-    }
-
-    // Send a start command to each expected target (targetName == device identifier)
-    private func sendStartCommands() {
-        guard bleManager.isConnected else {
-            print("BLE not connected - cannot send start commands")
-            return
-        }
-
-        for targetName in expectedDevices {
-            let message: [String: Any] = [
-                "type": "netlink",
-                "action": "forward",
-                "dest": targetName,
-                "content": ["command": "start"]
-            ]
-
-            do {
-                let data = try JSONSerialization.data(withJSONObject: message, options: [])
-                if let jsonString = String(data: data, encoding: .utf8) {
-                    print("Sending start command to \(targetName): \(jsonString)")
-                    bleManager.writeJSON(jsonString)
-                }
-            } catch {
-                print("Failed to serialize start command for \(targetName): \(error)")
-            }
-        }
+        executionManager?.handleNetlinkForward(notification)
     }
     
     // MARK: - CoreData Operations
@@ -566,13 +466,14 @@ struct DrillFormView: View {
             drillSetup.thumbnailURL = standardizedURL
         }
         
-        drillSetup.delay = delayValue
+        drillSetup.repeats = repeatsValue
+        drillSetup.pause = pauseValue
         drillSetup.drillDuration = drillDuration
         
         print("Creating drill setup with:")
         print("  name: \(drillName)")
         print("  desc: \(description)")
-        print("  delay: \(delayValue)")
+        print("  repeats: \(repeatsValue)")
         print("  drillDuration: \(drillDuration)")
         print("  targetConfigs count: \(targetConfigs.count)")
         
@@ -644,7 +545,8 @@ struct DrillFormView: View {
         drillSetup.desc = description
         drillSetup.demoVideoURL = demoVideoURL
         drillSetup.thumbnailURL = thumbnailFileURL
-        drillSetup.delay = delayValue
+        drillSetup.repeats = repeatsValue
+        drillSetup.pause = pauseValue
         drillSetup.drillDuration = drillDuration
         
         // Clear and update targets
@@ -780,91 +682,7 @@ struct DrillFormView: View {
         }
     }
     
-    private func sendStartDrillMessages(for drillSetup: DrillSetup) {
-        guard bleManager.isConnected else {
-            print("BLE not connected")
-            return
-        }
-        
-        guard let targetsSet = drillSetup.targets as? Set<DrillTargetsConfig> else { return }
-        let sortedTargets = targetsSet.sorted { $0.seqNo < $1.seqNo }
-        
-        for (index, target) in sortedTargets.enumerated() {
-            do {
-                let delay = index == 0 ? drillSetup.delay : 0
-                let content: [String: Any] = [
-                    "command": "ready",
-                    "delay": delay,
-                    "targetType": target.targetType ?? "",
-                    "timeout": target.timeout,
-                    "countedShots": target.countedShots
-                ]
-                let message: [String: Any] = [
-                    "type": "netlink",
-                    "action": "forward",
-                    "dest": target.targetName ?? "",
-                    "content": content
-                ]
-                let messageData = try JSONSerialization.data(withJSONObject: message, options: [])
-                let messageString = String(data: messageData, encoding: .utf8)!
-                print("Sending forward message for target \(target.targetName ?? ""), length: \(messageData.count)")
-                bleManager.writeJSON(messageString)
-                
-                #if targetEnvironment(simulator)
-                // In simulator, mock some shot received notifications after sending ready command
-                DispatchQueue.main.asyncAfter(deadline: .now() + Double(index + 1) * 2.0) {
-                    // Mock shot data for this target
-                    let mockShotData: [String: Any] = [
-                        "target": target.targetName ?? "",
-                        "device": target.targetName ?? "",
-                        "type": "netlink",
-                        "action": "forward",
-                        "content": [
-                            "command": "shot",
-                            "hit_area": "center",
-                            "hit_position": ["x": 200, "y": 400],
-                            "rotation_angle": 0,
-                            "target_type": target.targetType ?? "ipsc",
-                            "time_diff": Double(index + 1) * 1.5
-                        ]
-                    ]
-                    
-                    NotificationCenter.default.post(
-                        name: .bleShotReceived,
-                        object: nil,
-                        userInfo: ["shot_data": mockShotData]
-                    )
-                    
-                    // Send a second shot after a short delay
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                        let secondMockShotData: [String: Any] = [
-                            "target": target.targetName ?? "",
-                            "device": target.targetName ?? "",
-                            "type": "netlink",
-                            "action": "forward",
-                            "content": [
-                                "command": "shot",
-                                "hit_area": "edge",
-                                "hit_position": ["x": 220, "y": 430],
-                                "rotation_angle": 15,
-                                "target_type": target.targetType ?? "ipsc",
-                                "time_diff": Double(index + 1) * 1.5 + 1.0
-                            ]
-                        ]
-                        
-                        NotificationCenter.default.post(
-                            name: .bleShotReceived,
-                            object: nil,
-                            userInfo: ["shot_data": secondMockShotData]
-                        )
-                    }
-                }
-                #endif
-            } catch {
-                print("Failed to send start drill message for target \(target.targetName ?? ""): \(error)")
-            }
-        }
-    }
+
     
     // MARK: - Device List Query
     
@@ -934,6 +752,8 @@ struct DrillFormView_Previews: PreviewProvider {
         drillSetup.name = "Sample Drill"
         drillSetup.desc = "A sample drill for testing"
         drillSetup.delay = 5.0
+        drillSetup.repeats = 1
+        drillSetup.pause = 5
         drillSetup.drillDuration = 15.0
         
         let target = DrillTargetsConfig(context: context)

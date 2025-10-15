@@ -19,6 +19,8 @@ extension DrillSetup {
     @NSManaged public var thumbnailURL: URL?
     @NSManaged public var delay: Double
     @NSManaged public var drillDuration: Double
+    @NSManaged public var repeats: Int
+    @NSManaged public var pause: Int
     @NSManaged public var targets: NSSet?
     @NSManaged public var results: NSSet?
 

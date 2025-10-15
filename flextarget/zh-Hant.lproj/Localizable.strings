@@ -42,6 +42,8 @@
 /* SubViews */
 "history_record" = "歷史記錄";
 "delay_seconds_label" = "延遲(秒)";
+"num_repeats_label" = "重複次數";
+"select_repeats" = "選擇重複次數";
 "drill_duration_seconds_label" = "持續時間(秒)";
 "delay_range" = "2...5";
 "description" = "描述";

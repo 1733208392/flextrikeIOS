@@ -42,6 +42,8 @@
 /* SubViews */
 "history_record" = "Verlauf";
 "delay_seconds_label" = "Verzögerung(s)";
+"num_repeats_label" = "Anzahl der Wiederholungen";
+"select_repeats" = "Wiederholungen auswählen";
 "drill_duration_seconds_label" = "Dauer(s)";
 "delay_range" = "2...5";
 "description" = "Beschreibung";

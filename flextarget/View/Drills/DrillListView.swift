@@ -152,6 +152,18 @@ struct DrillListView: View {
                 .foregroundColor(.gray)
                 .font(.caption)
             
+            if drill.repeats > 1 {
+                Text("Repeats: \(drill.repeats)")
+                    .foregroundColor(.gray)
+                    .font(.caption)
+            }
+            
+            if drill.pause > 0 {
+                Text("Pause: \(drill.pause)s")
+                    .foregroundColor(.gray)
+                    .font(.caption)
+            }
+            
             if drill.delay > 0 {
                 Text(String(format: NSLocalizedString("delay_seconds", comment: "Delay in seconds"), Int(drill.delay)))
                     .foregroundColor(.gray)
@@ -168,6 +180,9 @@ struct DrillListView: View {
         new.name = (drill.name ?? "") + NSLocalizedString("copy_suffix", comment: "Suffix added to copied drill name")
         new.desc = drill.desc
         new.delay = drill.delay
+        new.repeats = drill.repeats
+        new.pause = drill.pause
+        new.drillDuration = drill.drillDuration
 
         if let targets = drill.targets as? Set<DrillTargetsConfig> {
             for t in targets.sorted(by: { $0.seqNo < $1.seqNo }) {

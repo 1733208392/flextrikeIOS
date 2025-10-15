@@ -42,6 +42,8 @@
 /* SubViews */
 "history_record" = "履歴記録";
 "delay_seconds_label" = "遅延(秒)";
+"num_repeats_label" = "繰り返しの数";
+"select_repeats" = "繰り返しを選択";
 "drill_duration_seconds_label" = "期間(秒)";
 "delay_range" = "2...5";
 "description" = "説明";

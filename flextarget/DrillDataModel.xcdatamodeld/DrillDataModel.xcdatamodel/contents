@@ -11,6 +11,8 @@
         <attribute name="desc" optional="YES" attributeType="String"/>
         <attribute name="demoVideoURL" optional="YES" attributeType="URI"/>
         <attribute name="drillDuration" optional="YES" attributeType="Double" defaultValueString="5.0" usesScalarValueType="YES"/>
+        <attribute name="repeats" optional="YES" attributeType="Integer 32" defaultValueString="1" usesScalarValueType="YES"/>
+        <attribute name="pause" optional="YES" attributeType="Integer 32" defaultValueString="5" usesScalarValueType="YES"/>
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="name" optional="YES" attributeType="String"/>
         <attribute name="thumbnailURL" optional="YES" attributeType="URI"/>
