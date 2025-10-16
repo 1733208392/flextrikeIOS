@@ -5,23 +5,41 @@ class DrillExecutionManager {
     private let bleManager: BLEManager
     private let drillSetup: DrillSetup
     private let expectedDevices: [String]
-    private let onComplete: () -> Void
+    private let onComplete: ([DrillRepeatSummary]) -> Void
     private let onFailure: () -> Void
     
     private var currentRepeat = 0
     private var ackedDevices = Set<String>()
     private var ackTimeoutTimer: Timer?
     private var waitingForAcks = false
+    private var repeatSummaries: [DrillRepeatSummary] = []
+    private var currentRepeatShots: [ShotEvent] = []
+    private var currentRepeatStartTime: Date?
+    private var shotObserver: NSObjectProtocol?
+    private let firstShotMockValue: TimeInterval = 1.0
     
-    init(bleManager: BLEManager, drillSetup: DrillSetup, expectedDevices: [String], onComplete: @escaping () -> Void, onFailure: @escaping () -> Void) {
+    init(bleManager: BLEManager, drillSetup: DrillSetup, expectedDevices: [String], onComplete: @escaping ([DrillRepeatSummary]) -> Void, onFailure: @escaping () -> Void) {
         self.bleManager = bleManager
         self.drillSetup = drillSetup
         self.expectedDevices = expectedDevices
         self.onComplete = onComplete
         self.onFailure = onFailure
+
+        startObservingShots()
     }
     
+    deinit {
+        stopObservingShots()
+    }
+
+    var summaries: [DrillRepeatSummary] {
+        repeatSummaries
+    }
+
     func startExecution() {
+        repeatSummaries.removeAll()
+        currentRepeatShots.removeAll()
+        currentRepeatStartTime = nil
         executeNextRepeat()
     }
     
@@ -59,8 +77,7 @@ class DrillExecutionManager {
                     "countedShots": target.countedShots
                 ]
                 let message: [String: Any] = [
-                    "type": "netlink",
-                    "action": "forward",
+                    "action": "netlink_forward",
                     "dest": target.targetName ?? "",
                     "content": content
                 ]
@@ -183,20 +200,24 @@ class DrillExecutionManager {
         if success {
             // Send start commands
             sendStartCommands()
-            
-            // Check if we need to do more repeats
-            if currentRepeat < drillSetup.repeats {
-                // Schedule next repeat after drill duration + pause + delay + 1s latency compensation
-                let delay = Double(drillSetup.drillDuration) + Double(drillSetup.pause) + Double(drillSetup.delay) + 1.0
-                DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
-                    self?.executeNextRepeat()
+
+            // Schedule completion handling for this repeat
+            let repeatIndex = currentRepeat
+            let delay = Double(drillSetup.drillDuration) + Double(drillSetup.pause) + Double(drillSetup.delay) + 1.0
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+                guard let self = self else { return }
+                self.finalizeRepeat(repeatIndex: repeatIndex)
+
+                if repeatIndex < self.drillSetup.repeats {
+                    self.executeNextRepeat()
+                } else {
+                    self.stopObservingShots()
+                    self.onComplete(self.repeatSummaries)
                 }
-            } else {
-                // All repeats completed
-                onComplete()
             }
         } else {
             // Ack timeout - stop execution
+            stopObservingShots()
             onFailure()
         }
     }
@@ -207,6 +228,8 @@ class DrillExecutionManager {
             onFailure()
             return
         }
+
+        prepareForRepeatStart()
 
         for targetName in expectedDevices {
             let message: [String: Any] = [
@@ -226,5 +249,82 @@ class DrillExecutionManager {
                 print("Failed to serialize start command for \(targetName): \(error)")
             }
         }
+    }
+
+    private func prepareForRepeatStart() {
+        currentRepeatShots.removeAll()
+        currentRepeatStartTime = Date()
+    }
+
+    private func finalizeRepeat(repeatIndex: Int) {
+        guard let startTime = currentRepeatStartTime else {
+            print("No start time for repeat \(repeatIndex), skipping summary")
+            return
+        }
+
+        let sortedShots = currentRepeatShots.sorted { $0.receivedAt < $1.receivedAt }
+        let totalTime: TimeInterval
+        if let last = sortedShots.last {
+            totalTime = last.receivedAt.timeIntervalSince(startTime)
+        } else {
+            totalTime = 0.0
+        }
+
+        let numShots = sortedShots.count
+        let fastest = sortedShots.map { $0.shot.content.timeDiff }.min() ?? 0.0
+        let summary = DrillRepeatSummary(
+            repeatIndex: repeatIndex,
+            totalTime: totalTime,
+            numShots: numShots,
+            firstShot: firstShotMockValue,
+            fastest: fastest,
+            score: numShots,
+            shots: sortedShots.map { $0.shot }
+        )
+
+        if repeatIndex - 1 < repeatSummaries.count {
+            repeatSummaries[repeatIndex - 1] = summary
+        } else {
+            repeatSummaries.append(summary)
+        }
+
+        currentRepeatShots.removeAll()
+        currentRepeatStartTime = nil
+    }
+
+    private func startObservingShots() {
+        shotObserver = NotificationCenter.default.addObserver(
+            forName: .bleShotReceived,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            self?.handleShotNotification(notification)
+        }
+    }
+
+    private func stopObservingShots() {
+        if let observer = shotObserver {
+            NotificationCenter.default.removeObserver(observer)
+            shotObserver = nil
+        }
+    }
+
+    private func handleShotNotification(_ notification: Notification) {
+        guard currentRepeatStartTime != nil else { return }
+        guard let shotDict = notification.userInfo?["shot_data"] as? [String: Any] else { return }
+
+        do {
+            let jsonData = try JSONSerialization.data(withJSONObject: shotDict, options: [])
+            let shot = try JSONDecoder().decode(ShotData.self, from: jsonData)
+            let event = ShotEvent(shot: shot, receivedAt: Date())
+            currentRepeatShots.append(event)
+        } catch {
+            print("Failed to process shot notification: \(error)")
+        }
+    }
+
+    private struct ShotEvent {
+        let shot: ShotData
+        let receivedAt: Date
     }
 }

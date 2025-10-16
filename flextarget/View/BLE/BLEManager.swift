@@ -99,7 +99,8 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
     private let targetedScanDuration: TimeInterval = 5.0
 
     // 1. Store the target service UUID
-    private let advServiceUUID = CBUUID(string: "002A7982-6A23-1A71-A5C2-6C4B54310C9C")
+//    private let advServiceUUID = CBUUID(string: "002A7982-6A23-1A71-A5C2-6C4B54310C9C")
+    private let advServiceUUID = CBUUID(string: "0000FFC9-0000-1000-8000-00805F9B34FB")
     private let targetServiceUUID = CBUUID(string: "0000FFC9-0000-1000-8000-00805F9B34FB")
 
     
@@ -126,6 +127,9 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
     
     // Add this property to BLEManager to store the completion handler
     private var writeCompletion: ((Bool) -> Void)?
+    
+    // Buffer to accumulate split messages until "\r\n" is received
+    private var messageBuffer = Data()
     
     // Make initializer private to enforce singleton usage
     private override init() {
@@ -296,9 +300,8 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
         if let advServiceUUIDs = advertisementData[CBAdvertisementDataServiceUUIDsKey] as? [CBUUID] {
             matchesTargetService = advServiceUUIDs.contains(where: { $0 == advServiceUUID })
         }
-
-        let lowerName = name.lowercased()
-        let matchesName = lowerName.contains("macbook")
+        
+        let matchesName = name.contains("GR-WOLF")
 
         if matchesTargetService || matchesName {
             print("Adding peripheral: \(name)")
@@ -375,11 +378,16 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
         for characteristic in characteristics {
             if characteristic.uuid == writeCharacteristicUUID {
                 writeCharacteristic = characteristic
-                print("Found write characteristic: \(characteristic.uuid)")
+                print("Found write characteristic: \(characteristic.uuid), properties: \(characteristic.properties)")
             } else if characteristic.uuid == notifyCharacteristicUUID {
                 notifyCharacteristic = characteristic
-                print("Found notify characteristic: \(characteristic.uuid)")
-                peripheral.setNotifyValue(true, for: characteristic)
+                print("Found notify characteristic: \(characteristic.uuid), properties: \(characteristic.properties)")
+                if characteristic.properties.contains(.notify) {
+                    peripheral.setNotifyValue(true, for: characteristic)
+                    print("Attempting to enable notifications for \(characteristic.uuid)")
+                } else {
+                    print("Notify characteristic does not support notifications: \(characteristic.properties)")
+                }
                 isConnected = true
             }
         }
@@ -397,7 +405,6 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
     
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
         _ = characteristic.value
-        //        print("Received notification from peripheral \(peripheral.identifier) on characteristic \(characteristic.uuid), data: \(data as! NSData)")
         
         if let error = error {
             print("Failed to receive notification: \(error.localizedDescription)")
@@ -412,71 +419,99 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
             return
         }
         
-        // Parse JSON only
-        if let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
-            // Debug print for parsed JSON
-            print("Parsed JSON: \(json)")
+        // Accumulate data until message ends with "\r\n"
+        messageBuffer.append(data)
+        guard messageBuffer.suffix(2) == "\r\n".data(using: .utf8)! else {
+            return
         }
         
-        // Handle the state notification
-        if let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
-            let type = json["type"] as? String, type == "state",
-           let stateCode = json["state_code"] as? Int {
-            // Handle the state notification as needed
-            print("Received state notification with code: \(stateCode)")
-            NotificationCenter.default.post(
-                name: .bleStateNotificationReceived,
-                object: nil,
-                userInfo: ["state_code": stateCode]
-            )
-        }
-
-        // Handle incoming netlink device_list response and save globally
-        if let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
-           let type = json["type"] as? String, type == "netlink",
-           let action = json["action"] as? String, action == "device_list",
-           let dataArray = json["data"] {
-            do {
-                let normalized = try JSONSerialization.data(withJSONObject: dataArray, options: [])
-                let decoder = JSONDecoder()
-                let devices = try decoder.decode([NetworkDevice].self, from: normalized)
-                print("Received netlink device_list: \(devices)")
-                DispatchQueue.main.async {
-                    self.networkDevices = devices
-                    self.lastDeviceListUpdate = Date()
+        // Process the complete message
+        let completeData = messageBuffer
+        messageBuffer = Data()
+        
+        var notificationHandled = false
+        
+        // Try to parse as JSON
+        if let json = try? JSONSerialization.jsonObject(with: completeData, options: []) as? [String: Any] {
+            // Debug print for parsed JSON
+            print("Parsed JSON: \(json)")
+            
+            // Handle the state notification
+            if let type = json["type"] as? String, type == "state",
+               let stateCode = json["state_code"] as? Int {
+                print("Received state notification with code: \(stateCode)")
+                NotificationCenter.default.post(
+                    name: .bleStateNotificationReceived,
+                    object: nil,
+                    userInfo: ["state_code": stateCode]
+                )
+                notificationHandled = true
+            }
+            
+            // Handle incoming netlink device_list response and save globally
+            if let type = json["type"] as? String, type == "netlink",
+               let action = json["action"] as? String, action == "device_list",
+               let dataArray = json["data"] {
+                do {
+                    let normalized = try JSONSerialization.data(withJSONObject: dataArray, options: [])
+                    let decoder = JSONDecoder()
+                    let devices = try decoder.decode([NetworkDevice].self, from: normalized)
+                    print("Received netlink device_list: \(devices)")
+                    DispatchQueue.main.async {
+                        self.networkDevices = devices
+                        self.lastDeviceListUpdate = Date()
+                    }
+                    NotificationCenter.default.post(name: .bleDeviceListUpdated, object: nil, userInfo: ["device_list": devices])
+                    notificationHandled = true
+                } catch {
+                    print("Failed to decode netlink device_list: \(error.localizedDescription)")
                 }
-                NotificationCenter.default.post(name: .bleDeviceListUpdated, object: nil, userInfo: ["device_list": devices])
-            } catch {
-                print("Failed to decode netlink device_list: \(error.localizedDescription)")
             }
-        }
-
-        // Handle incoming shot data
-        if let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
-           let type = json["type"] as? String, type == "netlink",
-           let action = json["action"] as? String, action == "forward",
-           let content = json["content"] as? [String: Any],
-           let command = content["command"] as? String, command == "shot" {
-            print("Received shot data: \(json)")
-            NotificationCenter.default.post(name: .bleShotReceived, object: nil, userInfo: ["shot_data": json])
-        }
-
-        // Post general netlink forward messages (e.g. device ACKs with content "ready")
-        if let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
-           let type = json["type"] as? String, type == "netlink",
-           let action = json["action"] as? String, action == "forward" {
-            // Avoid duplicating the shot notification which is already posted above
-            var isShot = false
-            if let content = json["content"] as? [String: Any], let command = content["command"] as? String, command == "shot" {
-                isShot = true
+            
+            // Handle incoming shot data
+            if let type = json["type"] as? String, type == "netlink",
+               let action = json["action"] as? String, action == "forward",
+               let content = json["content"] as? [String: Any],
+               let command = content["command"] as? String, command == "shot" {
+                print("Received shot data: \(json)")
+                NotificationCenter.default.post(name: .bleShotReceived, object: nil, userInfo: ["shot_data": json])
+                notificationHandled = true
             }
-            if let contentStr = json["content"] as? String, contentStr == "shot" {
-                isShot = true
+            
+            // Post general netlink forward messages (e.g. device ACKs with content "ready")
+            if let type = json["type"] as? String, type == "netlink",
+               let action = json["action"] as? String, action == "forward" {
+                // Avoid duplicating the shot notification which is already posted above
+                var isShot = false
+                if let content = json["content"] as? [String: Any], let command = content["command"] as? String, command == "shot" {
+                    isShot = true
+                }
+                if let contentStr = json["content"] as? String, contentStr == "shot" {
+                    isShot = true
+                }
+                
+                if !isShot {
+                    print("Received general netlink forward: \(json)")
+                    NotificationCenter.default.post(name: .bleNetlinkForwardReceived, object: nil, userInfo: ["json": json])
+                    notificationHandled = true
+                }
             }
-
-            if !isShot {
-                NotificationCenter.default.post(name: .bleNetlinkForwardReceived, object: nil, userInfo: ["json": json])
+            
+            if !notificationHandled {
+                print("Received unrecognized JSON notification: \(json)")
+                // Optionally post a general notification for unrecognized JSON
+                NotificationCenter.default.post(name: .bleNetlinkForwardReceived, object: nil, userInfo: ["json": json, "unrecognized": true])
             }
+        } else {
+            // Handle non-JSON data
+            if let stringData = String(data: completeData, encoding: .utf8) {
+                print("Received non-JSON notification: \(stringData)")
+            } else {
+                print("Received binary notification: \(completeData as NSData)")
+            }
+            // Optionally post a notification for non-JSON data
+            NotificationCenter.default.post(name: .bleNetlinkForwardReceived, object: nil, userInfo: ["raw_data": completeData])
+            notificationHandled = true
         }
     }
     
@@ -488,9 +523,18 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
                 print("BLE write error: \(error.localizedDescription)")
                 completion(false)
             } else {
-//                print("BLE write to characteristic \(characteristic.uuid) succeeded")
+                print("BLE write to characteristic \(characteristic.uuid) succeeded")
                 completion(true)
             }
+        }
+    }
+    
+    func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {
+        if let error = error {
+            print("Failed to enable notifications for \(characteristic.uuid): \(error.localizedDescription)")
+            // Optionally, set isConnected to false or handle reconnection
+        } else {
+            print("Notifications enabled for \(characteristic.uuid)")
         }
     }
     #else
@@ -499,6 +543,7 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
     func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {}
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {}
     func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {}
+    func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {}
     #endif
 }
 
@@ -533,15 +578,30 @@ extension BLEManager: BLEManagerProtocol {
             print("Peripheral or write characteristic not available")
             return
         }
-        guard let data = jsonString.data(using: .utf8) else {
+        let commandStr = jsonString + "\r\n"
+        guard let data = commandStr.data(using: .utf8) else {
             print("Failed to encode JSON string")
             return
         }
+
+        // peripheral.writeValue(data, for: writeCharacteristic, type: .withResponse)
         
         //Add debug to print the JSON string
-        print("Writing JSON data to BLE: \(jsonString)")
+        print("Writing JSON data to BLE: \(commandStr)")
         print("BLE data length: \(data.count)")
-        peripheral.writeValue(data, for: writeCharacteristic, type: .withResponse)
+        if data.count <= 100 {
+            peripheral.writeValue(data, for: writeCharacteristic, type: .withResponse)
+        } else {
+            // Split data into chunks of 100 bytes or less
+            var startIndex = 0
+            while startIndex < data.count {
+                let endIndex = min(startIndex + 100, data.count)
+                let chunk = data[startIndex..<endIndex]
+                print("Writing chunk of size \(chunk.count)")
+                peripheral.writeValue(chunk, for: writeCharacteristic, type: .withResponse)
+                startIndex = endIndex
+            }
+        }
         #endif
     }
 }

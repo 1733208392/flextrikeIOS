@@ -42,7 +42,8 @@ struct DrillFormView: View {
     @State private var targets: [DrillTargetsConfigData] = []
     @State private var isTargetListReceived: Bool = false
     @State private var targetConfigs: [DrillTargetsConfigData] = []
-    @State private var navigateToDrillResult: Bool = false
+    @State private var navigateToDrillSummary: Bool = false
+    @State private var drillRepeatSummaries: [DrillRepeatSummary] = []
     // expected devices are derived from drill targetConfigs (by targetName)
     @State private var expectedDevices: [String] = []
     @State private var executionManager: DrillExecutionManager? = nil
@@ -204,9 +205,9 @@ struct DrillFormView: View {
             }
         }
         .environment(\.managedObjectContext, viewContext)
-        .navigationDestination(isPresented: $navigateToDrillResult) {
+        .navigationDestination(isPresented: $navigateToDrillSummary) {
             if case .edit(let drillSetup) = mode {
-                DrillResultView(drillSetup: drillSetup)
+                DrillSummaryView(drillSetup: drillSetup, summaries: drillRepeatSummaries)
                     .environment(\.managedObjectContext, viewContext)
             }
         }
@@ -395,6 +396,9 @@ struct DrillFormView: View {
     
     private func startDrill() {
         guard case .edit(let drillSetup) = mode else { return }
+
+        drillRepeatSummaries.removeAll()
+        navigateToDrillSummary = false
         
         // Save changes before starting
         targets = targetConfigs
@@ -414,14 +418,17 @@ struct DrillFormView: View {
             bleManager: bleManager,
             drillSetup: drillSetup,
             expectedDevices: expectedDevices,
-            onComplete: {
+            onComplete: { summaries in
                 DispatchQueue.main.async {
-                    self.navigateToDrillResult = true
+                    self.drillRepeatSummaries = summaries
+                    self.navigateToDrillSummary = true
+                    self.executionManager = nil
                 }
             },
             onFailure: {
                 DispatchQueue.main.async {
                     self.showAckTimeoutAlert = true
+                    self.executionManager = nil
                 }
             }
         )
@@ -692,17 +699,17 @@ struct DrillFormView: View {
             return
         }
         
-        let command = ["type": "netlink", "action": "query_device_list"]
+        let command = ["action": "netlink_query_device_list"]
         
         do {
             let jsonData = try JSONSerialization.data(withJSONObject: command, options: [])
             if let jsonString = String(data: jsonData, encoding: .utf8) {
                 print("Query message length: \(jsonData.count)")
                 bleManager.writeJSON(jsonString)
-                print("Sent query_device_list command: \(jsonString)")
+                print("Sent netlink_query_device_list command: \(jsonString)")
             }
         } catch {
-            print("Failed to serialize query_device_list command: \(error)")
+            print("Failed to serialize netlink_query_device_list command: \(error)")
         }
         
         #if targetEnvironment(simulator)
