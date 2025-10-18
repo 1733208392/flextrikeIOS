@@ -419,100 +419,107 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
             return
         }
         
-        // Accumulate data until message ends with "\r\n"
+        // Accumulate data and process complete messages separated by \r\r or \r\n
         messageBuffer.append(data)
-        guard messageBuffer.suffix(2) == "\r\n".data(using: .utf8)! else {
+        let separator1 = "\r\r".data(using: .utf8)!
+        let separator2 = "\r\n".data(using: .utf8)!
+        let range1 = messageBuffer.range(of: separator1, options: .backwards)
+        let range2 = messageBuffer.range(of: separator2, options: .backwards)
+        guard let lastSeparatorRange = [range1, range2].compactMap({ $0 }).max(by: { $0.lowerBound < $1.lowerBound }) else {
             return
         }
+        let completeData = messageBuffer.subdata(in: 0..<lastSeparatorRange.lowerBound)
+        messageBuffer = messageBuffer.subdata(in: lastSeparatorRange.upperBound..<messageBuffer.count)
         
-        // Process the complete message
-        let completeData = messageBuffer
-        messageBuffer = Data()
-        print(messageBuffer)
-        
-        var notificationHandled = false
-        
-        // Try to parse as JSON
-        if let json = try? JSONSerialization.jsonObject(with: completeData, options: []) as? [String: Any] {
-            // Debug print for parsed JSON
-//            print("Parsed JSON: \(json)")
-            
-            // Handle the state notification
-            if let type = json["type"] as? String, type == "state",
-               let stateCode = json["state_code"] as? Int {
-                print("Received state notification with code: \(stateCode)")
-                NotificationCenter.default.post(
-                    name: .bleStateNotificationReceived,
-                    object: nil,
-                    userInfo: ["state_code": stateCode]
-                )
-                notificationHandled = true
-            }
-            
-            // Handle incoming netlink device_list response and save globally
-            if let type = json["type"] as? String, type == "netlink",
-               let action = json["action"] as? String, action == "device_list",
-               let dataArray = json["data"] {
-                do {
-                    let normalized = try JSONSerialization.data(withJSONObject: dataArray, options: [])
-                    let decoder = JSONDecoder()
-                    let devices = try decoder.decode([NetworkDevice].self, from: normalized)
-                    print("Received netlink device_list: \(devices)")
-                    DispatchQueue.main.async {
-                        self.networkDevices = devices
-                        self.lastDeviceListUpdate = Date()
-                    }
-                    NotificationCenter.default.post(name: .bleDeviceListUpdated, object: nil, userInfo: ["device_list": devices])
-                    notificationHandled = true
-                } catch {
-                    print("Failed to decode netlink device_list: \(error.localizedDescription)")
-                }
-            }
-            
-            // Handle incoming shot data
-            if let type = json["type"] as? String, type == "netlink",
-               let action = json["action"] as? String, action == "forward",
-               let content = json["content"] as? [String: Any],
-               let command = content["command"] as? String, command == "shot" {
-                print("Received shot data: \(json)")
-                NotificationCenter.default.post(name: .bleShotReceived, object: nil, userInfo: ["shot_data": json])
-                notificationHandled = true
-            }
-            
-            // Post general netlink forward messages (e.g. device ACKs with content "ready")
-            if let type = json["type"] as? String, type == "netlink",
-               let action = json["action"] as? String, action == "forward" {
-                // Avoid duplicating the shot notification which is already posted above
-                var isShot = false
-                if let content = json["content"] as? [String: Any], let command = content["command"] as? String, command == "shot" {
-                    isShot = true
-                }
-                if let contentStr = json["content"] as? String, contentStr == "shot" {
-                    isShot = true
-                }
+        if let string = String(data: completeData, encoding: .utf8) {
+            let normalized = string.replacingOccurrences(of: "\r\r", with: "\r\n")
+            let parts = normalized.split(separator: "\r\n", omittingEmptySubsequences: true)
+            for part in parts {
+                guard let partData = part.data(using: .utf8) else { continue }
                 
-                if !isShot {
-                    print("Received general netlink forward: \(json)")
-                    NotificationCenter.default.post(name: .bleNetlinkForwardReceived, object: nil, userInfo: ["json": json])
+                var notificationHandled = false
+                
+                // Try to parse as JSON
+                if let json = try? JSONSerialization.jsonObject(with: partData, options: []) as? [String: Any] {
+                    
+                    // Handle the state notification
+                    if let type = json["type"] as? String, type == "state",
+                       let stateCode = json["state_code"] as? Int {
+                        print("Received state notification with code: \(stateCode)")
+                        NotificationCenter.default.post(
+                            name: .bleStateNotificationReceived,
+                            object: nil,
+                            userInfo: ["state_code": stateCode]
+                        )
+                        notificationHandled = true
+                    }
+                    
+                    // Handle incoming netlink device_list response and save globally
+                    if let type = json["type"] as? String, type == "netlink",
+                       let action = json["action"] as? String, action == "device_list",
+                       let dataArray = json["data"] {
+                        do {
+                            let normalizedJson = try JSONSerialization.data(withJSONObject: dataArray, options: [])
+                            let decoder = JSONDecoder()
+                            let devices = try decoder.decode([NetworkDevice].self, from: normalizedJson)
+                            print("Received netlink device_list: \(devices)")
+                            DispatchQueue.main.async {
+                                self.networkDevices = devices
+                                self.lastDeviceListUpdate = Date()
+                            }
+                            NotificationCenter.default.post(name: .bleDeviceListUpdated, object: nil, userInfo: ["device_list": devices])
+                            notificationHandled = true
+                        } catch {
+                            print("Failed to decode netlink device_list: \(error.localizedDescription)")
+                        }
+                    }
+                    
+                    // Handle incoming shot data
+                    if let type = json["type"] as? String, type == "netlink",
+                       let action = json["action"] as? String, action == "forward",
+                       let content = json["content"] as? [String: Any],
+                       let command = content["command"] as? String, command == "shot" {
+                        print("Received shot data: \(json)")
+                        NotificationCenter.default.post(name: .bleShotReceived, object: nil, userInfo: ["shot_data": json])
+                        notificationHandled = true
+                    }
+                    
+                    // Post general netlink forward messages (e.g. device ACKs with content "ready")
+                    if let type = json["type"] as? String, type == "netlink",
+                       let action = json["action"] as? String, action == "forward" {
+                        // Avoid duplicating the shot notification which is already posted above
+                        var isShot = false
+                        if let content = json["content"] as? [String: Any], let command = content["command"] as? String, command == "shot" {
+                            isShot = true
+                        }
+                        if let contentStr = json["content"] as? String, contentStr == "shot" {
+                            isShot = true
+                        }
+                        
+                        if !isShot {
+                            print("Received general netlink forward: \(json)")
+                            NotificationCenter.default.post(name: .bleNetlinkForwardReceived, object: nil, userInfo: ["json": json])
+                            notificationHandled = true
+                        }
+                    }
+                    
+                    if !notificationHandled {
+                        print("Received unrecognized JSON notification: \(json)")
+                        // Optionally post a general notification for unrecognized JSON
+                        NotificationCenter.default.post(name: .bleNetlinkForwardReceived, object: nil, userInfo: ["json": json, "unrecognized": true])
+                    }
+                } else {
+                    // Handle non-JSON data
+                    if let stringData = String(data: partData, encoding: .utf8) {
+                        print("Received non-JSON notification: \(stringData)")
+                    } else {
+                        print("Received binary notification: \(partData as NSData)")
+                    }
+                    // Optionally post a notification for non-JSON data
+                    NotificationCenter.default.post(name: .bleNetlinkForwardReceived, object: nil, userInfo: ["raw_data": partData])
                     notificationHandled = true
                 }
             }
-            
-            if !notificationHandled {
-                print("Received unrecognized JSON notification: \(json)")
-                // Optionally post a general notification for unrecognized JSON
-                NotificationCenter.default.post(name: .bleNetlinkForwardReceived, object: nil, userInfo: ["json": json, "unrecognized": true])
-            }
-        } else {
-            // Handle non-JSON data
-            if let stringData = String(data: completeData, encoding: .utf8) {
-                print("Received non-JSON notification: \(stringData)")
-            } else {
-                print("Received binary notification: \(completeData as NSData)")
-            }
-            // Optionally post a notification for non-JSON data
-            NotificationCenter.default.post(name: .bleNetlinkForwardReceived, object: nil, userInfo: ["raw_data": completeData])
-            notificationHandled = true
         }
     }
     
