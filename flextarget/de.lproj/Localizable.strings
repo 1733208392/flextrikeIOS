@@ -38,6 +38,7 @@
 /* DrillResultView */
 "progress_time" = "%.2f/%.2fs";
 "drill_in_progress" = "Übung läuft";
+"drill_in_progress_overlay" = "ÜBUNG LÄUFT...";
 
 /* SubViews */
 "history_record" = "Verlauf";

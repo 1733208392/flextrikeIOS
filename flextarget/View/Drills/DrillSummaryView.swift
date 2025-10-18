@@ -16,6 +16,7 @@ struct DrillSummaryView: View {
             SummaryMetric(iconName: "clock.arrow.circlepath", label: "Total Time", value: format(time: summary.totalTime)),
             SummaryMetric(iconName: "scope", label: "Shots", value: "\(summary.numShots)"),
             SummaryMetric(iconName: "bolt.circle", label: "Fastest", value: format(time: summary.fastest)),
+            SummaryMetric(iconName: "timer", label: "First Shot", value: format(time: summary.firstShot)),
             SummaryMetric(iconName: "flame.fill", label: "Score", value: "\(summary.score)")
         ]
     }

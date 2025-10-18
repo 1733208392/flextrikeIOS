@@ -38,6 +38,7 @@
 /* DrillResultView */
 "progress_time" = "%.2f/%.2f秒";
 "drill_in_progress" = "訓練進行中";
+"drill_in_progress_overlay" = "訓練進行中...";
 
 /* SubViews */
 "history_record" = "歷史記錄";

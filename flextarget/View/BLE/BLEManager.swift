@@ -428,13 +428,14 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
         // Process the complete message
         let completeData = messageBuffer
         messageBuffer = Data()
+        print(messageBuffer)
         
         var notificationHandled = false
         
         // Try to parse as JSON
         if let json = try? JSONSerialization.jsonObject(with: completeData, options: []) as? [String: Any] {
             // Debug print for parsed JSON
-            print("Parsed JSON: \(json)")
+//            print("Parsed JSON: \(json)")
             
             // Handle the state notification
             if let type = json["type"] as? String, type == "state",

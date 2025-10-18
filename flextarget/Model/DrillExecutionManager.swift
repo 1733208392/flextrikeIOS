@@ -17,6 +17,7 @@ class DrillExecutionManager {
     private var currentRepeatStartTime: Date?
     private var shotObserver: NSObjectProtocol?
     private let firstShotMockValue: TimeInterval = 1.0
+    private var shotTimerDelay: TimeInterval?
     
     init(bleManager: BLEManager, drillSetup: DrillSetup, expectedDevices: [String], onComplete: @escaping ([DrillRepeatSummary]) -> Void, onFailure: @escaping () -> Void) {
         self.bleManager = bleManager
@@ -74,7 +75,9 @@ class DrillExecutionManager {
                     "delay": drillSetup.delay,
                     "targetType": target.targetType ?? "",
                     "timeout": drillSetup.drillDuration,
-                    "countedShots": target.countedShots
+                    "countedShots": target.countedShots,
+                    "repeat": currentRepeat,
+                    "isFirst": index == 0
                 ]
                 let message: [String: Any] = [
                     "action": "netlink_forward",
@@ -176,13 +179,44 @@ class DrillExecutionManager {
         guard let userInfo = notification.userInfo, let json = userInfo["json"] as? [String: Any] else { return }
 
         if let device = json["device"] as? String {
-            // Content may be a string or object; we only care about "ready"
-            if let content = json["content"] as? String, content == "ready" {
+            // Content may be a string or object; normalize and detect "ready"
+            var didAck = false
+
+            if let contentStr = json["content"] as? String {
+                // Content is a string. It might be plain "ready" or a JSON string. Try to detect "ready" safely.
+                if contentStr == "ready" {
+                    didAck = true
+                } else {
+                    // Try to parse string as JSON and inspect
+                    if let data = contentStr.data(using: .utf8) {
+                        if let parsed = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
+                            if let cmd = parsed["command"] as? String, cmd == "ready" { didAck = true }
+                            if let ack = parsed["ack"] as? String, ack == "ready" { didAck = true }
+                        }
+                    }
+                }
+            } else if let contentObj = json["content"] as? [String: Any] {
+                // Content is already a dictionary
+                if let command = contentObj["command"] as? String, command == "ready" {
+                    didAck = true
+                } else if let ack = contentObj["ack"] as? String, ack == "ready" {
+                    didAck = true
+                } else if let inner = contentObj["content"] as? [String: Any] {
+                    if let innerCommand = inner["command"] as? String, innerCommand == "ready" { didAck = true }
+                    if let innerAck = inner["ack"] as? String, innerAck == "ready" { didAck = true }
+                } else if let innerStr = contentObj["content"] as? String {
+                    // content.content might be a JSON string or plain string
+                    if innerStr == "ready" { didAck = true }
+                    else if let data = innerStr.data(using: .utf8), let parsed = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
+                        if let cmd = parsed["command"] as? String, cmd == "ready" { didAck = true }
+                        if let ack = parsed["ack"] as? String, ack == "ready" { didAck = true }
+                    }
+                }
+            }
+
+            if didAck {
                 ackedDevices.insert(device)
-                print("Device ack received: \(device) (string content)")
-            } else if let content = json["content"] as? [String: Any], let command = content["command"] as? String, command == "ready" {
-                ackedDevices.insert(device)
-                print("Device ack received: \(device) (object content)")
+                print("Device ack received: \(device)")
             }
 
             // Check if all expected devices have acked
@@ -233,8 +267,7 @@ class DrillExecutionManager {
 
         for targetName in expectedDevices {
             let message: [String: Any] = [
-                "type": "netlink",
-                "action": "forward",
+                "action": "netlink_forward",
                 "dest": targetName,
                 "content": ["command": "start"]
             ]
@@ -254,6 +287,7 @@ class DrillExecutionManager {
     private func prepareForRepeatStart() {
         currentRepeatShots.removeAll()
         currentRepeatStartTime = Date()
+        shotTimerDelay = nil
     }
 
     private func finalizeRepeat(repeatIndex: Int) {
@@ -263,22 +297,30 @@ class DrillExecutionManager {
         }
 
         let sortedShots = currentRepeatShots.sorted { $0.receivedAt < $1.receivedAt }
-        let totalTime: TimeInterval
-        if let last = sortedShots.last {
-            totalTime = last.receivedAt.timeIntervalSince(startTime)
-        } else {
-            totalTime = 0.0
+        let firstTargetName = (drillSetup.targets as? Set<DrillTargetsConfig>)?.sorted { $0.seqNo < $1.seqNo }.first?.targetName
+        
+        // Validate: if no shots from the first target, invalidate this repeat
+        if let firstTarget = firstTargetName, !sortedShots.contains(where: { $0.shot.device == firstTarget }) {
+            print("No shots received from first target \(firstTarget) for repeat \(repeatIndex), invalidating repeat")
+            currentRepeatShots.removeAll()
+            currentRepeatStartTime = nil
+            return
         }
+
+        let totalTime = sortedShots.reduce(0.0) { $0 + $1.shot.content.timeDiff }
 
         let numShots = sortedShots.count
         let fastest = sortedShots.map { $0.shot.content.timeDiff }.min() ?? 0.0
+        let firstShotRaw = sortedShots.first?.shot.content.timeDiff ?? 0.0
+        let firstShot = (sortedShots.first?.shot.device != firstTargetName) ? (firstShotRaw - (shotTimerDelay ?? 0.0)) : firstShotRaw
+        let totalScore = sortedShots.reduce(0) { $0 + scoreForHitArea($1.shot.content.hitArea) }
         let summary = DrillRepeatSummary(
             repeatIndex: repeatIndex,
             totalTime: totalTime,
             numShots: numShots,
-            firstShot: firstShotMockValue,
+            firstShot: firstShot,
             fastest: fastest,
-            score: numShots,
+            score: totalScore,
             shots: sortedShots.map { $0.shot }
         )
 
@@ -318,8 +360,32 @@ class DrillExecutionManager {
             let shot = try JSONDecoder().decode(ShotData.self, from: jsonData)
             let event = ShotEvent(shot: shot, receivedAt: Date())
             currentRepeatShots.append(event)
+            
+            // Store shot_timer_delay from the first target
+            let firstTargetName = (drillSetup.targets as? Set<DrillTargetsConfig>)?.sorted { $0.seqNo < $1.seqNo }.first?.targetName
+            if shot.device == firstTargetName {
+                shotTimerDelay = shotDict["shot_timer_delay"] as? TimeInterval
+            }
+            
+            print("Shot notification count: \(currentRepeatShots.count)")
         } catch {
             print("Failed to process shot notification: \(error)")
+        }
+    }
+
+    private func scoreForHitArea(_ hitArea: String) -> Int {
+        if hitArea.contains("BlackZone") {
+            return -10
+        }
+        switch hitArea {
+        case "AZone": return 5
+        case "CZone": return 3
+        case "DZone": return 2
+        case "Miss": return 0
+        case "WhiteZone": return -5
+        case "Paddle": return 5
+        case "Popper": return 5
+        default: return 0
         }
     }
 

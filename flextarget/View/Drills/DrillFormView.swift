@@ -48,6 +48,8 @@ struct DrillFormView: View {
     @State private var expectedDevices: [String] = []
     @State private var executionManager: DrillExecutionManager? = nil
     @State private var showAckTimeoutAlert: Bool = false
+    @State private var isDrillInProgress: Bool = false
+    @State private var dotCount: Int = 0
     
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.managedObjectContext) private var environmentContext
@@ -65,6 +67,11 @@ struct DrillFormView: View {
             return setup
         }
         return nil
+    }
+
+    private var progressText: String {
+        let base = NSLocalizedString("drill_in_progress", comment: "Drill in progress")
+        return base + String(repeating: ".", count: dotCount)
     }
     
     init(bleManager: BLEManager, mode: DrillFormMode) {
@@ -214,6 +221,27 @@ struct DrillFormView: View {
         .alert(isPresented: $showAckTimeoutAlert) {
             Alert(title: Text(NSLocalizedString("ack_timeout_title", comment: "ACK timeout")), message: Text(NSLocalizedString("ack_timeout_message", comment: "Not all devices responded in time")), dismissButton: .default(Text("OK")))
         }
+        .onReceive(Timer.publish(every: 0.5, on: .main, in: .common).autoconnect()) { _ in
+            if isDrillInProgress {
+                dotCount = (dotCount + 1) % 4
+            } else {
+                dotCount = 0
+            }
+        }
+        .overlay(
+            Group {
+                if isDrillInProgress {
+                    ZStack {
+                        Color.black.opacity(0.7)
+                            .ignoresSafeArea()
+                        Text(progressText)
+                            .foregroundColor(.white)
+                            .font(.largeTitle)
+                            .bold()
+                    }
+                }
+            }
+        )
     }
     
     // MARK: - Action Buttons
@@ -397,6 +425,9 @@ struct DrillFormView: View {
     private func startDrill() {
         guard case .edit(let drillSetup) = mode else { return }
 
+        isDrillInProgress = true
+        dotCount = 0
+
         drillRepeatSummaries.removeAll()
         navigateToDrillSummary = false
         
@@ -423,12 +454,14 @@ struct DrillFormView: View {
                     self.drillRepeatSummaries = summaries
                     self.navigateToDrillSummary = true
                     self.executionManager = nil
+                    self.isDrillInProgress = false
                 }
             },
             onFailure: {
                 DispatchQueue.main.async {
                     self.showAckTimeoutAlert = true
                     self.executionManager = nil
+                    self.isDrillInProgress = false
                 }
             }
         )
