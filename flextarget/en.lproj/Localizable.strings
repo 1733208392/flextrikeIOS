@@ -16,9 +16,11 @@
 "delete_drill_message" = "Are you sure you want to delete %@?";
 "connection_required" = "Connection Required";
 "connection_required_message" = "Please connect to the target device before adding drills.";
-"retry" = "Retry";
+"ok" = "OK";
+"copy" = "Copy";
 "untitled" = "Untitled";
 "copy_suffix" = " Copy";
+"targets" = "Targets";
 "targets_count" = "%d targets";
 "delay_seconds" = "delay: %ds";
 
@@ -50,7 +52,7 @@
 "delay_seconds_label" = "Delay(s)";
 "num_repeats_label" = "Number of Repeats";
 "select_repeats" = "Select Repeats";
-"drill_duration_seconds_label" = "Duration(s)";
+"drill_duration_seconds_label" = "Duration/Rep(s)";
 "delay_range" = "2...5";
 "description" = "Description";
 "enter_description_placeholder" = "Enter description...";
@@ -92,3 +94,9 @@
 "ack_timeout_message" = "Timed Out";
 "waiting_for_devices" = "Waiting";
 "waiting_devices_count" = "%d Devices to be Ready";
+
+/* BLE Error */
+"ble_error" = "BLE Error";
+
+/* Duration Configuration */
+"select_duration" = "Select Duration";

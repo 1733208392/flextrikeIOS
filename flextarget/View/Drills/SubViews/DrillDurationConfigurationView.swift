@@ -41,7 +41,7 @@ struct DrillDurationConfigurationView: View {
                 showDurationPicker = true
             }) {
                 HStack {
-                    Text("\(Int(drillDuration))s")
+                    Text("\(Int(drillDuration))")
                         .foregroundColor(.red)
                         .font(.system(size: 16))
                     Image(systemName: "chevron.down")

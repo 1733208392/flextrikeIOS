@@ -484,6 +484,19 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
                         notificationHandled = true
                     }
                     
+                    // Handle notice for non-master device connection failure
+                    if let type = json["type"] as? String, type == "notice",
+                       let state = json["state"] as? String, state == "failure",
+                       let failureReason = json["failure_reason"] as? String, failureReason == "execution_error",
+                       let message = json["message"] as? String, message.contains("working mode is not master") {
+                        print("Received non-master device failure notice: \(json)")
+                        DispatchQueue.main.async {
+                            self.error = .unknown("Device is not in master mode: \(message)")
+                        }
+                        NotificationCenter.default.post(name: .bleErrorOccurred, object: nil, userInfo: ["error": BLEError.unknown("Device is not in master mode: \(message)")])
+                        notificationHandled = true
+                    }
+                    
                     // Post general netlink forward messages (e.g. device ACKs with content "ready")
                     if let type = json["type"] as? String, type == "netlink",
                        let action = json["action"] as? String, action == "forward" {
@@ -620,4 +633,5 @@ extension Notification.Name {
     static let bleDeviceListUpdated = Notification.Name("bleDeviceListUpdated")
     static let bleShotReceived = Notification.Name("bleShotReceived")
     static let bleNetlinkForwardReceived = Notification.Name("bleNetlinkForwardReceived")
+    static let bleErrorOccurred = Notification.Name("bleErrorOccurred")
 }
