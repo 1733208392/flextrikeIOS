@@ -121,13 +121,23 @@ struct ConnectSmartTargetView: View {
                     }
 
                     if showOkay {
-                        Button(action: { goToMain() }) {
-                            Text(NSLocalizedString("okay", comment: "Okay button"))
-                                .font(.custom("SFPro-Medium", size: 20))
-                                .foregroundColor(.white)
-                                .frame(width: geometry.size.width * 0.75, height: 44)
-                                .background(Color.red)
-                                .cornerRadius(8)
+                        HStack(spacing: 20) {
+                            Button(action: handleRescan) {
+                                Text(NSLocalizedString("scan", comment: "Scan button to rescan for other targets"))
+                                    .font(.custom("SFPro-Medium", size: 20))
+                                    .foregroundColor(.white)
+                                    .frame(width: geometry.size.width * 0.35, height: 44)
+                                    .background(Color.blue)
+                                    .cornerRadius(8)
+                            }
+                            Button(action: { goToMain() }) {
+                                Text(NSLocalizedString("okay", comment: "Okay button"))
+                                    .font(.custom("SFPro-Medium", size: 20))
+                                    .foregroundColor(.white)
+                                    .frame(width: geometry.size.width * 0.35, height: 44)
+                                    .background(Color.red)
+                                    .cornerRadius(8)
+                            }
                         }
                         .padding(.horizontal)
                     }
@@ -139,44 +149,52 @@ struct ConnectSmartTargetView: View {
 //                .border(Color.white, width: 1)
         }//Top Level Geometry Reader
         .sheet(isPresented: $showPeripheralPicker) {
-            // Peripheral Picker Sheet
-            ZStack {
-                Color.black.ignoresSafeArea()
-                
-                VStack(spacing: 20) {
-                    Text(NSLocalizedString("select_target", comment: "Select target title"))
-                        .font(.custom("SFPro-Medium", size: 20))
-                        .foregroundColor(.white)
+            GeometryReader { geo in
+                ZStack {
+                    Color.black.ignoresSafeArea()
                     
-                    VStack(spacing: 16) {
-                        ForEach(bleManager.discoveredPeripherals) { peripheral in
-                            Button(action: {
-                                selectedPeripheral = peripheral
-                                connectToSelectedPeripheral()
-                            }) {
-                                Text(peripheral.name)
-                                    .font(.custom("SFPro-Medium", size: 18))
-                                    .foregroundColor(.white)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color.blue.opacity(0.3))
-                                    .cornerRadius(8)
+                    VStack(spacing: 20) {
+                        Spacer()
+                            .frame(height: geo.size.height / 3)
+                        
+                        Text(NSLocalizedString("select_target", comment: "Select target title"))
+                            .font(.custom("SFPro-Medium", size: 20))
+                            .foregroundColor(.white)
+                        
+                        ScrollView(.vertical) {
+                            VStack(spacing: 16) {
+                                ForEach(bleManager.discoveredPeripherals) { peripheral in
+                                    Button(action: {
+                                        selectedPeripheral = peripheral
+                                        connectToSelectedPeripheral()
+                                    }) {
+                                        Text(peripheral.name)
+                                            .font(.custom("SFPro-Medium", size: 18))
+                                            .foregroundColor(.white)
+                                            .frame(maxWidth: .infinity)
+                                            .padding()
+                                            .background(Color.blue.opacity(0.3))
+                                            .cornerRadius(8)
+                                    }
+                                }
                             }
                         }
+                        .frame(maxHeight: 400)
+                        
+                        Spacer()
                     }
-                    .frame(maxHeight: 200)
+                    .padding()
+                    .background(Color.black.opacity(0.8))
+                    .cornerRadius(16)
+                    .padding(.horizontal, 40)
                 }
-                .padding()
-                .background(Color.black.opacity(0.8))
-                .cornerRadius(16)
-                .padding(.horizontal, 40)
             }
         }
         .sheet(isPresented: $showInfo) { InformationPage() }
         .background(Color.black.ignoresSafeArea())
         .onAppear {
             if bleManager.isConnected {
-                statusText = "Target Connected"
+                statusText = NSLocalizedString("target_connected", comment: "Status when target is connected")
                 showOkay = true
             } else {
                 startScanAndTimer()
@@ -184,7 +202,7 @@ struct ConnectSmartTargetView: View {
         }
         .onChange(of: bleManager.isConnected) { oldValue, newValue in
             if newValue {
-                statusText = "CONNECTED"
+                statusText = NSLocalizedString("connected", comment: "Status when connection successful")
                 isShaking = false
                 showReconnect = false
                 showProgress = false
@@ -205,7 +223,7 @@ struct ConnectSmartTargetView: View {
     }
 
     private func startScanAndTimer() {
-        statusText = "CONNECTING"
+        statusText = NSLocalizedString("connecting", comment: "Status when scanning for targets")
         isShaking = true
         showReconnect = false
         showPeripheralPicker = false
@@ -218,7 +236,7 @@ struct ConnectSmartTargetView: View {
             if self.bleManager.isScanning && self.bleManager.discoveredPeripherals.isEmpty {
                 // Scan timeout with no peripherals found
                 self.bleManager.completeScan()
-                self.statusText = "TARGET NOT FOUND"
+                self.statusText = NSLocalizedString("target_not_found", comment: "Status when no targets found after scan")
                 self.isShaking = false
                 self.showReconnect = true
                 self.showProgress = false
@@ -239,7 +257,7 @@ struct ConnectSmartTargetView: View {
         }
         print("Selected peripheral: \(peripheral.name)")
         showPeripheralPicker = false
-        statusText = "CONNECTING"
+        statusText = NSLocalizedString("connecting", comment: "Status when connecting to selected peripheral")
         showProgress = true
         bleManager.connectToSelectedPeripheral(peripheral)
         
@@ -248,12 +266,17 @@ struct ConnectSmartTargetView: View {
             if !self.bleManager.isConnected {
                 // Connection timeout
                 self.bleManager.disconnect()
-                self.statusText = "BLUETOOTH SERVICE NOT FOUND"
+                self.statusText = NSLocalizedString("bluetooth_service_not_found", comment: "Status when bluetooth service not found during connection")
                 self.isShaking = false
                 self.showReconnect = true
                 self.showProgress = false
             }
         }
+    }
+    
+    private func handleRescan() {
+        bleManager.disconnect()
+        startScanAndTimer()
     }
 }
 

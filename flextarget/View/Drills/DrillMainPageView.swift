@@ -18,19 +18,19 @@ struct DrillMainPageView: View {
                         VStack(alignment: .leading, spacing: 4) {
                             HStack(spacing: 8) {
                                 Button(action: {
-                                    if !bleManager.isConnected {
-                                        showConnectView = true
-                                    }
+                                    showConnectView = true
                                 }) {
-                                    Image(bleManager.isConnected ? "BleConnect": "BleDisconnect")
-                                        .resizable()
-                                        .scaledToFit()
-                                        .frame(width: 22, height: 22)
+                                    HStack(spacing: 8) {
+                                        Image(bleManager.isConnected ? "BleConnect": "BleDisconnect")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 22, height: 22)
+                                        
+                                        Text(bleManager.connectedPeripheral?.name ?? (bleManager.isConnected ? NSLocalizedString("target_connected", comment: "Status when target is connected") : NSLocalizedString("target_disconnected", comment: "Status when target is disconnected")))
+                                            .font(.footnote)
+                                            .foregroundColor(.gray)
+                                    }
                                 }
-                                
-                                Text(bleManager.connectedPeripheral?.name ?? (bleManager.isConnected ? NSLocalizedString("target_connected", comment: "Status when target is connected") : NSLocalizedString("target_disconnected", comment: "Status when target is disconnected")))
-                                    .font(.footnote)
-                                    .foregroundColor(.gray)
                             }
                             .padding(.vertical, 4)
                             .padding(.horizontal, 12)
