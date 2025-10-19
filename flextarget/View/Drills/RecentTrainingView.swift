@@ -5,8 +5,9 @@ import CoreData
 struct RecentTrainingView: View {
     @Binding var selectedDrillSetup: DrillSetup?
     @Binding var selectedDrillShots: [ShotData]?
+    @Binding var selectedDrillSummaries: [DrillRepeatSummary]?
     @State private var selectedPage: Int = 0
-    @State private var drills: [(DrillSummary, DrillResult)] = []
+    @State private var drills: [(DrillSummary, [DrillResult])] = []  // Changed: now storing all results for a session
     @State private var isLoading = true
     @State private var errorMessage: String?
     
@@ -68,7 +69,7 @@ struct RecentTrainingView: View {
         TabView(selection: $selectedPage) {
             let toShow = Array(drills.prefix(pageCount))
             ForEach(Array(toShow.enumerated()), id: \ .offset) { idx, drill in
-                cardView(for: drill.0, drillResult: drill.1)
+                cardView(for: drill.0, drillResults: drill.1)
                     .tag(idx)
             }
         }
@@ -76,7 +77,7 @@ struct RecentTrainingView: View {
         .frame(height: cardHeight)
     }
 
-    private func cardView(for summary: DrillSummary, drillResult: DrillResult) -> some View {
+    private func cardView(for summary: DrillSummary, drillResults: [DrillResult]) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             //Title
             HStack(spacing: 8) {
@@ -162,9 +163,24 @@ struct RecentTrainingView: View {
         .frame(height: cardHeight)
         .padding(.horizontal, 4)
         .onTapGesture {
-            guard let setup = drillResult.drillSetup else { return }
+            guard let setup = drillResults.first?.drillSetup else { return }
             selectedDrillSetup = setup
-            selectedDrillShots = convertShots(drillResult.shots)
+            // Create summaries for all results in the session with proper repeat indices
+            var summaries: [DrillRepeatSummary] = []
+            for (index, result) in drillResults.enumerated() {
+                let shots = convertShots(result.shots)
+                let summary = DrillRepeatSummary(
+                    repeatIndex: index + 1,
+                    totalTime: result.totalTime,
+                    numShots: shots.count,
+                    firstShot: shots.first?.content.timeDiff ?? 0,
+                    fastest: result.fastestShot,
+                    score: Int(result.totalScore),
+                    shots: shots
+                )
+                summaries.append(summary)
+            }
+            selectedDrillSummaries = summaries
         }
     }
 
@@ -211,8 +227,31 @@ struct RecentTrainingView: View {
             do {
                 let recentDrills = try repository.fetchRecentDrills(limit: 3)
                 
+                // Group results by sessionId to show one session per card
+                var sessionGrouped: [(DrillSummary, [DrillResult])] = []
+                var seenSessions = Set<UUID>()
+                
+                for (summary, result) in recentDrills {
+                    let sessionId = result.sessionId ?? result.objectID as CVarArg as! UUID
+                    
+                    // Skip if we've already added this session
+                    if seenSessions.contains(sessionId) {
+                        continue
+                    }
+                    
+                    // Fetch all results for this session
+                    let sessionResults = recentDrills
+                        .filter { $0.1.sessionId == result.sessionId }
+                        .map { $0.1 }
+                    
+                    if !sessionResults.isEmpty {
+                        sessionGrouped.append((summary, sessionResults))
+                        seenSessions.insert(sessionId)
+                    }
+                }
+                
                 await MainActor.run {
-                    self.drills = recentDrills
+                    self.drills = sessionGrouped
                     self.isLoading = false
                 }
                 
@@ -246,7 +285,7 @@ struct RecentTrainingView_Previews: PreviewProvider {
     static var previews: some View {
         ZStack {
             Color.black.ignoresSafeArea()
-            RecentTrainingView(selectedDrillSetup: .constant(nil), selectedDrillShots: .constant(nil))
+            RecentTrainingView(selectedDrillSetup: .constant(nil), selectedDrillShots: .constant(nil), selectedDrillSummaries: .constant(nil))
                 .padding()
         }
         .previewLayout(.sizeThatFits)

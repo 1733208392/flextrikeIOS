@@ -7,6 +7,7 @@ struct DrillMainPageView: View {
     @State private var showInfo = false
     @State private var selectedDrillSetup: DrillSetup? = nil
     @State private var selectedDrillShots: [ShotData]? = nil
+    @State private var selectedDrillSummaries: [DrillRepeatSummary]? = nil
     @State private var showError = false
     @State private var errorMessage = ""
     let persistenceController = PersistenceController.shared
@@ -50,7 +51,7 @@ struct DrillMainPageView: View {
                     .padding(.horizontal)
                     .padding(.top, 24)
                     // Recent Training (moved to subview)
-                    RecentTrainingView(selectedDrillSetup: $selectedDrillSetup, selectedDrillShots: $selectedDrillShots)
+                    RecentTrainingView(selectedDrillSetup: $selectedDrillSetup, selectedDrillShots: $selectedDrillShots, selectedDrillSummaries: $selectedDrillSummaries)
                         .padding(.horizontal)
                         .padding(.top, 16)
                     // Menu Buttons
@@ -82,10 +83,16 @@ struct DrillMainPageView: View {
                     .environment(\.managedObjectContext, persistenceController.container.viewContext)
             }
             .navigationDestination(item: $selectedDrillSetup) { drillSetup in
-                if let shots = selectedDrillShots {
+                if let summaries = selectedDrillSummaries {
+                    // Navigate to summary view for recent drills (showing all repeats from session)
+                    DrillSummaryView(drillSetup: drillSetup, summaries: summaries)
+                        .environment(\.managedObjectContext, persistenceController.container.viewContext)
+                } else if let shots = selectedDrillShots {
+                    // Navigate to result view for manual drilling
                     DrillResultView(drillSetup: drillSetup, shots: shots)
                         .environment(\.managedObjectContext, persistenceController.container.viewContext)
                 } else {
+                    // Default to result view
                     DrillResultView(drillSetup: drillSetup)
                         .environment(\.managedObjectContext, persistenceController.container.viewContext)
                 }
@@ -115,6 +122,7 @@ struct DrillMainPageView: View {
             .onChange(of: selectedDrillSetup) { _, newValue in
                 if newValue == nil {
                     selectedDrillShots = nil
+                    selectedDrillSummaries = nil
                 }
             }
             .onDisappear {
