@@ -26,6 +26,11 @@
 "reconnect" = "ERNEUT VERBINDEN";
 "okay" = "OK";
 "select_target" = "ZIEL AUSWÄHLEN";
+"connected" = "VERBUNDEN";
+"connecting" = "VERBINDUNG";
+"target_not_found" = "ZIEL NICHT GEFUNDEN";
+"bluetooth_service_not_found" = "BLUETOOTH-DIENST NICHT GEFUNDEN";
+"scan" = "Scannen";
 
 /* LaserDryFire/OverlayView */
 "fps_display" = "FPS: %d";

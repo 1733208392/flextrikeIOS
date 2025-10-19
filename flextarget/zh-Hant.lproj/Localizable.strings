@@ -26,6 +26,11 @@
 "reconnect" = "重新連接";
 "okay" = "確定";
 "select_target" = "選擇目標";
+"connected" = "已連接";
+"connecting" = "連接中";
+"target_not_found" = "未找到目標";
+"bluetooth_service_not_found" = "未找到藍牙服務";
+"scan" = "掃描";
 
 /* LaserDryFire/OverlayView */
 "fps_display" = "FPS: %d";
