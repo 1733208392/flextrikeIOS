@@ -19,6 +19,7 @@
 "ok" = "OK";
 "untitled" = "Unbenannt";
 "copy" = "Kopieren";
+"targets" = "Ziele";
 "targets_count" = "%d Ziele";
 "delay_seconds" = "Verzögerung: %ds";
 
@@ -50,7 +51,7 @@
 "delay_seconds_label" = "Verzögerung(s)";
 "num_repeats_label" = "Anzahl der Wiederholungen";
 "select_repeats" = "Wiederholungen auswählen";
-"drill_duration_seconds_label" = "Dauer(s)";
+"drill_duration_seconds_label" = "Dauer/Wdh(s)";
 "delay_range" = "2...5";
 "description" = "Beschreibung";
 "enter_description_placeholder" = "Beschreibung eingeben...";
@@ -96,3 +97,9 @@
 /* Additional */
 "copy_suffix" = " Kopie";
 "retry" = "Erneut versuchen";
+
+/* BLE Error */
+"ble_error" = "BLE-Fehler";
+
+/* Duration Configuration */
+"select_duration" = "Dauer auswählen";

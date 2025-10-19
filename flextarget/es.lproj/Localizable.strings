@@ -19,6 +19,7 @@
 "ok" = "OK";
 "untitled" = "Sin título";
 "copy" = "Copiar";
+"targets" = "Objetivos";
 "targets_count" = "%d objetivos";
 "delay_seconds" = "retraso: %ds";
 
@@ -50,7 +51,7 @@
 "delay_seconds_label" = "Retraso(s)";
 "num_repeats_label" = "Número de repeticiones";
 "select_repeats" = "Seleccionar repeticiones";
-"drill_duration_seconds_label" = "Duración(s)";
+"drill_duration_seconds_label" = "Duración/Rep(s)";
 "delay_range" = "2...5";
 "description" = "Descripción";
 "enter_description_placeholder" = "Introducir descripción...";
@@ -96,3 +97,9 @@
 /* Additional */
 "copy_suffix" = " Copia";
 "retry" = "Reintentar";
+
+/* BLE Error */
+"ble_error" = "Error de BLE";
+
+/* Duration Configuration */
+"select_duration" = "Seleccionar Duración";

@@ -19,6 +19,7 @@
 "ok" = "確定";
 "untitled" = "未命名";
 "copy" = "複製";
+"targets" = "目標";
 "targets_count" = "%d 個目標";
 "delay_seconds" = "延遲: %d秒";
 
@@ -50,7 +51,7 @@
 "delay_seconds_label" = "延遲(秒)";
 "num_repeats_label" = "重複次數";
 "select_repeats" = "選擇重複次數";
-"drill_duration_seconds_label" = "持續時間(秒)";
+"drill_duration_seconds_label" = "持續時間/Rep(s)";
 "delay_range" = "2...5";
 "description" = "描述";
 "enter_description_placeholder" = "輸入描述...";
@@ -96,3 +97,9 @@
 /* Additional */
 "copy_suffix" = " 複製";
 "retry" = "重試";
+
+/* BLE Error */
+"ble_error" = "BLE 錯誤";
+
+/* Duration Configuration */
+"select_duration" = "選擇時間";

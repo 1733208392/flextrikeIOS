@@ -19,6 +19,7 @@
 "ok" = "OK";
 "untitled" = "無題";
 "copy" = "コピー";
+"targets" = "ターゲット";
 "targets_count" = "%d個のターゲット";
 "delay_seconds" = "遅延: %d秒";
 
@@ -50,7 +51,7 @@
 "delay_seconds_label" = "遅延(秒)";
 "num_repeats_label" = "繰り返しの数";
 "select_repeats" = "繰り返しを選択";
-"drill_duration_seconds_label" = "期間(秒)";
+"drill_duration_seconds_label" = "期間/Rep(s)";
 "delay_range" = "2...5";
 "description" = "説明";
 "enter_description_placeholder" = "説明を入力...";
@@ -96,3 +97,9 @@
 /* Additional */
 "copy_suffix" = " コピー";
 "retry" = "再試行";
+
+/* BLE Error */
+"ble_error" = "BLEエラー";
+
+/* Duration Configuration */
+"select_duration" = "時間を選択";

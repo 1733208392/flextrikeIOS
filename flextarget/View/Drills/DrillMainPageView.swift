@@ -7,7 +7,10 @@ struct DrillMainPageView: View {
     @State private var showInfo = false
     @State private var selectedDrillSetup: DrillSetup? = nil
     @State private var selectedDrillShots: [ShotData]? = nil
+    @State private var showError = false
+    @State private var errorMessage = ""
     let persistenceController = PersistenceController.shared
+    @State private var errorObserver: NSObjectProtocol?
     
     var body: some View {
         ZStack {
@@ -97,6 +100,12 @@ struct DrillMainPageView: View {
                 if !bleManager.isConnected {
                     showConnectView = true
                 }
+                errorObserver = NotificationCenter.default.addObserver(forName: .bleErrorOccurred, object: nil, queue: .main) { notification in
+                    if let error = notification.userInfo?["error"] as? BLEError {
+                        self.errorMessage = error.localizedDescription
+                        self.showError = true
+                    }
+                }
             }
             .onChange(of: bleManager.isConnected) { oldValue, newValue in
                 if !newValue {
@@ -107,6 +116,14 @@ struct DrillMainPageView: View {
                 if newValue == nil {
                     selectedDrillShots = nil
                 }
+            }
+            .onDisappear {
+                if let observer = errorObserver {
+                    NotificationCenter.default.removeObserver(observer)
+                }
+            }
+            .alert(isPresented: $showError) {
+                Alert(title: Text(NSLocalizedString("ble_error", comment: "BLE Error alert title")), message: Text(errorMessage), dismissButton: .default(Text(NSLocalizedString("ok", comment: "OK button"))))
             }
     }
     
