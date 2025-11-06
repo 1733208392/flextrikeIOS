@@ -18,6 +18,10 @@ class DrillExecutionManager {
     private var shotObserver: NSObjectProtocol?
     private let firstShotMockValue: TimeInterval = 1.0
     private var shotTimerDelay: TimeInterval?
+    private var deviceDelayTimes: [String: String] = [:]
+    private var globalDelayTime: String?
+    private var lastTargetName: String?
+    private var isWaitingForEnd = false
     
     init(bleManager: BLEManager, drillSetup: DrillSetup, expectedDevices: [String], onComplete: @escaping ([DrillRepeatSummary]) -> Void, onFailure: @escaping () -> Void) {
         self.bleManager = bleManager
@@ -77,7 +81,8 @@ class DrillExecutionManager {
                     "timeout": drillSetup.drillDuration,
                     "countedShots": target.countedShots,
                     "repeat": currentRepeat,
-                    "isFirst": index == 0
+                    "isFirst": index == 0,
+                    "isLast": index == sortedTargets.count - 1
                 ]
                 let message: [String: Any] = [
                     "action": "netlink_forward",
@@ -155,6 +160,8 @@ class DrillExecutionManager {
 
         // Reset tracking
         ackedDevices.removeAll()
+        deviceDelayTimes.removeAll()
+        globalDelayTime = nil
         waitingForAcks = true
 
         // Start 10s guard timer
@@ -175,53 +182,51 @@ class DrillExecutionManager {
     }
     
     func handleNetlinkForward(_ notification: Notification) {
-        guard waitingForAcks else { return }
         guard let userInfo = notification.userInfo, let json = userInfo["json"] as? [String: Any] else { return }
-
+        
         if let device = json["device"] as? String {
             // Content may be a string or object; normalize and detect "ready"
             var didAck = false
-
-            if let contentStr = json["content"] as? String {
-                // Content is a string. It might be plain "ready" or a JSON string. Try to detect "ready" safely.
-                if contentStr == "ready" {
-                    didAck = true
-                } else {
-                    // Try to parse string as JSON and inspect
-                    if let data = contentStr.data(using: .utf8) {
-                        if let parsed = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
-                            if let cmd = parsed["command"] as? String, cmd == "ready" { didAck = true }
-                            if let ack = parsed["ack"] as? String, ack == "ready" { didAck = true }
-                        }
-                    }
-                }
-            } else if let contentObj = json["content"] as? [String: Any] {
+            var didEnd = false
+            
+            if let contentObj = json["content"] as? [String: Any] {
                 // Content is already a dictionary
-                if let command = contentObj["command"] as? String, command == "ready" {
+                if let ack = contentObj["ack"] as? String, ack == "ready" {
                     didAck = true
-                } else if let ack = contentObj["ack"] as? String, ack == "ready" {
-                    didAck = true
-                } else if let inner = contentObj["content"] as? [String: Any] {
-                    if let innerCommand = inner["command"] as? String, innerCommand == "ready" { didAck = true }
-                    if let innerAck = inner["ack"] as? String, innerAck == "ready" { didAck = true }
-                } else if let innerStr = contentObj["content"] as? String {
-                    // content.content might be a JSON string or plain string
-                    if innerStr == "ready" { didAck = true }
-                    else if let data = innerStr.data(using: .utf8), let parsed = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
-                        if let cmd = parsed["command"] as? String, cmd == "ready" { didAck = true }
-                        if let ack = parsed["ack"] as? String, ack == "ready" { didAck = true }
+                }
+                if let ack = contentObj["ack"] as? String, ack == "end" {
+                    didEnd = true
+                }
+                
+                // Extract delay_time if present and we have an ack
+                if didAck, let delayTime = contentObj["delay_time"] {
+                    let delayTimeStr = delayTime as? String ?? "\(delayTime)"
+                    deviceDelayTimes[device] = delayTimeStr
+                    if globalDelayTime == nil && delayTimeStr != "0" {
+                        globalDelayTime = delayTimeStr
                     }
                 }
-            }
-
-            if didAck {
-                ackedDevices.insert(device)
-                print("Device ack received: \(device)")
-            }
-
-            // Check if all expected devices have acked
-            if ackedDevices.count >= expectedDevices.count {
-                finishWaitingForAcks(success: true)
+                
+                if didAck {
+                    guard waitingForAcks else { return }
+                    ackedDevices.insert(device)
+                    print("Device ack received: \(device)")
+                    
+                    // Check if all expected devices have acked
+                    if ackedDevices.count >= expectedDevices.count {
+                        finishWaitingForAcks(success: true)
+                    }
+                }
+                
+                if didEnd {
+                    guard isWaitingForEnd else { return }
+                    // Only process end message from the last target
+                    if device == lastTargetName {
+                        print("Last device end received: \(device)")
+                        sendEndCommand()
+                        completeRepeat()
+                    }
+                }
             }
         }
     }
@@ -235,20 +240,8 @@ class DrillExecutionManager {
             // Send start commands
             sendStartCommands()
 
-            // Schedule completion handling for this repeat
-            let repeatIndex = currentRepeat
-            let repeatDuration = Double(drillSetup.drillDuration) + (repeatIndex == drillSetup.repeats ? 0.0 : Double(drillSetup.pause)) + Double(drillSetup.delay) + 1.0
-            DispatchQueue.main.asyncAfter(deadline: .now() + repeatDuration) { [weak self] in
-                guard let self = self else { return }
-                self.finalizeRepeat(repeatIndex: repeatIndex)
-
-                if repeatIndex < self.drillSetup.repeats {
-                    self.executeNextRepeat()
-                } else {
-                    self.stopObservingShots()
-                    self.onComplete(self.repeatSummaries)
-                }
-            }
+            // Begin waiting for end messages
+            beginWaitingForEnd()
         } else {
             // Ack timeout - stop execution
             stopObservingShots()
@@ -265,22 +258,95 @@ class DrillExecutionManager {
 
         prepareForRepeatStart()
 
-        for targetName in expectedDevices {
-            let message: [String: Any] = [
-                "action": "netlink_forward",
-                "dest": targetName,
-                "content": ["command": "start"]
-            ]
+        var content: [String: Any] = ["command": "start"]
+        if let delayTime = globalDelayTime {
+            content["delay_time"] = delayTime
+        }
+        let message: [String: Any] = [
+            "action": "netlink_forward",
+            "dest": "all",
+            "content": content
+        ]
 
-            do {
-                let data = try JSONSerialization.data(withJSONObject: message, options: [])
-                if let jsonString = String(data: data, encoding: .utf8) {
-                    print("Sending start command to \(targetName): \(jsonString)")
-                    bleManager.writeJSON(jsonString)
-                }
-            } catch {
-                print("Failed to serialize start command for \(targetName): \(error)")
+        do {
+            let data = try JSONSerialization.data(withJSONObject: message, options: [])
+            if let jsonString = String(data: data, encoding: .utf8) {
+                print("Sending start command to all devices: \(jsonString)")
+                bleManager.writeJSON(jsonString)
             }
+        } catch {
+            print("Failed to serialize start command: \(error)")
+        }
+    }
+
+    private func sendEndCommand() {
+        guard bleManager.isConnected else {
+            print("BLE not connected - cannot send end command")
+            return
+        }
+
+        let content: [String: Any] = ["command": "end"]
+        let message: [String: Any] = [
+            "action": "netlink_forward",
+            "dest": "all",
+            "content": content
+        ]
+
+        do {
+            let data = try JSONSerialization.data(withJSONObject: message, options: [])
+            if let jsonString = String(data: data, encoding: .utf8) {
+                print("Sending end command to all devices: \(jsonString)")
+                bleManager.writeJSON(jsonString)
+            }
+        } catch {
+            print("Failed to serialize end command: \(error)")
+        }
+    }
+
+    private func beginWaitingForEnd() {
+        guard bleManager.isConnected else {
+            onFailure()
+            return
+        }
+
+        // Get the last target name
+        if let targetsSet = drillSetup.targets as? Set<DrillTargetsConfig> {
+            let sortedTargets = targetsSet.sorted { $0.seqNo < $1.seqNo }
+            lastTargetName = sortedTargets.last?.targetName
+        }
+        
+        isWaitingForEnd = true
+
+        // Start 30s guard timer in case end message doesn't arrive
+        ackTimeoutTimer?.invalidate()
+        ackTimeoutTimer = Timer.scheduledTimer(withTimeInterval: 30.0, repeats: false) { [weak self] _ in
+            self?.handleEndTimeout()
+        }
+
+        // If no expected devices, proceed immediately
+        if expectedDevices.isEmpty {
+            completeRepeat()
+        }
+    }
+
+    private func handleEndTimeout() {
+        print("End timeout for repeat \(currentRepeat)")
+        completeRepeat()
+    }
+
+    private func completeRepeat() {
+        isWaitingForEnd = false
+        ackTimeoutTimer?.invalidate()
+        ackTimeoutTimer = nil
+
+        let repeatIndex = currentRepeat
+        finalizeRepeat(repeatIndex: repeatIndex)
+
+        if repeatIndex < drillSetup.repeats {
+            executeNextRepeat()
+        } else {
+            stopObservingShots()
+            onComplete(repeatSummaries)
         }
     }
 
@@ -383,8 +449,8 @@ class DrillExecutionManager {
         case "DZone": return 2
         case "Miss": return 0
         case "WhiteZone": return -5
-        case "Paddle": return 5
-        case "Popper": return 5
+        case "CircleArea": return 5 //Paddle
+        case "PopperZone": return 5 //Popper
         default: return 0
         }
     }
