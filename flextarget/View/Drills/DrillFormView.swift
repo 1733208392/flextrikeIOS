@@ -239,6 +239,13 @@ struct DrillFormView: View {
                 }
             }
         )
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                Text(NSLocalizedString("drill_setup", comment: "Drill setup view title"))
+                    .font(.headline)
+                    .foregroundColor(.red)
+            }
+        }
     }
     
     // MARK: - Action Buttons

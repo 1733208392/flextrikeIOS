@@ -7,6 +7,9 @@
 "ipsc_questionaries" = "IPSC Questionaries";
 "idpa_questionaries" = "IDPA Questionaries";
 
+/* DrillFormView */
+"drill_setup" = "Drill Setup";
+
 /* DrillListView */
 "my_drills" = "My Drills";
 "search_drills" = "Search drills";
@@ -95,6 +98,10 @@
 "ack_timeout_message" = "Timed Out";
 "waiting_for_devices" = "Waiting";
 "waiting_devices_count" = "%d Devices to be Ready";
+
+/* TargetConfigListView */
+"maximum_targets_title" = "Maximum Targets Reached";
+"maximum_targets_message" = "You have reached the maximum number of targets in the network (%d of %d).";
 
 /* BLE Error */
 "ble_error" = "BLE Error";

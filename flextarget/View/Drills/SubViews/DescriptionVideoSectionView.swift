@@ -2,6 +2,48 @@ import SwiftUI
 import AVFoundation
 import UniformTypeIdentifiers
 
+// MARK: - Custom TextEditor with Gray Background
+struct CustomTextEditor: UIViewRepresentable {
+    @Binding var text: String
+    var foregroundColor: UIColor = .white
+    var backgroundColor: UIColor = UIColor(red: 0.5, green: 0.5, blue: 0.5, alpha: 0.2)
+    
+    func makeUIView(context: Context) -> UITextView {
+        let textView = UITextView()
+        textView.delegate = context.coordinator
+        textView.font = UIFont.preferredFont(forTextStyle: .body)
+        textView.textColor = foregroundColor
+        textView.backgroundColor = backgroundColor
+        textView.text = text
+        textView.isScrollEnabled = true
+        textView.isEditable = true
+        textView.isSelectable = true
+        return textView
+    }
+    
+    func updateUIView(_ uiView: UITextView, context: Context) {
+        if uiView.text != text {
+            uiView.text = text
+        }
+    }
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator($text)
+    }
+    
+    class Coordinator: NSObject, UITextViewDelegate {
+        @Binding var text: String
+        
+        init(_ text: Binding<String>) {
+            _text = text
+        }
+        
+        func textViewDidChange(_ textView: UITextView) {
+            _text.wrappedValue = textView.text
+        }
+    }
+}
+
 /**
  `DescriptionVideoSectionView` is a SwiftUI component that handles drill description and demo video functionality.
  
@@ -49,15 +91,11 @@ struct DescriptionVideoSectionView: View {
             }
             
             ZStack(alignment: .topLeading) {
-                TextEditor(text: $description)
+                CustomTextEditor(text: $description, foregroundColor: .white, backgroundColor: UIColor(red: 0.5, green: 0.5, blue: 0.5, alpha: 0.2))
                     .frame(height: 120) // Fixed height for 5 lines
-                    .foregroundColor(.white)
-                    .scrollContentBackgroundHidden()
-                    .background(Color.clear)
-                    .cornerRadius(8)
                     .disableAutocorrection(true)
-                    .textInputAutocapitalization(.sentences)
                     .focused($isDescriptionFocused)
+                    .cornerRadius(8)
                     .overlay(
                         RoundedRectangle(cornerRadius: 8)
                             .stroke(Color.gray.opacity(0.5), lineWidth: 1)

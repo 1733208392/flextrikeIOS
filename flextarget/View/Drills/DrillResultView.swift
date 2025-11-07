@@ -147,6 +147,7 @@ private struct TargetDisplayView: View {
 
 struct DrillResultView: View {
     let drillSetup: DrillSetup
+    let repeatSummary: DrillRepeatSummary?
     
     // Array to store received shots
     @State private var shots: [ShotData] = []
@@ -208,14 +209,17 @@ struct DrillResultView: View {
     }
     
     var totalDuration: Double {
-        guard let targets = drillSetup.targets as? Set<DrillTargetsConfig> else { return 10.0 }
-        return targets.map { $0.timeout }.max() ?? 10.0
+        if let repeatSummary = repeatSummary {
+            return repeatSummary.totalTime
+        }
+        return drillSetup.drillDuration
     }
     
     @Environment(\.managedObjectContext) private var viewContext
     
     init(drillSetup: DrillSetup) {
         self.drillSetup = drillSetup
+        self.repeatSummary = nil
         _isLiveDrill = State(initialValue: true)
         if let firstTarget = drillSetup.sortedTargets.first {
             _selectedTargetKey = State(initialValue: firstTarget.id?.uuidString ?? UUID().uuidString)
@@ -226,8 +230,22 @@ struct DrillResultView: View {
     
     init(drillSetup: DrillSetup, shots: [ShotData]) {
         self.drillSetup = drillSetup
+        self.repeatSummary = nil
         _isLiveDrill = State(initialValue: false)
         _shots = State(initialValue: shots)
+        _drillStatus = State(initialValue: "Completed")
+        if let firstTarget = drillSetup.sortedTargets.first {
+            _selectedTargetKey = State(initialValue: firstTarget.id?.uuidString ?? UUID().uuidString)
+        } else {
+            _selectedTargetKey = State(initialValue: UUID().uuidString)
+        }
+    }
+    
+    init(drillSetup: DrillSetup, repeatSummary: DrillRepeatSummary) {
+        self.drillSetup = drillSetup
+        self.repeatSummary = repeatSummary
+        _isLiveDrill = State(initialValue: false)
+        _shots = State(initialValue: repeatSummary.shots)
         _drillStatus = State(initialValue: "Completed")
         if let firstTarget = drillSetup.sortedTargets.first {
             _selectedTargetKey = State(initialValue: firstTarget.id?.uuidString ?? UUID().uuidString)

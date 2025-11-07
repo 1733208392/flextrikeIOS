@@ -7,6 +7,9 @@
 "ipsc_questionaries" = "Cuestionarios IPSC";
 "idpa_questionaries" = "Cuestionarios IDPA";
 
+/* DrillFormView */
+"drill_setup" = "Configuración de Ejercicio";
+
 /* DrillListView */
 "my_drills" = "Mis Ejercicios";
 "search_drills" = "Buscar ejercicios";
@@ -94,6 +97,10 @@
 "ack_timeout_message" = "Tiempo Agotado";
 "waiting_for_devices" = "Esperando";
 "waiting_devices_count" = "%d Dispositivos por estar listos";
+
+/* TargetConfigListView */
+"maximum_targets_title" = "Número Máximo de Objetivos Alcanzado";
+"maximum_targets_message" = "Ha alcanzado el número máximo de objetivos en la red (%d de %d).";
 
 /* Additional */
 "copy_suffix" = " Copia";

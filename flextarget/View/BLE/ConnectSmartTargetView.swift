@@ -8,7 +8,6 @@ struct ConnectSmartTargetView: View {
     @State private var showReconnect: Bool = false
     @State private var isShaking: Bool = true
     @State private var showProgress: Bool = false
-    @State private var showInfo = false
     @State private var hasTriedReconnect: Bool = false
     @State private var showOkay: Bool = false
     @State private var showPeripheralPicker: Bool = false
@@ -35,19 +34,7 @@ struct ConnectSmartTargetView: View {
             let sensorOffsetAdjustment: CGFloat = -4 // how far outside the rectangle the icons sit
 
             VStack(spacing: 0) {
-                //Information Button
-                HStack {
-                    Button(action: { showInfo = true }) {
-                        Image(systemName: "info.circle")
-                            .font(.title2)
-                            .foregroundColor(.white)
-//                                .background(Circle().fill(Color.red))
-                    }
-                }
-                .frame(width: geometry.size.width, alignment: .trailing)
-                .padding(.top, 16)
-                .padding(.trailing, 24)
-                // Main Target Frame
+                //Main Target Frame
                 ZStack(alignment: .topLeading) {
                     Rectangle()
                         .stroke(Color.white, lineWidth: 10)
@@ -198,7 +185,6 @@ struct ConnectSmartTargetView: View {
                 }
             }
         }
-        .sheet(isPresented: $showInfo) { InformationPage() }
         .background(Color.black.ignoresSafeArea())
 //        .mobilePhoneLayout()
         .onAppear {
