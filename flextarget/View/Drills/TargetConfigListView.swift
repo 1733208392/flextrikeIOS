@@ -2,10 +2,12 @@ import Foundation
 import SwiftUI
 
 struct TargetConfigListView: View {
-    @Environment(\.dismiss) private var dismiss
     let deviceList: [NetworkDevice]
     @Binding var targetConfigs: [DrillTargetsConfigData]
     let onDone: () -> Void
+    
+    @Environment(\.dismiss) private var dismiss
+    @State private var showDisabledMessage = false
 
     private let iconNames = [
         "hostage",
@@ -18,48 +20,34 @@ struct TargetConfigListView: View {
     ]
 
     var body: some View {
-        NavigationView {
-            ZStack {
-                Color.black.ignoresSafeArea()
-                VStack(spacing: 0) {
-                    // Custom Header with Back Button
-                    HStack {
-                        Button(action: { 
-                            onDone()
-                            dismiss() 
-                        }) {
-                            HStack(spacing: 4) {
-                                Image(systemName: "chevron.left")
-                                    .font(.system(size: 16, weight: .semibold))
-                                Text(NSLocalizedString("back", comment: "Back button label"))
-                                    .font(.system(size: 16, weight: .regular))
-                            }
-                            .foregroundColor(.red)
-                        }
-                        
-                        Spacer()
-                        
-                        Text(NSLocalizedString("targets", comment: "Targets label"))
-                            .font(.headline)
-                            .foregroundColor(.white)
-                        
-                        Spacer()
-                        
-                        Button(action: { addNewTarget() }) {
-                            Image(systemName: "plus")
-                                .foregroundColor(.red)
-                        }
-                        .disabled(targetConfigs.count >= deviceList.count)
-                        .buttonStyle(.plain)
-                    }
-                    .padding(.horizontal)
-                    .padding(.vertical, 12)
-                    
-                    listView
-                    AddButton
-                }
+        ZStack {
+            Color.black.ignoresSafeArea()
+            VStack(spacing: 0) {
+                listView
+                AddButton
             }
-            .navigationViewStyle(.stack)
+        }
+        .navigationTitle(NSLocalizedString("targets", comment: "Targets label"))
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button(action: {
+                    if targetConfigs.count >= deviceList.count {
+                        showDisabledMessage = true
+                    } else {
+                        addNewTarget()
+                    }
+                }) {
+                    Image(systemName: "plus")
+                        .foregroundColor(.red)
+                }
+                .help(targetConfigs.count >= deviceList.count ? "Maximum targets reached (\(targetConfigs.count)/\(deviceList.count))" : "")
+            }
+        }
+        .alert(NSLocalizedString("maximum_targets_title", comment: "Maximum targets reached alert title"), isPresented: $showDisabledMessage) {
+            Button("OK") { }
+        } message: {
+            Text(String(format: NSLocalizedString("maximum_targets_message", comment: "Maximum targets reached message"), targetConfigs.count, deviceList.count))
         }
     }
 

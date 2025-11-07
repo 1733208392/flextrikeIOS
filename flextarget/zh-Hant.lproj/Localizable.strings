@@ -7,6 +7,9 @@
 "ipsc_questionaries" = "IPSC 問題集";
 "idpa_questionaries" = "IDPA 問題集";
 
+/* DrillFormView */
+"drill_setup" = "訓練設定";
+
 /* DrillListView */
 "my_drills" = "我的訓練";
 "search_drills" = "搜尋訓練";
@@ -94,6 +97,10 @@
 "ack_timeout_message" = "逾時";
 "waiting_for_devices" = "等待中";
 "waiting_devices_count" = "%d 個裝置待就緒";
+
+/* TargetConfigListView */
+"maximum_targets_title" = "已達最大目標數量";
+"maximum_targets_message" = "您已達到網絡中的最大目標數量（%d / %d）。";
 
 /* Additional */
 "copy_suffix" = " 複製";

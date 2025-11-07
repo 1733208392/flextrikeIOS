@@ -7,6 +7,9 @@
 "ipsc_questionaries" = "IPSC質問票";
 "idpa_questionaries" = "IDPA質問票";
 
+/* DrillFormView */
+"drill_setup" = "ドリル設定";
+
 /* DrillListView */
 "my_drills" = "マイドリル";
 "search_drills" = "ドリルを検索";
@@ -94,6 +97,10 @@
 "ack_timeout_message" = "タイムアウトしました";
 "waiting_for_devices" = "待機中";
 "waiting_devices_count" = "%d 台のデバイスが準備中";
+
+/* TargetConfigListView */
+"maximum_targets_title" = "最大ターゲット数に達しました";
+"maximum_targets_message" = "ネットワーク内の最大ターゲット数に達しました（%d / %d）。";
 
 /* Additional */
 "copy_suffix" = " コピー";

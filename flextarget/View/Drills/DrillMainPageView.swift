@@ -63,39 +63,6 @@ struct DrillMainPageView: View {
         ZStack {
             Color.black.ignoresSafeArea()
             VStack(spacing: 0) {
-                // Top Bar
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        HStack(spacing: 8) {
-                            Button(action: {
-                                showConnectView = true
-                            }) {
-                                HStack(spacing: 8) {
-                                    Image(bleManager.isConnected ? "BleConnect": "BleDisconnect")
-                                        .resizable()
-                                        .scaledToFit()
-                                        .frame(width: 22, height: 22)
-                                    
-                                    Text(bleManager.connectedPeripheral?.name ?? (bleManager.isConnected ? NSLocalizedString("target_connected", comment: "Status when target is connected") : NSLocalizedString("target_disconnected", comment: "Status when target is disconnected")))
-                                        .font(.footnote)
-                                        .foregroundColor(.gray)
-                                }
-                            }
-                        }
-                        .padding(.vertical, 4)
-                        .padding(.horizontal, 12)
-                        .background(Color.gray.opacity(0.2))
-                        .cornerRadius(16)
-                    }
-                    Spacer()
-                    Button(action: { showInfo = true }) {
-                        Image(systemName: "info.circle")
-                            .foregroundColor(.white)
-                            .font(.title2)
-                    }
-                }
-                .padding(.horizontal)
-                .padding(.top, 12)
                 // Recent Training (moved to subview)
                 RecentTrainingView(selectedDrillSetup: $selectedDrillSetup, selectedDrillShots: $selectedDrillShots, selectedDrillSummaries: $selectedDrillSummaries)
                     .padding(.horizontal)
@@ -143,6 +110,38 @@ struct DrillMainPageView: View {
                 }
             } label: {
                 EmptyView()
+            }
+        }
+        .toolbar {
+            // Leading: BLE Connection Status
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button(action: {
+                    showConnectView = true
+                }) {
+                    HStack(spacing: 8) {
+                        Image(bleManager.isConnected ? "BleConnect": "BleDisconnect")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 22, height: 22)
+                        
+                        Text(bleManager.connectedPeripheral?.name ?? (bleManager.isConnected ? NSLocalizedString("target_connected", comment: "Status when target is connected") : NSLocalizedString("target_disconnected", comment: "Status when target is disconnected")))
+                            .font(.footnote)
+                            .foregroundColor(.gray)
+                    }
+                    .padding(.vertical, 4)
+                    .padding(.horizontal, 12)
+                    .background(Color.gray.opacity(0.2))
+                    .cornerRadius(16)
+                }
+            }
+            
+            // Trailing: Info Button
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button(action: { showInfo = true }) {
+                    Image(systemName: "info.circle")
+                        .foregroundColor(.white)
+                        .font(.title2)
+                }
             }
         }
     }
