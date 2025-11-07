@@ -54,7 +54,7 @@ struct DrillSummaryView: View {
                 }
             }
         }
-        .toolbar(.hidden, for: .navigationBar)
+        .navigationBarHidden(true)
     }
 
     private var navigationBar: some View {

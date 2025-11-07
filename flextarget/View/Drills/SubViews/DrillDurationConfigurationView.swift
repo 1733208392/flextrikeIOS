@@ -159,7 +159,7 @@ struct DurationPickerView: View {
                 }
                 .listStyle(.plain)
                 .background(Color.black)
-                .scrollContentBackground(.hidden)
+                .scrollContentBackgroundHidden()
             }
             .navigationTitle(NSLocalizedString("select_duration", comment: "Select Duration navigation title"))
             .navigationBarTitleDisplayMode(.inline)

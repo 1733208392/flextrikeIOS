@@ -1,4 +1,3 @@
-import PhotosUI
 import SwiftUI
 import UIKit
 import CoreData
@@ -30,7 +29,7 @@ struct DrillFormView: View {
     @State private var drillName: String = ""
     @State private var description: String = ""
     @State private var demoVideoURL: URL? = nil
-    @State private var selectedVideoItem: PhotosPickerItem? = nil
+    @State private var showFilePicker: Bool = false
     @State private var demoVideoThumbnail: UIImage? = nil
     @State private var thumbnailFileURL: URL? = nil
     @State private var showVideoPlayer: Bool = false
@@ -100,7 +99,7 @@ struct DrillFormView: View {
     }
     
     var body: some View {
-        NavigationStack {
+        NavigationView {
             VStack(spacing: 0) {
                 ZStack {
                     Color.black.ignoresSafeArea()
@@ -111,10 +110,8 @@ struct DrillFormView: View {
                     VStack(spacing: 20) {
                         // History Record Button - only show in edit mode
                         if let drillSetup = currentDrillSetup {
-                            NavigationLink {
-                                DrillRecordView(drillSetup: drillSetup)
-                                    .environment(\.managedObjectContext, viewContext)
-                            } label: {
+                            NavigationLink(destination: DrillRecordView(drillSetup: drillSetup)
+                                .environment(\.managedObjectContext, viewContext)) {
                                 HStack {
                                     RoundedRectangle(cornerRadius: 24)
                                         .stroke(Color.red, lineWidth: 1)
@@ -145,7 +142,6 @@ struct DrillFormView: View {
                                 DescriptionVideoSectionView(
                                     description: $description,
                                     demoVideoURL: $demoVideoURL,
-                                    selectedVideoItem: $selectedVideoItem,
                                     demoVideoThumbnail: $demoVideoThumbnail,
                                     thumbnailFileURL: $thumbnailFileURL,
                                     showVideoPlayer: $showVideoPlayer
@@ -210,12 +206,15 @@ struct DrillFormView: View {
                     }
                 }
             }
-        }
-        .environment(\.managedObjectContext, viewContext)
-        .navigationDestination(isPresented: $navigateToDrillSummary) {
-            if case .edit(let drillSetup) = mode {
-                DrillSummaryView(drillSetup: drillSetup, summaries: drillRepeatSummaries)
-                    .environment(\.managedObjectContext, viewContext)
+            .environment(\.managedObjectContext, viewContext)
+            
+            NavigationLink(isActive: $navigateToDrillSummary) {
+                if case .edit(let drillSetup) = mode {
+                    DrillSummaryView(drillSetup: drillSetup, summaries: drillRepeatSummaries)
+                        .environment(\.managedObjectContext, viewContext)
+                }
+            } label: {
+                EmptyView()
             }
         }
         .alert(isPresented: $showAckTimeoutAlert) {

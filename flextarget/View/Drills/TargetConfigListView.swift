@@ -18,7 +18,7 @@ struct TargetConfigListView: View {
     ]
 
     var body: some View {
-        NavigationStack {
+        NavigationView {
             ZStack {
                 Color.black.ignoresSafeArea()
                 VStack(spacing: 0) {
@@ -61,8 +61,8 @@ struct TargetConfigListView: View {
         }
         .listStyle(.plain)
         .background(Color.black)
-        .scrollContentBackground(.hidden)
-        .onChange(of: targetConfigs) { _, _ in
+        .scrollContentBackgroundHidden()
+        .onChange(of: targetConfigs) { _ in
             saveTargetConfigs()
         }
     }
@@ -296,7 +296,7 @@ struct TargetNamePickerView: View {
                 }
                 .listStyle(.plain)
                 .background(Color.black)
-                .scrollContentBackground(.hidden)
+                .scrollContentBackgroundHidden()
             }
             .navigationTitle(NSLocalizedString("select_device", comment: "Select Device navigation title"))
             .navigationBarTitleDisplayMode(.inline)
@@ -349,7 +349,7 @@ struct TargetTypePickerView: View {
                 }
                 .listStyle(.plain)
                 .background(Color.black)
-                .scrollContentBackground(.hidden)
+                .scrollContentBackgroundHidden()
             }
             .navigationTitle(NSLocalizedString("select_target_type", comment: "Select Target Type navigation title"))
             .navigationBarTitleDisplayMode(.inline)

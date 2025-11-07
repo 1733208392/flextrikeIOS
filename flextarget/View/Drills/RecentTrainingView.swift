@@ -199,7 +199,7 @@ struct RecentTrainingView: View {
         .onAppear {
             loadRecentDrills()
         }
-        .onChange(of: drills.count) { _, _ in
+        .onChange(of: drills.count) { _ in
             // Clamp selected page to valid range when data changes
             if selectedPage >= pageCount {
                 selectedPage = max(0, pageCount - 1)

@@ -78,24 +78,32 @@ struct DrillMainPageView: View {
                         .padding(.bottom, 12)
                 }
             }
-            .navigationDestination(isPresented: $showDrillList) {
+            
+            NavigationLink(isActive: $showDrillList) {
                 DrillListView(bleManager: bleManager)
                     .environment(\.managedObjectContext, persistenceController.container.viewContext)
+            } label: {
+                EmptyView()
             }
-            .navigationDestination(item: $selectedDrillSetup) { drillSetup in
-                if let summaries = selectedDrillSummaries {
-                    // Navigate to summary view for recent drills (showing all repeats from session)
-                    DrillSummaryView(drillSetup: drillSetup, summaries: summaries)
-                        .environment(\.managedObjectContext, persistenceController.container.viewContext)
-                } else if let shots = selectedDrillShots {
-                    // Navigate to result view for manual drilling
-                    DrillResultView(drillSetup: drillSetup, shots: shots)
-                        .environment(\.managedObjectContext, persistenceController.container.viewContext)
-                } else {
-                    // Default to result view
-                    DrillResultView(drillSetup: drillSetup)
-                        .environment(\.managedObjectContext, persistenceController.container.viewContext)
+            
+            NavigationLink(isActive: .constant(selectedDrillSetup != nil)) {
+                if let drillSetup = selectedDrillSetup {
+                    if let summaries = selectedDrillSummaries {
+                        // Navigate to summary view for recent drills (showing all repeats from session)
+                        DrillSummaryView(drillSetup: drillSetup, summaries: summaries)
+                            .environment(\.managedObjectContext, persistenceController.container.viewContext)
+                    } else if let shots = selectedDrillShots {
+                        // Navigate to result view for manual drilling
+                        DrillResultView(drillSetup: drillSetup, shots: shots)
+                            .environment(\.managedObjectContext, persistenceController.container.viewContext)
+                    } else {
+                        // Default to result view
+                        DrillResultView(drillSetup: drillSetup)
+                            .environment(\.managedObjectContext, persistenceController.container.viewContext)
+                    }
                 }
+            } label: {
+                EmptyView()
             }
             .sheet(isPresented: $showConnectView) {
                 ConnectSmartTargetWrapper(onDismiss: { showConnectView = false })
@@ -114,12 +122,12 @@ struct DrillMainPageView: View {
                     }
                 }
             }
-            .onChange(of: bleManager.isConnected) { oldValue, newValue in
+            .onChange(of: bleManager.isConnected) { newValue in
                 if !newValue {
                     showConnectView = true
                 }
             }
-            .onChange(of: selectedDrillSetup) { _, newValue in
+            .onChange(of: selectedDrillSetup) { newValue in
                 if newValue == nil {
                     selectedDrillShots = nil
                     selectedDrillSummaries = nil

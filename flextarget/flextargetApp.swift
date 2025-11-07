@@ -40,7 +40,7 @@ struct flextargetApp: App {
             } else {
 //                OrientationView() // Replace with your main view
 //                    .environmentObject(bleManager)
-                NavigationStack {
+                NavigationView {
                     DrillMainPageView()
                         .environmentObject(BLEManager.shared)
                         .environment(\.managedObjectContext, persistenceController.container.viewContext)

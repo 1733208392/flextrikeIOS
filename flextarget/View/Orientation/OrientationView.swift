@@ -17,39 +17,44 @@ struct OrientationView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            VStack {
-                if !steps.isEmpty && selectedStep < steps.count {
-                    OrientationStepView(
-                        step: $steps[selectedStep],
-                        onNext: shouldShowNext() ? {
-                            if selectedStep < steps.count - 1 {
-                                selectedStep += 1
-                            } else {
-                                navigateToConnect = true
+        NavigationView {
+            ZStack {
+                VStack {
+                    if !steps.isEmpty && selectedStep < steps.count {
+                        OrientationStepView(
+                            step: $steps[selectedStep],
+                            onNext: shouldShowNext() ? {
+                                if selectedStep < steps.count - 1 {
+                                    selectedStep += 1
+                                } else {
+                                    navigateToConnect = true
+                                }
+                            } : nil,
+                            onStepCompleted: {
+                                saveStepsToLocal()
                             }
-                        } : nil,
-                        onStepCompleted: {
-                            saveStepsToLocal()
-                        }
-                    )
-                    .id(selectedStep) // Force view recreation when step changes
+                        )
+                        .id(selectedStep) // Force view recreation when step changes
+                    }
+                }
+                .onAppear {
+                    loadStepsFromLocal()
+                    if let firstIncomplete = steps.firstIndex(where: { !$0.isCompleted }) {
+                        selectedStep = firstIncomplete
+                    } else {
+                        // All steps complete, go to next screen
+                        navigateToConnect = true
+                    }
+                }
+                
+                NavigationLink(isActive: $navigateToConnect) {
+                    ConnectSmartTargetView(bleManager: bleManager, navigateToMain: .constant(false))
+                        .navigationBarBackButtonHidden(true)
+                } label: {
+                    EmptyView()
                 }
             }
-            .onAppear {
-                loadStepsFromLocal()
-                if let firstIncomplete = steps.firstIndex(where: { !$0.isCompleted }) {
-                    selectedStep = firstIncomplete
-                } else {
-                    // All steps complete, go to next screen
-                    navigateToConnect = true
-                }
-            }
-            .navigationDestination(isPresented: $navigateToConnect) {
-                ConnectSmartTargetView(bleManager: bleManager, navigateToMain: .constant(false))
-                    .toolbar(.hidden, for: .navigationBar)
-                    .navigationBarBackButtonHidden(true)
-            }
+            .navigationBarHidden(true)
         }
     }
     

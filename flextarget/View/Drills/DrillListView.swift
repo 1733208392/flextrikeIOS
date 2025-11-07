@@ -42,7 +42,7 @@ struct DrillListView: View {
     }
 
     var body: some View {
-        NavigationStack {
+        NavigationView {
             ZStack {
                 Color.black.ignoresSafeArea()
 

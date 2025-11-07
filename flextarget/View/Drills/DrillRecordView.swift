@@ -141,7 +141,7 @@ struct DrillRecordView: View {
             }
             .listStyle(.plain)
             .background(Color.clear)
-            .scrollContentBackground(.hidden)
+            .scrollContentBackgroundHidden()
         }
         .navigationTitle(NSLocalizedString("drill_history", comment: "Drill History navigation title"))
         .navigationBarTitleDisplayMode(.inline)

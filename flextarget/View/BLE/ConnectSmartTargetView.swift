@@ -61,7 +61,9 @@ struct ConnectSmartTargetView: View {
                     Image(systemName: "dot.radiowaves.forward")
                         .font(.system(size: sensorIconSize))
                         .foregroundColor(.white)
-                        .symbolEffect(.bounce)
+                        .scaleEffect(!bleManager.isConnected ? 1.1 : 0.9)
+                        .opacity(!bleManager.isConnected ? 1.0 : 0.6)
+                        .animation(Animation.easeInOut(duration: 0.6).repeatForever(autoreverses: true), value: bleManager.isConnected)
                         .rotationEffect(.degrees(-45)) // clockwise
                         .offset(x: -sensorOffsetAdjustment, y: frameHeight - sensorIconSize + sensorOffsetAdjustment)
 
@@ -69,7 +71,9 @@ struct ConnectSmartTargetView: View {
                     Image(systemName: "dot.radiowaves.forward")
                         .font(.system(size: sensorIconSize))
                         .foregroundColor(.white)
-                        .symbolEffect(.bounce)
+                        .scaleEffect(!bleManager.isConnected ? 1.1 : 0.9)
+                        .opacity(!bleManager.isConnected ? 1.0 : 0.6)
+                        .animation(Animation.easeInOut(duration: 0.6).repeatForever(autoreverses: true).delay(0.15), value: bleManager.isConnected)
                         .rotationEffect(.degrees(-135)) // clockwise
                         .offset(x: frameWidth - sensorIconSize + sensorOffsetAdjustment, y: frameHeight - sensorIconSize + sensorOffsetAdjustment)
 
@@ -77,7 +81,9 @@ struct ConnectSmartTargetView: View {
                     Image(systemName: "dot.radiowaves.forward")
                         .font(.system(size: sensorIconSize))
                         .foregroundColor(.white)
-                        .symbolEffect(.bounce)
+                        .scaleEffect(!bleManager.isConnected ? 1.1 : 0.9)
+                        .opacity(!bleManager.isConnected ? 1.0 : 0.6)
+                        .animation(Animation.easeInOut(duration: 0.6).repeatForever(autoreverses: true).delay(0.30), value: bleManager.isConnected)
                         .rotationEffect(.degrees(135)) // counter-clockwise
                         .offset(x: frameWidth - sensorIconSize + sensorOffsetAdjustment, y: -sensorOffsetAdjustment)
 
@@ -85,7 +91,9 @@ struct ConnectSmartTargetView: View {
                     Image(systemName: "dot.radiowaves.forward")
                         .font(.system(size: sensorIconSize))
                         .foregroundColor(.white)
-                        .symbolEffect(.bounce)
+                        .scaleEffect(!bleManager.isConnected ? 1.1 : 0.9)
+                        .opacity(!bleManager.isConnected ? 1.0 : 0.6)
+                        .animation(Animation.easeInOut(duration: 0.6).repeatForever(autoreverses: true).delay(0.45), value: bleManager.isConnected)
                         .rotationEffect(.degrees(45)) // counter-clockwise
                         .offset(x: -sensorOffsetAdjustment, y: -sensorOffsetAdjustment)
                 }
@@ -200,7 +208,7 @@ struct ConnectSmartTargetView: View {
                 startScanAndTimer()
             }
         }
-        .onChange(of: bleManager.isConnected) { oldValue, newValue in
+        .onChange(of: bleManager.isConnected) { newValue in
             if newValue {
                 statusText = NSLocalizedString("connected", comment: "Status when connection successful")
                 isShaking = false
@@ -210,7 +218,7 @@ struct ConnectSmartTargetView: View {
                 goToMain()
             }
         }
-        .onChange(of: bleManager.discoveredPeripherals) { oldValue, newValue in
+        .onChange(of: bleManager.discoveredPeripherals) { newValue in
             if !newValue.isEmpty && bleManager.isScanning && !showPeripheralPicker {
                 // Peripherals found during scan, show picker immediately
                 bleManager.completeScan()

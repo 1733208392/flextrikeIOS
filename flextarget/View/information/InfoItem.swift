@@ -63,7 +63,7 @@ struct InformationPage: View {
                     .padding(.vertical, 8)
                 }
             }
-            .toolbar(.hidden, for: .navigationBar)
+            .navigationBarHidden(true)
             .navigationBarBackButtonHidden(true)
         }
     }

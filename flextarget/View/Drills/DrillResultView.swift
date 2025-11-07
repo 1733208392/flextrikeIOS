@@ -138,7 +138,7 @@ private struct TargetDisplayView: View {
         }
         .frame(width: frameWidth, height: frameHeight)
         .tabViewStyle(PageTabViewStyle(indexDisplayMode: targetDisplays.count > 1 ? .automatic : .never))
-                    .onChange(of: shots.count) {
+                    .onChange(of: shots.count) { _ in
             // This would need to be passed as a closure or handled differently
             // For now, we'll handle this in the parent view
         }
@@ -259,7 +259,7 @@ struct DrillResultView: View {
                         frameWidth: frameWidth,
                         frameHeight: frameHeight
                     )
-                    .onChange(of: shots.count) { oldValue, newValue in
+                    .onChange(of: shots.count) { _ in
                         ensureSelectedTargetIsValid()
                     }
                     

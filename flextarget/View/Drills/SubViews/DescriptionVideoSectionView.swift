@@ -1,5 +1,4 @@
 import SwiftUI
-import PhotosUI
 import AVFoundation
 import UniformTypeIdentifiers
 
@@ -8,7 +7,7 @@ import UniformTypeIdentifiers
  
  This view provides:
  - Expandable/collapsible description editor
- - Video picker integration with PhotosPicker
+ - Video file picker integration
  - Video thumbnail generation and display
  - Video playback functionality
  - Delete video functionality
@@ -24,13 +23,13 @@ import UniformTypeIdentifiers
 struct DescriptionVideoSectionView: View {
     @Binding var description: String
     @Binding var demoVideoURL: URL?
-    @Binding var selectedVideoItem: PhotosPickerItem?
     @Binding var demoVideoThumbnail: UIImage?
     @Binding var thumbnailFileURL: URL?
     @Binding var showVideoPlayer: Bool
     
     @State private var isGeneratingThumbnail: Bool = false
     @State private var isDownloadingVideo: Bool = false
+    @State private var showFilePicker: Bool = false
     @FocusState private var isDescriptionFocused: Bool
     
     var body: some View {
@@ -53,7 +52,7 @@ struct DescriptionVideoSectionView: View {
                 TextEditor(text: $description)
                     .frame(height: 120) // Fixed height for 5 lines
                     .foregroundColor(.white)
-                    .scrollContentBackground(.hidden)
+                    .scrollContentBackgroundHidden()
                     .background(Color.clear)
                     .cornerRadius(8)
                     .disableAutocorrection(true)
@@ -77,138 +76,125 @@ struct DescriptionVideoSectionView: View {
             }
             
             // Demo Video Upload
-            PhotosPicker(
-                    selection: $selectedVideoItem,
-                    matching: .videos,
-                    photoLibrary: .shared()
-                ) {
-                    VStack {
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(style: StrokeStyle(lineWidth: 1, dash: [4]))
-                            .foregroundColor(.red)
-                            .frame(height: 120)
-                            .overlay(
-                                Group {
-                                    if isGeneratingThumbnail {
-                                        ProgressView()
-                                            .progressViewStyle(CircularProgressViewStyle(tint: .red))
-                                            .scaleEffect(1.5)
-                                    } else if let thumbnail = demoVideoThumbnail, demoVideoURL != nil {
-                                        ZStack {
-                                            Image(uiImage: thumbnail)
+            Button(action: { showFilePicker = true }) {
+                VStack {
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(style: StrokeStyle(lineWidth: 1, dash: [4]))
+                        .foregroundColor(.red)
+                        .frame(height: 120)
+                        .overlay(
+                            Group {
+                                if isGeneratingThumbnail {
+                                    ProgressView()
+                                        .progressViewStyle(CircularProgressViewStyle(tint: .red))
+                                        .scaleEffect(1.5)
+                                } else if let thumbnail = demoVideoThumbnail, demoVideoURL != nil {
+                                    ZStack {
+                                        Image(uiImage: thumbnail)
+                                            .resizable()
+                                            .scaledToFill()
+                                            .frame(height: 120)
+                                            .clipped()
+                                            .cornerRadius(16)
+                                            .contentShape(Rectangle())
+                                        
+                                        // Play icon in center
+                                        if demoVideoURL != nil {
+                                            Image(systemName: "play.circle.fill")
                                                 .resizable()
-                                                .scaledToFill()
-                                                .frame(height: 120)
-                                                .clipped()
-                                                .cornerRadius(16)
-                                                .contentShape(Rectangle())
-                                            
-                                            // Play icon in center
-                                            if demoVideoURL != nil {
-                                                Image(systemName: "play.circle.fill")
-                                                    .resizable()
-                                                    .frame(width: 48, height: 48)
-                                                    .foregroundColor(.white)
-                                                    .shadow(radius: 4)
-                                                    .opacity(0.85)
-                                            }
-                                            
-                                            // Delete button at top right
-                                            VStack {
-                                                HStack {
-                                                    Spacer()
-                                                    Button(action: {
-                                                        demoVideoThumbnail = nil
-                                                        demoVideoURL = nil
-                                                        selectedVideoItem = nil
-                                                    }) {
-                                                        Image(systemName: "xmark.circle.fill")
-                                                            .resizable()
-                                                            .frame(width: 28, height: 28)
-                                                            .foregroundColor(.red)
-                                                            .background(Color.white.opacity(0.8))
-                                                            .clipShape(Circle())
-                                                            .shadow(radius: 2)
-                                                    }
-                                                    .padding(8)
-                                                }
-                                                Spacer()
-                                            }
-                                        }
-                                        .onTapGesture {
-                                            showVideoPlayer = true
-                                        }
-                                    } else {
-                                        VStack {
-                                            Image(systemName: "video.badge.plus")
-                                                .font(.system(size: 30))
-                                                .foregroundColor(.red)
-                                            Text(NSLocalizedString("add_demo_video", comment: "Add demo video button"))
+                                                .frame(width: 48, height: 48)
                                                 .foregroundColor(.white)
-                                                .font(.footnote)
+                                                .shadow(radius: 4)
+                                                .opacity(0.85)
+                                        }
+                                        
+                                        // Delete button at top right
+                                        VStack {
+                                            HStack {
+                                                Spacer()
+                                                Button(action: {
+                                                    demoVideoThumbnail = nil
+                                                    demoVideoURL = nil
+                                                    showFilePicker = false
+                                                }) {
+                                                    Image(systemName: "xmark.circle.fill")
+                                                        .resizable()
+                                                        .frame(width: 28, height: 28)
+                                                        .foregroundColor(.red)
+                                                        .background(Color.white.opacity(0.8))
+                                                        .clipShape(Circle())
+                                                        .shadow(radius: 2)
+                                                }
+                                                .padding(8)
+                                            }
+                                            Spacer()
                                         }
                                     }
+                                    .onTapGesture {
+                                        showVideoPlayer = true
+                                    }
+                                } else {
+                                    VStack {
+                                        Image(systemName: "video.badge.plus")
+                                            .font(.system(size: 30))
+                                            .foregroundColor(.red)
+                                        Text(NSLocalizedString("add_demo_video", comment: "Add demo video button"))
+                                            .foregroundColor(.white)
+                                            .font(.footnote)
+                                    }
                                 }
-                            )
+                            }
+                        )
+                }
+            }
+            .fileImporter(
+                isPresented: $showFilePicker,
+                allowedContentTypes: [.video],
+                onCompletion: { result in
+                    switch result {
+                    case .success(let url):
+                        handleSelectedVideo(url)
+                    case .failure(let error):
+                        print("File picker error: \(error)")
                     }
                 }
+            )
         }
-        .onChange(of: selectedVideoItem) {
-            guard let item = selectedVideoItem else { return }
-            isGeneratingThumbnail = true
-            Task {
-                // Ensure the loading flag is cleared on main when finished
-                defer { Task { await MainActor.run { isGeneratingThumbnail = false } } }
-
-                // 1) Try to get a URL representation and copy it into a temporary file (do NOT persist into Documents yet)
-                if let url = try? await item.loadTransferable(type: URL.self) {
-                    // Try to copy the selected file into app Documents for persistence
-                    if let persisted = copyFileToAppStorage(from: url) {
-                        await MainActor.run { demoVideoURL = persisted }
-                        if let thumbnail = await generateThumbnail(for: persisted) {
-                            // Save thumbnail into Documents as well
-                            if let thumbData = thumbnail.jpegData(compressionQuality: 0.8), let savedThumb = writeDataToAppStorage(data: thumbData, ext: "jpg") {
-                                await MainActor.run {
-                                    demoVideoThumbnail = thumbnail
-                                    thumbnailFileURL = savedThumb
-                                }
-                            } else {
-                                await MainActor.run {
-                                    demoVideoThumbnail = thumbnail
-                                }
-                            }
-                        }
-                        return
-                    }
-                }
-
-                // 2) Fallback: try to load raw Data and write to app storage
-                await MainActor.run { isDownloadingVideo = true }
-                if let data = try? await item.loadTransferable(type: Data.self) {
-                    // Write the raw data into Documents for persistence
-                    if let written = writeDataToAppStorage(data: data, ext: "mov") {
-                        await MainActor.run { demoVideoURL = written }
-                        if let thumbnail = await generateThumbnail(for: written) {
-                            if let thumbData = thumbnail.jpegData(compressionQuality: 0.8), let savedThumb = writeDataToAppStorage(data: thumbData, ext: "jpg") {
-                                await MainActor.run {
-                                    demoVideoThumbnail = thumbnail
-                                    thumbnailFileURL = savedThumb
-                                }
-                            } else {
-                                await MainActor.run {
-                                    demoVideoThumbnail = thumbnail
-                                }
-                            }
-                        }
-                        return
-                    }
-                }
-                await MainActor.run { isDownloadingVideo = false }
-
-                // If we got here, nothing usable was produced
-                print("Failed to obtain a usable video file from selected item")
+        .onChange(of: demoVideoURL) { _ in
+            // Process the selected video URL
+            if let url = demoVideoURL {
+                processSelectedVideo(url)
             }
         }
+    }
+    
+    private func handleSelectedVideo(_ url: URL) {
+        isGeneratingThumbnail = true
+        Task {
+            defer { Task { await MainActor.run { isGeneratingThumbnail = false } } }
+            
+            // Copy file to app storage for persistence
+            if let persisted = copyFileToAppStorage(from: url) {
+                await MainActor.run { demoVideoURL = persisted }
+                if let thumbnail = await generateThumbnail(for: persisted) {
+                    if let thumbData = thumbnail.jpegData(compressionQuality: 0.8), 
+                       let savedThumb = writeDataToAppStorage(data: thumbData, ext: "jpg") {
+                        await MainActor.run {
+                            demoVideoThumbnail = thumbnail
+                            thumbnailFileURL = savedThumb
+                        }
+                    } else {
+                        await MainActor.run {
+                            demoVideoThumbnail = thumbnail
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    private func processSelectedVideo(_ url: URL) {
+        // Placeholder for future processing if needed
     }
     
     // MARK: - Helper Methods
@@ -346,7 +332,6 @@ struct DescriptionVideoSectionView_Previews: PreviewProvider {
                 DescriptionVideoSectionView(
                     description: .constant("Sample description"),
                     demoVideoURL: .constant(nil),
-                    selectedVideoItem: .constant(nil),
                     demoVideoThumbnail: .constant(nil),
                     thumbnailFileURL: .constant(nil),
                     showVideoPlayer: .constant(false)

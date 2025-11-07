@@ -108,7 +108,7 @@ struct RepeatsPickerView: View {
                 }
                 .listStyle(.plain)
                 .background(Color.black)
-                .scrollContentBackground(.hidden)
+                .scrollContentBackgroundHidden()
             }
             .navigationTitle(NSLocalizedString("select_repeats", comment: "Select Repeats navigation title"))
             .navigationBarTitleDisplayMode(.inline)
