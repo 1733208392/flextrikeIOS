@@ -15,7 +15,7 @@ struct DrillMainPageView: View {
     
     var body: some View {
         if showDrillList {
-            DrillListView(bleManager: bleManager)
+            DrillListView(bleManager: bleManager, showDrillList: $showDrillList)
                 .environment(\.managedObjectContext, persistenceController.container.viewContext)
         } else {
             mainContent
