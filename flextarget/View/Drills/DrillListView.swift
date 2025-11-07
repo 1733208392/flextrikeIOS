@@ -11,10 +11,10 @@ import CoreData
 
 struct DrillListView: View {
     let bleManager: BLEManager
+    @Binding var showDrillList: Bool
     @State private var searchText: String = ""
     @State private var showConnectionAlert = false
     @State private var alertMessage = ""
-    @Environment(\.dismiss) var dismiss
 
     @Environment(\.managedObjectContext) private var environmentContext
 
@@ -47,44 +47,6 @@ struct DrillListView: View {
             Color.black.ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // Custom Header with Back Button
-                HStack {
-                    Button(action: { dismiss() }) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "chevron.left")
-                                .font(.system(size: 16, weight: .semibold))
-                            Text(NSLocalizedString("back", comment: "Back button label"))
-                                .font(.system(size: 16, weight: .regular))
-                        }
-                        .foregroundColor(.red)
-                    }
-                    
-                    Spacer()
-                    
-                    Text(NSLocalizedString("my_drills", comment: "Navigation title for drill list"))
-                        .font(.headline)
-                        .foregroundColor(.white)
-                    
-                    Spacer()
-                    
-                    if bleManager.isConnected {
-                        NavigationLink(destination: AddDrillView(bleManager: bleManager)) {
-                            Image(systemName: "plus")
-                                .foregroundColor(.red)
-                        }
-                    } else {
-                        Button(action: {
-                            alertMessage = NSLocalizedString("connection_required_message", comment: "Message when connection is required")
-                            showConnectionAlert = true
-                        }) {
-                            Image(systemName: "plus")
-                                .foregroundColor(.gray)
-                        }
-                    }
-                }
-                .padding(.horizontal)
-                .padding(.vertical, 12)
-                
                 List {
                     ForEach(filteredDrills, id: \.objectID) { drill in
                         drillRow(for: drill)
@@ -95,6 +57,39 @@ struct DrillListView: View {
             }
         }
         .tint(.red)
+        .navigationTitle(NSLocalizedString("my_drills", comment: "Navigation title for drill list"))
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button(action: { showDrillList = false }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 16, weight: .semibold))
+                        Text(NSLocalizedString("back", comment: "Back button label"))
+                            .font(.system(size: 16, weight: .regular))
+                    }
+                    .foregroundColor(.red)
+                }
+            }
+            
+            ToolbarItem(placement: .navigationBarTrailing) {
+                if bleManager.isConnected {
+                    NavigationLink(destination: AddDrillView(bleManager: bleManager)) {
+                        Image(systemName: "plus")
+                            .foregroundColor(.red)
+                    }
+                } else {
+                    Button(action: {
+                        alertMessage = NSLocalizedString("connection_required_message", comment: "Message when connection is required")
+                        showConnectionAlert = true
+                    }) {
+                        Image(systemName: "plus")
+                            .foregroundColor(.gray)
+                    }
+                }
+            }
+        }
         .alert(NSLocalizedString("delete_drill_title", comment: "Alert title for deleting drill"), isPresented: $showDeleteAlert, presenting: drillToDelete) { drill in
             Button(NSLocalizedString("delete", comment: "Delete button"), role: .destructive) {
                 deleteDrill(drill)
@@ -241,7 +236,7 @@ struct DrillListView: View {
 struct DrillListView_Previews: PreviewProvider {
     static var previews: some View {
         let context = PersistenceController.preview.container.viewContext
-        DrillListView(bleManager: BLEManager.shared)
+        DrillListView(bleManager: BLEManager.shared, showDrillList: .constant(true))
             .environment(\.managedObjectContext, context)
             .environmentObject(BLEManager.shared)
             .preferredColorScheme(.dark)

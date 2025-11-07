@@ -99,39 +99,38 @@ struct DrillFormView: View {
     }
     
     var body: some View {
-        NavigationView {
-            VStack(spacing: 0) {
-                ZStack {
-                    Color.black.ignoresSafeArea()
-                        .onTapGesture {
-                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                        }
-                    
-                    VStack(spacing: 20) {
+        VStack(spacing: 0) {
+            ZStack {
+                Color.black.ignoresSafeArea()
+                    .onTapGesture {
+                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                    }
+                
+                VStack(spacing: 20) {
                         // History Record Button - only show in edit mode
                         if let drillSetup = currentDrillSetup {
                             NavigationLink(destination: DrillRecordView(drillSetup: drillSetup)
                                 .environment(\.managedObjectContext, viewContext)) {
-                                HStack {
-                                    RoundedRectangle(cornerRadius: 24)
-                                        .stroke(Color.red, lineWidth: 1)
-                                        .background(RoundedRectangle(cornerRadius: 16).fill(Color.clear))
-                                        .frame(height: 36)
-                                        .overlay(
-                                            HStack(spacing: 8) {
-                                                Image(systemName: "clock.arrow.circlepath")
-                                                    .foregroundColor(.red)
-                                                    .font(.title3)
-                                                Text("History Record")
-                                                    .foregroundColor(.white)
-                                                    .font(.footnote)
-                                            }
-                                        )
-                                        .padding(.horizontal)
-                                        .padding(.top)
+                                HStack(spacing: 8) {
+                                    Image(systemName: "clock.arrow.circlepath")
+                                        .foregroundColor(.red)
+                                        .font(.title3)
+                                    Text("History Record")
+                                        .foregroundColor(.white)
+                                        .font(.footnote)
+                                    Spacer()
                                 }
+                                .frame(height: 36)
+                                .frame(maxWidth: .infinity)
+                                .padding(.horizontal)
+                                .padding(.vertical, 8)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .stroke(Color.red, lineWidth: 1)
+                                )
                             }
-                            .buttonStyle(PlainButtonStyle())
+                            .padding(.horizontal)
+                            .padding(.top)
                         }
                         
                         ScrollView {
@@ -205,7 +204,6 @@ struct DrillFormView: View {
                         .ignoresSafeArea(.keyboard, edges: .bottom)
                     }
                 }
-            }
             .environment(\.managedObjectContext, viewContext)
             
             NavigationLink(isActive: $navigateToDrillSummary) {
@@ -216,9 +214,7 @@ struct DrillFormView: View {
             } label: {
                 EmptyView()
             }
-            .mobilePhoneLayout()
         }
-        .navigationViewStyle(.stack)
         .alert(isPresented: $showAckTimeoutAlert) {
             Alert(title: Text(NSLocalizedString("ack_timeout_title", comment: "ACK timeout")), message: Text(NSLocalizedString("ack_timeout_message", comment: "Not all devices responded in time")), dismissButton: .default(Text("OK")))
         }
