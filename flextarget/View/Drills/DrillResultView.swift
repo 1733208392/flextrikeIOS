@@ -367,6 +367,7 @@ struct DrillResultView: View {
                 .edgesIgnoringSafeArea(.all)
             }
         }
+        .mobilePhoneLayout()
     }
 
     private func seek(to time: Double, highlightIndex: Int?, shouldPulse: Bool, restrictToSelectedTarget: Bool = false) {

@@ -324,6 +324,7 @@ struct CameraView: View {
             }
             // Focus Point Indicator
         }//Outer Most Zstack
+        .mobilePhoneLayout()
         .onReceive(timer) { _ in
             fps = frameCount
             frameCount = 0

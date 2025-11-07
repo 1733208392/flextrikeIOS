@@ -216,7 +216,9 @@ struct DrillFormView: View {
             } label: {
                 EmptyView()
             }
+            .mobilePhoneLayout()
         }
+        .navigationViewStyle(.stack)
         .alert(isPresented: $showAckTimeoutAlert) {
             Alert(title: Text(NSLocalizedString("ack_timeout_title", comment: "ACK timeout")), message: Text(NSLocalizedString("ack_timeout_message", comment: "Not all devices responded in time")), dismissButton: .default(Text("OK")))
         }

@@ -22,21 +22,44 @@ struct TargetConfigListView: View {
             ZStack {
                 Color.black.ignoresSafeArea()
                 VStack(spacing: 0) {
+                    // Custom Header with Back Button
+                    HStack {
+                        Button(action: { 
+                            onDone()
+                            dismiss() 
+                        }) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "chevron.left")
+                                    .font(.system(size: 16, weight: .semibold))
+                                Text(NSLocalizedString("back", comment: "Back button label"))
+                                    .font(.system(size: 16, weight: .regular))
+                            }
+                            .foregroundColor(.red)
+                        }
+                        
+                        Spacer()
+                        
+                        Text(NSLocalizedString("targets", comment: "Targets label"))
+                            .font(.headline)
+                            .foregroundColor(.white)
+                        
+                        Spacer()
+                        
+                        Button(action: { addNewTarget() }) {
+                            Image(systemName: "plus")
+                                .foregroundColor(.red)
+                        }
+                        .disabled(targetConfigs.count >= deviceList.count)
+                        .buttonStyle(.plain)
+                    }
+                    .padding(.horizontal)
+                    .padding(.vertical, 12)
+                    
                     listView
                     AddButton
                 }
             }
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    // moved Add into the navigation bar as a '+' button
-                    Button(action: { addNewTarget() }) {
-                        Image(systemName: "plus")
-                            .foregroundColor(.red)
-                    }
-                    .disabled(targetConfigs.count >= deviceList.count)
-                    .buttonStyle(.plain)
-                }
-            }
+            .navigationViewStyle(.stack)
         }
     }
 
@@ -308,6 +331,7 @@ struct TargetNamePickerView: View {
                     .foregroundColor(.red)
                 }
             }
+            .navigationViewStyle(.stack)
         }
     }
 }
@@ -361,6 +385,7 @@ struct TargetTypePickerView: View {
                     .foregroundColor(.red)
                 }
             }
+            .navigationViewStyle(.stack)
         }
     }
 }

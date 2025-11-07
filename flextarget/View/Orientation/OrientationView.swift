@@ -55,7 +55,9 @@ struct OrientationView: View {
                 }
             }
             .navigationBarHidden(true)
+            .navigationViewStyle(.stack)
         }
+        .mobilePhoneLayout()
     }
     
     // Helper function to determine if Next button should be shown

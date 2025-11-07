@@ -46,5 +46,6 @@ struct FAQView: View {
         .background(Color(.systemGroupedBackground).ignoresSafeArea())
         .navigationTitle(NSLocalizedString("faq", comment: "FAQ navigation title"))
         .navigationBarTitleDisplayMode(.large)
+        .mobilePhoneLayout()
     }
 }

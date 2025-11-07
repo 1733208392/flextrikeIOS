@@ -45,6 +45,7 @@ struct flextargetApp: App {
                         .environmentObject(BLEManager.shared)
                         .environment(\.managedObjectContext, persistenceController.container.viewContext)
                 }
+                .navigationViewStyle(.stack)
 //                NavigationStack {
 //                    DrillListView(bleManager: BLEManager.shared)
 //                        .environment(\.managedObjectContext, persistenceController.container.viewContext)

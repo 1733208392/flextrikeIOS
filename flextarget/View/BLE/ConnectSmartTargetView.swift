@@ -200,6 +200,7 @@ struct ConnectSmartTargetView: View {
         }
         .sheet(isPresented: $showInfo) { InformationPage() }
         .background(Color.black.ignoresSafeArea())
+//        .mobilePhoneLayout()
         .onAppear {
             if bleManager.isConnected {
                 statusText = NSLocalizedString("target_connected", comment: "Status when target is connected")

@@ -13,6 +13,7 @@
 "delete_drill_title" = "Delete Drill?";
 "delete" = "Delete";
 "cancel" = "Cancel";
+"back" = "Back";
 "delete_drill_message" = "Are you sure you want to delete %@?";
 "connection_required" = "Connection Required";
 "connection_required_message" = "Please connect to the target device before adding drills.";

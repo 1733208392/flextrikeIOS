@@ -15,5 +15,7 @@ struct FAQDetailView: View {
             .navigationTitle(question)
             .navigationBarTitleDisplayMode(.inline)
             .edgesIgnoringSafeArea(.bottom)
+            .mobilePhoneLayout()
     }
 }
+

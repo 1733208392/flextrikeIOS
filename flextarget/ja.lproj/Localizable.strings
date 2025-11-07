@@ -13,6 +13,7 @@
 "delete_drill_title" = "ドリルを削除";
 "delete" = "削除";
 "cancel" = "キャンセル";
+"back" = "戻る";
 "delete_drill_message" = "%@を削除してもよろしいですか？";
 "connection_required" = "接続が必要です";
 "connection_required_message" = "ドリルを追加する前にターゲットデバイスに接続してください。";

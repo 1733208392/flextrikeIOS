@@ -171,6 +171,7 @@ struct DurationPickerView: View {
                     .foregroundColor(.red)
                 }
             }
+            .navigationViewStyle(.stack)
         }
     }
 }

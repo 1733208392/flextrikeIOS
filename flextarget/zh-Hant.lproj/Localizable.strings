@@ -13,6 +13,7 @@
 "delete_drill_title" = "刪除訓練";
 "delete" = "刪除";
 "cancel" = "取消";
+"back" = "返回";
 "delete_drill_message" = "您確定要刪除 %@ 嗎？";
 "connection_required" = "需要連接";
 "connection_required_message" = "請在新增訓練前連接目標裝置。";

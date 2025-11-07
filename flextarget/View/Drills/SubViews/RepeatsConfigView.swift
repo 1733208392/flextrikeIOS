@@ -120,6 +120,7 @@ struct RepeatsPickerView: View {
                     .foregroundColor(.red)
                 }
             }
+            .navigationViewStyle(.stack)
         }
     }
 }

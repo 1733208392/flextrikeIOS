@@ -65,6 +65,7 @@ struct InformationPage: View {
             }
             .navigationBarHidden(true)
             .navigationBarBackButtonHidden(true)
+            .navigationViewStyle(.stack)
         }
     }
 }

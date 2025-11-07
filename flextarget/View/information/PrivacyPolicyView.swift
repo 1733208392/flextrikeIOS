@@ -5,5 +5,7 @@ struct PrivacyPolicyView: View {
         WebView(htmlFileName: "privacy")
             .navigationTitle(NSLocalizedString("privacy_policy", comment: "Privacy Policy navigation title"))
             .edgesIgnoringSafeArea(.all)
+            .mobilePhoneLayout()
     }
 }
+

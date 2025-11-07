@@ -13,6 +13,7 @@
 "delete_drill_title" = "Eliminar Ejercicio";
 "delete" = "Eliminar";
 "cancel" = "Cancelar";
+"back" = "Atrás";
 "delete_drill_message" = "¿Estás seguro de que quieres eliminar %@?";
 "connection_required" = "Conexión Requerida";
 "connection_required_message" = "Por favor conecta al dispositivo objetivo antes de añadir ejercicios.";

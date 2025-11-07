@@ -8,9 +8,14 @@ struct TargetsSectionView: View {
     let bleManager: BLEManager
     @Binding var targetConfigs: [DrillTargetsConfigData]
     let onTargetConfigDone: () -> Void
+    @State private var showTargetConfigList = false
 
     var body: some View {
-        NavigationLink(destination: TargetConfigListView(deviceList: bleManager.networkDevices, targetConfigs: $targetConfigs, onDone: onTargetConfigDone)) {
+        Button(action: {
+            if isTargetListReceived {
+                showTargetConfigList = true
+            }
+        }) {
             HStack(spacing: 8) {
                 // Shield icon on the left
                 Image(systemName: "shield")
@@ -46,6 +51,9 @@ struct TargetsSectionView: View {
             .opacity(isTargetListReceived ? 1.0 : 0.6)
         }
         .disabled(!isTargetListReceived)
+        .sheet(isPresented: $showTargetConfigList) {
+            TargetConfigListView(deviceList: bleManager.networkDevices, targetConfigs: $targetConfigs, onDone: onTargetConfigDone)
+        }
     }
 }
 

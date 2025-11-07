@@ -14,6 +14,7 @@ struct DrillListView: View {
     @State private var searchText: String = ""
     @State private var showConnectionAlert = false
     @State private var alertMessage = ""
+    @Environment(\.dismiss) var dismiss
 
     @Environment(\.managedObjectContext) private var environmentContext
 
@@ -42,25 +43,34 @@ struct DrillListView: View {
     }
 
     var body: some View {
-        NavigationView {
-            ZStack {
-                Color.black.ignoresSafeArea()
+        ZStack {
+            Color.black.ignoresSafeArea()
 
-                List {
-                    ForEach(filteredDrills, id: \.objectID) { drill in
-                        drillRow(for: drill)
+            VStack(spacing: 0) {
+                // Custom Header with Back Button
+                HStack {
+                    Button(action: { dismiss() }) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 16, weight: .semibold))
+                            Text(NSLocalizedString("back", comment: "Back button label"))
+                                .font(.system(size: 16, weight: .regular))
+                        }
+                        .foregroundColor(.red)
                     }
-                }
-                .listStyle(.plain)
-            }
-            .navigationTitle(NSLocalizedString("my_drills", comment: "Navigation title for drill list"))
-            .navigationBarTitleDisplayMode(.inline)
-            .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: NSLocalizedString("search_drills", comment: "Search prompt for drills"))
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+                    
+                    Spacer()
+                    
+                    Text(NSLocalizedString("my_drills", comment: "Navigation title for drill list"))
+                        .font(.headline)
+                        .foregroundColor(.white)
+                    
+                    Spacer()
+                    
                     if bleManager.isConnected {
                         NavigationLink(destination: AddDrillView(bleManager: bleManager)) {
                             Image(systemName: "plus")
+                                .foregroundColor(.red)
                         }
                     } else {
                         Button(action: {
@@ -72,21 +82,31 @@ struct DrillListView: View {
                         }
                     }
                 }
-            }
-            .tint(.red)
-            .alert(NSLocalizedString("delete_drill_title", comment: "Alert title for deleting drill"), isPresented: $showDeleteAlert, presenting: drillToDelete) { drill in
-                Button(NSLocalizedString("delete", comment: "Delete button"), role: .destructive) {
-                    deleteDrill(drill)
+                .padding(.horizontal)
+                .padding(.vertical, 12)
+                
+                List {
+                    ForEach(filteredDrills, id: \.objectID) { drill in
+                        drillRow(for: drill)
+                    }
                 }
-                Button(NSLocalizedString("cancel", comment: "Cancel button"), role: .cancel) {}
-            } message: { drill in
-                Text(String(format: NSLocalizedString("delete_drill_message", comment: "Alert message for deleting drill"), drill.name ?? NSLocalizedString("untitled", comment: "Default name for untitled drill")))
+                .listStyle(.plain)
+                .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: NSLocalizedString("search_drills", comment: "Search prompt for drills"))
             }
-            .alert(NSLocalizedString("connection_required", comment: "Alert title for connection required"), isPresented: $showConnectionAlert) {
-                Button(NSLocalizedString("ok", comment: "OK button"), role: .cancel) {}
-            } message: {
-                Text(alertMessage)
+        }
+        .tint(.red)
+        .alert(NSLocalizedString("delete_drill_title", comment: "Alert title for deleting drill"), isPresented: $showDeleteAlert, presenting: drillToDelete) { drill in
+            Button(NSLocalizedString("delete", comment: "Delete button"), role: .destructive) {
+                deleteDrill(drill)
             }
+            Button(NSLocalizedString("cancel", comment: "Cancel button"), role: .cancel) {}
+        } message: { drill in
+            Text(String(format: NSLocalizedString("delete_drill_message", comment: "Alert message for deleting drill"), drill.name ?? NSLocalizedString("untitled", comment: "Default name for untitled drill")))
+        }
+        .alert(NSLocalizedString("connection_required", comment: "Alert title for connection required"), isPresented: $showConnectionAlert) {
+            Button(NSLocalizedString("ok", comment: "OK button"), role: .cancel) {}
+        } message: {
+            Text(alertMessage)
         }
         .environment(\.managedObjectContext, viewContext)
     }
