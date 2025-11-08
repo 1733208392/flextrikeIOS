@@ -10,7 +10,7 @@ import UIKit
  - Clean visual design matching app style
  */
 
-struct DrillDurationConfigurationView: View {
+struct DrillRepeatsPauseConfView: View {
     @Binding var drillDuration: Double
 
     // Duration options from 5 to 30 seconds in 1-second increments
@@ -181,7 +181,7 @@ struct DrillDurationConfigurationView_Previews: PreviewProvider {
         ZStack {
             Color.black.ignoresSafeArea()
             VStack(spacing: 20) {
-                DrillDurationConfigurationView(
+                DrillRepeatsPauseConfView(
                     drillDuration: .constant(15)
                 )
             }
