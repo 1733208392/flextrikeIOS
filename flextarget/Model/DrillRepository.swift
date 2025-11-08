@@ -56,20 +56,46 @@ class DrillRepository: ObservableObject, DrillRepositoryProtocol {
             coreDataSetup.thumbnailURL = setup.thumbnailURL
             coreDataSetup.delay = setup.delay
             
-            // Clear existing targets and add new ones
-            if let existingTargets = coreDataSetup.targets {
-                coreDataSetup.removeFromTargets(existingTargets)
+            // Update targets: reuse existing ones by ID, create only new ones
+            let existingTargets = (coreDataSetup.targets as? Set<DrillTargetsConfig>) ?? []
+            
+            // Build a map of existing targets by their ID (safely handle nil)
+            var targetMap: [UUID: DrillTargetsConfig] = [:]
+            for existingTarget in existingTargets {
+                if let id = existingTarget.id {
+                    targetMap[id] = existingTarget
+                }
             }
             
+            let targetIdsToKeep = Set(setup.targets.map { $0.id })
+            
+            // Update existing or create new targets
             for targetConfig in setup.targets {
-                let config = DrillTargetsConfig(context: context)
-                config.id = targetConfig.id
+                let config: DrillTargetsConfig
+                
+                if let existing = targetMap[targetConfig.id] {
+                    // Reuse existing target
+                    config = existing
+                } else {
+                    // Create new target only if it doesn't exist
+                    config = DrillTargetsConfig(context: context)
+                    config.id = targetConfig.id
+                    coreDataSetup.addToTargets(config)
+                }
+                
+                // Update target properties
                 config.seqNo = Int32(targetConfig.seqNo)
                 config.targetName = targetConfig.targetName
                 config.targetType = targetConfig.targetType
                 config.timeout = targetConfig.timeout
                 config.countedShots = Int32(targetConfig.countedShots)
-                coreDataSetup.addToTargets(config)
+            }
+            
+            // Remove targets that are no longer needed
+            let targetsToRemove = existingTargets.filter { !targetIdsToKeep.contains($0.id ?? UUID()) }
+            for target in targetsToRemove {
+                coreDataSetup.removeFromTargets(target)
+                context.delete(target)
             }
         } else {
             // Create new

@@ -162,9 +162,12 @@ struct DrillFormView: View {
                             )
                             .padding(.horizontal)
                             
-                            // Drill Duration
-                            DrillDurationConfigurationView(
-                                drillDuration: $drillDuration
+                            // Pause Time Between Repeats
+                            DrillRepeatsPauseConfView(
+                                drillDuration: Binding(
+                                    get: { Double(pauseValue) },
+                                    set: { pauseValue = Int($0) }
+                                )
                             )
                             .padding(.horizontal)
                             
@@ -594,22 +597,49 @@ struct DrillFormView: View {
         drillSetup.pause = pauseValue
         drillSetup.drillDuration = drillDuration
         
-        // Clear and update targets
-        if let existingTargets = drillSetup.targets {
-            drillSetup.removeFromTargets(existingTargets)
+        // Update targets: reuse existing ones by ID, create only new ones
+        let existingTargets = (drillSetup.targets as? Set<DrillTargetsConfig>) ?? []
+        
+        // Build a map of existing targets by their ID (safely handle nil)
+        var targetMap: [UUID: DrillTargetsConfig] = [:]
+        for existingTarget in existingTargets {
+            if let id = existingTarget.id {
+                targetMap[id] = existingTarget
+            }
         }
         
+        let targetIdsToKeep = Set(targetConfigs.map { $0.id })
+        
+        // Update existing or create new targets
         for targetData in targetConfigs {
-            let target = DrillTargetsConfig(context: viewContext)
-            target.id = targetData.id  // Ensure id is never nil
+            let target: DrillTargetsConfig
+            
+            if let existing = targetMap[targetData.id] {
+                // Reuse existing target - just update properties
+                target = existing
+                print("Reusing existing target: \(targetData.targetName)")
+            } else {
+                // Create new target only if it doesn't exist
+                target = DrillTargetsConfig(context: viewContext)
+                target.id = targetData.id
+                drillSetup.addToTargets(target)
+                print("Creating new target: \(targetData.targetName)")
+            }
+            
+            // Update target properties
             target.seqNo = Int32(targetData.seqNo)
             target.targetName = targetData.targetName
             target.targetType = targetData.targetType
             target.timeout = targetData.timeout
             target.countedShots = Int32(targetData.countedShots)
-            
-            // Use the Core Data generated method to establish relationship
-            drillSetup.addToTargets(target)
+        }
+        
+        // Remove targets that are no longer needed
+        let targetsToRemove = existingTargets.filter { !targetIdsToKeep.contains($0.id ?? UUID()) }
+        for target in targetsToRemove {
+            print("Removing orphaned target: \(target.targetName ?? "unknown")")
+            drillSetup.removeFromTargets(target)
+            viewContext.delete(target)
         }
     }
     

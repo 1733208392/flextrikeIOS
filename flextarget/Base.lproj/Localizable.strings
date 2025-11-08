@@ -1,0 +1,110 @@
+/* Localizable.strings - English */
+
+/* DrillMainPageView */
+"target_connected" = "Target Connected";
+"target_disconnected" = "Target Disconnected";
+"drills" = "Drills";
+"ipsc_questionaries" = "IPSC Questionaries";
+"idpa_questionaries" = "IDPA Questionaries";
+
+/* DrillFormView */
+"drill_setup" = "Drill Setup";
+
+/* DrillListView */
+"my_drills" = "My Drills";
+"search_drills" = "Search drills";
+"delete_drill_title" = "Delete Drill?";
+"delete" = "Delete";
+"cancel" = "Cancel";
+"back" = "Back";
+"delete_drill_message" = "Are you sure you want to delete %@?";
+"connection_required" = "Connection Required";
+"connection_required_message" = "Please connect to the target device before adding drills.";
+"ok" = "OK";
+"copy" = "Copy";
+"untitled" = "Untitled";
+"copy_suffix" = " Copy";
+"targets" = "Targets";
+"targets_count" = "%d targets";
+"delay_seconds" = "delay: %ds";
+
+/* BLE/ConnectSmartTargetView */
+"reconnect" = "RECONNECT";
+"okay" = "OKAY";
+"select_target" = "SELECT TARGET";
+"connected" = "CONNECTED";
+"connecting" = "CONNECTING";
+"target_not_found" = "TARGET NOT FOUND";
+"bluetooth_service_not_found" = "BLUETOOTH SERVICE NOT FOUND";
+"scan" = "Scan";
+
+/* LaserDryFire/OverlayView */
+"fps_display" = "FPS: %d";
+
+/* ShotTimelineView */
+"shots_count" = "%d shots";
+"shot_number" = "Shot %d";
+"shot_with_time" = "Shot %d: %.2fs";
+
+/* DrillResultView */
+"progress_time" = "%.2f/%.2fs";
+"drill_in_progress" = "Drill In Progress";
+"drill_in_progress_overlay" = "DRILL IN PROGRESS...";
+
+/* SubViews */
+"history_record" = "History Record";
+"delay_seconds_label" = "Delay(s)";
+"num_repeats_label" = "Number of Repeats";
+"select_repeats" = "Select Repeats";
+"drill_duration_seconds_label" = "Duration/Rep(s)";
+"delay_range" = "2...5";
+"description" = "Description";
+"enter_description_placeholder" = "Enter description...";
+"add_demo_video" = "Add Demo Video";
+"add_target" = "Add Target";
+"targets_count_label" = "%d";
+"gun" = "Gun";
+"save" = "Save";
+"device" = "Device";
+"type" = "Type";
+
+/* AddDrillView */
+"drill_setups_exist" = "Drill setups exist. TODO: Show list or main view.";
+"failed_to_load_drills" = "Failed to load drills";
+
+/* RecentTrainingView */
+"no_recent_drills" = "No recent drills";
+"complete_drills_message" = "Complete some drills to see them here";
+"hit_factor" = "Hit Factor";
+"date" = "Date";
+"fastest" = "Fastest";
+
+/* Information Views */
+"privacy_policy" = "Privacy Policy";
+"faq" = "FAQ";
+"about_us" = "About Us";
+"drill_history" = "Drill History";
+"drill_replay" = "Drill Replay";
+"select_device" = "Select Device";
+"select_target_type" = "Select Target Type";
+
+/* DrillFormView */
+"start_drill" = "Start Drill";
+"save_drill" = "Save Drill";
+"save_changes" = "Save Changes";
+
+/* ACK / Waiting messages */
+"ack_timeout_title" = "Waiting 10s";
+"ack_timeout_message" = "Timed Out";
+"waiting_for_devices" = "Waiting";
+"waiting_devices_count" = "%d Devices to be Ready";
+
+/* TargetConfigListView */
+"maximum_targets_title" = "Maximum Targets Reached";
+"maximum_targets_message" = "You have reached the maximum number of targets in the network (%d of %d).";
+
+/* BLE Error */
+"ble_error" = "BLE Error";
+
+/* Duration Configuration */
+"select_duration" = "Select Duration";

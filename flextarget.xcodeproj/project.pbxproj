@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		2A4B28F62E2F57F1001C9926 /* 首页.png in Resources */ = {isa = PBXBuildFile; fileRef = 2A4B28F42E2F57F1001C9926 /* 首页.png */; };
 		2A606D222E0FBF010006A6DB /* SVGKit in Frameworks */ = {isa = PBXBuildFile; productRef = 2A606D212E0FBF010006A6DB /* SVGKit */; };
 		2A606D242E0FBF010006A6DB /* SVGKitSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 2A606D232E0FBF010006A6DB /* SVGKitSwift */; };
 /* End PBXBuildFile section */
@@ -16,11 +15,37 @@
 		2A4B28F42E2F57F1001C9926 /* 首页.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "首页.png"; sourceTree = "<group>"; };
 		2A717F532E22A82E002CBD1E /* Flex-Target-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "Flex-Target-Info.plist"; sourceTree = "<group>"; };
 		2AEA529E2E07F37C009C0C68 /* Flex Target.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Flex Target.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2AF12A1C2E5B1A0100000000 /* flextarget/Base.lproj */ = {isa = PBXFileReference; lastKnownFileType = folder.lprojdata; path = flextarget/Base.lproj; sourceTree = "<group>"; };
+		2AF12A1C2E5B1A0100000001 /* flextarget/en.lproj */ = {isa = PBXFileReference; lastKnownFileType = folder.lprojdata; path = flextarget/en.lproj; sourceTree = "<group>"; };
+		2AF12A1C2E5B1A0100000002 /* flextarget/de.lproj */ = {isa = PBXFileReference; lastKnownFileType = folder.lprojdata; path = flextarget/de.lproj; sourceTree = "<group>"; };
+		2AF12A1C2E5B1A0100000003 /* flextarget/es.lproj */ = {isa = PBXFileReference; lastKnownFileType = folder.lprojdata; path = flextarget/es.lproj; sourceTree = "<group>"; };
+		2AF12A1C2E5B1A0100000004 /* flextarget/ja.lproj */ = {isa = PBXFileReference; lastKnownFileType = folder.lprojdata; path = flextarget/ja.lproj; sourceTree = "<group>"; };
+		2AF12A1C2E5B1A0100000005 /* flextarget/zh-Hant.lproj */ = {isa = PBXFileReference; lastKnownFileType = folder.lprojdata; path = "flextarget/zh-Hant.lproj"; sourceTree = "<group>"; };
+		2AF12A3C2E5B1A0100000000 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Base; path = flextarget/Base.lproj/Localizable.strings; sourceTree = "<group>"; };
+		2AF12A3C2E5B1A0100000001 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = flextarget/en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		2AF12A3C2E5B1A0100000002 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = flextarget/de.lproj/Localizable.strings; sourceTree = "<group>"; };
+		2AF12A3C2E5B1A0100000003 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = flextarget/es.lproj/Localizable.strings; sourceTree = "<group>"; };
+		2AF12A3C2E5B1A0100000004 /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = flextarget/ja.lproj/Localizable.strings; sourceTree = "<group>"; };
+		2AF12A3C2E5B1A0100000005 /* zh-Hant */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hant"; path = "flextarget/zh-Hant.lproj/Localizable.strings"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		2AC1CE802EBDF00C00AD9529 /* Exceptions for "flextarget" folder in "Flex Target" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				test.jpg,
+				test.png,
+			);
+			target = 2AEA529D2E07F37C009C0C68 /* Flex Target */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		2AEA52A02E07F37C009C0C68 /* flextarget */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				2AC1CE802EBDF00C00AD9529 /* Exceptions for "flextarget" folder in "Flex Target" target */,
+			);
 			path = flextarget;
 			sourceTree = "<group>";
 		};
@@ -54,6 +79,20 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		2AC1CDB12EBDEFED00AD9529 /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				2AF12A1C2E5B1A0100000000 /* flextarget/Base.lproj */,
+				2AF12A1C2E5B1A0100000001 /* flextarget/en.lproj */,
+				2AF12A1C2E5B1A0100000002 /* flextarget/de.lproj */,
+				2AF12A1C2E5B1A0100000003 /* flextarget/es.lproj */,
+				2AF12A1C2E5B1A0100000004 /* flextarget/ja.lproj */,
+				2AF12A1C2E5B1A0100000005 /* flextarget/zh-Hant.lproj */,
+				2AF12A5C2E5B1A0100000001 /* Localizable.strings */,
+			);
+			name = "Recovered References";
+			sourceTree = "<group>";
+		};
 		2AEA52952E07F37C009C0C68 = {
 			isa = PBXGroup;
 			children = (
@@ -62,6 +101,7 @@
 				2AEA52A02E07F37C009C0C68 /* flextarget */,
 				2A717F5C2E2330E6002CBD1E /* Frameworks */,
 				2AEA529F2E07F37C009C0C68 /* Products */,
+				2AC1CDB12EBDEFED00AD9529 /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
@@ -147,7 +187,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2A4B28F62E2F57F1001C9926 /* 首页.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -162,6 +201,22 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		2AF12A5C2E5B1A0100000001 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				2AF12A3C2E5B1A0100000000 /* Base */,
+				2AF12A3C2E5B1A0100000001 /* en */,
+				2AF12A3C2E5B1A0100000002 /* de */,
+				2AF12A3C2E5B1A0100000003 /* es */,
+				2AF12A3C2E5B1A0100000004 /* ja */,
+				2AF12A3C2E5B1A0100000005 /* zh-Hant */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		2AEA52A72E07F37D009C0C68 /* Debug */ = {

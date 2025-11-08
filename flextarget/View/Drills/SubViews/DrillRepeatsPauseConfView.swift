@@ -31,7 +31,7 @@ struct DrillRepeatsPauseConfView: View {
                 )
 
             // Text label next to icon
-            Text(NSLocalizedString("drill_duration_seconds_label", comment: "Drill duration in seconds label"))
+            Text(NSLocalizedString("drill_pause_seconds_label", comment: "Drill pause in seconds label"))
                 .foregroundColor(.white)
 
             Spacer()
