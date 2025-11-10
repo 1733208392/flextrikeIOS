@@ -130,3 +130,7 @@
 
 /* Duration Configuration */
 "select_duration" = "選擇時間";
+
+/* Drill Execution - Back Navigation */
+"continue_button" = "繼續";
+"drill_in_progress_back_message" = "訓練正在進行中。返回將丟失訓練記錄。您確定嗎？";

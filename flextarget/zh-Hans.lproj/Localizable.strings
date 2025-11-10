@@ -1,0 +1,136 @@
+/* Localizable.strings - Simplified Chinese */
+
+/* DrillMainPageView */
+"target_connected" = "标靶已连接";
+"target_disconnected" = "标靶未连接";
+"drills" = "训练";
+"ipsc_questionaries" = "IPSC 问卷";
+"idpa_questionaries" = "IDPA 问卷";
+
+/* DrillFormView */
+"drill_setup" = "训练设置";
+
+/* DrillListView */
+"my_drills" = "我的训练";
+"search_drills" = "搜索训练";
+"delete_drill_title" = "删除训练";
+"delete" = "删除";
+"cancel" = "取消";
+"back" = "返回";
+"delete_drill_message" = "您确定要删除 %@ 吗？";
+"connection_required" = "需要连接";
+"connection_required_message" = "请在添加训练前连接标靶设备。";
+"ok" = "确定";
+"untitled" = "未命名";
+"copy" = "复制";
+"targets" = "标靶";
+"targets_count" = "%d 个标靶";
+"delay_seconds" = "延迟: %d秒";
+
+/* BLE/ConnectSmartTargetView */
+"reconnect" = "重新连接";
+"okay" = "确定";
+"select_target" = "选择标靶";
+"connected" = "已连接";
+"connecting" = "连接中";
+"target_not_found" = "未找到标靶";
+"bluetooth_service_not_found" = "未找到蓝牙服务";
+"scan" = "扫描";
+
+/* LaserDryFire/OverlayView */
+"fps_display" = "FPS: %d";
+
+/* ShotTimelineView */
+"shots_count" = "%d 次射击";
+"shot_number" = "射击 %d";
+"shot_with_time" = "射击 %d: %.2f秒";
+
+/* DrillResultView */
+"progress_time" = "%.2f/%.2f秒";
+"drill_in_progress" = "训练进行中";
+"drill_in_progress_overlay" = "训练进行中...";
+"drill_ended" = "训练结束";
+"shot_added" = "已添加新的射击位置";
+"duplicate_shot_ignored" = "忽略重复射击";
+"decode_shot_error" = "解码射击数据失败";
+"drill_timer_expired" = "训练计时器超时";
+"shots_received" = "收到的射击";
+
+/* DrillSummaryView */
+"drill_result_summary_title" = "训练结果摘要";
+"no_summary_data_title" = "尚未记录摘要数据。";
+"no_summary_data_subtitle" = "运行训练课程以生成性能指标。";
+"repeat_number" = "重复 #%d";
+"shots_label" = "射击";
+"total_time_label" = "总时间";
+"shots_metric_label" = "射击";
+"fastest_label" = "最快";
+"first_shot_label" = "首次射击";
+"score_label" = "分数";
+
+/* SubViews */
+"history_record" = "历史记录";
+"delay_seconds_label" = "延迟(秒)";
+"num_repeats_label" = "重复次数";
+"select_repeats" = "选择重复次数";
+"drill_duration_seconds_label" = "时长/Rep(s)";
+"drill_pause_seconds_label" = "重复之间的暂停(秒)";
+"delay_range" = "2...5";
+"description" = "描述";
+"enter_description_placeholder" = "输入描述...";
+"add_demo_video" = "添加演示视频";
+"add_target" = "添加标靶";
+"targets_count_label" = "%d";
+"gun" = "枪械";
+"save" = "保存";
+"device" = "设备";
+"type" = "类型";
+
+/* AddDrillView */
+"drill_setups_exist" = "训练设置已存在。待办: 显示列表或主屏。";
+"failed_to_load_drills" = "加载训练失败";
+
+/* RecentTrainingView */
+"no_recent_drills" = "没有最近的训练";
+"complete_drills_message" = "完成一些训练以在此处查看";
+"hit_factor" = "命中因子";
+"date" = "日期";
+"fastest" = "最快";
+
+/* Information Views */
+"privacy_policy" = "隐私政策";
+"faq" = "常见问题";
+"about_us" = "关于我们";
+"drill_history" = "训练历史";
+"drill_replay" = "训练回放";
+"select_device" = "选择设备";
+"select_target_type" = "选择标靶类型";
+
+/* DrillFormView */
+"start_drill" = "开始训练";
+"save_drill" = "保存训练";
+"save_changes" = "保存更改";
+
+/* ACK / Waiting messages */
+"ack_timeout_title" = "等待 10 秒";
+"ack_timeout_message" = "超时";
+"waiting_for_devices" = "等待中";
+"waiting_devices_count" = "%d 个设备待就绪";
+
+/* TargetConfigListView */
+"maximum_targets_title" = "已达最大标靶数量";
+"maximum_targets_message" = "您已达到网络中的最大标靶数量（%d / %d）。";
+
+/* Additional */
+"copy_suffix" = " 副本";
+"retry" = "重试";
+
+/* BLE Error */
+"ble_error" = "BLE 错误";
+
+/* Duration Configuration */
+"select_duration" = "选择时间";
+
+/* Drill Execution - Back Navigation */
+"continue_button" = "继续";
+"drill_in_progress_back_message" = "训练正在进行中。返回将丢失训练记录。您确定吗？";

@@ -49,6 +49,8 @@ struct DrillFormView: View {
     @State private var showAckTimeoutAlert: Bool = false
     @State private var isDrillInProgress: Bool = false
     @State private var dotCount: Int = 0
+    @State private var isAddModeDrillSaved: Bool = false
+    @State private var showBackConfirmationAlert: Bool = false
     
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.managedObjectContext) private var environmentContext
@@ -243,12 +245,33 @@ struct DrillFormView: View {
             }
         )
         .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button(action: { attemptToGoBack() }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 16, weight: .semibold))
+                        Text(NSLocalizedString("my_drills", comment: "Back button label"))
+                            .font(.system(size: 16, weight: .regular))
+                    }
+                    .foregroundColor(.red)
+                }
+            }
+            
             ToolbarItem(placement: .principal) {
                 Text(NSLocalizedString("drill_setup", comment: "Drill setup view title"))
                     .font(.headline)
                     .foregroundColor(.red)
             }
         }
+        .alert(NSLocalizedString("drill_in_progress", comment: "Drill in progress"), isPresented: $showBackConfirmationAlert) {
+            Button(NSLocalizedString("cancel", comment: "Cancel button"), role: .cancel) { }
+            Button(NSLocalizedString("continue_button", comment: "Continue button"), role: .none) {
+                presentationMode.wrappedValue.dismiss()
+            }
+        } message: {
+            Text(NSLocalizedString("drill_in_progress_back_message", comment: "Message when trying to go back during drill execution"))
+        }
+        .navigationBarBackButtonHidden(true)
     }
     
     // MARK: - Action Buttons
@@ -267,21 +290,39 @@ struct DrillFormView: View {
             }
             .disabled(!bleManager.isConnected)
             
-            if case .edit = mode {
-                Button(action: startDrill) {
-                    Text(NSLocalizedString("start_drill", comment: "Start drill button"))
-                        .foregroundColor(.white)
-                        .fontWeight(.semibold)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(bleManager.isConnected ? Color.green : Color.gray)
-                        .cornerRadius(8)
-                }
-                .disabled(!bleManager.isConnected)
+            Button(action: saveAndStartDrill) {
+                Text(NSLocalizedString("start_drill", comment: "Start drill button"))
+                    .foregroundColor(.white)
+                    .fontWeight(.semibold)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(isStartDrillButtonEnabled ? Color.green : Color.gray)
+                    .cornerRadius(8)
             }
+            .disabled(!isStartDrillButtonEnabled)
         }
         .padding(.horizontal)
         .padding(.bottom, 20)
+    }
+    
+    private var isStartDrillButtonEnabled: Bool {
+        guard bleManager.isConnected else { return false }
+        
+        // In Add Mode, button is only enabled after drill is saved
+        if case .add = mode {
+            return isAddModeDrillSaved
+        }
+        
+        // In Edit Mode, button is always enabled (if BLE is connected)
+        return true
+    }
+    
+    private func attemptToGoBack() {
+        if isDrillInProgress {
+            showBackConfirmationAlert = true
+        } else {
+            presentationMode.wrappedValue.dismiss()
+        }
     }
     
     // MARK: - Save Logic
@@ -363,6 +404,11 @@ struct DrillFormView: View {
                     try viewContext.save()
                     print("Save successful!")
 
+                    // Mark as saved in Add Mode
+                    if case .add = mode {
+                        isAddModeDrillSaved = true
+                    }
+
                     // Notify listeners that the repository changed so UI can refresh
                     DispatchQueue.main.async {
                         NotificationCenter.default.post(name: .drillRepositoryDidChange, object: nil)
@@ -429,24 +475,80 @@ struct DrillFormView: View {
         }
     }
     
+    private func saveAndStartDrill() {
+        targets = targetConfigs
+        
+        // First, save the drill
+        var drillSetupToStart: DrillSetup?
+        
+        do {
+            // Ensure any picked temp files are moved into app Documents for persistence
+            if let tempVideo = demoVideoURL, tempVideo.path.starts(with: FileManager.default.temporaryDirectory.path) {
+                if let moved = moveFileToDocuments(from: tempVideo) {
+                    demoVideoURL = moved
+                } else {
+                    print("Warning: Failed to move video from temp to Documents, keeping temp path")
+                }
+            }
+            if let tempThumb = thumbnailFileURL, tempThumb.path.starts(with: FileManager.default.temporaryDirectory.path) {
+                if let moved = moveFileToDocuments(from: tempThumb) {
+                    thumbnailFileURL = moved
+                } else {
+                    print("Warning: Failed to move thumbnail from temp to Documents, keeping temp path")
+                }
+            }
+
+            switch mode {
+            case .add:
+                createNewDrillSetup()
+                // Get the newly created drill setup from inserted objects
+                for object in viewContext.insertedObjects {
+                    if let drillSetup = object as? DrillSetup {
+                        drillSetupToStart = drillSetup
+                        break
+                    }
+                }
+                
+            case .edit(let drillSetup):
+                updateExistingDrillSetup(drillSetup)
+                drillSetupToStart = drillSetup
+            }
+            
+            // Save the drill setup
+            if viewContext.hasChanges {
+                try viewContext.save()
+                print("Drill saved successfully before starting execution")
+                
+                // Mark as saved in Add Mode
+                if case .add = mode {
+                    isAddModeDrillSaved = true
+                }
+            }
+            
+            // Now start the drill
+            guard let drillSetup = drillSetupToStart else {
+                print("Failed to get drill setup for starting")
+                return
+            }
+            
+            startDrill(with: drillSetup)
+        } catch {
+            print("Failed to save drill setup before starting: \(error)")
+            viewContext.rollback()
+        }
+    }
+    
     private func startDrill() {
         guard case .edit(let drillSetup) = mode else { return }
-
+        startDrill(with: drillSetup)
+    }
+    
+    private func startDrill(with drillSetup: DrillSetup) {
         isDrillInProgress = true
         dotCount = 0
 
         drillRepeatSummaries.removeAll()
         navigateToDrillSummary = false
-        
-        // Save changes before starting
-        targets = targetConfigs
-        updateExistingDrillSetup(drillSetup)
-        
-        do {
-            try viewContext.save()
-        } catch {
-            print("Failed to save drill setup before starting: \(error)")
-        }
         
         // Use the current drill targetConfigs as the expected devices
         expectedDevices = targetConfigs.compactMap { $0.targetName }

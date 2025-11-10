@@ -130,3 +130,7 @@
 
 /* Duration Configuration */
 "select_duration" = "Dauer auswählen";
+
+/* Drill Execution - Back Navigation */
+"continue_button" = "Fortfahren";
+"drill_in_progress_back_message" = "Eine Übung wird derzeit ausgeführt. Das Zurückgehen führt zum Verlust des Übungseintrags. Sind Sie sicher?";

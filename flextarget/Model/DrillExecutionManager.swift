@@ -24,6 +24,7 @@ class DrillExecutionManager {
     private var firstTargetName: String?
     private var lastTargetName: String?
     private var isWaitingForEnd = false
+    private var pauseTimer: Timer?
     
     init(bleManager: BLEManager, drillSetup: DrillSetup, expectedDevices: [String], onComplete: @escaping ([DrillRepeatSummary]) -> Void, onFailure: @escaping () -> Void) {
         self.bleManager = bleManager
@@ -37,6 +38,8 @@ class DrillExecutionManager {
     
     deinit {
         stopObservingShots()
+        ackTimeoutTimer?.invalidate()
+        pauseTimer?.invalidate()
     }
 
     var summaries: [DrillRepeatSummary] {
@@ -347,7 +350,14 @@ class DrillExecutionManager {
         finalizeRepeat(repeatIndex: repeatIndex)
 
         if repeatIndex < drillSetup.repeats {
-            executeNextRepeat()
+            // Apply pause time before starting next repeat
+            let pauseSeconds = TimeInterval(drillSetup.pause)
+            print("Completed repeat \(repeatIndex), waiting \(pauseSeconds) seconds before next repeat...")
+            
+            pauseTimer?.invalidate()
+            pauseTimer = Timer.scheduledTimer(withTimeInterval: pauseSeconds, repeats: false) { [weak self] _ in
+                self?.executeNextRepeat()
+            }
         } else {
             stopObservingShots()
             onComplete(repeatSummaries)

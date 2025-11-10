@@ -110,15 +110,22 @@ struct DrillListView: View {
     
     @ViewBuilder
     private func drillRow(for drill: DrillSetup) -> some View {
-        ZStack {
-            NavigationLink(destination: EditDrillView(drillSetup: drill, bleManager: bleManager)) {
-                EmptyView()
-            }
-            .opacity(0)
-            
+        NavigationLink(destination: EditDrillView(drillSetup: drill, bleManager: bleManager)) {
             drillRowContent(for: drill)
         }
         .listRowBackground(Color.clear)
+        .contextMenu {
+            Button(action: { copyDrill(drill) }) {
+                Label(NSLocalizedString("copy", comment: "Copy drill action"), systemImage: "doc.on.doc")
+            }
+            
+            Button(role: .destructive, action: {
+                drillToDelete = drill
+                showDeleteAlert = true
+            }) {
+                Label(NSLocalizedString("delete", comment: "Delete drill action"), systemImage: "trash")
+            }
+        }
     }
     
     @ViewBuilder
@@ -142,21 +149,6 @@ struct DrillListView: View {
                 .foregroundColor(.gray)
         }
         .padding(.vertical, 8)
-        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-            Button {
-                copyDrill(drill)
-            } label: {
-                Label(NSLocalizedString("copy", comment: "Copy drill action"), systemImage: "doc.on.doc")
-            }
-            .tint(.gray)
-
-            Button(role: .destructive) {
-                drillToDelete = drill
-                showDeleteAlert = true
-            } label: {
-                Label(NSLocalizedString("delete", comment: "Delete drill action"), systemImage: "trash")
-            }
-        }
     }
     
     @ViewBuilder

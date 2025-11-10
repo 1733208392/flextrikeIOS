@@ -130,3 +130,7 @@
 
 /* Duration Configuration */
 "select_duration" = "Seleccionar Duración";
+
+/* Drill Execution - Back Navigation */
+"continue_button" = "Continuar";
+"drill_in_progress_back_message" = "Un ejercicio está en progreso. Retroceder perderá el registro del ejercicio. ¿Está seguro?";
