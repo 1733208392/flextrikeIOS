@@ -50,6 +50,8 @@
 "progress_time" = "%.2f/%.2fs";
 "drill_in_progress" = "Drill In Progress";
 "drill_in_progress_overlay" = "DRILL IN PROGRESS...";
+"end_drill" = "End Drill";
+"confirm" = "Confirm";
 "drill_ended" = "Drill Ended";
 "shot_added" = "Added new shot at position";
 "duplicate_shot_ignored" = "Ignored duplicate shot";

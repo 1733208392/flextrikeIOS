@@ -49,6 +49,8 @@
 "progress_time" = "%.2f/%.2fs";
 "drill_in_progress" = "Übung läuft";
 "drill_in_progress_overlay" = "ÜBUNG LÄUFT...";
+"end_drill" = "Übung beenden";
+"confirm" = "Bestätigen";
 "drill_ended" = "Übung beendet";
 "shot_added" = "Neuer Schuss hinzugefügt an Position";
 "duplicate_shot_ignored" = "Doppelter Schuss ignoriert";

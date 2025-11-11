@@ -25,6 +25,7 @@ class DrillExecutionManager {
     private var lastTargetName: String?
     private var isWaitingForEnd = false
     private var pauseTimer: Timer?
+    private var isStopped = false
     
     init(bleManager: BLEManager, drillSetup: DrillSetup, expectedDevices: [String], onComplete: @escaping ([DrillRepeatSummary]) -> Void, onFailure: @escaping () -> Void) {
         self.bleManager = bleManager
@@ -47,13 +48,22 @@ class DrillExecutionManager {
     }
 
     func startExecution() {
+        isStopped = false
         repeatSummaries.removeAll()
         currentRepeatShots.removeAll()
         currentRepeatStartTime = nil
         executeNextRepeat()
     }
     
+    func stopExecution() {
+        isStopped = true
+        ackTimeoutTimer?.invalidate()
+        pauseTimer?.invalidate()
+        stopObservingShots()
+    }
+    
     private func executeNextRepeat() {
+        guard !isStopped else { return }
         currentRepeat += 1
         print("Starting repeat \(currentRepeat) of \(drillSetup.repeats)")
         

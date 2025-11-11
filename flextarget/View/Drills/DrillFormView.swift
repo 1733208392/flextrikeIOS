@@ -51,6 +51,7 @@ struct DrillFormView: View {
     @State private var dotCount: Int = 0
     @State private var isAddModeDrillSaved: Bool = false
     @State private var showBackConfirmationAlert: Bool = false
+    @State private var showEndDrillAlert: Bool = false
     
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.managedObjectContext) private var environmentContext
@@ -262,14 +263,37 @@ struct DrillFormView: View {
                     .font(.headline)
                     .foregroundColor(.red)
             }
+            
+            ToolbarItem(placement: .navigationBarTrailing) {
+                if isDrillInProgress {
+                    Button(action: { showEndDrillAlert = true }) {
+                        Text(NSLocalizedString("end_drill", comment: "End drill button"))
+                            .foregroundColor(.red)
+                            .font(.system(size: 16, weight: .regular))
+                    }
+                }
+            }
         }
         .alert(NSLocalizedString("drill_in_progress", comment: "Drill in progress"), isPresented: $showBackConfirmationAlert) {
             Button(NSLocalizedString("cancel", comment: "Cancel button"), role: .cancel) { }
             Button(NSLocalizedString("continue_button", comment: "Continue button"), role: .none) {
+                executionManager?.stopExecution()
+                executionManager = nil
+                isDrillInProgress = false
                 presentationMode.wrappedValue.dismiss()
             }
         } message: {
             Text(NSLocalizedString("drill_in_progress_back_message", comment: "Message when trying to go back during drill execution"))
+        }
+        .alert(NSLocalizedString("end_drill", comment: "End drill alert title"), isPresented: $showEndDrillAlert) {
+            Button(NSLocalizedString("cancel", comment: "Cancel button"), role: .cancel) { }
+            Button(NSLocalizedString("confirm", comment: "Confirm button"), role: .destructive) {
+                executionManager?.stopExecution()
+                executionManager = nil
+                isDrillInProgress = false
+            }
+        } message: {
+            Text(NSLocalizedString("drill_in_progress", comment: "Drill in progress"))
         }
         .navigationBarBackButtonHidden(true)
     }
