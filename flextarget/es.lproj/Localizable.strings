@@ -49,6 +49,8 @@
 "progress_time" = "%.2f/%.2fs";
 "drill_in_progress" = "Ejercicio en Progreso";
 "drill_in_progress_overlay" = "EJERCICIO EN PROGRESO...";
+"end_drill" = "Finalizar Ejercicio";
+"confirm" = "Confirmar";
 "drill_ended" = "Ejercicio finalizado";
 "shot_added" = "Nuevo disparo agregado en posición";
 "duplicate_shot_ignored" = "Disparo duplicado ignorado";

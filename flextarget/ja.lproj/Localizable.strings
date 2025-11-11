@@ -49,6 +49,8 @@
 "progress_time" = "%.2f/%.2f秒";
 "drill_in_progress" = "ドリル実行中";
 "drill_in_progress_overlay" = "ドリル実行中...";
+"end_drill" = "ドリル終了";
+"confirm" = "確認";
 "drill_ended" = "ドリル終了";
 "shot_added" = "位置に新しいショットを追加";
 "duplicate_shot_ignored" = "重複するショットを無視";

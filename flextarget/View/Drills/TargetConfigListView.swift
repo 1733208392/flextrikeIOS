@@ -1,6 +1,5 @@
 import Foundation
 import SwiftUI
-import UniformTypeIdentifiers
 
 struct TargetConfigListView: View {
     let deviceList: [NetworkDevice]
@@ -8,8 +7,6 @@ struct TargetConfigListView: View {
     let onDone: () -> Void
     
     @Environment(\.dismiss) private var dismiss
-    // Drag state for custom reordering on iOS 15
-    @State private var dragSourceIndex: Int? = nil
     @State private var showDisabledMessage = false
 
     private let iconNames = [
@@ -56,27 +53,16 @@ struct TargetConfigListView: View {
 
     private var listView: some View {
         List {
-            ForEach(targetConfigs.indices, id: \.self) { index in
+            ForEach($targetConfigs, id: \.id) { $config in
                 TargetRowView(
-                    config: $targetConfigs[index],
-                    availableDevices: availableDevices(for: targetConfigs[index])
+                    config: $config,
+                    availableDevices: availableDevices(for: config)
                 )
-                .contentShape(Rectangle())
-                // Begin dragging from this row
-                .onDrag {
-                    self.dragSourceIndex = index
-                    return NSItemProvider(object: NSString(string: "\(index)"))
-                }
-                // Handle dropping over this row to reorder
-                .onDrop(of: [UTType.text], delegate: ReorderDropDelegate(
-                    targetIndex: index,
-                    items: $targetConfigs,
-                    dragSourceIndex: $dragSourceIndex,
-                    onReorder: {
-                        updateSeqNos()
-                        saveTargetConfigs()
-                    }
-                ))
+            }
+            .onMove { indices, newOffset in
+                targetConfigs.move(fromOffsets: indices, toOffset: newOffset)
+                updateSeqNos()
+                saveTargetConfigs()
             }
             .onDelete { indices in
                 targetConfigs.remove(atOffsets: indices)
@@ -87,6 +73,7 @@ struct TargetConfigListView: View {
         .listStyle(.plain)
         .background(Color.black)
         .scrollContentBackgroundHidden()
+        .environment(\.editMode, .constant(.active))
         .onChange(of: targetConfigs) { _ in
             saveTargetConfigs()
         }
@@ -407,34 +394,4 @@ struct TargetTypePickerView: View {
     ]
     
     TargetConfigListView(deviceList: mockDevices, targetConfigs: .constant(mockConfigs), onDone: {})
-}
-
-// MARK: - Drop Delegate for Reordering
-
-fileprivate struct ReorderDropDelegate: DropDelegate {
-    let targetIndex: Int
-    @Binding var items: [DrillTargetsConfigData]
-    @Binding var dragSourceIndex: Int?
-    let onReorder: () -> Void
-
-    func dropEntered(info: DropInfo) {
-        guard let source = dragSourceIndex,
-              source != targetIndex,
-              source >= 0,
-              source < items.count,
-              targetIndex >= 0,
-              targetIndex < items.count else { return }
-
-        withAnimation {
-            let item = items.remove(at: source)
-            items.insert(item, at: targetIndex)
-            dragSourceIndex = targetIndex
-            onReorder()
-        }
-    }
-
-    func performDrop(info: DropInfo) -> Bool {
-        dragSourceIndex = nil
-        return true
-    }
 }

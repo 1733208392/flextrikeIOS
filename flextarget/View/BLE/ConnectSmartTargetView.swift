@@ -144,6 +144,19 @@ struct ConnectSmartTargetView: View {
             .frame(width: geometry.size.width, height: geometry.size.height, alignment: .top)
 //                .border(Color.white, width: 1)
         }//Top Level Geometry Reader
+        .overlay(alignment: .topTrailing) {
+            Button(action: { dismiss() }) {
+                Image(systemName: "xmark")
+                    .foregroundColor(.white)
+                    .font(.system(size: 20))
+                    .padding(12)
+                    .background(Color.white.opacity(0.2))
+                    .clipShape(Circle())
+            }
+            .padding(.trailing, 20)
+            .padding(.top, 20)
+            .accessibilityLabel(Text("Close"))
+        }
         .sheet(isPresented: $showPeripheralPicker) {
             GeometryReader { geo in
                 ZStack {

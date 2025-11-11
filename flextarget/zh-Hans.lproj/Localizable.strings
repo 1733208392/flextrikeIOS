@@ -49,6 +49,8 @@
 "progress_time" = "%.2f/%.2f秒";
 "drill_in_progress" = "训练进行中";
 "drill_in_progress_overlay" = "训练进行中...";
+"end_drill" = "结束训练";
+"confirm" = "确认";
 "drill_ended" = "训练结束";
 "shot_added" = "已添加新的射击位置";
 "duplicate_shot_ignored" = "忽略重复射击";
