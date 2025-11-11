@@ -14,7 +14,7 @@
 /* Begin PBXFileReference section */
 		2A4B28F42E2F57F1001C9926 /* 首页.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "首页.png"; sourceTree = "<group>"; };
 		2A717F532E22A82E002CBD1E /* Flex-Target-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "Flex-Target-Info.plist"; sourceTree = "<group>"; };
-		2AEA529E2E07F37C009C0C68 /* Flex Target.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Flex Target.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2AEA529E2E07F37C009C0C68 /* FlexTarget.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FlexTarget.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2AF12A1C2E5B1A0100000000 /* flextarget/Base.lproj */ = {isa = PBXFileReference; lastKnownFileType = folder.lprojdata; path = flextarget/Base.lproj; sourceTree = "<group>"; };
 		2AF12A1C2E5B1A0100000001 /* flextarget/en.lproj */ = {isa = PBXFileReference; lastKnownFileType = folder.lprojdata; path = flextarget/en.lproj; sourceTree = "<group>"; };
 		2AF12A1C2E5B1A0100000002 /* flextarget/de.lproj */ = {isa = PBXFileReference; lastKnownFileType = folder.lprojdata; path = flextarget/de.lproj; sourceTree = "<group>"; };
@@ -30,13 +30,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		2AC1CE802EBDF00C00AD9529 /* Exceptions for "flextarget" folder in "Flex Target" target */ = {
+		2AC1CE802EBDF00C00AD9529 /* Exceptions for "flextarget" folder in "FlexTarget" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				test.jpg,
 				test.png,
 			);
-			target = 2AEA529D2E07F37C009C0C68 /* Flex Target */;
+			target = 2AEA529D2E07F37C009C0C68 /* FlexTarget */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -44,7 +44,7 @@
 		2AEA52A02E07F37C009C0C68 /* flextarget */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				2AC1CE802EBDF00C00AD9529 /* Exceptions for "flextarget" folder in "Flex Target" target */,
+				2AC1CE802EBDF00C00AD9529 /* Exceptions for "flextarget" folder in "FlexTarget" target */,
 			);
 			path = flextarget;
 			sourceTree = "<group>";
@@ -108,7 +108,7 @@
 		2AEA529F2E07F37C009C0C68 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				2AEA529E2E07F37C009C0C68 /* Flex Target.app */,
+				2AEA529E2E07F37C009C0C68 /* FlexTarget.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -116,9 +116,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		2AEA529D2E07F37C009C0C68 /* Flex Target */ = {
+		2AEA529D2E07F37C009C0C68 /* FlexTarget */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 2AEA52A92E07F37D009C0C68 /* Build configuration list for PBXNativeTarget "Flex Target" */;
+			buildConfigurationList = 2AEA52A92E07F37D009C0C68 /* Build configuration list for PBXNativeTarget "FlexTarget" */;
 			buildPhases = (
 				2AEA529A2E07F37C009C0C68 /* Sources */,
 				2AEA529B2E07F37C009C0C68 /* Frameworks */,
@@ -131,13 +131,13 @@
 			fileSystemSynchronizedGroups = (
 				2AEA52A02E07F37C009C0C68 /* flextarget */,
 			);
-			name = "Flex Target";
+			name = FlexTarget;
 			packageProductDependencies = (
 				2A606D212E0FBF010006A6DB /* SVGKit */,
 				2A606D232E0FBF010006A6DB /* SVGKitSwift */,
 			);
 			productName = opencvtestminimal;
-			productReference = 2AEA529E2E07F37C009C0C68 /* Flex Target.app */;
+			productReference = 2AEA529E2E07F37C009C0C68 /* FlexTarget.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -156,7 +156,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 2AEA52992E07F37C009C0C68 /* Build configuration list for PBXProject "flextarget" */;
+			buildConfigurationList = 2AEA52992E07F37C009C0C68 /* Build configuration list for PBXProject "FlexTarget" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -178,7 +178,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				2AEA529D2E07F37C009C0C68 /* Flex Target */,
+				2AEA529D2E07F37C009C0C68 /* FlexTarget */,
 			);
 		};
 /* End PBXProject section */
@@ -459,7 +459,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		2AEA52992E07F37C009C0C68 /* Build configuration list for PBXProject "flextarget" */ = {
+		2AEA52992E07F37C009C0C68 /* Build configuration list for PBXProject "FlexTarget" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2AEA52A72E07F37D009C0C68 /* Debug */,
@@ -468,7 +468,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		2AEA52A92E07F37D009C0C68 /* Build configuration list for PBXNativeTarget "Flex Target" */ = {
+		2AEA52A92E07F37D009C0C68 /* Build configuration list for PBXNativeTarget "FlexTarget" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2AEA52AA2E07F37D009C0C68 /* Debug */,

@@ -8,8 +8,9 @@ struct ConnectSmartTargetView: View {
     @State private var showReconnect: Bool = false
     @State private var isShaking: Bool = true
     @State private var showProgress: Bool = false
-    @State private var hasTriedReconnect: Bool = false
     @State private var showOkay: Bool = false
+    @State private var showFirmwareAlert: Bool = false
+    @State private var hasTriedReconnect: Bool = false
     @State private var showPeripheralPicker: Bool = false
     @State private var selectedPeripheral: DiscoveredPeripheral?
     var onConnected: (() -> Void)?
@@ -125,8 +126,8 @@ struct ConnectSmartTargetView: View {
                                     .background(Color.blue)
                                     .cornerRadius(8)
                             }
-                            Button(action: { goToMain() }) {
-                                Text(NSLocalizedString("okay", comment: "Okay button"))
+                            Button(action: { showFirmwareAlert = true }) {
+                                Text(NSLocalizedString("firmware_upgrade", comment: "Firmware Upgrade button"))
                                     .font(.custom("SFPro-Medium", size: 20))
                                     .foregroundColor(.white)
                                     .frame(width: geometry.size.width * 0.35, height: 44)
@@ -187,6 +188,17 @@ struct ConnectSmartTargetView: View {
         }
         .background(Color.black.ignoresSafeArea())
 //        .mobilePhoneLayout()
+        .alert(isPresented: $showFirmwareAlert) {
+            Alert(
+                title: Text(NSLocalizedString("firmware_upgrade_title", comment: "Firmware Upgrade alert title")),
+                message: Text(NSLocalizedString("firmware_upgrade_message", comment: "Firmware Upgrade alert message")),
+                primaryButton: .default(Text("OK")) {
+                    bleManager.writeJSON("{\"action\":\"upgrade_engine\"}")
+                    goToMain()
+                },
+                secondaryButton: .cancel()
+            )
+        }
         .onAppear {
             if bleManager.isConnected {
                 statusText = NSLocalizedString("target_connected", comment: "Status when target is connected")

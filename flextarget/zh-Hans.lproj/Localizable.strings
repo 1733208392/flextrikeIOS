@@ -35,7 +35,7 @@
 "connecting" = "连接中";
 "target_not_found" = "未找到标靶";
 "bluetooth_service_not_found" = "未找到蓝牙服务";
-"scan" = "扫描";
+"scan" = "重新扫描";
 
 /* LaserDryFire/OverlayView */
 "fps_display" = "FPS: %d";
@@ -134,3 +134,8 @@
 /* Drill Execution - Back Navigation */
 "continue_button" = "继续";
 "drill_in_progress_back_message" = "训练正在进行中。返回将丢失训练记录。您确定吗？";
+
+/* Firmware Upgrade */
+"firmware_upgrade" = "固件升级";
+"firmware_upgrade_title" = "固件升级";
+"firmware_upgrade_message" = "确保新的固件USB驱动器牢固地插入设备右侧的USB端口。";

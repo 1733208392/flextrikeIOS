@@ -35,7 +35,7 @@
 "connecting" = "VERBINDUNG";
 "target_not_found" = "ZIEL NICHT GEFUNDEN";
 "bluetooth_service_not_found" = "BLUETOOTH-DIENST NICHT GEFUNDEN";
-"scan" = "Scannen";
+"scan" = "Erneut scannen";
 
 /* LaserDryFire/OverlayView */
 "fps_display" = "FPS: %d";
@@ -134,3 +134,8 @@
 /* Drill Execution - Back Navigation */
 "continue_button" = "Fortfahren";
 "drill_in_progress_back_message" = "Eine Übung wird derzeit ausgeführt. Das Zurückgehen führt zum Verlust des Übungseintrags. Sind Sie sicher?";
+
+/* Firmware Upgrade */
+"firmware_upgrade" = "Firmware-Aktualisierung";
+"firmware_upgrade_title" = "Firmware-Aktualisierung";
+"firmware_upgrade_message" = "Stellen Sie sicher, dass das neue Firmware-USB-Laufwerk sicher in den USB-Anschluss auf der rechten Seite des Geräts eingesteckt ist.";

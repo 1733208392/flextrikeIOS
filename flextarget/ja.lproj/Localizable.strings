@@ -35,7 +35,7 @@
 "connecting" = "接続中";
 "target_not_found" = "ターゲットが見つかりません";
 "bluetooth_service_not_found" = "Bluetoothサービスが見つかりません";
-"scan" = "スキャン";
+"scan" = "再スキャン";
 
 /* LaserDryFire/OverlayView */
 "fps_display" = "FPS: %d";
@@ -134,3 +134,8 @@
 /* Drill Execution - Back Navigation */
 "continue_button" = "続行";
 "drill_in_progress_back_message" = "ドリルが進行中です。戻ると、ドリル記録が失われます。確認してもよろしいですか？";
+
+/* Firmware Upgrade */
+"firmware_upgrade" = "ファームウェアアップグレード";
+"firmware_upgrade_title" = "ファームウェアアップグレード";
+"firmware_upgrade_message" = "新しいファームウェアUSBドライブがデバイスの右側のUSBポートにしっかりと挿入されていることを確認してください。";

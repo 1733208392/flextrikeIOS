@@ -36,7 +36,7 @@
 "connecting" = "CONNECTING";
 "target_not_found" = "TARGET NOT FOUND";
 "bluetooth_service_not_found" = "BLUETOOTH SERVICE NOT FOUND";
-"scan" = "Scan";
+"scan" = "Re-Scan";
 
 /* LaserDryFire/OverlayView */
 "fps_display" = "FPS: %d";
@@ -127,3 +127,8 @@
 
 /* Duration Configuration */
 "select_duration" = "Select Duration";
+
+/* Firmware Upgrade */
+"firmware_upgrade" = "Firmware Upgrade";
+"firmware_upgrade_title" = "Firmware Upgrade";
+"firmware_upgrade_message" = "Ensure the new firmware USB drive is securely inserted into the USB port on the right side of the device.";
