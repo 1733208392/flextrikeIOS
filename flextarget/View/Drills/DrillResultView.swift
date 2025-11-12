@@ -361,6 +361,9 @@ struct DrillResultView: View {
                     startDrillTimer()
                     setupNotificationObserver()
                     startDotsTimer()
+                } else {
+                    // For completed drills, show all shots initially
+                    visibleShotIndices = Set(shots.indices)
                 }
             }
             .onDisappear {

@@ -26,6 +26,7 @@ class DrillExecutionManager {
     private var isWaitingForEnd = false
     private var pauseTimer: Timer?
     private var isStopped = false
+    private var drillDuration: TimeInterval?
     
     init(bleManager: BLEManager, drillSetup: DrillSetup, expectedDevices: [String], onComplete: @escaping ([DrillRepeatSummary]) -> Void, onFailure: @escaping () -> Void) {
         self.bleManager = bleManager
@@ -235,6 +236,11 @@ class DrillExecutionManager {
                 
                 if didEnd {
                     guard isWaitingForEnd else { return }
+                    // Extract drill_duration if present
+                    if let duration = contentObj["drill_duration"] as? TimeInterval {
+                        drillDuration = duration
+                        print("Drill duration received: \(duration)")
+                    }
                     // Only process end message from the last target
                     if device == lastTargetName {
                         print("Last device end received: \(device)")
@@ -379,6 +385,7 @@ class DrillExecutionManager {
         currentRepeatStartTime = Date()
         startCommandTime = nil
         endCommandTime = nil
+        drillDuration = nil
         
         // Set first target name for later use in finalizeRepeat
         if let targetsSet = drillSetup.targets as? Set<DrillTargetsConfig> {
@@ -403,22 +410,21 @@ class DrillExecutionManager {
             return
         }
 
-        // Calculate total time: (endCommandTime - startCommandTime) - delay_time from ready ACK
+        // Calculate total time: drill_duration - delay_time from ready ACK
         var totalTime: TimeInterval = 0.0
-        if let startTime = startCommandTime, let endTime = endCommandTime {
-            let elapsedTime = endTime.timeIntervalSince(startTime)
-            // Convert globalDelayTime (String) to TimeInterval
-            let timerDelay: TimeInterval
-            if let delayTimeStr = globalDelayTime, let delayValue = Double(delayTimeStr) {
-                timerDelay = delayValue
-            } else {
-                timerDelay = 0.0
-            }
-            totalTime = max(0.0, elapsedTime - timerDelay)
-            print("Total time calculation - start: \(startTime), end: \(endTime), elapsed: \(elapsedTime), delay_time: \(timerDelay), total: \(totalTime)")
+        let timerDelay: TimeInterval
+        if let delayTimeStr = globalDelayTime, let delayValue = Double(delayTimeStr) {
+            timerDelay = delayValue
         } else {
-            print("Warning: Missing start or end timestamp for repeat \(repeatIndex)")
-            // Fallback to shot-based calculation if timestamps missing
+            timerDelay = 0.0
+        }
+        
+        if let duration = drillDuration {
+            totalTime = max(0.0, duration - timerDelay)
+            print("Total time calculation - drill_duration: \(duration), delay_time: \(timerDelay), total: \(totalTime)")
+        } else {
+            print("Warning: No drill_duration received for repeat \(repeatIndex), using fallback calculation")
+            // Fallback to shot-based calculation if drill_duration missing
             var timeSumPerTarget: [String: TimeInterval] = [:]
             for shot in sortedShots {
                 let device = shot.shot.device ?? shot.shot.target ?? "unknown"
@@ -428,18 +434,35 @@ class DrillExecutionManager {
             totalTime = timeSumPerTarget.values.max() ?? 0.0
         }
 
-        let numShots = sortedShots.count
-        let fastest = sortedShots.map { $0.shot.content.timeDiff }.min() ?? 0.0
-        let firstShotRaw = sortedShots.first?.shot.content.timeDiff ?? 0.0
-        // Convert globalDelayTime for firstShot calculation
-        let timerDelay: TimeInterval
-        if let delayTimeStr = globalDelayTime, let delayValue = Double(delayTimeStr) {
-            timerDelay = delayValue
-        } else {
-            timerDelay = 0.0
+        // Adjust timeDiff for shots from non-first targets by subtracting the delay
+        let adjustedShots = sortedShots.map { event -> ShotData in
+            if event.shot.device != firstTargetName {
+                let adjustedTimeDiff = max(0, event.shot.content.timeDiff - timerDelay)
+                let adjustedContent = Content(
+                    command: event.shot.content.command,
+                    hitArea: event.shot.content.hitArea,
+                    hitPosition: event.shot.content.hitPosition,
+                    rotationAngle: event.shot.content.rotationAngle,
+                    targetType: event.shot.content.targetType,
+                    timeDiff: adjustedTimeDiff,
+                    device: event.shot.content.device
+                )
+                return ShotData(
+                    target: event.shot.target,
+                    content: adjustedContent,
+                    type: event.shot.type,
+                    action: event.shot.action,
+                    device: event.shot.device
+                )
+            } else {
+                return event.shot
+            }
         }
-        let firstShot = (sortedShots.first?.shot.device != firstTargetName) ? (firstShotRaw - timerDelay) : firstShotRaw
-        let totalScore = sortedShots.reduce(0) { $0 + scoreForHitArea($1.shot.content.hitArea) }
+
+        let numShots = adjustedShots.count
+        let fastest = adjustedShots.map { $0.content.timeDiff }.min() ?? 0.0
+        let firstShot = adjustedShots.first?.content.timeDiff ?? 0.0
+        let totalScore = adjustedShots.reduce(0) { $0 + scoreForHitArea($1.content.hitArea) }
         let summary = DrillRepeatSummary(
             repeatIndex: repeatIndex,
             totalTime: totalTime,
@@ -447,7 +470,7 @@ class DrillExecutionManager {
             firstShot: firstShot,
             fastest: fastest,
             score: totalScore,
-            shots: sortedShots.map { $0.shot }
+            shots: adjustedShots
         )
 
         if repeatIndex - 1 < repeatSummaries.count {

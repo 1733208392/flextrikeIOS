@@ -634,4 +634,5 @@ extension Notification.Name {
     static let bleShotReceived = Notification.Name("bleShotReceived")
     static let bleNetlinkForwardReceived = Notification.Name("bleNetlinkForwardReceived")
     static let bleErrorOccurred = Notification.Name("bleErrorOccurred")
+    static let drillExecutionCompleted = Notification.Name("drillExecutionCompleted")
 }
