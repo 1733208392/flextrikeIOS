@@ -13,6 +13,9 @@ struct ConnectSmartTargetView: View {
     @State private var hasTriedReconnect: Bool = false
     @State private var showPeripheralPicker: Bool = false
     @State private var selectedPeripheral: DiscoveredPeripheral?
+    @State private var connectionStartTime: Date?
+    @State private var timeoutTimer: Timer?
+    @State private var remainingSeconds: Int = 15
     var onConnected: (() -> Void)?
 
     private func goToMain() {
@@ -197,6 +200,19 @@ struct ConnectSmartTargetView: View {
                     .cornerRadius(16)
                     .padding(.horizontal, 40)
                 }
+                .overlay(alignment: .topTrailing) {
+                    Button(action: { showPeripheralPicker = false }) {
+                        Image(systemName: "xmark")
+                            .foregroundColor(.white)
+                            .font(.system(size: 20))
+                            .padding(12)
+                            .background(Color.white.opacity(0.2))
+                            .clipShape(Circle())
+                    }
+                    .padding(.trailing, 20)
+                    .padding(.top, 20)
+                    .accessibilityLabel(Text("Close"))
+                }
             }
         }
         .background(Color.black.ignoresSafeArea())
@@ -217,11 +233,14 @@ struct ConnectSmartTargetView: View {
                 statusText = NSLocalizedString("target_connected", comment: "Status when target is connected")
                 showOkay = true
             } else {
+                connectionStartTime = Date()
+                startConnectionTimeout()
                 startScanAndTimer()
             }
         }
         .onChange(of: bleManager.isConnected) { newValue in
             if newValue {
+                timeoutTimer?.invalidate()
                 statusText = NSLocalizedString("connected", comment: "Status when connection successful")
                 isShaking = false
                 showReconnect = false
@@ -243,7 +262,7 @@ struct ConnectSmartTargetView: View {
     }
 
     private func startScanAndTimer() {
-        statusText = NSLocalizedString("connecting", comment: "Status when scanning for targets")
+        statusText = NSLocalizedString("trying_to_connect", comment: "Status when trying to connect to FlexTarget device")
         isShaking = true
         showReconnect = false
         showPeripheralPicker = false
@@ -277,8 +296,13 @@ struct ConnectSmartTargetView: View {
         }
         print("Selected peripheral: \(peripheral.name)")
         showPeripheralPicker = false
-        statusText = NSLocalizedString("connecting", comment: "Status when connecting to selected peripheral")
+        statusText = NSLocalizedString("trying_to_connect", comment: "Status when trying to connect to FlexTarget device")
         showProgress = true
+        
+        // Reset connection start time and restart timeout
+        connectionStartTime = Date()
+        startConnectionTimeout()
+        
         bleManager.connectToSelectedPeripheral(peripheral)
         
         // Start 10s connection timer
@@ -297,6 +321,28 @@ struct ConnectSmartTargetView: View {
     private func handleRescan() {
         bleManager.disconnect()
         startScanAndTimer()
+    }
+    
+    private func startConnectionTimeout() {
+        timeoutTimer?.invalidate()
+        remainingSeconds = 15
+        
+        timeoutTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+            guard let startTime = connectionStartTime else { return }
+            let elapsedSeconds = Int(Date().timeIntervalSince(startTime))
+            remainingSeconds = max(0, 15 - elapsedSeconds)
+            
+            // Update status text with countdown
+            statusText = NSLocalizedString("trying_to_connect", comment: "Status when trying to connect to FlexTarget device") + " (\(remainingSeconds))"
+            
+            // If 15 seconds have passed and not connected, dismiss
+            if elapsedSeconds >= 15 && !bleManager.isConnected {
+                timeoutTimer?.invalidate()
+                bleManager.disconnect()
+                bleManager.completeScan()
+                dismiss()
+            }
+        }
     }
 }
 

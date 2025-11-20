@@ -524,29 +524,31 @@ struct DrillResultView: View {
     }
     
     private func previousShot() {
-        // Find the previous shot before current progress
-        let previousShots = shots.enumerated().filter { absoluteTime(for: $0.offset) < currentProgress }.sorted { absoluteTime(for: $0.offset) > absoluteTime(for: $1.offset) }
+        guard let display = targetDisplays.first(where: { $0.id == selectedTargetKey }) else { return }
+        // Find the previous shot before current progress on the current target
+        let previousShots = shots.enumerated().filter { display.matches($0.element) && absoluteTime(for: $0.offset) < currentProgress }.sorted { absoluteTime(for: $0.offset) > absoluteTime(for: $1.offset) }
         
         if let previousShot = previousShots.first {
-            seek(to: absoluteTime(for: previousShot.offset), highlightIndex: previousShot.offset, shouldPulse: true)
+            seek(to: absoluteTime(for: previousShot.offset), highlightIndex: previousShot.offset, shouldPulse: true, restrictToSelectedTarget: true)
         } else {
             // Go to beginning
-            seek(to: 0.0, highlightIndex: nil, shouldPulse: false)
+            seek(to: 0.0, highlightIndex: nil, shouldPulse: false, restrictToSelectedTarget: true)
         }
     }
     
     private func nextShot() {
-        // Find the next shot after current progress
-        let nextShots = shots.enumerated().filter { absoluteTime(for: $0.offset) > currentProgress }.sorted { absoluteTime(for: $0.offset) < absoluteTime(for: $1.offset) }
+        guard let display = targetDisplays.first(where: { $0.id == selectedTargetKey }) else { return }
+        // Find the next shot after current progress on the current target
+        let nextShots = shots.enumerated().filter { display.matches($0.element) && absoluteTime(for: $0.offset) > currentProgress }.sorted { absoluteTime(for: $0.offset) < absoluteTime(for: $1.offset) }
         
         if let nextShot = nextShots.first {
-            seek(to: absoluteTime(for: nextShot.offset), highlightIndex: nextShot.offset, shouldPulse: true)
+            seek(to: absoluteTime(for: nextShot.offset), highlightIndex: nextShot.offset, shouldPulse: true, restrictToSelectedTarget: true)
         } else {
-            // Go to end
-            if let lastShot = shotTimelineData.last {
-                seek(to: totalDuration, highlightIndex: lastShot.index, shouldPulse: true)
+            // Go to end of current target
+            if let lastShotOnTarget = currentTargetTimelineData.last {
+                seek(to: absoluteTime(for: lastShotOnTarget.index), highlightIndex: lastShotOnTarget.index, shouldPulse: true, restrictToSelectedTarget: true)
             } else {
-                seek(to: totalDuration, highlightIndex: nil, shouldPulse: false)
+                seek(to: totalDuration, highlightIndex: nil, shouldPulse: false, restrictToSelectedTarget: true)
             }
         }
     }

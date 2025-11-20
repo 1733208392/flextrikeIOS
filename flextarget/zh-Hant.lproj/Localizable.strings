@@ -33,6 +33,7 @@
 "select_target" = "選擇目標";
 "connected" = "已連接";
 "connecting" = "連接中";
+"trying_to_connect" = "正在嘗試連接 FlexTarget 裝置";
 "target_not_found" = "未找到目標";
 "bluetooth_service_not_found" = "未找到藍牙服務";
 "scan" = "重新掃描";

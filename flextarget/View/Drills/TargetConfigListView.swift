@@ -16,7 +16,8 @@ struct TargetConfigListView: View {
         "popper",
         "rotation",
         "special_1",
-        "special_2"
+        "special_2",
+        "testTarget"
     ]
 
     var body: some View {
@@ -162,7 +163,8 @@ struct TargetRowView: View {
         "popper",
         "rotation",
         "special_1",
-        "special_2"
+        "special_2",
+        "testTarget"
     ]
 
     var body: some View {

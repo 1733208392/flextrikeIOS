@@ -33,6 +33,7 @@
 "select_target" = "ターゲットを選択";
 "connected" = "接続済み";
 "connecting" = "接続中";
+"trying_to_connect" = "FlexTargetデバイスへの接続を試みています";
 "target_not_found" = "ターゲットが見つかりません";
 "bluetooth_service_not_found" = "Bluetoothサービスが見つかりません";
 "scan" = "再スキャン";

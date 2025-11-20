@@ -7,14 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		2A606D222E0FBF010006A6DB /* SVGKit in Frameworks */ = {isa = PBXBuildFile; productRef = 2A606D212E0FBF010006A6DB /* SVGKit */; };
-		2A606D242E0FBF010006A6DB /* SVGKitSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 2A606D232E0FBF010006A6DB /* SVGKitSwift */; };
+		2A5EE4D82ECF151700C4F912 /* SVGKit in Frameworks */ = {isa = PBXBuildFile; productRef = 2A5EE4D72ECF151700C4F912 /* SVGKit */; };
+		2A5EE4DA2ECF151700C4F912 /* SVGKitSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 2A5EE4D92ECF151700C4F912 /* SVGKitSwift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		2A4B28F42E2F57F1001C9926 /* 首页.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "首页.png"; sourceTree = "<group>"; };
 		2A717F532E22A82E002CBD1E /* Flex-Target-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "Flex-Target-Info.plist"; sourceTree = "<group>"; };
-		2AEA529E2E07F37C009C0C68 /* Flex Target.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Flex Target.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2AEA529E2E07F37C009C0C68 /* FlexTarget.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FlexTarget.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2AF12A1C2E5B1A0100000000 /* flextarget/Base.lproj */ = {isa = PBXFileReference; lastKnownFileType = folder.lprojdata; path = flextarget/Base.lproj; sourceTree = "<group>"; };
 		2AF12A1C2E5B1A0100000001 /* flextarget/en.lproj */ = {isa = PBXFileReference; lastKnownFileType = folder.lprojdata; path = flextarget/en.lproj; sourceTree = "<group>"; };
 		2AF12A1C2E5B1A0100000002 /* flextarget/de.lproj */ = {isa = PBXFileReference; lastKnownFileType = folder.lprojdata; path = flextarget/de.lproj; sourceTree = "<group>"; };
@@ -30,21 +30,37 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		2AC1CE802EBDF00C00AD9529 /* Exceptions for "flextarget" folder in "Flex Target" target */ = {
+		2AC1CE802EBDF00C00AD9529 /* Exceptions for "flextarget" folder in "FlexTarget" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				test.jpg,
 				test.png,
+				View/ImageCrop/ARCHITECTURE.md,
+				View/ImageCrop/GEOMETRY_REFERENCE.md,
+				View/ImageCrop/QUICKREFERENCE.md,
 			);
-			target = 2AEA529D2E07F37C009C0C68 /* Flex Target */;
+			target = 2AEA529D2E07F37C009C0C68 /* FlexTarget */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+		2A5EE2112EC6BE3F00C4F912 /* Exceptions for "flextarget" folder in "Compile Sources" phase from "FlexTarget" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			buildPhase = 2AEA529A2E07F37C009C0C68 /* Sources */;
+			membershipExceptions = (
+				View/ImageCrop/ARCHITECTURE.md,
+				View/ImageCrop/GEOMETRY_REFERENCE.md,
+				View/ImageCrop/QUICKREFERENCE.md,
+			);
+		};
+/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		2AEA52A02E07F37C009C0C68 /* flextarget */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				2AC1CE802EBDF00C00AD9529 /* Exceptions for "flextarget" folder in "Flex Target" target */,
+				2AC1CE802EBDF00C00AD9529 /* Exceptions for "flextarget" folder in "FlexTarget" target */,
+				2A5EE2112EC6BE3F00C4F912 /* Exceptions for "flextarget" folder in "Compile Sources" phase from "FlexTarget" target */,
 			);
 			path = flextarget;
 			sourceTree = "<group>";
@@ -56,8 +72,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2A606D242E0FBF010006A6DB /* SVGKitSwift in Frameworks */,
-				2A606D222E0FBF010006A6DB /* SVGKit in Frameworks */,
+				2A5EE4DA2ECF151700C4F912 /* SVGKitSwift in Frameworks */,
+				2A5EE4D82ECF151700C4F912 /* SVGKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -108,7 +124,7 @@
 		2AEA529F2E07F37C009C0C68 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				2AEA529E2E07F37C009C0C68 /* Flex Target.app */,
+				2AEA529E2E07F37C009C0C68 /* FlexTarget.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -116,9 +132,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		2AEA529D2E07F37C009C0C68 /* Flex Target */ = {
+		2AEA529D2E07F37C009C0C68 /* FlexTarget */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 2AEA52A92E07F37D009C0C68 /* Build configuration list for PBXNativeTarget "Flex Target" */;
+			buildConfigurationList = 2AEA52A92E07F37D009C0C68 /* Build configuration list for PBXNativeTarget "FlexTarget" */;
 			buildPhases = (
 				2AEA529A2E07F37C009C0C68 /* Sources */,
 				2AEA529B2E07F37C009C0C68 /* Frameworks */,
@@ -131,13 +147,13 @@
 			fileSystemSynchronizedGroups = (
 				2AEA52A02E07F37C009C0C68 /* flextarget */,
 			);
-			name = "Flex Target";
+			name = FlexTarget;
 			packageProductDependencies = (
-				2A606D212E0FBF010006A6DB /* SVGKit */,
-				2A606D232E0FBF010006A6DB /* SVGKitSwift */,
+				2A5EE4D72ECF151700C4F912 /* SVGKit */,
+				2A5EE4D92ECF151700C4F912 /* SVGKitSwift */,
 			);
 			productName = opencvtestminimal;
-			productReference = 2AEA529E2E07F37C009C0C68 /* Flex Target.app */;
+			productReference = 2AEA529E2E07F37C009C0C68 /* FlexTarget.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -166,18 +182,19 @@
 				ja,
 				"zh-Hant",
 				de,
+				"zh-Hans",
 			);
 			mainGroup = 2AEA52952E07F37C009C0C68;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				2A606D202E0FBF010006A6DB /* XCRemoteSwiftPackageReference "SVGKit" */,
+				2A5EE4D62ECF151700C4F912 /* XCRemoteSwiftPackageReference "SVGKit" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 2AEA529F2E07F37C009C0C68 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				2AEA529D2E07F37C009C0C68 /* Flex Target */,
+				2AEA529D2E07F37C009C0C68 /* FlexTarget */,
 			);
 		};
 /* End PBXProject section */
@@ -349,7 +366,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 24QP873G9R;
+				DEVELOPMENT_TEAM = 5F2YC44LPH;
 				ENABLE_PREVIEWS = YES;
 				"EXCLUDED_SOURCE_FILE_NAMES[sdk=iphonesimulator*]" = (
 					OpenCVWrapper.mm,
@@ -371,23 +388,22 @@
 				"HEADER_SEARCH_PATHS[sdk=iphonesimulator*]" = "";
 				INFOPLIST_FILE = "Flex-Target-Info.plist";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.sports";
-				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = Test;
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Connect to the \"Smart Target\" Device to configurate the Drills";
 				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "Need BLE Connection to the Smart Target";
-				INFOPLIST_KEY_NSCameraUsageDescription = "Use camera to detect the laser point in the target screen";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = Test;
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Upload the demo video for your cusomized Drills";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = grwolf.flextrike;
+				PRODUCT_BUNDLE_IDENTIFIER = com.grwolf.flextarget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				"SWIFT_ACTIVE_COMPILATION_CONDITIONS[sdk=iphoneos*]" = "DEBUG USE_OPENCV";
 				"SWIFT_ACTIVE_COMPILATION_CONDITIONS[sdk=iphonesimulator*]" = DEBUG;
@@ -408,7 +424,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 24QP873G9R;
+				DEVELOPMENT_TEAM = 5F2YC44LPH;
 				ENABLE_PREVIEWS = YES;
 				"EXCLUDED_SOURCE_FILE_NAMES[sdk=iphonesimulator*]" = (
 					OpenCVWrapper.mm,
@@ -430,23 +446,22 @@
 				"HEADER_SEARCH_PATHS[sdk=iphonesimulator*]" = "";
 				INFOPLIST_FILE = "Flex-Target-Info.plist";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.sports";
-				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = Test;
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Connect to the \"Smart Target\" Device to configurate the Drills";
 				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "Need BLE Connection to the Smart Target";
-				INFOPLIST_KEY_NSCameraUsageDescription = "Use camera to detect the laser point in the target screen";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = Test;
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Upload the demo video for your cusomized Drills";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = grwolf.flextrike;
+				PRODUCT_BUNDLE_IDENTIFIER = com.grwolf.flextarget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				"SWIFT_ACTIVE_COMPILATION_CONDITIONS[sdk=iphoneos*]" = USE_OPENCV;
 				"SWIFT_ACTIVE_COMPILATION_CONDITIONS[sdk=iphonesimulator*]" = "";
@@ -469,7 +484,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		2AEA52A92E07F37D009C0C68 /* Build configuration list for PBXNativeTarget "Flex Target" */ = {
+		2AEA52A92E07F37D009C0C68 /* Build configuration list for PBXNativeTarget "FlexTarget" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2AEA52AA2E07F37D009C0C68 /* Debug */,
@@ -481,7 +496,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		2A606D202E0FBF010006A6DB /* XCRemoteSwiftPackageReference "SVGKit" */ = {
+		2A5EE4D62ECF151700C4F912 /* XCRemoteSwiftPackageReference "SVGKit" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/SVGKit/SVGKit.git";
 			requirement = {
@@ -492,14 +507,14 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		2A606D212E0FBF010006A6DB /* SVGKit */ = {
+		2A5EE4D72ECF151700C4F912 /* SVGKit */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 2A606D202E0FBF010006A6DB /* XCRemoteSwiftPackageReference "SVGKit" */;
+			package = 2A5EE4D62ECF151700C4F912 /* XCRemoteSwiftPackageReference "SVGKit" */;
 			productName = SVGKit;
 		};
-		2A606D232E0FBF010006A6DB /* SVGKitSwift */ = {
+		2A5EE4D92ECF151700C4F912 /* SVGKitSwift */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 2A606D202E0FBF010006A6DB /* XCRemoteSwiftPackageReference "SVGKit" */;
+			package = 2A5EE4D62ECF151700C4F912 /* XCRemoteSwiftPackageReference "SVGKit" */;
 			productName = SVGKitSwift;
 		};
 /* End XCSwiftPackageProductDependency section */

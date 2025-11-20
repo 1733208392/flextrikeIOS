@@ -33,6 +33,7 @@
 "select_target" = "ZIEL AUSWÄHLEN";
 "connected" = "VERBUNDEN";
 "connecting" = "VERBINDUNG";
+"trying_to_connect" = "Versuche, sich mit dem FlexTarget-Gerät zu verbinden";
 "target_not_found" = "ZIEL NICHT GEFUNDEN";
 "bluetooth_service_not_found" = "BLUETOOTH-DIENST NICHT GEFUNDEN";
 "scan" = "Erneut scannen";

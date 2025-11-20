@@ -34,6 +34,7 @@
 "select_target" = "SELECT TARGET";
 "connected" = "CONNECTED";
 "connecting" = "CONNECTING";
+"trying_to_connect" = "Trying to connect the FlexTarget Device";
 "target_not_found" = "TARGET NOT FOUND";
 "bluetooth_service_not_found" = "BLUETOOTH SERVICE NOT FOUND";
 "scan" = "Scan";
