@@ -445,15 +445,15 @@ class DrillExecutionManager {
                     rotationAngle: event.shot.content.rotationAngle,
                     targetType: event.shot.content.targetType,
                     timeDiff: adjustedTimeDiff,
-                    device: event.shot.content.device
+                    device: event.shot.content.device,
+                    targetPos: event.shot.content.targetPos
                 )
                 return ShotData(
                     target: event.shot.target,
                     content: adjustedContent,
                     type: event.shot.type,
                     action: event.shot.action,
-                    device: event.shot.device,
-                    targetPos: event.shot.targetPos
+                    device: event.shot.device
                 )
             } else {
                 return event.shot

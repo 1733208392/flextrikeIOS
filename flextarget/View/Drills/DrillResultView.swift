@@ -8,7 +8,6 @@ struct ShotData: Codable {
     let type: String?
     let action: String?
     let device: String?
-    let targetPos: Position?
 
     enum CodingKeys: String, CodingKey {
         case target
@@ -16,7 +15,6 @@ struct ShotData: Codable {
         case type
         case action
         case device
-        case targetPos = "target_pos"
     }
 }
 
@@ -28,6 +26,7 @@ struct Content: Codable {
     let targetType: String
     let timeDiff: Double
     let device: String?
+    let targetPos: Position?
 
     enum CodingKeys: String, CodingKey {
         case command
@@ -37,9 +36,10 @@ struct Content: Codable {
         case targetType = "target_type"
         case timeDiff = "time_diff"
         case device
+        case targetPos = "targetPos"
     }
 
-    init(command: String, hitArea: String, hitPosition: Position, rotationAngle: Int, targetType: String, timeDiff: Double, device: String? = nil) {
+    init(command: String, hitArea: String, hitPosition: Position, rotationAngle: Int, targetType: String, timeDiff: Double, device: String? = nil, targetPos: Position? = nil) {
         self.command = command
         self.hitArea = hitArea
         self.hitPosition = hitPosition
@@ -47,12 +47,32 @@ struct Content: Codable {
         self.targetType = targetType
         self.timeDiff = timeDiff
         self.device = device
+        self.targetPos = targetPos
     }
 }
 
 struct Position: Codable {
     let x: Double
     let y: Double
+
+    init(x: Double, y: Double) {
+        self.x = x
+        self.y = y
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        if let xStr = try? container.decode(String.self, forKey: .x), let xVal = Double(xStr) {
+            self.x = xVal
+        } else {
+            self.x = try container.decode(Double.self, forKey: .x)
+        }
+        if let yStr = try? container.decode(String.self, forKey: .y), let yVal = Double(yStr) {
+            self.y = yVal
+        } else {
+            self.y = try container.decode(Double.self, forKey: .y)
+        }
+    }
 }
 
 private struct TargetDisplay: Identifiable, Hashable {
@@ -94,7 +114,7 @@ private struct TargetDisplayView: View {
         var chosenShot: ShotData? {
             if let sel = selectedShotIndex, shots.indices.contains(sel) {
                 let s = shots[sel]
-                if display.matches(s), s.targetPos != nil {
+                if display.matches(s), s.content.targetPos != nil {
                     return s
                 }
             }
@@ -110,7 +130,7 @@ private struct TargetDisplayView: View {
                         }
                     }
 
-                    if let shotWithPos = chosenShot, let targetPos: Position = shotWithPos.targetPos {
+                    if let shotWithPos = chosenShot, let targetPos: Position = shotWithPos.content.targetPos {
                         let transformedX = (targetPos.x / 720.0) * frameWidth
                         let transformedY = (targetPos.y / 1280.0) * frameHeight
                         let rotationRad = Double(shotWithPos.content.rotationAngle)
@@ -628,9 +648,9 @@ struct PreviewContent: View {
         
         // Create mock shots with device info
         let mockShots = [
-            ShotData(target: "target1", content: Content(command: "shot", hitArea: "B", hitPosition: Position(x: 395.0, y: 495.0), rotationAngle: 0, targetType: "hostage", timeDiff: 0.18), type: "shot", action: "hit", device: "device1", targetPos: nil),
-            ShotData(target: "target1", content: Content(command: "shot", hitArea: "B", hitPosition: Position(x: 400.0, y: 500.0), rotationAngle: 0, targetType: "hostage", timeDiff: 0.21), type: "shot", action: "hit", device: "device1", targetPos: nil),
-            ShotData(target: "target1", content: Content(command: "shot", hitArea: "A", hitPosition: Position(x: 205.0, y: 295.0), rotationAngle: 0, targetType: "hostage", timeDiff: 1.35), type: "shot", action: "hit", device: "device2", targetPos: nil),
+            ShotData(target: "target1", content: Content(command: "shot", hitArea: "B", hitPosition: Position(x: 395.0, y: 495.0), rotationAngle: 0, targetType: "hostage", timeDiff: 0.18, device: "device1", targetPos: nil), type: "shot", action: "hit", device: "device1"),
+            ShotData(target: "target1", content: Content(command: "shot", hitArea: "B", hitPosition: Position(x: 400.0, y: 500.0), rotationAngle: 0, targetType: "hostage", timeDiff: 0.21, device: "device1", targetPos: nil), type: "shot", action: "hit", device: "device1"),
+            ShotData(target: "target1", content: Content(command: "shot", hitArea: "A", hitPosition: Position(x: 205.0, y: 295.0), rotationAngle: 0, targetType: "hostage", timeDiff: 1.35, device: "device2", targetPos: nil), type: "shot", action: "hit", device: "device2"),
         ]
         
         self.context = context

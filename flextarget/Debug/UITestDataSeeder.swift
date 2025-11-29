@@ -52,13 +52,13 @@ enum UITestDataSeeder {
                         // and a target position. `Content.rotationAngle` is an Int in
                         // the model; we'll store a small integer radian value (e.g. 1).
                         let rotAngle = t == "rotation" ? 1 : 0
-                        let content = Content(command: "shot", hitArea: "C", hitPosition: Position(x: centerX, y: centerY), rotationAngle: rotAngle, targetType: t, timeDiff: timeDelta, device: "device_\(t)")
-
                         // For rotation targets include a `target_pos` with the requested
                         // coordinates (-120, 200). For other targets leave nil.
                         let targetPosValue: Position? = t == "rotation" ? Position(x: 240.0, y: 840.0) : nil
 
-                        let sd = ShotData(target: "\(t)", content: content, type: "shot", action: "hit", device: "device_\(t)", targetPos: targetPosValue)
+                        let content = Content(command: "shot", hitArea: "C", hitPosition: Position(x: centerX, y: centerY), rotationAngle: rotAngle, targetType: t, timeDiff: timeDelta, device: "device_\(t)", targetPos: targetPosValue)
+
+                        let sd = ShotData(target: "\(t)", content: content, type: "shot", action: "hit", device: "device_\(t)")
                         generatedShots.append(sd)
                     }
                 }
