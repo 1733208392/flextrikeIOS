@@ -19,6 +19,7 @@ class ImageTransferManager {
     private var currentChunks: [Data] = []
     private var currentChunkIndex = 0
     private var transferCompletion: ((Bool, String) -> Void)?
+    private var progressHandler: ((Int) -> Void)?
     private var ackTimer: Timer?
     
     init(bleManager: BLEManager = .shared) {
@@ -37,6 +38,7 @@ class ImageTransferManager {
         _ image: UIImage,
         named imageName: String,
         compressionQuality: CGFloat = 0.2,
+        progress: ((Int) -> Void)? = nil,
         completion: @escaping (Bool, String) -> Void
     ) {
         guard !transferInProgress else {
@@ -60,6 +62,7 @@ class ImageTransferManager {
         
         transferInProgress = true
         transferCompletion = completion
+        progressHandler = progress
         currentChunkIndex = 0
         currentChunks = jpegData.chunked(into: chunkSize)
         
@@ -138,11 +141,16 @@ class ImageTransferManager {
         
         // Show progress
         let progress = Int((Double(currentChunkIndex) / Double(currentChunks.count)) * 100)
+        // Report progress via handler
+        progressHandler?(progress)
         print("   📤 Sent chunk \(currentChunkIndex)/\(currentChunks.count) (\(progress)%)")
         
         // Schedule next chunk (0.2s delay between chunks)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            self.sendNextChunk()
+            // only continue if transfer still in progress
+            if self.transferInProgress {
+                self.sendNextChunk()
+            }
         }
     }
     
@@ -170,6 +178,8 @@ class ImageTransferManager {
     
     private func finishTransfer(success: Bool, message: String) {
         transferInProgress = false
+        progressHandler?(success ? 100 : 0)
+        progressHandler = nil
         ackTimer?.invalidate()
         ackTimer = nil
         
@@ -180,6 +190,20 @@ class ImageTransferManager {
         }
         
         transferCompletion?(success, message)
+        transferCompletion = nil
+    }
+
+    /// Cancel an ongoing transfer. This will stop sending further chunks and call the completion with failure.
+    func cancelTransfer() {
+        guard transferInProgress else { return }
+        transferInProgress = false
+        currentChunks.removeAll()
+        currentChunkIndex = 0
+        ackTimer?.invalidate()
+        ackTimer = nil
+        progressHandler?(0)
+        progressHandler = nil
+        transferCompletion?(false, "Transfer cancelled")
         transferCompletion = nil
     }
 }

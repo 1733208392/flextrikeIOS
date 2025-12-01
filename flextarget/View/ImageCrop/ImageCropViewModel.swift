@@ -85,8 +85,8 @@ class ImageCropViewModel: ObservableObject {
         }()
 
         // Allowed half-range for the center offset so the crop rect remains fully covered
-        let allowedHalfX = max(0, (displayedWidth - cropSize.width) / 2.0 + 10)
-        let allowedHalfY = max(0, (displayedHeight - cropSize.height) / 2.0 + 10)
+        let allowedHalfX = max(0, (displayedWidth - cropSize.width) / 2.0)
+        let allowedHalfY = max(0, (displayedHeight - cropSize.height) / 2.0)
 
         // Helper to clamp a single value into [lower, upper]
         func clamp(_ value: CGFloat, _ lower: CGFloat, _ upper: CGFloat) -> CGFloat {
@@ -100,21 +100,25 @@ class ImageCropViewModel: ObservableObject {
     }
     
     func cropImage(within cropFrame: CGRect, canvasSize: CGSize) {
-        guard let image = selectedImage, let cg = image.cgImage else { return }
+        // Normalize the source image first so orientation is upright and size matches its pixel data
+        #if canImport(UIKit)
+        guard let src = selectedImage else { return }
+        let norm = normalizedImage(src)
+        guard let cg = norm.cgImage else { return }
 
-        // Compute baseFillScale (how the image was scaled to fill the container before user scale)
-        let baseFill = max(canvasSize.width / max(0.0001, image.size.width),
-                           canvasSize.height / max(0.0001, image.size.height))
+        // Compute baseFillScale using the normalized image size
+        let baseFill = max(canvasSize.width / max(0.0001, norm.size.width),
+                           canvasSize.height / max(0.0001, norm.size.height))
 
         // The displayed image size in points after baseFill and user scale
-        let displayedImageSize = CGSize(width: image.size.width * baseFill * scale,
-                                        height: image.size.height * baseFill * scale)
+        let displayedImageSize = CGSize(width: norm.size.width * baseFill * scale,
+                                        height: norm.size.height * baseFill * scale)
 
         // Top-left of the displayed image inside the container (points)
         let imageOrigin = CGPoint(x: (canvasSize.width - displayedImageSize.width) / 2.0 + offset.width,
                                   y: (canvasSize.height - displayedImageSize.height) / 2.0 + offset.height)
 
-        // Convert cropFrame (in container points) to image points: (point - imageOrigin) / (baseFill * scale)
+        // Convert cropFrame (in container points) to normalized image points: (point - imageOrigin) / (baseFill * scale)
         let invScale = 1.0 / (baseFill * scale)
 
         let imgX = (cropFrame.minX - imageOrigin.x) * invScale
@@ -122,8 +126,8 @@ class ImageCropViewModel: ObservableObject {
         let imgW = cropFrame.width * invScale
         let imgH = cropFrame.height * invScale
 
-        // Convert image points to image pixels (cgImage coordinate) using image.scale
-        let pxPerPoint = image.scale
+        // Convert image points to image pixels (cgImage coordinate) using normalized image.scale
+        let pxPerPoint = norm.scale
         let origin = CGPoint(x: CGFloat(imgX * pxPerPoint), y: CGFloat(imgY * pxPerPoint))
         let size = CGSize(width: CGFloat(imgW * pxPerPoint), height: CGFloat(imgH * pxPerPoint))
         var cropRectPixels = CGRect(origin: origin, size: size)
@@ -139,11 +143,51 @@ class ImageCropViewModel: ObservableObject {
         }
 
         if let cropped = cg.cropping(to: cropRectPixels) {
-    #if canImport(UIKit)
-            self.croppedImage = UIImage(cgImage: cropped, scale: image.scale, orientation: image.imageOrientation)
-    #endif
+            // Create UIImage from cropped CGImage and normalize orientation to .up so transfers/viewing show correct rotation
+            var ui = UIImage(cgImage: cropped, scale: norm.scale, orientation: .up)
+            ui = normalizedImage(ui)
+
+            // Resize to target output resolution (720x1280) while preserving aspect ratio.
+            // We scale the cropped image to fill the target area (aspect-fill), then draw it centered
+            // into the target canvas so the final image is exactly targetSize but aspect ratio is preserved.
+            let targetSize = CGSize(width: 720, height: 1280)
+            let srcSize = ui.size
+
+            // Compute scale to fill target (preserve aspect ratio)
+            let scaleX = targetSize.width / max(0.0001, srcSize.width)
+            let scaleY = targetSize.height / max(0.0001, srcSize.height)
+            let scaleToFill = max(scaleX, scaleY)
+
+            let scaledSize = CGSize(width: srcSize.width * scaleToFill, height: srcSize.height * scaleToFill)
+            // Center the scaled image in the target canvas (may crop overflow)
+            let drawOrigin = CGPoint(x: (targetSize.width - scaledSize.width) / 2.0,
+                                     y: (targetSize.height - scaledSize.height) / 2.0)
+
+            let format = UIGraphicsImageRendererFormat()
+            format.scale = 1.0
+            let renderer = UIGraphicsImageRenderer(size: targetSize, format: format)
+            let resized = renderer.image { _ in
+                ui.draw(in: CGRect(origin: drawOrigin, size: scaledSize))
+            }
+
+            self.croppedImage = resized
         }
+        #endif
     }
+
+#if canImport(UIKit)
+    private func normalizedImage(_ image: UIImage) -> UIImage {
+        if image.imageOrientation == .up { return image }
+        let size = image.size
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = image.scale
+        let renderer = UIGraphicsImageRenderer(size: size, format: format)
+        let rendered = renderer.image { _ in
+            image.draw(in: CGRect(origin: .zero, size: size))
+        }
+        return rendered
+    }
+#endif
     
     func getImagePosition(in size: CGSize) -> CGPoint {
         let imageWidth = size.width * scale

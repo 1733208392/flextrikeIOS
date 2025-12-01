@@ -13,6 +13,13 @@ struct ImageCropView: View {
     @State private var dragTranslation: CGSize = .zero
     @State private var pinchScale: CGFloat = 1.0
     @State private var guideAspect: CGFloat? = nil
+    @State private var currentContainerSize: CGSize? = nil
+    @State private var currentGuideSize: CGSize? = nil
+    @State private var transferManager = ImageTransferManager()
+    @State private var transferInProgress: Bool = false
+    @State private var transferProgress: Int = 0
+    @State private var showTransferOverlay: Bool = false
+    @State private var showCancelAlert: Bool = false
     
     // Canvas dimensions (9:16 portrait ratio)
     let canvasRatio: CGFloat = 9.0 / 16.0
@@ -106,8 +113,19 @@ struct ImageCropView: View {
                                     viewModel.enforceConstraints(containerSize: containerSize, cropSize: cropSize)
                                 }
                         }
-                        
-                        // Crop guide image from Assets (vector PDF/SVG as asset)
+                        // If we have a cropped image, display it inside the guide
+                        if let cropped = viewModel.croppedImage {
+                            Image(uiImage: cropped)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: guideSize.width, height: guideSize.height)
+                                .clipped()
+                                .allowsHitTesting(false)
+                                // center inside container
+                                .position(x: containerSize.width / 2.0, y: containerSize.height / 2.0)
+                            }
+
+                            // Crop guide image from Assets (vector PDF/SVG as asset)
                         Image("custom-target-guide")
                             .resizable()
                             .renderingMode(.original)
@@ -124,7 +142,20 @@ struct ImageCropView: View {
                                     }
                                 }
                                 #endif
+                                // publish current sizes for toolbar actions
+                                DispatchQueue.main.async {
+                                    self.currentContainerSize = containerSize
+                                    self.currentGuideSize = guideSize
+                                }
                             }
+                        // Border overlay (asset) positioned to match the guide
+                        let borderInset: CGFloat = 10.0
+                        Image("custom-target-border")
+                            .resizable()
+                            .renderingMode(.original)
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: guideSize.width+borderInset, height: guideSize.height+borderInset)
+                            .allowsHitTesting(false)
                     }
                     .frame(height: containerHeight)
                     .frame(maxWidth: .infinity)
@@ -178,23 +209,113 @@ struct ImageCropView: View {
             .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .navigationBarLeading) {
-                        Button(action: { dismiss() }) {
+                        Button(action: {
+                            if transferInProgress {
+                                showCancelAlert = true
+                            } else {
+                                dismiss()
+                            }
+                        }) {
                             HStack(spacing: 6) {
                                 Image(systemName: "chevron.backward")
-                                // Text("Back")
                             }
                         }
                     }
                     ToolbarItem(placement: .navigationBarTrailing) {
                         if viewModel.selectedImage != nil {
                             Button("Complete") {
-                                // TODO: perform crop and dismiss/return result
+                                // Compute crop frame from last-known container & guide sizes
+                                guard let container = currentContainerSize, let guide = currentGuideSize else {
+                                    return
+                                }
+                                // Inset the guide by the border width (10 pts) to avoid cropping into the white border
+                                let inset: CGFloat = 10.0
+                                let cropWidth = max(0, guide.width - inset)
+                                let cropHeight = max(0, guide.height - inset)
+                                let origin = CGPoint(x: (container.width - cropWidth) / 2.0,
+                                                     y: (container.height - cropHeight) / 2.0)
+                                let cropFrame = CGRect(origin: origin, size: CGSize(width: cropWidth, height: cropHeight))
+                                // Perform crop
+                                viewModel.cropImage(within: cropFrame, canvasSize: container)
+
+                                // Start transfer if we have a cropped image
+                                #if canImport(UIKit)
+                                if let cropped = viewModel.croppedImage {
+                                    transferInProgress = true
+                                    transferProgress = 0
+                                    showTransferOverlay = true
+                                    // Kick off transfer with progress handler
+                                    transferManager.transferImage(cropped, named: "cropped-") { progress in
+                                        DispatchQueue.main.async {
+                                            transferProgress = progress
+                                        }
+                                    } completion: { success, message in
+                                        DispatchQueue.main.async {
+                                            transferInProgress = false
+                                            showTransferOverlay = false
+                                            // Optionally clear the selected source image after transfer
+                                            viewModel.selectedImage = nil
+                                            // You could show a toast or alert here on success/failure
+                                        }
+                                    }
+                                }
+                                #endif
                             }
                         }
                     }
                 }
             .sheet(isPresented: $viewModel.showLivePreview) {
                 LivePreviewSheet(viewModel: viewModel)
+            }
+            .overlay(
+                Group {
+                    if showTransferOverlay {
+                        ZStack {
+                            Color.black.opacity(0.6)
+                                .ignoresSafeArea()
+                            VStack(spacing: 16) {
+                                Text("Transferring image...")
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                                ProgressView(value: Double(transferProgress), total: 100)
+                                    .progressViewStyle(LinearProgressViewStyle(tint: .red))
+                                    .frame(maxWidth: 300)
+                                Text("\(transferProgress)%")
+                                    .foregroundColor(.white)
+                                HStack(spacing: 12) {
+                                    Button(action: {
+                                        // Prompt to cancel
+                                        showCancelAlert = true
+                                    }) {
+                                        Text("Cancel Transfer")
+                                            .padding(.horizontal, 16)
+                                            .padding(.vertical, 10)
+                                            .background(Color.white)
+                                            .foregroundColor(.red)
+                                            .cornerRadius(8)
+                                    }
+                                }
+                            }
+                            .padding(24)
+                            .background(Color(.secondarySystemBackground).opacity(0.1))
+                            .cornerRadius(12)
+                        }
+                    }
+                }
+            )
+            .alert("Cancel transfer and go back?", isPresented: $showCancelAlert) {
+                Button("Yes, cancel") {
+                    // Cancel and cleanup
+                    transferManager.cancelTransfer()
+                    transferInProgress = false
+                    showTransferOverlay = false
+                    viewModel.croppedImage = nil
+                    viewModel.selectedImage = nil
+                    dismiss()
+                }
+                Button("No", role: .cancel) { }
+            } message: {
+                Text("An image transfer is in progress. If you go back the transfer will be stopped.")
             }
             .onAppear {
                 // ensure guideAspect is available as early as possible so clamping uses guide bounds
