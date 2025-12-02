@@ -10,7 +10,6 @@ class ImageCropViewModel: ObservableObject {
     @Published var scale: CGFloat = 1.0
     @Published var offset: CGSize = .zero
     @Published var showImagePicker = false
-    @Published var showLivePreview = false
     
     // Calculated properties
     var minScale: CGFloat = 1.0

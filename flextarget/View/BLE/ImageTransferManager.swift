@@ -24,6 +24,9 @@ class ImageTransferManager {
     // Observer and timer for ready-ack handshake
     private var readyObserver: NSObjectProtocol?
     private var readyTimer: Timer?
+    // Device list management
+    private var deviceListObserver: NSObjectProtocol?
+    private var masterDeviceName: String = "ET02"  // Default fallback
     
     init(bleManager: BLEManager = .shared) {
         self.bleManager = bleManager
@@ -54,6 +57,70 @@ class ImageTransferManager {
             return
         }
         
+        // Query device list to get the master device name
+        queryAndPrepareTransfer(image, imageName: imageName, compressionQuality: compressionQuality, progress: progress, completion: completion)
+    }
+
+    // MARK: - Device List Query
+    
+    private func queryAndPrepareTransfer(
+        _ image: UIImage,
+        imageName: String,
+        compressionQuality: CGFloat,
+        progress: ((Int) -> Void)? = nil,
+        completion: @escaping (Bool, String) -> Void
+    ) {
+        // Register observer for device list updates
+        deviceListObserver = NotificationCenter.default.addObserver(forName: .bleDeviceListUpdated, object: nil, queue: .main) { [weak self] notification in
+            guard let self = self else { return }
+            if let userInfo = notification.userInfo,
+               let deviceList = userInfo["device_list"] as? [NetworkDevice] {
+                // Find the master device
+                if let masterDevice = deviceList.first(where: { $0.mode == "master" }) {
+                    self.masterDeviceName = masterDevice.name
+                    print("🎯 Master device found: \(masterDevice.name)")
+                } else if !deviceList.isEmpty {
+                    // Fallback to first device if no master found
+                    self.masterDeviceName = deviceList[0].name
+                    print("⚠️ No master device found, using first device: \(self.masterDeviceName)")
+                }
+                
+                // Clean up observer and proceed with transfer
+                if let obs = self.deviceListObserver {
+                    NotificationCenter.default.removeObserver(obs)
+                    self.deviceListObserver = nil
+                }
+                
+                // Now proceed with image compression and transfer setup
+                self.prepareAndStartTransfer(image, imageName: imageName, compressionQuality: compressionQuality, progress: progress, completion: completion)
+            }
+        }
+        
+        // Send query command
+        queryDeviceList()
+    }
+    
+    private func queryDeviceList() {
+        let command = ["action": "netlink_query_device_list"]
+        
+        do {
+            let jsonData = try JSONSerialization.data(withJSONObject: command, options: [])
+            if let jsonString = String(data: jsonData, encoding: .utf8) {
+                print("📡 Querying device list...")
+                bleManager.writeJSON(jsonString)
+            }
+        } catch {
+            print("Failed to serialize device list query: \(error)")
+        }
+    }
+    
+    private func prepareAndStartTransfer(
+        _ image: UIImage,
+        imageName: String,
+        compressionQuality: CGFloat,
+        progress: ((Int) -> Void)? = nil,
+        completion: @escaping (Bool, String) -> Void
+    ) {
         // Compress image
         guard let jpegData = image.jpegData(compressionQuality: compressionQuality) else {
             completion(false, NSLocalizedString("failed_compress_image", comment: "Failed to compress image"))
@@ -72,11 +139,12 @@ class ImageTransferManager {
 
         print("   Compressed size: \(jpegData.count) bytes")
         print("   Chunks: \(currentChunks.count) × \(chunkSize) bytes")
+        print("   Target device: \(masterDeviceName)")
 
         // Send a readiness command to the device and wait for an ACK
         sendReadyCommandAndAwaitAck(imageName: imageName, totalSize: jpegData.count, totalChunks: currentChunks.count)
     }
-
+    
     // MARK: - Ready handshake
 
     private func sendReadyCommandAndAwaitAck(imageName: String, totalSize: Int, totalChunks: Int) {
@@ -86,7 +154,7 @@ class ImageTransferManager {
         ]
         let message: [String: Any] = [
             "action": "netlink_forward",
-            "dest": "ET02",
+            "dest": masterDeviceName,
             "content": content
         ]
 
@@ -160,7 +228,7 @@ class ImageTransferManager {
         
         let message: [String: Any] = [
             "action": "netlink_forward",
-            "dest": "ET02",
+            "dest": masterDeviceName,
             "content": content
         ]
         
@@ -197,7 +265,7 @@ class ImageTransferManager {
         
         let message: [String: Any] = [
             "action": "netlink_forward",
-            "dest": "ET02",
+            "dest": masterDeviceName,
             "content": content
         ]
         
@@ -236,7 +304,7 @@ class ImageTransferManager {
         
         let message: [String: Any] = [
             "action": "netlink_forward",
-            "dest": "ET02",
+            "dest": masterDeviceName,
             "content": content
         ]
         
@@ -268,6 +336,11 @@ class ImageTransferManager {
         }
         readyTimer?.invalidate()
         readyTimer = nil
+        // Clean up device list observer if still present
+        if let obs = deviceListObserver {
+            NotificationCenter.default.removeObserver(obs)
+            deviceListObserver = nil
+        }
         
         if success {
             print("✅ \(message)")
@@ -293,6 +366,10 @@ class ImageTransferManager {
         }
         readyTimer?.invalidate()
         readyTimer = nil
+        if let obs = deviceListObserver {
+            NotificationCenter.default.removeObserver(obs)
+            deviceListObserver = nil
+        }
         progressHandler?(0)
         progressHandler = nil
         transferCompletion?(false, NSLocalizedString("transfer_cancelled", comment: "Transfer cancelled"))

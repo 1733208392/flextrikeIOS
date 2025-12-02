@@ -406,9 +406,6 @@ struct ImageCropView: View {
                         }
                     }
                 }
-            .sheet(isPresented: $viewModel.showLivePreview) {
-                LivePreviewSheet(viewModel: viewModel)
-            }
             .overlay(
                 Group {
                     if showTransferOverlay {
@@ -527,90 +524,6 @@ struct ImageCropView: View {
         }
         .background(Color.black)
         .ignoresSafeArea()
-    }
-}
-
-struct LivePreviewSheet: View {
-    @ObservedObject var viewModel: ImageCropViewModel
-    @Environment(\.dismiss) var dismiss
-    
-    var body: some View {
-        NavigationStack {
-            VStack(spacing: 0) {
-                // Main preview with mask
-                ZStack {
-                    if let image = viewModel.selectedImage {
-                        Image(uiImage: image)
-                            .resizable()
-                            .scaledToFill()
-                            .scaleEffect(viewModel.scale)
-                            .offset(viewModel.offset)
-                    }
-                    
-                    // Crop guide image for preview (matches preview frame)
-                    Image("custom-target-guide")
-                        .resizable()
-                        .renderingMode(.original)
-                        .aspectRatio(contentMode: .fit)
-                        .frame(height: 320)
-                }
-                .frame(maxWidth: .infinity)
-                            Text(NSLocalizedString("live_preview", comment: "Live preview title"))
-                .clipped()
-                            Text(NSLocalizedString("live_preview_description", comment: "Live preview description"))
-                
-                // Information
-                VStack(spacing: 12) {
-                    Text("Live Preview")
-                        .font(.headline)
-                    Text("This shows how your photo will be positioned and cropped with the silhouette guide.")
-                        .font(.caption)
-                                Text(NSLocalizedString("zoom_level", comment: "Zoom level label"))
-                    
-                    Divider()
-                        .padding(.vertical, 8)
-                    
-                    HStack {
-                        Text("Zoom Level:")
-                            .font(.subheadline)
-                        Spacer()
-                                Text(NSLocalizedString("offset", comment: "Offset label"))
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
-                    }
-                    
-                    HStack {
-                        Text("Offset:")
-                            .font(.subheadline)
-                        Spacer()
-                        Text(String(format: "x: %.0f, y: %.0f", viewModel.offset.width, viewModel.offset.height))
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                    }
-                }
-                            Text(NSLocalizedString("close_preview", comment: "Close preview button"))
-                .background(Color(.systemBackground))
-                
-                Spacer()
-                
-                Button(action: { dismiss() }) {
-                    Text("Close Preview")
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                        .background(Color.red)
-                        .foregroundColor(.white)
-                        .cornerRadius(8)
-                }
-                            Button(NSLocalizedString("close", comment: "Close button")) { dismiss() }
-            }
-            .navigationTitle("Live Preview")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button("Close") { dismiss() }
-                }
-            }
-        }
     }
 }
 
