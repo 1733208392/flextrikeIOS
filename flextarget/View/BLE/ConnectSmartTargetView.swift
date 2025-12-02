@@ -17,6 +17,9 @@ struct ConnectSmartTargetView: View {
     @State private var connectionStartTime: Date?
     @State private var timeoutTimer: Timer?
     @State private var remainingSeconds: Int = 15
+    @State private var scanStartTime: Date?
+    @State private var minScanDurationTimer: Timer?
+    private let minScanDuration: TimeInterval = 5.0  // Minimum 3 seconds before showing picker
     var onConnected: (() -> Void)?
 
     private func goToMain() {
@@ -128,7 +131,7 @@ struct ConnectSmartTargetView: View {
                                         .font(.custom("SFPro-Medium", size: 20))
                                         .foregroundColor(.white)
                                         .frame(width: geometry.size.width * 0.35, height: 44)
-                                        .background(Color.blue)
+                                        .background(Color.red)
                                         .cornerRadius(8)
                                 }
                                 Button(action: { showFirmwareAlert = true }) {
@@ -257,6 +260,10 @@ struct ConnectSmartTargetView: View {
                 startScanAndTimer()
             }
         }
+        .onDisappear {
+            timeoutTimer?.invalidate()
+            minScanDurationTimer?.invalidate()
+        }
         .onChange(of: bleManager.isConnected) { newValue in
             if newValue {
                 timeoutTimer?.invalidate()
@@ -270,12 +277,27 @@ struct ConnectSmartTargetView: View {
         }
         .onChange(of: bleManager.discoveredPeripherals) { newValue in
             if !newValue.isEmpty && bleManager.isScanning && !showPeripheralPicker {
-                // Peripherals found during scan, show picker immediately
-                bleManager.completeScan()
-                // Pre-select the first peripheral
-                selectedPeripheral = newValue.first
-                showPeripheralPicker = true
-                showProgress = false
+                // Check if minimum scan duration has passed
+                let scanDurationElapsed = Date().timeIntervalSince(scanStartTime ?? Date()) >= minScanDuration
+                
+                if scanDurationElapsed {
+                    // Minimum scan duration reached, show picker immediately
+                    bleManager.completeScan()
+                    selectedPeripheral = newValue.first
+                    showPeripheralPicker = true
+                    showProgress = false
+                } else {
+                    // Minimum scan duration not reached yet, schedule picker display
+                    minScanDurationTimer?.invalidate()
+                    minScanDurationTimer = Timer.scheduledTimer(withTimeInterval: minScanDuration, repeats: false) { _ in
+                        if self.bleManager.isScanning && !self.showPeripheralPicker && !newValue.isEmpty {
+                            self.bleManager.completeScan()
+                            self.selectedPeripheral = newValue.first
+                            self.showPeripheralPicker = true
+                            self.showProgress = false
+                        }
+                    }
+                }
             }
         }
     }
@@ -286,11 +308,13 @@ struct ConnectSmartTargetView: View {
         showReconnect = false
         showPeripheralPicker = false
         selectedPeripheral = nil
+        scanStartTime = Date()  // Record scan start time
         bleManager.startScan()
         showProgress = true
+        minScanDurationTimer?.invalidate()
         
-        // Start 20s scan timer
-        DispatchQueue.main.asyncAfter(deadline: .now() + 20) {
+        // Start 25s scan timer (3s minimum + 22s discovery window)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 25) {
             if self.bleManager.isScanning && self.bleManager.discoveredPeripherals.isEmpty {
                 // Scan timeout with no peripherals found
                 self.bleManager.completeScan()
