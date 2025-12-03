@@ -105,6 +105,14 @@ class ImageCropViewModel: ObservableObject {
         let norm = normalizedImage(src)
         guard let cg = norm.cgImage else { return }
 
+        print("🔍 cropImage diagnostics:")
+        print("   selectedImage.scale=\(src.scale) selectedImage.size=\(src.size)")
+        print("   normalized.scale=\(norm.scale) normalized.size=\(norm.size)")
+        print("   cg actual pixels=\(cg.width)x\(cg.height)")
+        print("   self.scale=\(scale) offset=\(offset)")
+        print("   cropFrame (in points)=\(cropFrame)")
+        print("   canvasSize=\(canvasSize)")
+
         // Compute baseFillScale using the normalized image size
         let baseFill = max(canvasSize.width / max(0.0001, norm.size.width),
                            canvasSize.height / max(0.0001, norm.size.height))
@@ -117,6 +125,8 @@ class ImageCropViewModel: ObservableObject {
         let imageOrigin = CGPoint(x: (canvasSize.width - displayedImageSize.width) / 2.0 + offset.width,
                                   y: (canvasSize.height - displayedImageSize.height) / 2.0 + offset.height)
 
+        print("   baseFill=\(baseFill) displayedImageSize=\(displayedImageSize) imageOrigin=\(imageOrigin)")
+
         // Convert cropFrame (in container points) to normalized image points: (point - imageOrigin) / (baseFill * scale)
         let invScale = 1.0 / (baseFill * scale)
 
@@ -125,17 +135,23 @@ class ImageCropViewModel: ObservableObject {
         let imgW = cropFrame.width * invScale
         let imgH = cropFrame.height * invScale
 
+        print("   image-space (points): x=\(imgX) y=\(imgY) w=\(imgW) h=\(imgH)")
+
         // Convert image points to image pixels (cgImage coordinate) using normalized image.scale
         let pxPerPoint = norm.scale
         let origin = CGPoint(x: CGFloat(imgX * pxPerPoint), y: CGFloat(imgY * pxPerPoint))
         let size = CGSize(width: CGFloat(imgW * pxPerPoint), height: CGFloat(imgH * pxPerPoint))
         var cropRectPixels = CGRect(origin: origin, size: size)
 
+        print("   pxPerPoint=\(pxPerPoint) computed pixel rect=\(cropRectPixels)")
+
         // Normalize to integer pixel boundaries and clamp to image bounds to avoid
         // fractional/out-of-range rectangles that can cause cg.cropping(to:) to fail
         cropRectPixels = cropRectPixels.standardized.integral
         let imageBounds = CGRect(x: 0, y: 0, width: CGFloat(cg.width), height: CGFloat(cg.height))
         cropRectPixels = cropRectPixels.intersection(imageBounds)
+
+        print("   after integral & clamp: \(cropRectPixels) bounds=\(imageBounds)")
 
         // If the resulting rect is empty or too small, attempt a safe fallback
         if !(cropRectPixels.width >= 1.0 && cropRectPixels.height >= 1.0) {

@@ -2,6 +2,7 @@ import SwiftUI
 import PhotosUI
 #if canImport(UIKit)
 import UIKit
+import Photos
 #endif
 
 struct ImageCropView: View {
@@ -155,8 +156,18 @@ struct ImageCropView: View {
                         .allowsHitTesting(false)
                         .onAppear {
                             DispatchQueue.main.async {
-                                currentContainerSize = containerSize
-                                currentGuideSize = guideSize
+                                if containerSize.width > 0 {
+                                    currentContainerSize = containerSize
+                                    currentGuideSize = guideSize
+                                }
+                            }
+                        }
+                        .onChange(of: containerSize) { newSize in
+                            DispatchQueue.main.async {
+                                if newSize.width > 0 {
+                                    currentContainerSize = newSize
+                                    currentGuideSize = computeGuideSizeStatic(containerSize: newSize, guideAspect: guideAspect)
+                                }
                             }
                         }
 
@@ -211,6 +222,24 @@ struct ImageCropView: View {
             return dest
         }
 
+        // Preferred: write the PhotosPickerItem data to a temp file and return its URL.
+        // This avoids FileProvider/XPC issues and keeps memory usage lower for large images.
+        private func savePhotosPickerItemToTempFile(_ item: PhotosPickerItem) async -> URL? {
+            // Try to load Data first
+            if let data = try? await item.loadTransferable(type: Data.self) {
+                let tmp = FileManager.default.temporaryDirectory
+                let dest = tmp.appendingPathComponent(UUID().uuidString).appendingPathExtension("jpg")
+                do {
+                    try data.write(to: dest)
+                    return dest
+                } catch {
+                    print("   ❌ Failed to write temp file: \(error)")
+                    return nil
+                }
+            }
+            return nil
+        }
+
         var body: some View {
             PhotosPicker(selection: $selectedPhotoItem, matching: .images, photoLibrary: .shared()) {
                 HStack(spacing: 10) {
@@ -229,89 +258,96 @@ struct ImageCropView: View {
                 Task {
                     guard let item = newValue else { return }
 
-                    // Try to load the original full-resolution file representation first
-                    if let fileURL = try? await loadFileURL(from: item) {
-                        let tmp = FileManager.default.temporaryDirectory
-                        let dest = tmp.appendingPathComponent(UUID().uuidString).appendingPathExtension(fileURL.pathExtension)
-                        do {
-                            try FileManager.default.copyItem(at: fileURL, to: dest)
-                            if let uiImage = UIImage(contentsOfFile: dest.path) {
-                                print("Loaded full-file image: size=\(uiImage.size) scale=\(uiImage.scale) cg=\(uiImage.cgImage?.width ?? 0)x\(uiImage.cgImage?.height ?? 0)")
-                                await MainActor.run {
-                                    viewModel.selectedImage = uiImage
-                                    viewModel.resetTransform()
-                                    lastOffset = .zero
-                                    dragTranslation = .zero
+                    var loadedImage: UIImage? = nil
+                    var retryCount = 0
+                    let maxRetries = 3
+
+                    while loadedImage == nil && retryCount < maxRetries {
+                        retryCount += 1
+                        print("📸 Loading photo (attempt \(retryCount)/\(maxRetries))...")
+
+                        // Primary (Method 3): Save Data to temp file and load via UIImage(contentsOfFile:)
+                        if loadedImage == nil {
+                            if let dest = await savePhotosPickerItemToTempFile(item) {
+                                do {
+                                    if let uiImage = UIImage(contentsOfFile: dest.path) {
+                                        let cgSize = uiImage.cgImage?.width ?? 0
+                                        print("   ✓ Data->File->UIImage: \(uiImage.size) (actual: \(cgSize)px)")
+                                        if cgSize > 500 {
+                                            loadedImage = uiImage
+                                            print("   ✅ Accepted")
+                                        } else {
+                                            print("   ⚠️ Image too small, will retry...")
+                                        }
+                                    }
                                 }
-                                return
+                                try? FileManager.default.removeItem(at: dest)
                             }
-                        } catch {
-                            print("Failed to copy photo file representation: \(error)")
+                        }
+
+                        // Fallback (Method 2): load Data directly into UIImage
+                        if loadedImage == nil {
+                            if let imageData = try? await item.loadTransferable(type: Data.self) {
+                                if let uiImage = UIImage(data: imageData) {
+                                    let cgSize = uiImage.cgImage?.width ?? 0
+                                    print("   ✓ Data->UIImage: \(uiImage.size) (actual: \(cgSize)px)")
+                                    if cgSize > 500 {
+                                        loadedImage = uiImage
+                                        print("   ✅ Accepted")
+                                    } else {
+                                        print("   ⚠️ Image too small, will retry...")
+                                    }
+                                }
+                            }
+                        }
+
+                        // Optional fallback (Method 1): try to copy file representation if available
+                        if loadedImage == nil {
+                            if let fileURL = try? await loadFileURL(from: item) {
+                                let tmp = FileManager.default.temporaryDirectory
+                                let dest = tmp.appendingPathComponent(UUID().uuidString).appendingPathExtension(fileURL.pathExtension)
+                                do {
+                                    try FileManager.default.copyItem(at: fileURL, to: dest)
+                                    if let uiImage = UIImage(contentsOfFile: dest.path) {
+                                        let cgSize = uiImage.cgImage?.width ?? 0
+                                        print("   ✓ File method: \(uiImage.size) (actual: \(cgSize)px)")
+                                        if cgSize > 500 {
+                                            loadedImage = uiImage
+                                            print("   ✅ Accepted")
+                                        } else {
+                                            print("   ⚠️ Image too small, will retry...")
+                                        }
+                                    }
+                                    try? FileManager.default.removeItem(at: dest)
+                                } catch {
+                                    print("   ❌ File method failed: \(error)")
+                                }
+                            }
+                        }
+
+                        // Wait before retry on iPhone 15 Pro Max (device-specific timing)
+                        if loadedImage == nil && retryCount < maxRetries {
+                            print("   ⏳ Retrying in 100ms...")
+                            try? await Task.sleep(nanoseconds: 100_000_000)
                         }
                     }
 
-                    // Fallback: try to load a Data transferable and convert to UIImage
-                    if let imageData = try? await item.loadTransferable(type: Data.self) {
-                        let tmp = FileManager.default.temporaryDirectory
-                        let dest = tmp.appendingPathComponent(UUID().uuidString).appendingPathExtension("jpg")
-                        do {
-                            try imageData.write(to: dest)
-                            if let uiImage = UIImage(contentsOfFile: dest.path) {
-                                print("Loaded transferable image from data: size=\(uiImage.size) scale=\(uiImage.scale) cg=\(uiImage.cgImage?.width ?? 0)x\(uiImage.cgImage?.height ?? 0)")
-                                await MainActor.run {
-                                    viewModel.selectedImage = uiImage
-                                    viewModel.resetTransform()
-                                    lastOffset = .zero
-                                    dragTranslation = .zero
-                                }
-                            }
-                        } catch {
-                            print("Failed to write image data to temp file: \(error)")
+                    // Apply the loaded image
+                    if let image = loadedImage {
+                        await MainActor.run {
+                            viewModel.selectedImage = image
+                            viewModel.resetTransform()
+                            lastOffset = .zero
+                            dragTranslation = .zero
                         }
+                    } else {
+                        print("❌ Failed to load valid image after \(maxRetries) attempts")
                     }
                 }
             }
         }
     }
 
-    private struct TransferToolbarItem: View {
-        @ObservedObject var viewModel: ImageCropViewModel
-        @Binding var currentContainerSize: CGSize?
-        @Binding var currentGuideSize: CGSize?
-        @Binding var transferInProgress: Bool
-        @Binding var transferProgress: Int
-        @Binding var showTransferOverlay: Bool
-        @Binding var transferOverlayState: TransferOverlayState
-        var startTransfer: (UIImage) -> Void
-
-        var body: some View {
-            if viewModel.selectedImage != nil {
-                Button(NSLocalizedString("transfer", comment: "Transfer button")) {
-                    // Compute crop frame from last-known container & guide sizes
-                    guard let container = currentContainerSize, let guide = currentGuideSize else {
-                        return
-                    }
-                    // Inset the guide by the border width (10 pts) to avoid cropping into the white border
-                    let inset: CGFloat = 10.0
-                    let cropWidth = max(0, guide.width - inset)
-                    let cropHeight = max(0, guide.height - inset)
-                    let origin = CGPoint(x: (container.width - cropWidth) / 2.0,
-                                         y: (container.height - cropHeight) / 2.0)
-                    let cropFrame = CGRect(origin: origin, size: CGSize(width: cropWidth, height: cropHeight))
-                    // Perform crop
-                    viewModel.cropImage(within: cropFrame, canvasSize: container)
-
-                    // Start transfer if we have a cropped image
-                    #if canImport(UIKit)
-                    if let cropped = viewModel.croppedImage {
-                        startTransfer(cropped)
-                    }
-                    #endif
-                }
-            }
-        }
-    }
-    
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
@@ -355,13 +391,19 @@ struct ImageCropView: View {
                         if viewModel.selectedImage != nil {
                             Button(NSLocalizedString("transfer", comment: "Transfer button")) {
                                 // Compute crop frame from last-known container & guide sizes
-                                guard let container = currentContainerSize, let guide = currentGuideSize else {
-                                    return
+                                // Fallback to screen width if container is missing or invalid (width=0)
+                                var container = currentContainerSize ?? CGSize(width: UIScreen.main.bounds.width, height: 480)
+                                if container.width <= 0 {
+                                    container = CGSize(width: UIScreen.main.bounds.width, height: 480)
                                 }
+                                
+                                // Recompute guide size based on the valid container
+                                let guide = computeGuideSize(containerSize: container)
+                                
                                 // Inset the guide by the border width (10 pts) to avoid cropping into the white border
                                 let inset: CGFloat = 10.0
-                                let cropWidth = max(0, guide.width - inset)
-                                let cropHeight = max(0, guide.height - inset)
+                                let cropWidth = max(10, guide.width - inset * 2)  // Full guide width minus insets on both sides
+                                let cropHeight = max(10, guide.height - inset * 2)  // Full guide height minus insets on both sides
                                 let origin = CGPoint(x: (container.width - cropWidth) / 2.0,
                                                      y: (container.height - cropHeight) / 2.0)
                                 let cropFrame = CGRect(origin: origin, size: CGSize(width: cropWidth, height: cropHeight))
