@@ -104,7 +104,15 @@ struct DrillMainPageView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             
-            NavigationLink(isActive: .constant(selectedDrillSetup != nil)) {
+            NavigationLink(isActive: Binding<Bool>(
+                get: { selectedDrillSetup != nil },
+                set: { newValue in
+                    // When navigation is dismissed (newValue == false), clear the selected setup
+                    if !newValue {
+                        selectedDrillSetup = nil
+                    }
+                }
+            )) {
                 if let drillSetup = selectedDrillSetup {
                     if let summaries = selectedDrillSummaries {
                         // Navigate to summary view for recent drills (showing all repeats from session)
