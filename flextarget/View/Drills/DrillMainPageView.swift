@@ -19,6 +19,10 @@ struct DrillMainPageView: View {
     // Image Crop Navigation
     @State private var showImageCrop = false
     
+    // QR Scanner Navigation
+    @State private var showQRScanner = false
+    @State private var scannedPeripheralName: String? = nil
+    
     
     var body: some View {
         if showDrillList {
@@ -27,19 +31,26 @@ struct DrillMainPageView: View {
         } else {
             mainContent
                 .sheet(isPresented: $showConnectView) {
-                    ConnectSmartTargetWrapper(onDismiss: { showConnectView = false })
+                    ConnectSmartTargetWrapper(onDismiss: { showConnectView = false }, targetName: scannedPeripheralName, isConnected: bleManager.isConnected)
+                        .id(scannedPeripheralName) // Force re-creation when targetName changes
                 }
                 .sheet(isPresented: $showInfo) {
                     InformationPage()
                 }
-                
-                .sheet(isPresented: $showImageCrop) {
-                    ImageCropView()
+                .sheet(isPresented: $showQRScanner) {
+                    QRScannerView { scannedText in
+                        // Save scanned peripheral name and present connect view
+                        scannedPeripheralName = scannedText
+                        showQRScanner = false
+                        // Small delay to ensure state settles before presenting sheet
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                            showConnectView = true
+                        }
+                    }
                 }
                 .onAppear {
-                    if !bleManager.isConnected {
-                        showConnectView = true
-                    }
+                    // Do not automatically start connection or show Connect view.
+                    // User will tap the BLE toolbar button to scan and connect.
                     errorObserver = NotificationCenter.default.addObserver(forName: .bleErrorOccurred, object: nil, queue: .main) { notification in
                         if let error = notification.userInfo?["error"] as? BLEError {
                             self.errorMessage = error.localizedDescription
@@ -48,9 +59,7 @@ struct DrillMainPageView: View {
                     }
                 }
                 .onChange(of: bleManager.isConnected) { newValue in
-                    if !newValue {
-                        showConnectView = true
-                    }
+                    // no automatic presentation of connect view
                 }
                 .onChange(of: selectedDrillSetup) { newValue in
                     if newValue == nil {
@@ -65,8 +74,7 @@ struct DrillMainPageView: View {
                 }
                 .alert(isPresented: $showError) {
                     Alert(title: Text(NSLocalizedString("ble_error", comment: "BLE Error alert title")), message: Text(errorMessage), dismissButton: .default(Text(NSLocalizedString("ok", comment: "OK button"))))
-                }
-                
+                }     
                 .navigationViewStyle(.stack)
         }
     }
@@ -136,7 +144,11 @@ struct DrillMainPageView: View {
             // Leading: BLE Connection Status
             ToolbarItem(placement: .navigationBarLeading) {
                 Button(action: {
-                    showConnectView = true
+                    if bleManager.isConnected {
+                        showConnectView = true
+                    } else {
+                        showQRScanner = true
+                    }
                 }) {
                     HStack(spacing: 8) {
                         Image(bleManager.isConnected ? "BleConnect": "BleDisconnect")
@@ -193,8 +205,10 @@ struct DrillMainPageView: View {
     struct ConnectSmartTargetWrapper: View {
         @EnvironmentObject var bleManager: BLEManager
         let onDismiss: () -> Void
+        var targetName: String? = nil
+        var isConnected: Bool = false
         var body: some View {
-            ConnectSmartTargetView(bleManager: bleManager, navigateToMain: .constant(false), onConnected: onDismiss)
+            ConnectSmartTargetView(bleManager: bleManager, navigateToMain: .constant(false), targetPeripheralName: targetName, isAlreadyConnected: isConnected, onConnected: onDismiss)
         }
     }
     

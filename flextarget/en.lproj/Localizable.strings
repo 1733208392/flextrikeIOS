@@ -30,6 +30,7 @@
 
 /* BLE/ConnectSmartTargetView */
 "reconnect" = "RECONNECT";
+"disconnect" = "Disconnect";
 "okay" = "OKAY";
 "select_target" = "SELECT TARGET";
 "connected" = "CONNECTED";
@@ -136,9 +137,10 @@
 "drill_in_progress_back_message" = "A drill is currently in progress. Going back will lose the drill record. Are you sure?";
 
 /* Image transfer / ImageCropView */
-"my_target" = "My Target";
+"my_target" = "Upload Picture";
 "choose_photo" = "Choose Photo";
 "transfer" = "Transfer";
+"align_qr_code" = "Align QR Code within frame";
 "transferring_image" = "Transferring image...";
 "cancel_transfer" = "Cancel Transfer";
 "cancel_transfer_confirm_title" = "Cancel transfer and go back?";

@@ -29,6 +29,7 @@
 
 /* BLE/ConnectSmartTargetView */
 "reconnect" = "RECONECTAR";
+"disconnect" = "Desconectar";
 "okay" = "OK";
 "select_target" = "SELECCIONAR OBJETIVO";
 "connected" = "CONECTADO";
@@ -37,6 +38,9 @@
 "target_not_found" = "OBJETIVO NO ENCONTRADO";
 "bluetooth_service_not_found" = "SERVICIO BLUETOOTH NO ENCONTRADO";
 "scan" = "Volver a escanear";
+"my_target" = "Subir imagen";
+"scanning_for_target" = "Escaneando %@";
+"ready_to_scan" = "Listo para escanear";
 
 /* LaserDryFire/OverlayView */
 "fps_display" = "FPS: %d";
@@ -145,9 +149,10 @@
 "firmware_upgrade_message" = "Asegúrese de que la nueva unidad USB de firmware esté firmemente insertada en el puerto USB del lado derecho del dispositivo.";
 
 /* Image transfer / ImageCropView */
-"my_target" = "Mi objetivo";
+"my_target" = "Subir imagen";
 "choose_photo" = "Elegir foto";
 "transfer" = "Transferir";
+"align_qr_code" = "Alinee el código QR dentro del marco";
 "transferring_image" = "Transfiriendo imagen...";
 "cancel_transfer" = "Cancelar transferencia";
 "cancel_transfer_confirm_title" = "¿Cancelar la transferencia y volver?";

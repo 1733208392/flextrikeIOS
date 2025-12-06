@@ -28,6 +28,7 @@
 "delay_seconds" = "遅延: %d秒";
 
 /* BLE/ConnectSmartTargetView */
+"disconnect" = "切断";
 "reconnect" = "再接続";
 "okay" = "OK";
 "select_target" = "ターゲットを選択";
@@ -37,6 +38,9 @@
 "target_not_found" = "ターゲットが見つかりません";
 "bluetooth_service_not_found" = "Bluetoothサービスが見つかりません";
 "scan" = "再スキャン";
+"my_target" = "画像をアップロード";
+"scanning_for_target" = "%@をスキャン中";
+"ready_to_scan" = "スキャン準備完了";
 
 /* LaserDryFire/OverlayView */
 "fps_display" = "FPS: %d";
@@ -145,9 +149,10 @@
 "firmware_upgrade_message" = "新しいファームウェアUSBドライブがデバイスの右側のUSBポートにしっかりと挿入されていることを確認してください。";
 
 /* Image transfer / ImageCropView */
-"my_target" = "マイターゲット";
-"choose_photo" = "写真を選択";
-"transfer" = "転送";
+"my_target" = "画像をアップロード";
+"choose_photo" = "写真を選ぶ";
+"transfer" = "程伝送";
+"align_qr_code" = "フレーム内に QR コードを合わせてください";
 "transferring_image" = "画像を転送中...";
 "cancel_transfer" = "転送をキャンセル";
 "cancel_transfer_confirm_title" = "転送をキャンセルして戻りますか？";

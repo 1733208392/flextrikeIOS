@@ -30,6 +30,7 @@
 
 /* BLE/ConnectSmartTargetView */
 "reconnect" = "RECONNECT";
+"disconnect" = "Disconnect";
 "okay" = "OKAY";
 "select_target" = "SELECT TARGET";
 "connected" = "CONNECTED";
@@ -37,6 +38,10 @@
 "target_not_found" = "TARGET NOT FOUND";
 "bluetooth_service_not_found" = "BLUETOOTH SERVICE NOT FOUND";
 "scan" = "Re-Scan";
+"my_target" = "Upload Picture";
+"scanning_for_target" = "Scanning for %@";
+"ready_to_scan" = "Ready to Scan";
+"trying_to_connect" = "Trying to Connect";
 
 /* LaserDryFire/OverlayView */
 "fps_display" = "FPS: %d";

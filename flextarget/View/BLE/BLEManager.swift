@@ -85,6 +85,8 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
     @Published var isScanning: Bool = false
     @Published var error: BLEError?
     @Published var connectedPeripheral: DiscoveredPeripheral?
+    // Optional name to auto-connect when a matching peripheral is discovered
+    @Published var autoConnectTargetName: String? = nil
 
     // Global device list data for sharing across views
     @Published var networkDevices: [NetworkDevice] = []
@@ -255,6 +257,59 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
         }
         #endif
     }
+
+    /// Find a discovered peripheral by name.
+    /// - Parameters:
+    ///   - name: The peripheral name to search for.
+    ///   - caseInsensitive: If true, comparison is case-insensitive. Default is true.
+    ///   - contains: If true, use substring matching (contains). If false, require exact match. Default is false.
+    /// - Returns: The first matching `DiscoveredPeripheral` or nil if none found.
+    public func findPeripheral(named name: String, caseInsensitive: Bool = true, contains: Bool = false) -> DiscoveredPeripheral? {
+        // Normalize strings to avoid mismatches caused by different Unicode punctuation
+        func normalize(_ s: String) -> String {
+            // Trim whitespace
+            var out = s.trimmingCharacters(in: .whitespacesAndNewlines)
+            // Replace common curly quotes/apostrophes with ASCII equivalents
+            let replacements: [Character: Character] = [
+                Character("\u{2019}"): Character("'"),
+                Character("\u{2018}"): Character("'"),
+                Character("\u{201C}"): Character("\"") ,
+                Character("\u{201D}"): Character("\"")
+            ]
+            out = String(out.map { replacements[$0] ?? $0 })
+            return out
+        }
+
+        let target = normalize(name)
+
+        if caseInsensitive {
+            let targetLower = target.lowercased()
+            if contains {
+                return discoveredPeripherals.first { normalize($0.name).lowercased().contains(targetLower) }
+            } else {
+                return discoveredPeripherals.first { normalize($0.name).lowercased() == targetLower }
+            }
+        } else {
+            if contains {
+                return discoveredPeripherals.first { normalize($0.name).contains(target) }
+            } else {
+                return discoveredPeripherals.first { normalize($0.name) == target }
+            }
+        }
+    }
+
+    /// Set or clear the auto-connect target name. When set, BLEManager will attempt
+    /// to automatically connect to the first discovered peripheral that matches
+    /// this name according to the `findPeripheral` rules.
+    public func setAutoConnectTarget(_ name: String?) {
+        DispatchQueue.main.async {
+            self.autoConnectTargetName = name
+            // If name cleared, ensure no pending auto-connect behavior remains
+            if name == nil {
+                // no-op for now
+            }
+        }
+    }
     
     func disconnect() {
         #if targetEnvironment(simulator)
@@ -301,9 +356,9 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
             matchesTargetService = advServiceUUIDs.contains(where: { $0 == advServiceUUID })
         }
         
-        let matchesName = name.contains("GR-WOLF")
-
-        if matchesTargetService || matchesName {
+        // Previously we matched by a hardcoded name substring ("GR-WOLF").
+        // Now rely only on advertised service UUID to identify candidate devices.
+        if matchesTargetService {
             print("Adding peripheral: \(name)")
             // Cancel fallback broad-scan timer because we found a candidate
             fallbackScanTimer?.invalidate()
@@ -313,7 +368,16 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
                 let discovered = DiscoveredPeripheral(id: peripheral.identifier, name: name, peripheral: peripheral)
                 discoveredPeripherals.append(discovered)
             }
-            // Do not auto-connect, let the view handle selection
+            // If an auto-connect target name is set, and this discovered peripheral
+            // matches, initiate an automatic connection and clear the target name.
+            if let target = autoConnectTargetName {
+                if let match = findPeripheral(named: target) {
+                    // Clear the auto-connect target to avoid repeated attempts
+                    autoConnectTargetName = nil
+                    print("Auto-connecting to discovered target: \(match.name)")
+                    connectToSelectedPeripheral(match)
+                }
+            }
         }
     }
     
