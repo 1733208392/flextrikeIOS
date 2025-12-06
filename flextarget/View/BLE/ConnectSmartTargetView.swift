@@ -3,15 +3,17 @@ import SwiftUI
 struct ConnectSmartTargetView: View {
     @ObservedObject var bleManager: BLEManager
     @Binding var navigateToMain: Bool
+    // Optional peripheral name passed in (from QR scan or navigation)
+    var targetPeripheralName: String? = nil
+    // Flag indicating if BLE is already connected
+    var isAlreadyConnected: Bool = false
     @Environment(\.dismiss) var dismiss
     @State private var statusText: String = "CONNECTING"
     @State private var showReconnect: Bool = false
     @State private var isShaking: Bool = true
     @State private var showProgress: Bool = false
-    @State private var showOkay: Bool = false
     @State private var showFirmwareAlert: Bool = false
     @State private var hasTriedReconnect: Bool = false
-    @State private var showPeripheralPicker: Bool = false
     @State private var selectedPeripheral: DiscoveredPeripheral?
     @State private var showImageCrop: Bool = false
     @State private var connectionStartTime: Date?
@@ -21,8 +23,9 @@ struct ConnectSmartTargetView: View {
     @State private var minScanDurationTimer: Timer?
     private let minScanDuration: TimeInterval = 5.0  // Minimum 3 seconds before showing picker
     var onConnected: (() -> Void)?
-
-    private func goToMain() {
+    @State private var activeTargetName: String? = nil
+    
+    func goToMain() {
         if let onConnected = onConnected {
             onConnected()
         } else {
@@ -30,7 +33,7 @@ struct ConnectSmartTargetView: View {
         }
         navigateToMain = true
     }
-
+    
     var body: some View {
         GeometryReader { geometry in
             let frameWidth = geometry.size.width * 0.4
@@ -40,7 +43,7 @@ struct ConnectSmartTargetView: View {
             // Corner sensor icon configuration
             let sensorIconSize: CGFloat = 24
             let sensorOffsetAdjustment: CGFloat = -4 // how far outside the rectangle the icons sit
-
+            
             VStack(spacing: 0) {
                 //Main Target Frame
                 ZStack(alignment: .topLeading) {
@@ -51,7 +54,7 @@ struct ConnectSmartTargetView: View {
                         .fill(Color.red)
                         .frame(width: dotRadius * 2, height: dotRadius * 2)
                         .offset(x: dotPadding, y: dotPadding)
-
+                    
                     // Bottom-left sensor icon (45° clockwise)
                     Image(systemName: "dot.radiowaves.forward")
                         .font(.system(size: sensorIconSize))
@@ -61,7 +64,7 @@ struct ConnectSmartTargetView: View {
                         .animation(Animation.easeInOut(duration: 0.6).repeatForever(autoreverses: true), value: bleManager.isConnected)
                         .rotationEffect(.degrees(-45)) // clockwise
                         .offset(x: -sensorOffsetAdjustment, y: frameHeight - sensorIconSize + sensorOffsetAdjustment)
-
+                    
                     // Bottom-right sensor icon (135° clockwise)
                     Image(systemName: "dot.radiowaves.forward")
                         .font(.system(size: sensorIconSize))
@@ -71,7 +74,7 @@ struct ConnectSmartTargetView: View {
                         .animation(Animation.easeInOut(duration: 0.6).repeatForever(autoreverses: true).delay(0.15), value: bleManager.isConnected)
                         .rotationEffect(.degrees(-135)) // clockwise
                         .offset(x: frameWidth - sensorIconSize + sensorOffsetAdjustment, y: frameHeight - sensorIconSize + sensorOffsetAdjustment)
-
+                    
                     // Top-right sensor icon (135° counter-clockwise)
                     Image(systemName: "dot.radiowaves.forward")
                         .font(.system(size: sensorIconSize))
@@ -81,7 +84,7 @@ struct ConnectSmartTargetView: View {
                         .animation(Animation.easeInOut(duration: 0.6).repeatForever(autoreverses: true).delay(0.30), value: bleManager.isConnected)
                         .rotationEffect(.degrees(135)) // counter-clockwise
                         .offset(x: frameWidth - sensorIconSize + sensorOffsetAdjustment, y: -sensorOffsetAdjustment)
-
+                    
                     // Top-left sensor icon (45° counter-clockwise)
                     Image(systemName: "dot.radiowaves.forward")
                         .font(.system(size: sensorIconSize))
@@ -94,7 +97,7 @@ struct ConnectSmartTargetView: View {
                 }
                 //.frame(width: .infinity, height: frameHeight, alignment: .top)
                 .padding(.top, geometry.size.height * 0.15)
-//                    .border(.red, width: 1)
+                //                    .border(.red, width: 1)
                 
                 // Status and Reconnect Button
                 VStack(spacing: 12) {
@@ -110,7 +113,7 @@ struct ConnectSmartTargetView: View {
                     }
                     .padding(.horizontal, 24)
                     .padding(.vertical, 16)
-
+                    
                     if showReconnect {
                         Button(action: handleReconnect) {
                             Text(NSLocalizedString("reconnect", comment: "Reconnect button"))
@@ -122,12 +125,15 @@ struct ConnectSmartTargetView: View {
                         }
                         .padding(.horizontal)
                     }
-
-                    if showOkay {
+                    
+                    if isAlreadyConnected {
                         VStack(spacing: 12) {
                             HStack(spacing: 20) {
-                                Button(action: handleRescan) {
-                                    Text(NSLocalizedString("scan", comment: "Scan button to rescan for other targets"))
+                                Button(action: {
+                                    bleManager.disconnect()
+                                    dismiss()
+                                }) {
+                                    Text(NSLocalizedString("disconnect", comment: "Disconnect button"))
                                         .font(.custom("SFPro-Medium", size: 20))
                                         .foregroundColor(.white)
                                         .frame(width: geometry.size.width * 0.35, height: 44)
@@ -144,7 +150,7 @@ struct ConnectSmartTargetView: View {
                                 }
                             }
                             .padding(.horizontal)
-
+                            
                             // Image Transfer button shown when connected (placed under Scan & Firmware)
                             Button(action: {
                                 showImageCrop = true
@@ -164,7 +170,7 @@ struct ConnectSmartTargetView: View {
                 .padding(.top, 120)
             }//Top Level VStack
             .frame(width: geometry.size.width, height: geometry.size.height, alignment: .top)
-//                .border(Color.white, width: 1)
+            //                .border(Color.white, width: 1)
         }//Top Level Geometry Reader
         .overlay(alignment: .topTrailing) {
             Button(action: { dismiss() }) {
@@ -179,66 +185,10 @@ struct ConnectSmartTargetView: View {
             .padding(.top, 20)
             .accessibilityLabel(Text("Close"))
         }
-        .sheet(isPresented: $showPeripheralPicker) {
-            GeometryReader { geo in
-                ZStack {
-                    Color.black.ignoresSafeArea()
-                    
-                    VStack(spacing: 20) {
-                        Spacer()
-                            .frame(height: geo.size.height / 3)
-                        
-                        Text(NSLocalizedString("select_target", comment: "Select target title"))
-                            .font(.custom("SFPro-Medium", size: 20))
-                            .foregroundColor(.white)
-                        
-                        ScrollView(.vertical) {
-                            VStack(spacing: 16) {
-                                ForEach(bleManager.discoveredPeripherals) { peripheral in
-                                    Button(action: {
-                                        selectedPeripheral = peripheral
-                                        connectToSelectedPeripheral()
-                                    }) {
-                                        Text(peripheral.name)
-                                            .font(.custom("SFPro-Medium", size: 18))
-                                            .foregroundColor(.white)
-                                            .frame(maxWidth: .infinity)
-                                            .padding()
-                                            .background(Color.blue.opacity(0.3))
-                                            .cornerRadius(8)
-                                    }
-                                }
-                            }
-                        }
-                        .frame(maxHeight: 400)
-                        
-                        Spacer()
-                    }
-                    .padding()
-                    .background(Color.black.opacity(0.8))
-                    .cornerRadius(16)
-                    .padding(.horizontal, 40)
-                }
-                .overlay(alignment: .topTrailing) {
-                    Button(action: { showPeripheralPicker = false }) {
-                        Image(systemName: "xmark")
-                            .foregroundColor(.white)
-                            .font(.system(size: 20))
-                            .padding(12)
-                            .background(Color.white.opacity(0.2))
-                            .clipShape(Circle())
-                    }
-                    .padding(.trailing, 20)
-                    .padding(.top, 20)
-                    .accessibilityLabel(Text("Close"))
-                }
-            }
-        }
         .sheet(isPresented: $showImageCrop) {
             ImageCropView()
         }
         .background(Color.black.ignoresSafeArea())
-//        .mobilePhoneLayout()
         .alert(isPresented: $showFirmwareAlert) {
             Alert(
                 title: Text(NSLocalizedString("firmware_upgrade_title", comment: "Firmware Upgrade alert title")),
@@ -251,18 +201,30 @@ struct ConnectSmartTargetView: View {
             )
         }
         .onAppear {
-            if bleManager.isConnected {
+            if isAlreadyConnected {
                 statusText = NSLocalizedString("target_connected", comment: "Status when target is connected")
-                showOkay = true
             } else {
                 connectionStartTime = Date()
                 startConnectionTimeout()
-                startScanAndTimer()
+                // If a target peripheral name was passed in (from QR scan), begin scanning
+                if let target = targetPeripheralName {
+                    activeTargetName = target
+                    bleManager.setAutoConnectTarget(target)
+                    startScanAndTimer()
+                    statusText = String(format: NSLocalizedString("scanning_for_target", comment: "Scanning for specific target"), target)
+                } else {
+                    // No target provided - shouldn't happen in normal flow
+                    statusText = NSLocalizedString("ready_to_scan", comment: "Ready to scan prompt")
+                    showProgress = false
+                    isShaking = false
+                }
             }
         }
         .onDisappear {
             timeoutTimer?.invalidate()
             minScanDurationTimer?.invalidate()
+            // Clear any auto-connect target on exit
+            bleManager.setAutoConnectTarget(nil as String?)
         }
         .onChange(of: bleManager.isConnected) { newValue in
             if newValue {
@@ -271,132 +233,126 @@ struct ConnectSmartTargetView: View {
                 isShaking = false
                 showReconnect = false
                 showProgress = false
-                showPeripheralPicker = false
                 goToMain()
             }
         }
         .onChange(of: bleManager.discoveredPeripherals) { newValue in
-            if !newValue.isEmpty && bleManager.isScanning && !showPeripheralPicker {
-                // Check if minimum scan duration has passed
-                let scanDurationElapsed = Date().timeIntervalSince(scanStartTime ?? Date()) >= minScanDuration
-                
-                if scanDurationElapsed {
-                    // Minimum scan duration reached, show picker immediately
+            // If we are looking for a specific target name, try to match and auto-connect
+            if let target = activeTargetName, bleManager.isScanning {
+                if let match = bleManager.findPeripheral(named: target) {
+                    // Found the target peripheral - connect to it
                     bleManager.completeScan()
-                    selectedPeripheral = newValue.first
-                    showPeripheralPicker = true
-                    showProgress = false
-                } else {
-                    // Minimum scan duration not reached yet, schedule picker display
-                    minScanDurationTimer?.invalidate()
-                    minScanDurationTimer = Timer.scheduledTimer(withTimeInterval: minScanDuration, repeats: false) { _ in
-                        if self.bleManager.isScanning && !self.showPeripheralPicker && !newValue.isEmpty {
-                            self.bleManager.completeScan()
-                            self.selectedPeripheral = newValue.first
-                            self.showPeripheralPicker = true
-                            self.showProgress = false
-                        }
-                    }
+                    selectedPeripheral = match
+                    showProgress = true
+                    connectToSelectedPeripheral()
+                    return
                 }
+                // Otherwise wait for timers (min duration / overall timeout) to decide
+                return
             }
         }
     }
-
-    private func startScanAndTimer() {
+    
+    func startScanAndTimer() {
         statusText = NSLocalizedString("trying_to_connect", comment: "Status when trying to connect to FlexTarget device")
         isShaking = true
         showReconnect = false
-        showPeripheralPicker = false
         selectedPeripheral = nil
         scanStartTime = Date()  // Record scan start time
         bleManager.startScan()
         showProgress = true
         minScanDurationTimer?.invalidate()
         
-        // Start 25s scan timer (3s minimum + 22s discovery window)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 25) {
-            if self.bleManager.isScanning && self.bleManager.discoveredPeripherals.isEmpty {
-                // Scan timeout with no peripherals found
-                self.bleManager.completeScan()
-                self.statusText = NSLocalizedString("target_not_found", comment: "Status when no targets found after scan")
-                self.isShaking = false
-                self.showReconnect = true
-                self.showProgress = false
+        // Delay the scan timer start to allow BLE to power on
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            if self.bleManager.isScanning {
+                // If a target name was requested, check for it and auto-connect or dismiss
+                if let target = self.activeTargetName {
+                    if let match = self.bleManager.findPeripheral(named: target) {
+                        self.bleManager.completeScan()
+                        self.selectedPeripheral = match
+                        self.connectToSelectedPeripheral()
+                    } else {
+                        // Target not found in scan results -> dismiss
+                        self.bleManager.completeScan()
+                        // Clear manager auto-connect target before dismissing
+                        self.bleManager.setAutoConnectTarget(nil as String?)
+                        self.dismiss()
+                    }
+                } else {
+                    if self.bleManager.discoveredPeripherals.isEmpty {
+                        // Scan timeout with no peripherals found
+                        self.bleManager.completeScan()
+                        self.statusText = NSLocalizedString("target_not_found", comment: "Status when no targets found after scan")
+                        self.isShaking = false
+                        self.showReconnect = true
+                        self.showProgress = false
+                    }
+                }
             }
         }
     }
-
-    private func handleReconnect() {
-        hasTriedReconnect = true
-        startScanAndTimer()
-    }
-    
-    private func connectToSelectedPeripheral() {
-        print("connectToSelectedPeripheral called")
-        guard let peripheral = selectedPeripheral else {
-            print("selectedPeripheral is nil")
-            return
+        
+        func handleReconnect() {
+            hasTriedReconnect = true
+            startScanAndTimer()
         }
-        print("Selected peripheral: \(peripheral.name)")
-        showPeripheralPicker = false
-        statusText = NSLocalizedString("trying_to_connect", comment: "Status when trying to connect to FlexTarget device")
-        showProgress = true
         
-        // Reset connection start time and restart timeout
-        connectionStartTime = Date()
-        startConnectionTimeout()
-        
-        bleManager.connectToSelectedPeripheral(peripheral)
-        
-        // Start 10s connection timer
-        DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
-            if !self.bleManager.isConnected {
-                // Connection timeout
-                self.bleManager.disconnect()
-                self.statusText = NSLocalizedString("bluetooth_service_not_found", comment: "Status when bluetooth service not found during connection")
-                self.isShaking = false
-                self.showReconnect = true
-                self.showProgress = false
+        func connectToSelectedPeripheral() {
+            guard let peripheral = selectedPeripheral else {
+                return
             }
-        }
-    }
-    
-    private func handleRescan() {
-        bleManager.disconnect()
-        startScanAndTimer()
-    }
-    
-    private func startConnectionTimeout() {
-        timeoutTimer?.invalidate()
-        remainingSeconds = 15
-        
-        timeoutTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
-            guard let startTime = connectionStartTime else { return }
-            let elapsedSeconds = Int(Date().timeIntervalSince(startTime))
-            remainingSeconds = max(0, 15 - elapsedSeconds)
+            statusText = NSLocalizedString("trying_to_connect", comment: "Status when trying to connect to FlexTarget device")
+            showProgress = true
             
-            // Update status text with countdown
-            statusText = NSLocalizedString("trying_to_connect", comment: "Status when trying to connect to FlexTarget device") + " (\(remainingSeconds))"
+            bleManager.connectToSelectedPeripheral(peripheral)
+            // Clear manager auto-connect target since we are actively connecting
+            bleManager.setAutoConnectTarget(nil as String?)
             
-            // If 15 seconds have passed and not connected, dismiss
-            if elapsedSeconds >= 15 && !bleManager.isConnected {
-                timeoutTimer?.invalidate()
-                bleManager.disconnect()
-                bleManager.completeScan()
-                dismiss()
+            // Start 10s connection timer
+            DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
+                if !self.bleManager.isConnected {
+                    // Connection timeout
+                    self.bleManager.disconnect()
+                    self.statusText = NSLocalizedString("bluetooth_service_not_found", comment: "Status when bluetooth service not found during connection")
+                    self.isShaking = false
+                    self.showReconnect = true
+                    self.showProgress = false
+                }
+            }
+        }
+        
+        func startConnectionTimeout() {
+            timeoutTimer?.invalidate()
+            remainingSeconds = 15
+            
+            timeoutTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+                guard let startTime = connectionStartTime else { return }
+                let elapsedSeconds = Int(Date().timeIntervalSince(startTime))
+                remainingSeconds = max(0, 15 - elapsedSeconds)
+                
+                // Update status text with countdown
+                statusText = NSLocalizedString("trying_to_connect", comment: "Status when trying to connect to FlexTarget device") + " (\(remainingSeconds))"
+                
+                // If 15 seconds have passed and not connected, dismiss
+                if elapsedSeconds >= 15 && !bleManager.isConnected {
+                    timeoutTimer?.invalidate()
+                    bleManager.disconnect()
+                    bleManager.completeScan()
+                    dismiss()
+                }
             }
         }
     }
-}
-
-// MARK: - Preview
+    
+    // MARK: - Preview
 #if DEBUG
-struct ConnectSmartTargetView_Previews: PreviewProvider {
-    static var previews: some View {
-        // Provide a constant binding for navigateToMain. Use shared BLEManager for preview.
-        ConnectSmartTargetView(bleManager: BLEManager.shared, navigateToMain: .constant(false))
-            .previewLayout(.fixed(width: 375, height: 700))
-            .background(Color.black)
+    struct ConnectSmartTargetView_Previews: PreviewProvider {
+        static var previews: some View {
+            // Provide a constant binding for navigateToMain. Use shared BLEManager for preview.
+            ConnectSmartTargetView(bleManager: BLEManager.shared, navigateToMain: .constant(false), isAlreadyConnected: false)
+                .previewLayout(.fixed(width: 375, height: 700))
+                .background(Color.black)
+        }
     }
-}
 #endif

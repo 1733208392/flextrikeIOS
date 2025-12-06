@@ -48,7 +48,7 @@ struct OrientationView: View {
                 }
                 
                 NavigationLink(isActive: $navigateToConnect) {
-                    ConnectSmartTargetView(bleManager: bleManager, navigateToMain: .constant(false))
+                    ConnectSmartTargetView(bleManager: bleManager, navigateToMain: .constant(false), isAlreadyConnected: false)
                         .navigationBarBackButtonHidden(true)
                 } label: {
                     EmptyView()

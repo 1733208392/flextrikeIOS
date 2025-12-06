@@ -28,6 +28,7 @@
 "delay_seconds" = "延迟: %d秒";
 
 /* BLE/ConnectSmartTargetView */
+"disconnect" = "断开连接";
 "reconnect" = "重新连接";
 "okay" = "确定";
 "select_target" = "选择标靶";
@@ -37,6 +38,9 @@
 "target_not_found" = "未找到标靶";
 "bluetooth_service_not_found" = "未找到蓝牙服务";
 "scan" = "重新扫描";
+"my_target" = "上传图片";
+"scanning_for_target" = "正在扫描 %@";
+"ready_to_scan" = "准备扫描";
 
 /* LaserDryFire/OverlayView */
 "fps_display" = "FPS: %d";
@@ -145,9 +149,10 @@
 "firmware_upgrade_message" = "确保新的固件USB驱动器牢固地插入设备右侧的USB端口。";
 
 /* Image transfer / ImageCropView */
-"my_target" = "我的标靶";
+"my_target" = "上传图片";
 "choose_photo" = "选择照片";
 "complete" = "传输";
+"align_qr_code" = "对齐控制框内的二维码";
 "transferring_image" = "正在传输图片...";
 "cancel_transfer" = "取消传输";
 "cancel_transfer_confirm_title" = "取消传输并返回？";
