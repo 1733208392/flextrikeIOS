@@ -208,6 +208,13 @@ struct ImageReceiveView: View {
                 dismissButton: .default(Text(NSLocalizedString("ok", comment: "OK")))
             )
         }
+        .alert(isPresented: $bleManager.showErrorAlert) {
+            Alert(
+                title: Text("Error"),
+                message: Text(bleManager.errorMessage ?? "Unknown error occurred"),
+                dismissButton: .default(Text("OK"))
+            )
+        }
     }
     
     private func setupImageReceiveManager() {

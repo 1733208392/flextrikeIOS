@@ -200,6 +200,13 @@ struct ConnectSmartTargetView: View {
                 secondaryButton: .cancel()
             )
         }
+        .alert(isPresented: $bleManager.showErrorAlert) {
+            Alert(
+                title: Text("Error"),
+                message: Text(bleManager.errorMessage ?? "Unknown error occurred"),
+                dismissButton: .default(Text("OK"))
+            )
+        }
         .onAppear {
             if isAlreadyConnected {
                 statusText = NSLocalizedString("target_connected", comment: "Status when target is connected")

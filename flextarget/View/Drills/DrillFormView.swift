@@ -53,6 +53,8 @@ struct DrillFormView: View {
     @State private var isAddModeDrillSaved: Bool = false
     @State private var showBackConfirmationAlert: Bool = false
     @State private var showEndDrillAlert: Bool = false
+    @State private var navigateToTimerSession: Bool = false
+    @State private var drillSetupForTimer: DrillSetup? = nil
     
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.managedObjectContext) private var environmentContext
@@ -220,6 +222,16 @@ struct DrillFormView: View {
                 if case .edit(let drillSetup) = mode {
                     DrillSummaryView(drillSetup: drillSetup, summaries: drillRepeatSummaries)
                         .environment(\.managedObjectContext, viewContext)
+                }
+            } label: {
+                EmptyView()
+            }
+            
+            NavigationLink(isActive: $navigateToTimerSession) {
+                if let drillSetup = drillSetupForTimer {
+                    TimerSessionView(drillSetup: drillSetup, onDrillStart: { delay in
+                        startDrill(with: drillSetup, randomDelay: delay)
+                    })
                 }
             } label: {
                 EmptyView()
@@ -553,13 +565,14 @@ struct DrillFormView: View {
                 }
             }
             
-            // Now start the drill
+            // Now navigate to timer session
             guard let drillSetup = drillSetupToStart else {
                 print("Failed to get drill setup for starting")
                 return
             }
             
-            startDrill(with: drillSetup)
+            drillSetupForTimer = drillSetup
+            navigateToTimerSession = true
         } catch {
             print("Failed to save drill setup before starting: \(error)")
             viewContext.rollback()
@@ -571,7 +584,7 @@ struct DrillFormView: View {
         startDrill(with: drillSetup)
     }
     
-    private func startDrill(with drillSetup: DrillSetup) {
+    private func startDrill(with drillSetup: DrillSetup, randomDelay: TimeInterval = 0) {
         isDrillInProgress = true
         dotCount = 0
 
@@ -586,6 +599,7 @@ struct DrillFormView: View {
             bleManager: bleManager,
             drillSetup: drillSetup,
             expectedDevices: expectedDevices,
+            randomDelay: randomDelay,
             onComplete: { summaries in
                 DispatchQueue.main.async {
                     self.drillRepeatSummaries = summaries

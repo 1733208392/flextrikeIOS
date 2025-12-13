@@ -91,6 +91,10 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
     // Global device list data for sharing across views
     @Published var networkDevices: [NetworkDevice] = []
     @Published var lastDeviceListUpdate: Date?
+    
+    // Error message for displaying alerts
+    @Published var errorMessage: String?
+    @Published var showErrorAlert: Bool = false
 
     private var centralManager: CBCentralManager!
     private var connectingPeripheral: CBPeripheral?
@@ -591,6 +595,16 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
                     
                     if !notificationHandled {
                         print("Received unrecognized JSON notification: \(json)")
+                        
+                        // Check if this is a failure message that should be alerted
+                        if let state = json["state"] as? String, state == "failure",
+                           let message = json["message"] as? String {
+                            DispatchQueue.main.async {
+                                self.errorMessage = message
+                                self.showErrorAlert = true
+                            }
+                        }
+                        
                         // Optionally post a general notification for unrecognized JSON
                         NotificationCenter.default.post(name: .bleNetlinkForwardReceived, object: nil, userInfo: ["json": json, "unrecognized": true])
                     }

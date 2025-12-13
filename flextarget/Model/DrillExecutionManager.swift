@@ -7,6 +7,7 @@ class DrillExecutionManager {
     private let expectedDevices: [String]
     private let onComplete: ([DrillRepeatSummary]) -> Void
     private let onFailure: () -> Void
+    private let randomDelay: TimeInterval
     
     private var currentRepeat = 0
     private var ackedDevices = Set<String>()
@@ -28,10 +29,11 @@ class DrillExecutionManager {
     private var isStopped = false
     private var drillDuration: TimeInterval?
     
-    init(bleManager: BLEManager, drillSetup: DrillSetup, expectedDevices: [String], onComplete: @escaping ([DrillRepeatSummary]) -> Void, onFailure: @escaping () -> Void) {
+    init(bleManager: BLEManager, drillSetup: DrillSetup, expectedDevices: [String], randomDelay: TimeInterval = 0, onComplete: @escaping ([DrillRepeatSummary]) -> Void, onFailure: @escaping () -> Void) {
         self.bleManager = bleManager
         self.drillSetup = drillSetup
         self.expectedDevices = expectedDevices
+        self.randomDelay = randomDelay
         self.onComplete = onComplete
         self.onFailure = onFailure
 
@@ -90,9 +92,11 @@ class DrillExecutionManager {
         
         for (index, target) in sortedTargets.enumerated() {
             do {
+                let delayValue = randomDelay > 0 ? randomDelay : drillSetup.delay
+                let roundedDelay = (delayValue * 100).rounded() / 100
                 let content: [String: Any] = [
                     "command": "ready",
-                    "delay": drillSetup.delay,
+                    "delay": roundedDelay,
                     "targetType": target.targetType ?? "",
                     "timeout": 300,
                     "countedShots": target.countedShots,
