@@ -3,9 +3,7 @@ import SwiftUI
 struct FAQView: View {
     let faqs = [
         ("How do I set up the target?", "targetSetup", "target"),
-        ("Why does the app keep connecting to the target?", "bleConnect", "wifi.exclamationmark"),
-        ("Why are no shots being captured?", "rectify", "scope"),
-        ("How can I view my drill results?", "results", "chart.bar.fill")
+        ("How to Use the Netlink Feature to Customize the Drill?", "netlink", "network")
     ]
     
     private func faqRow(question: String, answer: String, icon: String) -> some View {

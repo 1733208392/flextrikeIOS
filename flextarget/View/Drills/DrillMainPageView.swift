@@ -168,6 +168,13 @@ struct DrillMainPageView: View {
             }
             
             // Trailing: Info Button - Hidden for now
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button(action: { showInfo = true }) {
+                    Image(systemName: "info.circle")
+                        .foregroundColor(.white)
+                        .font(.title2)
+                }
+            }
             // ToolbarItem(placement: .navigationBarTrailing) {
             //     Button(action: { showInfo = true }) {
             //         Image(systemName: "info.circle")

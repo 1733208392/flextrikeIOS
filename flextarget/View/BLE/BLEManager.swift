@@ -573,7 +573,16 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
                             isShot = true
                         }
                         
-                        if !isShot {
+                        // Check if this is an image chunk
+                        var isImageChunk = false
+                        if let content = json["content"] as? [String: Any], let command = content["command"] as? String, command == "image_chunk" {
+                            isImageChunk = true
+                            print("Received image chunk: \(json)")
+                            NotificationCenter.default.post(name: .bleImageChunkReceived, object: nil, userInfo: ["json": content])
+                            notificationHandled = true
+                        }
+                        
+                        if !isShot && !isImageChunk {
                             print("Received general netlink forward: \(json)")
                             NotificationCenter.default.post(name: .bleNetlinkForwardReceived, object: nil, userInfo: ["json": json])
                             notificationHandled = true
@@ -697,6 +706,7 @@ extension Notification.Name {
     static let bleDeviceListUpdated = Notification.Name("bleDeviceListUpdated")
     static let bleShotReceived = Notification.Name("bleShotReceived")
     static let bleNetlinkForwardReceived = Notification.Name("bleNetlinkForwardReceived")
+    static let bleImageChunkReceived = Notification.Name("bleImageChunkReceived")
     static let bleErrorOccurred = Notification.Name("bleErrorOccurred")
     static let drillExecutionCompleted = Notification.Name("drillExecutionCompleted")
 }

@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>This app needs to save the device snapshot into the library. </string>
 	<key>NSCameraUsageDescription</key>
 	<string>This app uses the camera to scan the device&apos;s QR Code to connect the device.</string>
 	<key>UIAppFonts</key>
