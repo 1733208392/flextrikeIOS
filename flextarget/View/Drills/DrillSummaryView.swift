@@ -3,7 +3,8 @@ import CoreData
 
 struct DrillSummaryView: View {
     let drillSetup: DrillSetup
-    let summaries: [DrillRepeatSummary]
+    @State var summaries: [DrillRepeatSummary]
+    @State private var originalScores: [UUID: Int] = [:]
 
     @Environment(\.dismiss) private var dismiss
 
@@ -31,6 +32,33 @@ struct DrillSummaryView: View {
         return Double(score) / time
     }
 
+    private func deductScore(at index: Int) {
+        guard index >= 0 && index < summaries.count else { return }
+        
+        let deductionAmount = 10
+        withAnimation(.easeInOut(duration: 0.3)) {
+            summaries[index].score -= deductionAmount
+        }
+    }
+
+    private func restoreScore(at index: Int) {
+        guard index >= 0 && index < summaries.count else { return }
+        
+        if let originalScore = originalScores[summaries[index].id] {
+            withAnimation(.easeInOut(duration: 0.3)) {
+                summaries[index].score = originalScore
+            }
+        }
+    }
+
+    private func initializeOriginalScores() {
+        for summary in summaries {
+            if originalScores[summary.id] == nil {
+                originalScores[summary.id] = summary.score
+            }
+        }
+    }
+
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
@@ -43,13 +71,14 @@ struct DrillSummaryView: View {
                 } else {
                     ScrollView(.vertical, showsIndicators: false) {
                         VStack(spacing: 20) {
-                            ForEach(summaries) { summary in
-                                NavigationLink(destination: DrillResultView(drillSetup: drillSetup, repeatSummary: summary)) {
+                            ForEach(summaries.indices, id: \.self) { index in
+                                NavigationLink(destination: DrillResultView(drillSetup: drillSetup, repeatSummary: summaries[index])) {
                                     summaryCard(
-                                        title: String(format: NSLocalizedString("repeat_number", comment: "Repeat number format"), summary.repeatIndex),
-                                        subtitle: "\(NSLocalizedString("factor_label", comment: "Factor label")): \(String(format: "%.2f", calculateFactor(score: summary.score, time: summary.totalTime)))",
+                                        title: String(format: NSLocalizedString("repeat_number", comment: "Repeat number format"), summaries[index].repeatIndex),
+                                        subtitle: "\(NSLocalizedString("factor_label", comment: "Factor label")): \(String(format: "%.2f", calculateFactor(score: summaries[index].score, time: summaries[index].totalTime)))",
                                         iconName: "scope",
-                                        metrics: metrics(for: summary)
+                                        metrics: metrics(for: summaries[index]),
+                                        summaryIndex: index
                                     )
                                 }
                             }
@@ -60,6 +89,9 @@ struct DrillSummaryView: View {
             }
         }
         .navigationBarHidden(true)
+        .onAppear {
+            initializeOriginalScores()
+        }
     }
 
     private var navigationBar: some View {
@@ -114,7 +146,7 @@ struct DrillSummaryView: View {
         .background(Color.black)
     }
 
-    private func summaryCard(title: String, subtitle: String, iconName: String, metrics: [SummaryMetric]) -> some View {
+    private func summaryCard(title: String, subtitle: String, iconName: String, metrics: [SummaryMetric], summaryIndex: Int) -> some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(alignment: .center, spacing: 12) {
                 ZStack {
@@ -142,6 +174,16 @@ struct DrillSummaryView: View {
                 }
 
                 Spacer()
+                
+                // PE Button for penalty deduction
+                PenaltyButton(action: {
+                    deductScore(at: summaryIndex)
+                })
+                
+                // Restore Button
+                RestoreButton(action: {
+                    restoreScore(at: summaryIndex)
+                })
             }
 
             Divider()
@@ -183,6 +225,8 @@ struct DrillSummaryView: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
                 .multilineTextAlignment(.center)
+                .id(metric.value) // This helps SwiftUI track changes and animate them
+                .transition(.scale.combined(with: .opacity))
 
             if let footnote = metric.footnote {
                 Text(footnote)
@@ -241,3 +285,66 @@ private struct SummaryMetric: Identifiable {
     }
 }
 
+// MARK: - Penalty Button
+struct PenaltyButton: View {
+    @State private var isPressed = false
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            ZStack {
+                Circle()
+                    .fill(Color.black)
+                    .frame(width: 40, height: 40)
+                    .overlay(
+                        Circle()
+                            .stroke(Color.orange, lineWidth: 2)
+                    )
+
+                Text("PE")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(.orange)
+            }
+            .shadow(color: Color.orange.opacity(0.3), radius: 6, x: 0, y: 3)
+        }
+        .scaleEffect(isPressed ? 0.92 : 1.0)
+        .opacity(isPressed ? 0.8 : 1.0)
+        .onLongPressGesture(minimumDuration: 0.05, perform: {}, onPressingChanged: { pressing in
+            withAnimation(.easeInOut(duration: 0.15)) {
+                isPressed = pressing
+            }
+        })
+    }
+}
+
+// MARK: - Restore Button
+struct RestoreButton: View {
+    @State private var isPressed = false
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            ZStack {
+                Circle()
+                    .fill(Color.black)
+                    .frame(width: 40, height: 40)
+                    .overlay(
+                        Circle()
+                            .stroke(Color.green, lineWidth: 2)
+                    )
+
+                Image(systemName: "arrow.counterclockwise")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(.green)
+            }
+            .shadow(color: Color.green.opacity(0.3), radius: 6, x: 0, y: 3)
+        }
+        .scaleEffect(isPressed ? 0.92 : 1.0)
+        .opacity(isPressed ? 0.8 : 1.0)
+        .onLongPressGesture(minimumDuration: 0.05, perform: {}, onPressingChanged: { pressing in
+            withAnimation(.easeInOut(duration: 0.15)) {
+                isPressed = pressing
+            }
+        })
+    }
+}
