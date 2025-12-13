@@ -8,7 +8,7 @@ struct DrillRepeatSummary: Identifiable, Codable {
     let numShots: Int
     let firstShot: TimeInterval
     let fastest: TimeInterval
-    let score: Int
+    var score: Int
     let shots: [ShotData]
 
     init(

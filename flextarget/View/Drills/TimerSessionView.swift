@@ -30,18 +30,24 @@ struct TimerSessionView: View {
                 Spacer()
 
                 VStack(spacing: 12) {
-                    Text("Elapsed Time")
-                        .font(.title3.weight(.semibold))
-                        .foregroundColor(.secondary)
-
                     Text(elapsedTimeText)
-                        .font(.custom("DIGITALDREAMFAT", size: 54))
+                        .font(.custom("DIGITALDREAMFAT", size: 48))
                         .tracking(4)
-
+                        .foregroundColor(.white)
+                    
                     if timerState == .standby {
-                        Text("Random delay: \(delayRemaining, format: .number.precision(.fractionLength(1)))s")
-                            .font(.body.weight(.medium))
-                            .foregroundColor(.secondary)
+                        GeometryReader { geometry in
+                            ZStack(alignment: .leading) {
+                                RoundedRectangle(cornerRadius: 2)
+                                    .fill(Color.white.opacity(0.2))
+                                
+                                RoundedRectangle(cornerRadius: 2)
+                                    .fill(Color.red)
+                                    .frame(width: geometry.size.width * (1 - (delayRemaining / randomDelay)))
+                            }
+                            .frame(height: 2)
+                        }
+                        .frame(height: 2)
                     }
                 }
 
@@ -49,7 +55,7 @@ struct TimerSessionView: View {
 
                 Button(action: buttonTapped) {
                     Text(buttonText)
-                        .font(.title2.weight(.semibold))
+                        .font(.largeTitle.weight(.bold))
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
                 .frame(width: 200, height: 200)
@@ -62,8 +68,10 @@ struct TimerSessionView: View {
                 Spacer()
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color(.systemBackground))
+            .background(Color.black)
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarColorScheme(.dark)
+            .tint(.red)
         }
         .onDisappear {
             stopUpdateTimer()
@@ -81,11 +89,11 @@ struct TimerSessionView: View {
     private var buttonText: String {
         switch timerState {
         case .idle, .paused:
-            return "Start"
+            return "START"
         case .standby:
-            return "Standby"
+            return "STANDBY"
         case .running:
-            return "Stop"
+            return "STOP"
         }
     }
 

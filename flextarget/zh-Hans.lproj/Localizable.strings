@@ -116,7 +116,7 @@
 "select_target_type" = "选择标靶类型";
 
 /* DrillFormView */
-"start_drill" = "开始训练";
+"start_drill" = "进入训练";
 "save_drill" = "保存训练";
 "save_changes" = "保存更改";
 
