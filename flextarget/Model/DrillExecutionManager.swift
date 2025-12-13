@@ -480,7 +480,43 @@ class DrillExecutionManager {
         let numShots = adjustedShots.count
         let fastest = adjustedShots.map { $0.content.timeDiff }.min() ?? 0.0
         let firstShot = adjustedShots.first?.content.timeDiff ?? 0.0
-        var totalScore = adjustedShots.reduce(0) { $0 + scoreForHitArea($1.content.hitArea) }
+        
+        // Group shots by target/device and keep only the best 2 per target
+        // Exception: shots in no-shoot zones (whitezone, blackzone) always count as they deduct score
+        var shotsByTarget: [String: [ShotData]] = [:]
+        for shot in adjustedShots {
+            let device = shot.device ?? shot.target ?? "unknown"
+            if shotsByTarget[device] == nil {
+                shotsByTarget[device] = []
+            }
+            shotsByTarget[device]?.append(shot)
+        }
+        
+        // Keep best 2 shots per target, but always include no-shoot zone hits
+        var bestShotsPerTarget: [ShotData] = []
+        for (_, shots) in shotsByTarget {
+            let noShootZoneShots = shots.filter { shot in
+                let trimmed = shot.content.hitArea.trimmingCharacters(in: .whitespaces).lowercased()
+                return trimmed == "whitezone" || trimmed == "blackzone"
+            }
+            
+            let otherShots = shots.filter { shot in
+                let trimmed = shot.content.hitArea.trimmingCharacters(in: .whitespaces).lowercased()
+                return trimmed != "whitezone" && trimmed != "blackzone"
+            }
+            
+            // Sort other shots by score (descending) and keep best 2
+            let sortedOtherShots = otherShots.sorted {
+                scoreForHitArea($0.content.hitArea) > scoreForHitArea($1.content.hitArea)
+            }
+            let bestOtherShots = Array(sortedOtherShots.prefix(2))
+            
+            // Always include no-shoot zone shots plus best 2 other shots
+            bestShotsPerTarget.append(contentsOf: noShootZoneShots)
+            bestShotsPerTarget.append(contentsOf: bestOtherShots)
+        }
+        
+        var totalScore = bestShotsPerTarget.reduce(0) { $0 + scoreForHitArea($1.content.hitArea) }
         
         // Auto re-evaluate score: deduct 10 points for each missed target
         let missedTargetCount = calculateMissedTargets(shots: adjustedShots)
@@ -557,7 +593,7 @@ class DrillExecutionManager {
         case "miss":
             return 0
         case "whitezone":
-            return -5
+            return -10
         case "blackzone":
             return -10
         case "circlearea": // Paddle
