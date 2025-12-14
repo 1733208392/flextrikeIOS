@@ -20,6 +20,7 @@ class DrillExecutionManager {
     private var currentRepeatShots: [ShotEvent] = []
     private var currentRepeatStartTime: Date?
     private var startCommandTime: Date?
+    private var beepTime: Date?
     private var endCommandTime: Date?
     private var shotObserver: NSObjectProtocol?
     private let firstShotMockValue: TimeInterval = 1.0
@@ -84,6 +85,10 @@ class DrillExecutionManager {
     
     func setRandomDelay(_ delay: TimeInterval) {
         self.randomDelay = delay
+    }
+    
+    func setBeepTime(_ time: Date) {
+        self.beepTime = time
     }
     
     func stopExecution() {
@@ -461,6 +466,7 @@ class DrillExecutionManager {
         currentRepeatShots.removeAll()
         currentRepeatStartTime = Date()
         startCommandTime = nil
+        beepTime = nil
         endCommandTime = nil
         drillDuration = nil
         
@@ -487,54 +493,66 @@ class DrillExecutionManager {
             return
         }
 
-        // Calculate total time: drill_duration - delay_time from ready ACK
+        // Calculate total time: from BEEP to last shot
         var totalTime: TimeInterval = 0.0
-        let timerDelay: TimeInterval
-        if let delayTimeStr = globalDelayTime, let delayValue = Double(delayTimeStr) {
-            timerDelay = delayValue
-        } else {
-            timerDelay = 0.0
-        }
+        let timerDelay: TimeInterval = self.randomDelay > 0 ? self.randomDelay : TimeInterval(drillSetup.delay)
         
-        if let duration = drillDuration {
-            totalTime = max(0.0, duration - timerDelay)
-            print("Total time calculation - drill_duration: \(duration), delay_time: \(timerDelay), total: \(totalTime)")
+        if let startTime = beepTime, let lastShotTime = sortedShots.last?.receivedAt {
+            totalTime = max(0.0, lastShotTime.timeIntervalSince(startTime))
+            print("Total time calculation - beep: \(startTime), last shot: \(lastShotTime), total: \(totalTime)")
         } else {
-            print("Warning: No drill_duration received for repeat \(repeatIndex), using fallback calculation")
-            // Fallback to shot-based calculation if drill_duration missing
-            var timeSumPerTarget: [String: TimeInterval] = [:]
-            for shot in sortedShots {
-                let device = shot.shot.device ?? shot.shot.target ?? "unknown"
-                let currentSum = timeSumPerTarget[device] ?? 0.0
-                timeSumPerTarget[device] = currentSum + shot.shot.content.timeDiff
+            print("Warning: No beepTime or shots received for repeat \(repeatIndex), using fallback calculation")
+            // Fallback to old method if drill_duration available
+            if let duration = drillDuration {
+                totalTime = max(0.0, duration - timerDelay)
+                print("Fallback total time - drill_duration: \(duration), delay_time: \(timerDelay), total: \(totalTime)")
+            } else {
+                // Last resort: use shot-based calculation
+                var timeSumPerTarget: [String: TimeInterval] = [:]
+                for shot in sortedShots {
+                    let device = shot.shot.device ?? shot.shot.target ?? "unknown"
+                    let currentSum = timeSumPerTarget[device] ?? 0.0
+                    timeSumPerTarget[device] = currentSum + shot.shot.content.timeDiff
+                }
+                totalTime = timeSumPerTarget.values.max() ?? 0.0
             }
-            totalTime = timeSumPerTarget.values.max() ?? 0.0
         }
 
-        // Adjust timeDiff for shots from non-first targets by subtracting the delay
-        let adjustedShots = sortedShots.map { event -> ShotData in
-            if event.shot.device != firstTargetName {
-                let adjustedTimeDiff = max(0, event.shot.content.timeDiff - timerDelay)
-                let adjustedContent = Content(
-                    command: event.shot.content.command,
-                    hitArea: event.shot.content.hitArea,
-                    hitPosition: event.shot.content.hitPosition,
-                    rotationAngle: event.shot.content.rotationAngle,
-                    targetType: event.shot.content.targetType,
-                    timeDiff: adjustedTimeDiff,
-                    device: event.shot.content.device,
-                    targetPos: event.shot.content.targetPos
-                )
-                return ShotData(
-                    target: event.shot.target,
-                    content: adjustedContent,
-                    type: event.shot.type,
-                    action: event.shot.action,
-                    device: event.shot.device
-                )
+        // Recalculate timeDiff: first shot relative to beepTime, rest relative to previous shot's timestamp
+        let adjustedShots = sortedShots.enumerated().map { (index, event) -> ShotData in
+            let newTimeDiff: TimeInterval
+            if let beepTime = beepTime {
+                if index == 0 {
+                    newTimeDiff = event.receivedAt.timeIntervalSince(beepTime)
+                } else {
+                    let previousReceivedAt = sortedShots[index - 1].receivedAt
+                    newTimeDiff = event.receivedAt.timeIntervalSince(previousReceivedAt)
+                }
             } else {
-                return event.shot
+                // Fallback to old adjustment
+                if event.shot.device != firstTargetName {
+                    newTimeDiff = max(0, event.shot.content.timeDiff - timerDelay)
+                } else {
+                    newTimeDiff = event.shot.content.timeDiff
+                }
             }
+            let adjustedContent = Content(
+                command: event.shot.content.command,
+                hitArea: event.shot.content.hitArea,
+                hitPosition: event.shot.content.hitPosition,
+                rotationAngle: event.shot.content.rotationAngle,
+                targetType: event.shot.content.targetType,
+                timeDiff: newTimeDiff,
+                device: event.shot.content.device,
+                targetPos: event.shot.content.targetPos
+            )
+            return ShotData(
+                target: event.shot.target,
+                content: adjustedContent,
+                type: event.shot.type,
+                action: event.shot.action,
+                device: event.shot.device
+            )
         }
 
         let numShots = adjustedShots.count

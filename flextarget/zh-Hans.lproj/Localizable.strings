@@ -73,7 +73,7 @@
 "total_time_label" = "总时间";
 "shots_metric_label" = "射击";
 "fastest_label" = "最快";
-"first_shot_label" = "首次射击";
+"first_shot_label" = "首枪";
 "score_label" = "分数";
 "factor_label" = "系数";
 

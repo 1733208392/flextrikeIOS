@@ -459,6 +459,7 @@ struct TimerSessionView: View {
         timerState = .running
         timerStartDate = timestamp
         playHighBeep()
+        executionManager?.setBeepTime(timestamp)
     }
 
     private func buttonTapped() {
