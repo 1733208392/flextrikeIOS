@@ -23,9 +23,10 @@ struct TimerSessionView: View {
     @State private var elapsedDuration: TimeInterval = 0
     @State private var updateTimer: Timer?
     @State private var audioPlayer: AVAudioPlayer?
+    @State private var showEndDrillAlert: Bool = false
 
     var body: some View {
-        NavigationStack {
+        ZStack {
             VStack(spacing: 40) {
                 Spacer()
 
@@ -69,9 +70,36 @@ struct TimerSessionView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color.black)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbarColorScheme(.dark)
-            .tint(.red)
+            
+            VStack {
+                HStack {
+                    Button(action: handleBackButtonTap) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "chevron.left")
+                            Text(NSLocalizedString("back", comment: "Back button"))
+                        }
+                        .foregroundColor(.red)
+                    }
+                    Spacer()
+                }
+                .padding()
+                
+                Spacer()
+            }
+        }
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarColorScheme(.dark)
+        .tint(.red)
+        .navigationBarBackButtonHidden(true)
+        .alert(NSLocalizedString("end_drill", comment: "End drill alert title"), isPresented: $showEndDrillAlert) {
+            Button(NSLocalizedString("cancel", comment: "Cancel button"), role: .cancel) { }
+            Button(NSLocalizedString("confirm", comment: "Confirm button"), role: .destructive) {
+                onDrillStop()
+                resetTimer()
+                dismiss()
+            }
+        } message: {
+            Text(NSLocalizedString("drill_in_progress", comment: "Drill in progress"))
         }
         .onDisappear {
             stopUpdateTimer()
@@ -112,6 +140,7 @@ struct TimerSessionView: View {
 
     private func startSequence() {
         timerState = .standby
+        playStandbySound()
         let randomDelayValue = Double.random(in: 2...5)
         randomDelay = randomDelayValue
         delayTarget = Date().addingTimeInterval(randomDelayValue)
@@ -183,6 +212,14 @@ struct TimerSessionView: View {
         }
     }
 
+    private func handleBackButtonTap() {
+        if timerState == .standby || timerState == .running {
+            showEndDrillAlert = true
+        } else {
+            dismiss()
+        }
+    }
+
     private func pauseTimer() {
         stopUpdateTimer()
         timerState = .paused
@@ -215,6 +252,20 @@ struct TimerSessionView: View {
             audioPlayer?.play()
         } catch {
             print("Failed to play audio: \(error)")
+        }
+    }
+
+    private func playStandbySound() {
+        guard let url = Bundle.main.url(forResource: "standby", withExtension: "mp3") else {
+            print("Standby audio file not found")
+            return
+        }
+        
+        do {
+            audioPlayer = try AVAudioPlayer(contentsOf: url)
+            audioPlayer?.play()
+        } catch {
+            print("Failed to play standby audio: \(error)")
         }
     }
 }
