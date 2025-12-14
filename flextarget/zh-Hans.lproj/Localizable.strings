@@ -181,3 +181,12 @@
 "transfer" = "传输";
 "ensure_target_ready" = "请确保标靶已准备就绪";
 "target_not_ready" = "标靶尚未准备好接收";
+
+/* TimerSessionView - Target Readiness */
+"targets_ready" = "所有标靶已准备好进行练习";
+"targets_not_ready" = "标靶未准备好";
+"targets_not_ready_message" = "以下标靶未响应:";
+"end_drill" = "结束练习?";
+"drill_in_progress" = "练习进行中";
+"processing_shots" = "正在处理射击";
+"pause_between_repeats" = "重复间暂停";

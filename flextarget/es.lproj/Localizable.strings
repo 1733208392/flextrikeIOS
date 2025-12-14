@@ -181,3 +181,12 @@
 "transfer" = "Transferir";
 "ensure_target_ready" = "Asegúrese de que el objetivo esté listo";
 "target_not_ready" = "El objetivo no está listo para recibir";
+
+/* TimerSessionView - Target Readiness */
+"targets_ready" = "Los objetivos están listos para el ejercicio";
+"targets_not_ready" = "Objetivos no listos";
+"targets_not_ready_message" = "Los siguientes objetivos no respondieron:";
+"end_drill" = "¿Finalizar ejercicio?";
+"drill_in_progress" = "Ejercicio en progreso";
+"processing_shots" = "Procesando disparos";
+"pause_between_repeats" = "Pausa entre repeticiones";

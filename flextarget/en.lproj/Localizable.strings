@@ -170,3 +170,12 @@
 /* Image transfer overlay messages */
 "ensure_target_ready" = "Make sure the Target is Ready";
 "target_not_ready" = "Target is Not Ready to receive";
+
+/* TimerSessionView - Target Readiness */
+"targets_ready" = "Targets Are Ready For the Drill";
+"targets_not_ready" = "Targets Not Ready";
+"targets_not_ready_message" = "The following targets did not respond:";
+"end_drill" = "End Drill?";
+"drill_in_progress" = "Drill is in progress";
+"processing_shots" = "Processing shots";
+"pause_between_repeats" = "Pause between repeats";

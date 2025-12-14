@@ -181,3 +181,12 @@
 "transfer" = "Übertragen";
 "ensure_target_ready" = "Stellen Sie sicher, dass das Ziel bereit ist";
 "target_not_ready" = "Ziel ist nicht bereit, zu empfangen";
+
+/* TimerSessionView - Target Readiness */
+"targets_ready" = "Ziele sind bereit für die Übung";
+"targets_not_ready" = "Ziele nicht bereit";
+"targets_not_ready_message" = "Die folgenden Ziele haben nicht reagiert:";
+"end_drill" = "Übung beenden?";
+"drill_in_progress" = "Übung läuft";
+"processing_shots" = "Schüsse verarbeiten";
+"pause_between_repeats" = "Pause zwischen Wiederholungen";

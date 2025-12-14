@@ -7,7 +7,9 @@ class DrillExecutionManager {
     private let expectedDevices: [String]
     private let onComplete: ([DrillRepeatSummary]) -> Void
     private let onFailure: () -> Void
-    private let randomDelay: TimeInterval
+    private let onReadinessUpdate: (Int, Int) -> Void
+    private let onReadinessTimeout: ([String]) -> Void
+    private var randomDelay: TimeInterval
     
     private var currentRepeat = 0
     private var ackedDevices = Set<String>()
@@ -29,14 +31,17 @@ class DrillExecutionManager {
     private var gracePeriodTimer: Timer?
     private var isStopped = false
     private var drillDuration: TimeInterval?
+    private var isReadinessCheckOnly = false
     
-    init(bleManager: BLEManager, drillSetup: DrillSetup, expectedDevices: [String], randomDelay: TimeInterval = 0, onComplete: @escaping ([DrillRepeatSummary]) -> Void, onFailure: @escaping () -> Void) {
+    init(bleManager: BLEManager, drillSetup: DrillSetup, expectedDevices: [String], randomDelay: TimeInterval = 0, onComplete: @escaping ([DrillRepeatSummary]) -> Void, onFailure: @escaping () -> Void, onReadinessUpdate: @escaping (Int, Int) -> Void = { _, _ in }, onReadinessTimeout: @escaping ([String]) -> Void = { _ in }) {
         self.bleManager = bleManager
         self.drillSetup = drillSetup
         self.expectedDevices = expectedDevices
         self.randomDelay = randomDelay
         self.onComplete = onComplete
         self.onFailure = onFailure
+        self.onReadinessUpdate = onReadinessUpdate
+        self.onReadinessTimeout = onReadinessTimeout
 
         startObservingShots()
     }
@@ -58,6 +63,25 @@ class DrillExecutionManager {
         currentRepeatShots.removeAll()
         currentRepeatStartTime = nil
         executeNextRepeat()
+    }
+    
+    func performReadinessCheck() {
+        isReadinessCheckOnly = true
+        currentRepeat = 0  // Reset repeat counter for readiness check
+        sendReadyCommands()
+        beginWaitingForAcks()
+    }
+    
+    func startExecutionWithReadyTargets() {
+        isStopped = false
+        repeatSummaries.removeAll()
+        currentRepeatShots.removeAll()
+        currentRepeatStartTime = nil
+        executeNextRepeat()
+    }
+    
+    func setRandomDelay(_ delay: TimeInterval) {
+        self.randomDelay = delay
     }
     
     func stopExecution() {
@@ -90,6 +114,7 @@ class DrillExecutionManager {
         stopObservingShots()
         let repeatIndex = currentRepeat
         finalizeRepeat(repeatIndex: repeatIndex)
+        currentRepeat += 1  // Increment to indicate this repeat is complete
         onComplete(repeatSummaries)
     }
     
@@ -226,6 +251,11 @@ class DrillExecutionManager {
     
     private func handleAckTimeout() {
         print("Ack timeout for repeat \(currentRepeat)")
+        let nonResponsiveTargets = expectedDevices.filter { !ackedDevices.contains($0) }
+        print("Non-responsive targets: \(nonResponsiveTargets)")
+        DispatchQueue.main.async {
+            self.onReadinessTimeout(nonResponsiveTargets)
+        }
         finishWaitingForAcks(success: false)
     }
     
@@ -260,6 +290,11 @@ class DrillExecutionManager {
                     ackedDevices.insert(device)
                     print("Device ack received: \(device)")
                     
+                    // Update readiness status
+                    DispatchQueue.main.async {
+                        self.onReadinessUpdate(self.ackedDevices.count, self.expectedDevices.count)
+                    }
+                    
                     // Check if all expected devices have acked
                     if ackedDevices.count >= expectedDevices.count {
                         finishWaitingForAcks(success: true)
@@ -291,15 +326,23 @@ class DrillExecutionManager {
         ackTimeoutTimer = nil
 
         if success {
+            if isReadinessCheckOnly {
+                // Just completed readiness check, don't proceed to execution
+                isReadinessCheckOnly = false
+                return
+            }
+            
             // Send start commands
             sendStartCommands()
 
             // Begin waiting for end messages
             beginWaitingForEnd()
         } else {
-            // Ack timeout - stop execution
-            stopObservingShots()
-            onFailure()
+            // Ack timeout - for readiness check, this is handled by the timeout callback
+            if !isReadinessCheckOnly {
+                stopObservingShots()
+                onFailure()
+            }
         }
     }
     

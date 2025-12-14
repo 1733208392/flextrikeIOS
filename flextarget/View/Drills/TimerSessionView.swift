@@ -32,6 +32,19 @@ struct TimerSessionView: View {
     // Drill execution properties
     @State private var executionManager: DrillExecutionManager?
     @State private var expectedDevices: [String] = []
+    
+    // Target readiness properties
+    @State private var readyTargetsCount: Int = 0
+    @State private var nonResponsiveTargets: [String] = []
+    @State private var readinessTimeoutOccurred: Bool = false
+
+    // Consecutive repeats properties
+    @State private var currentRepeat: Int = 1
+    @State private var totalRepeats: Int = 1
+    @State private var accumulatedSummaries: [DrillRepeatSummary] = []
+    @State private var isPauseActive: Bool = false
+    @State private var pauseRemaining: TimeInterval = 0
+    @State private var shouldContinueRepeats: Bool = false
 
     var body: some View {
         ZStack {
@@ -83,6 +96,27 @@ struct TimerSessionView: View {
                         }
                         .frame(width: 200, height: 200)
                     }
+                } else if isPauseActive {
+                    VStack(spacing: 20) {
+                        ZStack {
+                            Circle()
+                                .stroke(Color.white.opacity(0.2), lineWidth: 8)
+                            Circle()
+                                .trim(from: 0, to: min(pauseRemaining / Double(drillSetup.pause), 1.0))
+                                .stroke(Color.green, style: StrokeStyle(lineWidth: 8, lineCap: .round))
+                                .rotationEffect(.degrees(-90))
+                                .animation(.linear, value: pauseRemaining)
+                            VStack(spacing: 4) {
+                                Text("\(Int(pauseRemaining))")
+                                    .font(.system(size: 32, weight: .bold, design: .monospaced))
+                                    .foregroundColor(.white)
+                                Text(NSLocalizedString("pause_between_repeats", comment: "Pause between repeats"))
+                                    .font(.caption)
+                                    .foregroundColor(.white.opacity(0.7))
+                            }
+                        }
+                        .frame(width: 200, height: 200)
+                    }
                 } else {
                     Button(action: buttonTapped) {
                         Text(buttonText)
@@ -94,7 +128,7 @@ struct TimerSessionView: View {
                     .background(buttonColor)
                     .clipShape(Circle())
                     .shadow(color: Color.black.opacity(0.25), radius: 10, x: 0, y: 10)
-                    .disabled(timerState == .standby)
+                    .disabled(timerState == .standby || (timerState == .idle && readyTargetsCount < expectedDevices.count && expectedDevices.count > 0))
                 }
 
                 Spacer()
@@ -116,6 +150,29 @@ struct TimerSessionView: View {
                 .padding()
                 
                 Spacer()
+                
+                // Target readiness status at the bottom
+                if timerState == .idle {
+                    VStack(spacing: 8) {
+                        if readinessTimeoutOccurred {
+                            Text(NSLocalizedString("targets_not_ready", comment: "Targets not ready"))
+                                .font(.subheadline)
+                                .foregroundColor(.red)
+                            Text(NSLocalizedString("targets_not_ready_message", comment: "Targets not ready message"))
+                                .font(.caption)
+                                .foregroundColor(.orange)
+                            Text(nonResponsiveTargets.joined(separator: ", "))
+                                .font(.caption2)
+                                .foregroundColor(.orange)
+                        } else {
+                            Text("\(readyTargetsCount)/\(expectedDevices.count) \(NSLocalizedString("targets_ready", comment: "Targets ready"))")
+                                .font(.subheadline)
+                                .foregroundColor(readyTargetsCount == expectedDevices.count && expectedDevices.count > 0 ? .green : .white)
+                        }
+                    }
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                }
             }
         }
         .navigationBarTitleDisplayMode(.inline)
@@ -133,6 +190,9 @@ struct TimerSessionView: View {
             }
         } message: {
             Text(NSLocalizedString("drill_in_progress", comment: "Drill in progress"))
+        }
+        .onAppear {
+            initializeReadinessCheck()
         }
         .onDisappear {
             stopUpdateTimer()
@@ -174,7 +234,48 @@ struct TimerSessionView: View {
         }
     }
 
+    private func initializeReadinessCheck() {
+        // Stop any existing execution manager
+        executionManager?.stopExecution()
+        
+        // Extract expected devices from drill targets
+        let expectedDevicesList = (drillSetup.targets as? Set<DrillTargetsConfig>)
+            .map { $0.compactMap { $0.targetName } } ?? []
+        expectedDevices = expectedDevicesList
+        
+        // Create drill execution manager for readiness checking
+        let manager = DrillExecutionManager(
+            bleManager: bleManager,
+            drillSetup: drillSetup,
+            expectedDevices: expectedDevices,
+            randomDelay: 0, // Not used for readiness check
+            onComplete: { summaries in
+                // Not used for readiness check
+            },
+            onFailure: {
+                // Not used for readiness check
+            },
+            onReadinessUpdate: { readyCount, totalCount in
+                DispatchQueue.main.async {
+                    self.readyTargetsCount = readyCount
+                }
+            },
+            onReadinessTimeout: { nonResponsiveList in
+                DispatchQueue.main.async {
+                    self.nonResponsiveTargets = nonResponsiveList
+                    self.readinessTimeoutOccurred = true
+                }
+            }
+        )
+        
+        executionManager = manager
+        manager.performReadinessCheck()
+    }
+
     private func startSequence() {
+        // Stop any existing execution manager
+        executionManager?.stopExecution()
+        
         timerState = .standby
         playStandbySound()
         let randomDelayValue = Double.random(in: 2...5)
@@ -184,12 +285,20 @@ struct TimerSessionView: View {
         timerStartDate = nil
         startUpdateTimer()
         
-        // Extract expected devices from drill targets
-        let expectedDevicesList = (drillSetup.targets as? Set<DrillTargetsConfig>)
-            .map { $0.compactMap { $0.targetName } } ?? []
-        expectedDevices = expectedDevicesList
+        // Reset readiness state when starting new sequence
+        readyTargetsCount = 0
+        nonResponsiveTargets = []
+        readinessTimeoutOccurred = false
         
-        // Create and start drill execution manager
+        totalRepeats = Int(drillSetup.repeats)
+        let originalRepeats = drillSetup.repeats
+        drillSetup.repeats = 1
+        
+        if currentRepeat == 1 {
+            accumulatedSummaries.removeAll()
+        }
+        
+        // Create new execution manager for actual drill execution with proper callbacks
         let manager = DrillExecutionManager(
             bleManager: bleManager,
             drillSetup: drillSetup,
@@ -197,18 +306,46 @@ struct TimerSessionView: View {
             randomDelay: randomDelayValue,
             onComplete: { summaries in
                 DispatchQueue.main.async {
-                    onDrillComplete(summaries)
+                    if let summary = summaries.first {
+                        let correctedSummary = DrillRepeatSummary(
+                            id: summary.id,
+                            repeatIndex: self.currentRepeat,
+                            totalTime: summary.totalTime,
+                            numShots: summary.numShots,
+                            firstShot: summary.firstShot,
+                            fastest: summary.fastest,
+                            score: summary.score,
+                            shots: summary.shots
+                        )
+                        self.accumulatedSummaries.append(correctedSummary)
+                    }
+                    if self.currentRepeat < self.totalRepeats {
+                        self.shouldContinueRepeats = true
+                        self.currentRepeat += 1
+                    } else {
+                        self.shouldContinueRepeats = false
+                        self.onDrillComplete(self.accumulatedSummaries)
+                    }
                 }
             },
             onFailure: {
                 DispatchQueue.main.async {
-                    onDrillFailed()
+                    self.onDrillFailed()
                 }
+            },
+            onReadinessUpdate: { readyCount, totalCount in
+                // Not used during execution
+            },
+            onReadinessTimeout: { nonResponsiveList in
+                // Not used during execution
             }
         )
         
+        // Restore original repeats value
+        drillSetup.repeats = originalRepeats
+        
         executionManager = manager
-        manager.startExecution()
+        manager.startExecutionWithReadyTargets()
     }
 
     private func startButtonAnimation() {
@@ -242,8 +379,23 @@ struct TimerSessionView: View {
                 gracePeriodRemaining = max(0, gracePeriodRemaining - 0.05)
                 if gracePeriodRemaining <= 0 {
                     gracePeriodActive = false
-                    stopUpdateTimer()
-                    dismiss()
+                    if shouldContinueRepeats {
+                        isPauseActive = true
+                        pauseRemaining = Double(drillSetup.pause)
+                        shouldContinueRepeats = false
+                    } else {
+                        stopUpdateTimer()
+                        dismiss()
+                    }
+                }
+            }
+            
+            if isPauseActive {
+                pauseRemaining = max(0, pauseRemaining - 0.05)
+                if pauseRemaining <= 0 {
+                    isPauseActive = false
+                    resetTimer()
+                    startSequence()
                 }
             }
         }
@@ -262,6 +414,9 @@ struct TimerSessionView: View {
     }
 
     private func buttonTapped() {
+        if isPauseActive {
+            return
+        }
         switch timerState {
         case .idle:
             startSequence()
@@ -310,6 +465,9 @@ struct TimerSessionView: View {
         elapsedDuration = 0
         gracePeriodActive = false
         gracePeriodRemaining = 0
+        isPauseActive = false
+        pauseRemaining = 0
+        shouldContinueRepeats = false
     }
 
     private func playHighBeep() {
