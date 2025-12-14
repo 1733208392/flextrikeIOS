@@ -44,15 +44,9 @@ struct DrillFormView: View {
     @State private var targetConfigs: [DrillTargetsConfigData] = []
     @State private var navigateToDrillSummary: Bool = false
     @State private var drillRepeatSummaries: [DrillRepeatSummary] = []
-    // expected devices are derived from drill targetConfigs (by targetName)
-    @State private var expectedDevices: [String] = []
-    @State private var executionManager: DrillExecutionManager? = nil
     @State private var showAckTimeoutAlert: Bool = false
-    @State private var isDrillInProgress: Bool = false
-    @State private var dotCount: Int = 0
     @State private var isAddModeDrillSaved: Bool = false
     @State private var showBackConfirmationAlert: Bool = false
-    @State private var showEndDrillAlert: Bool = false
     @State private var navigateToTimerSession: Bool = false
     @State private var drillSetupForTimer: DrillSetup? = nil
     
@@ -72,11 +66,6 @@ struct DrillFormView: View {
             return setup
         }
         return nil
-    }
-
-    private var progressText: String {
-        let base = NSLocalizedString("drill_in_progress", comment: "Drill in progress")
-        return base + String(repeating: ".", count: dotCount)
     }
     
     init(bleManager: BLEManager, mode: DrillFormMode) {
@@ -210,9 +199,6 @@ struct DrillFormView: View {
                         .onReceive(NotificationCenter.default.publisher(for: .bleDeviceListUpdated)) { notification in
                             handleDeviceListUpdate(notification)
                         }
-                        .onReceive(NotificationCenter.default.publisher(for: .bleNetlinkForwardReceived)) { notification in
-                            handleNetlinkForward(notification)
-                        }
                         .ignoresSafeArea(.keyboard, edges: .bottom)
                     }
                 }
@@ -229,12 +215,24 @@ struct DrillFormView: View {
             
             NavigationLink(isActive: $navigateToTimerSession) {
                 if let drillSetup = drillSetupForTimer {
-                    TimerSessionView(drillSetup: drillSetup, onDrillStart: { delay in
-                        startDrill(with: drillSetup, randomDelay: delay)
-                    }, onDrillStop: {
-                        executionManager?.manualStopDrill()
-                        navigateToTimerSession = false
-                    })
+                    TimerSessionView(
+                        drillSetup: drillSetup,
+                        bleManager: bleManager,
+                        onDrillComplete: { summaries in
+                            DispatchQueue.main.async {
+                                drillRepeatSummaries = summaries
+                                saveDrillResultsFromSummaries(summaries, for: drillSetup)
+                                navigateToDrillSummary = true
+                                navigateToTimerSession = false
+                            }
+                        },
+                        onDrillFailed: {
+                            DispatchQueue.main.async {
+                                showAckTimeoutAlert = true
+                                navigateToTimerSession = false
+                            }
+                        }
+                    )
                 }
             } label: {
                 EmptyView()
@@ -243,27 +241,6 @@ struct DrillFormView: View {
         .alert(isPresented: $showAckTimeoutAlert) {
             Alert(title: Text(NSLocalizedString("ack_timeout_title", comment: "ACK timeout")), message: Text(NSLocalizedString("ack_timeout_message", comment: "Not all devices responded in time")), dismissButton: .default(Text("OK")))
         }
-        .onReceive(Timer.publish(every: 0.5, on: .main, in: .common).autoconnect()) { _ in
-            if isDrillInProgress {
-                dotCount = (dotCount + 1) % 4
-            } else {
-                dotCount = 0
-            }
-        }
-        .overlay(
-            Group {
-                if isDrillInProgress {
-                    ZStack {
-                        Color.black.opacity(0.7)
-                            .ignoresSafeArea()
-                        Text(progressText)
-                            .foregroundColor(.white)
-                            .font(.largeTitle)
-                            .bold()
-                    }
-                }
-            }
-        )
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
                 Button(action: { attemptToGoBack() }) {
@@ -282,37 +259,14 @@ struct DrillFormView: View {
                     .font(.headline)
                     .foregroundColor(.red)
             }
-            
-            ToolbarItem(placement: .navigationBarTrailing) {
-                if isDrillInProgress {
-                    Button(action: { showEndDrillAlert = true }) {
-                        Text(NSLocalizedString("end_drill", comment: "End drill button"))
-                            .foregroundColor(.red)
-                            .font(.system(size: 16, weight: .regular))
-                    }
-                }
-            }
         }
         .alert(NSLocalizedString("drill_in_progress", comment: "Drill in progress"), isPresented: $showBackConfirmationAlert) {
             Button(NSLocalizedString("cancel", comment: "Cancel button"), role: .cancel) { }
             Button(NSLocalizedString("continue_button", comment: "Continue button"), role: .none) {
-                executionManager?.stopExecution()
-                executionManager = nil
-                isDrillInProgress = false
                 presentationMode.wrappedValue.dismiss()
             }
         } message: {
             Text(NSLocalizedString("drill_in_progress_back_message", comment: "Message when trying to go back during drill execution"))
-        }
-        .alert(NSLocalizedString("end_drill", comment: "End drill alert title"), isPresented: $showEndDrillAlert) {
-            Button(NSLocalizedString("cancel", comment: "Cancel button"), role: .cancel) { }
-            Button(NSLocalizedString("confirm", comment: "Confirm button"), role: .destructive) {
-                executionManager?.stopExecution()
-                executionManager = nil
-                isDrillInProgress = false
-            }
-        } message: {
-            Text(NSLocalizedString("drill_in_progress", comment: "Drill in progress"))
         }
         .navigationBarBackButtonHidden(true)
     }
@@ -361,11 +315,7 @@ struct DrillFormView: View {
     }
     
     private func attemptToGoBack() {
-        if isDrillInProgress {
-            showBackConfirmationAlert = true
-        } else {
-            presentationMode.wrappedValue.dismiss()
-        }
+        presentationMode.wrappedValue.dismiss()
     }
     
     // MARK: - Save Logic
@@ -580,54 +530,6 @@ struct DrillFormView: View {
             print("Failed to save drill setup before starting: \(error)")
             viewContext.rollback()
         }
-    }
-    
-    private func startDrill() {
-        guard case .edit(let drillSetup) = mode else { return }
-        startDrill(with: drillSetup)
-    }
-    
-    private func startDrill(with drillSetup: DrillSetup, randomDelay: TimeInterval = 0) {
-        isDrillInProgress = true
-        dotCount = 0
-
-        drillRepeatSummaries.removeAll()
-        navigateToDrillSummary = false
-        
-        // Use the current drill targetConfigs as the expected devices
-        expectedDevices = targetConfigs.compactMap { $0.targetName }
-        
-        // Create and start drill execution manager
-        let executionManager = DrillExecutionManager(
-            bleManager: bleManager,
-            drillSetup: drillSetup,
-            expectedDevices: expectedDevices,
-            randomDelay: randomDelay,
-            onComplete: { summaries in
-                DispatchQueue.main.async {
-                    self.drillRepeatSummaries = summaries
-                    self.saveDrillResultsFromSummaries(summaries, for: drillSetup)
-                    self.navigateToDrillSummary = true
-                    self.executionManager = nil
-                    self.isDrillInProgress = false
-                }
-            },
-            onFailure: {
-                DispatchQueue.main.async {
-                    self.showAckTimeoutAlert = true
-                    self.executionManager = nil
-                    self.isDrillInProgress = false
-                }
-            }
-        )
-        
-        // Store reference to handle notifications
-        self.executionManager = executionManager
-        executionManager.startExecution()
-    }
-
-    private func handleNetlinkForward(_ notification: Notification) {
-        executionManager?.handleNetlinkForward(notification)
     }
     
     // MARK: - CoreData Operations

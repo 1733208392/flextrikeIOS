@@ -26,6 +26,7 @@ class DrillExecutionManager {
     private var lastTargetName: String?
     private var isWaitingForEnd = false
     private var pauseTimer: Timer?
+    private var gracePeriodTimer: Timer?
     private var isStopped = false
     private var drillDuration: TimeInterval?
     
@@ -44,6 +45,7 @@ class DrillExecutionManager {
         stopObservingShots()
         ackTimeoutTimer?.invalidate()
         pauseTimer?.invalidate()
+        gracePeriodTimer?.invalidate()
     }
 
     var summaries: [DrillRepeatSummary] {
@@ -62,6 +64,7 @@ class DrillExecutionManager {
         isStopped = true
         ackTimeoutTimer?.invalidate()
         pauseTimer?.invalidate()
+        gracePeriodTimer?.invalidate()
         stopObservingShots()
     }
     
@@ -72,6 +75,18 @@ class DrillExecutionManager {
         isWaitingForEnd = false
         endCommandTime = Date()
         sendEndCommand()
+        
+        // Start grace period to collect in-flight shots before finalizing
+        // Keep shot observer active during this period
+        gracePeriodTimer?.invalidate()
+        gracePeriodTimer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: false) { [weak self] _ in
+            self?.completeManualStop()
+        }
+    }
+    
+    private func completeManualStop() {
+        gracePeriodTimer?.invalidate()
+        gracePeriodTimer = nil
         stopObservingShots()
         let repeatIndex = currentRepeat
         finalizeRepeat(repeatIndex: repeatIndex)

@@ -12,8 +12,9 @@ struct TimerSessionView: View {
     @Environment(\.dismiss) private var dismiss
 
     let drillSetup: DrillSetup
-    let onDrillStart: (TimeInterval) -> Void
-    let onDrillStop: () -> Void
+    let bleManager: BLEManager
+    let onDrillComplete: ([DrillRepeatSummary]) -> Void
+    let onDrillFailed: () -> Void
 
     @State private var timerState: TimerState = .idle
     @State private var delayTarget: Date?
@@ -24,6 +25,13 @@ struct TimerSessionView: View {
     @State private var updateTimer: Timer?
     @State private var audioPlayer: AVAudioPlayer?
     @State private var showEndDrillAlert: Bool = false
+    @State private var gracePeriodActive: Bool = false
+    @State private var gracePeriodRemaining: TimeInterval = 0
+    private let gracePeriodDuration: TimeInterval = 3.0
+    
+    // Drill execution properties
+    @State private var executionManager: DrillExecutionManager?
+    @State private var expectedDevices: [String] = []
 
     var body: some View {
         ZStack {
@@ -54,17 +62,40 @@ struct TimerSessionView: View {
 
                 Spacer()
 
-                Button(action: buttonTapped) {
-                    Text(buttonText)
-                        .font(.largeTitle.weight(.bold))
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                if gracePeriodActive {
+                    VStack(spacing: 20) {
+                        ZStack {
+                            Circle()
+                                .stroke(Color.white.opacity(0.2), lineWidth: 8)
+                            Circle()
+                                .trim(from: 0, to: min(gracePeriodRemaining / gracePeriodDuration, 1.0))
+                                .stroke(Color.blue, style: StrokeStyle(lineWidth: 8, lineCap: .round))
+                                .rotationEffect(.degrees(-90))
+                                .animation(.linear, value: gracePeriodRemaining)
+                            VStack(spacing: 4) {
+                                Text("\(Int(gracePeriodRemaining))")
+                                    .font(.system(size: 32, weight: .bold, design: .monospaced))
+                                    .foregroundColor(.white)
+                                Text(NSLocalizedString("processing_shots", comment: "Processing shots"))
+                                    .font(.caption)
+                                    .foregroundColor(.white.opacity(0.7))
+                            }
+                        }
+                        .frame(width: 200, height: 200)
+                    }
+                } else {
+                    Button(action: buttonTapped) {
+                        Text(buttonText)
+                            .font(.largeTitle.weight(.bold))
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    }
+                    .frame(width: 200, height: 200)
+                    .foregroundColor(.white)
+                    .background(buttonColor)
+                    .clipShape(Circle())
+                    .shadow(color: Color.black.opacity(0.25), radius: 10, x: 0, y: 10)
+                    .disabled(timerState == .standby)
                 }
-                .frame(width: 200, height: 200)
-                .foregroundColor(.white)
-                .background(buttonColor)
-                .clipShape(Circle())
-                .shadow(color: Color.black.opacity(0.25), radius: 10, x: 0, y: 10)
-                .disabled(timerState == .standby)
 
                 Spacer()
             }
@@ -94,15 +125,20 @@ struct TimerSessionView: View {
         .alert(NSLocalizedString("end_drill", comment: "End drill alert title"), isPresented: $showEndDrillAlert) {
             Button(NSLocalizedString("cancel", comment: "Cancel button"), role: .cancel) { }
             Button(NSLocalizedString("confirm", comment: "Confirm button"), role: .destructive) {
-                onDrillStop()
-                resetTimer()
-                dismiss()
+                executionManager?.manualStopDrill()
+                gracePeriodActive = true
+                gracePeriodRemaining = gracePeriodDuration
+                stopUpdateTimer()
+                startUpdateTimer()
             }
         } message: {
             Text(NSLocalizedString("drill_in_progress", comment: "Drill in progress"))
         }
         .onDisappear {
             stopUpdateTimer()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .bleNetlinkForwardReceived)) { notification in
+            executionManager?.handleNetlinkForward(notification)
         }
     }
 
@@ -147,11 +183,32 @@ struct TimerSessionView: View {
         delayRemaining = randomDelayValue
         timerStartDate = nil
         startUpdateTimer()
-        // Trigger drill execution immediately when entering standby state
-        // This gives target devices time to receive the command and get ready
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            onDrillStart(randomDelayValue)
-        }
+        
+        // Extract expected devices from drill targets
+        let expectedDevicesList = (drillSetup.targets as? Set<DrillTargetsConfig>)
+            .map { $0.compactMap { $0.targetName } } ?? []
+        expectedDevices = expectedDevicesList
+        
+        // Create and start drill execution manager
+        let manager = DrillExecutionManager(
+            bleManager: bleManager,
+            drillSetup: drillSetup,
+            expectedDevices: expectedDevices,
+            randomDelay: randomDelayValue,
+            onComplete: { summaries in
+                DispatchQueue.main.async {
+                    onDrillComplete(summaries)
+                }
+            },
+            onFailure: {
+                DispatchQueue.main.async {
+                    onDrillFailed()
+                }
+            }
+        )
+        
+        executionManager = manager
+        manager.startExecution()
     }
 
     private func startButtonAnimation() {
@@ -180,6 +237,15 @@ struct TimerSessionView: View {
             if timerState == .running, let start = timerStartDate {
                 elapsedDuration = now.timeIntervalSince(start)
             }
+            
+            if gracePeriodActive {
+                gracePeriodRemaining = max(0, gracePeriodRemaining - 0.05)
+                if gracePeriodRemaining <= 0 {
+                    gracePeriodActive = false
+                    stopUpdateTimer()
+                    dismiss()
+                }
+            }
         }
         RunLoop.current.add(updateTimer!, forMode: .common)
     }
@@ -203,9 +269,12 @@ struct TimerSessionView: View {
             // Do nothing while delay is running
             return
         case .running:
-            // End the drill by calling onDrillStop
-            onDrillStop()
-            resetTimer()
+            // End the drill by calling manualStopDrill and show grace period
+            executionManager?.manualStopDrill()
+            gracePeriodActive = true
+            gracePeriodRemaining = gracePeriodDuration
+            stopUpdateTimer()
+            startUpdateTimer()
         case .paused:
             // Resume from paused state
             resumeTimer()
@@ -239,6 +308,8 @@ struct TimerSessionView: View {
         delayRemaining = 0
         timerStartDate = nil
         elapsedDuration = 0
+        gracePeriodActive = false
+        gracePeriodRemaining = 0
     }
 
     private func playHighBeep() {
@@ -272,6 +343,11 @@ struct TimerSessionView: View {
 
 struct TimerSessionView_Previews: PreviewProvider {
     static var previews: some View {
-        TimerSessionView(drillSetup: DrillSetup(), onDrillStart: { _ in }, onDrillStop: {})
+        TimerSessionView(
+            drillSetup: DrillSetup(),
+            bleManager: BLEManager.shared,
+            onDrillComplete: { _ in },
+            onDrillFailed: {}
+        )
     }
 }
