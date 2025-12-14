@@ -181,3 +181,12 @@
 "transfer" = "転送";
 "ensure_target_ready" = "ターゲットが準備できていることを確認してください";
 "target_not_ready" = "ターゲットが受信する準備ができていません";
+
+/* TimerSessionView - Target Readiness */
+"targets_ready" = "ターゲットはドリルの準備ができています";
+"targets_not_ready" = "ターゲットが準備できていません";
+"targets_not_ready_message" = "以下のターゲットが応答しませんでした:";
+"end_drill" = "ドリルを終了しますか?";
+"drill_in_progress" = "ドリルが進行中です";
+"processing_shots" = "ショットを処理中";
+"pause_between_repeats" = "リピート間の休止";

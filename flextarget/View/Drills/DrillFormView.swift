@@ -205,7 +205,7 @@ struct DrillFormView: View {
             .environment(\.managedObjectContext, viewContext)
             
             NavigationLink(isActive: $navigateToDrillSummary) {
-                if case .edit(let drillSetup) = mode {
+                if let drillSetup = drillSetupForTimer {
                     DrillSummaryView(drillSetup: drillSetup, summaries: drillRepeatSummaries)
                         .environment(\.managedObjectContext, viewContext)
                 }
