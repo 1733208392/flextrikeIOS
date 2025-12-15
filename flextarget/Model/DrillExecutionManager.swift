@@ -9,6 +9,7 @@ class DrillExecutionManager {
     private let onFailure: () -> Void
     private let onReadinessUpdate: (Int, Int) -> Void
     private let onReadinessTimeout: ([String]) -> Void
+    private let onRepeatComplete: ((Int, Int) -> Void)?  // Callback when a repeat completes
     private var randomDelay: TimeInterval
     private var totalRepeats: Int
     
@@ -35,7 +36,7 @@ class DrillExecutionManager {
     private var drillDuration: TimeInterval?
     private var isReadinessCheckOnly = false
     
-    init(bleManager: BLEManager, drillSetup: DrillSetup, expectedDevices: [String], randomDelay: TimeInterval = 0, totalRepeats: Int = 1, onComplete: @escaping ([DrillRepeatSummary]) -> Void, onFailure: @escaping () -> Void, onReadinessUpdate: @escaping (Int, Int) -> Void = { _, _ in }, onReadinessTimeout: @escaping ([String]) -> Void = { _ in }) {
+    init(bleManager: BLEManager, drillSetup: DrillSetup, expectedDevices: [String], randomDelay: TimeInterval = 0, totalRepeats: Int = 1, onComplete: @escaping ([DrillRepeatSummary]) -> Void, onFailure: @escaping () -> Void, onReadinessUpdate: @escaping (Int, Int) -> Void = { _, _ in }, onReadinessTimeout: @escaping ([String]) -> Void = { _ in }, onRepeatComplete: ((Int, Int) -> Void)? = nil) {
         self.bleManager = bleManager
         self.drillSetup = drillSetup
         self.expectedDevices = expectedDevices
@@ -45,6 +46,7 @@ class DrillExecutionManager {
         self.onFailure = onFailure
         self.onReadinessUpdate = onReadinessUpdate
         self.onReadinessTimeout = onReadinessTimeout
+        self.onRepeatComplete = onRepeatComplete
 
         startObservingShots()
     }
@@ -59,28 +61,30 @@ class DrillExecutionManager {
     var summaries: [DrillRepeatSummary] {
         repeatSummaries
     }
-
-    func startExecution() {
-        isStopped = false
-        repeatSummaries.removeAll()
-        currentRepeatShots.removeAll()
-        currentRepeatStartTime = nil
-        executeNextRepeat()
-    }
     
+    /// Call this when all repeats are completed to finalize the drill
+    func completeDrill() {
+        stopObservingShots()
+        onComplete(repeatSummaries)
+    }
+
     func performReadinessCheck() {
         isReadinessCheckOnly = true
-        currentRepeat = 0  // Reset repeat counter for readiness check
         sendReadyCommands()
         beginWaitingForAcks()
     }
     
-    func startExecutionWithReadyTargets() {
+    func startExecution() {
         isStopped = false
-        repeatSummaries.removeAll()
-        currentRepeatShots.removeAll()
-        currentRepeatStartTime = nil
-        executeNextRepeat()
+        // Assumes currentRepeat is already set by UI before calling
+        // Ready command was already sent in performReadinessCheck()
+        // Send start command and begin waiting for shots
+        sendStartCommands()
+        beginWaitingForEnd()
+    }
+    
+    func setCurrentRepeat(_ repeat: Int) {
+        self.currentRepeat = `repeat`
     }
     
     func setRandomDelay(_ delay: TimeInterval) {
@@ -99,7 +103,7 @@ class DrillExecutionManager {
         stopObservingShots()
     }
     
-    func manualStopDrill() {
+    func manualStopRepeat() {
         isStopped = true
         ackTimeoutTimer?.invalidate()
         pauseTimer?.invalidate()
@@ -111,30 +115,18 @@ class DrillExecutionManager {
         // Keep shot observer active during this period
         gracePeriodTimer?.invalidate()
         gracePeriodTimer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: false) { [weak self] _ in
-            self?.completeManualStop()
+            self?.completeManualStopRepeat()
         }
     }
     
-    private func completeManualStop() {
+    private func completeManualStopRepeat() {
         gracePeriodTimer?.invalidate()
         gracePeriodTimer = nil
-        stopObservingShots()
+        // DO NOT stop observing shots here - let them continue arriving during grace period
+        // stopObservingShots() will be called when stopping execution or leaving the view
         let repeatIndex = currentRepeat
         finalizeRepeat(repeatIndex: repeatIndex)
-        currentRepeat += 1  // Increment to indicate this repeat is complete
-        onComplete(repeatSummaries)
-    }
-    
-    private func executeNextRepeat() {
-        guard !isStopped else { return }
-        currentRepeat += 1
-        print("Starting repeat \(currentRepeat) of \(totalRepeats)")
-        
-        // Send ready commands
-        sendReadyCommands()
-        
-        // Begin waiting for acks
-        beginWaitingForAcks()
+        // NOTE: Do NOT call onComplete here - UI manages the next repeat or drill completion
     }
     
     private func sendReadyCommands() {
@@ -143,6 +135,10 @@ class DrillExecutionManager {
             onFailure()
             return
         }
+        
+        // Clear state from previous repeat before starting new readiness check
+        currentRepeatStartTime = nil
+        beepTime = nil
         
         guard let targetsSet = drillSetup.targets as? Set<DrillTargetsConfig> else {
             onFailure()
@@ -339,11 +335,8 @@ class DrillExecutionManager {
                 return
             }
             
-            // Send start commands
-            sendStartCommands()
-
-            // Begin waiting for end messages
-            beginWaitingForEnd()
+            // Readiness check passed, UI will call startExecution() when ready
+            print("Ready check completed, waiting for UI to start execution")
         } else {
             // Ack timeout - for readiness check, this is handled by the timeout callback
             if !isReadinessCheckOnly {
@@ -446,27 +439,18 @@ class DrillExecutionManager {
 
         let repeatIndex = currentRepeat
         finalizeRepeat(repeatIndex: repeatIndex)
-
-        if repeatIndex < drillSetup.repeats {
-            // Apply pause time before starting next repeat
-            let pauseSeconds = TimeInterval(drillSetup.pause)
-            print("Completed repeat \(repeatIndex), waiting \(pauseSeconds) seconds before next repeat...")
-            
-            pauseTimer?.invalidate()
-            pauseTimer = Timer.scheduledTimer(withTimeInterval: pauseSeconds, repeats: false) { [weak self] _ in
-                self?.executeNextRepeat()
-            }
-        } else {
-            stopObservingShots()
-            onComplete(repeatSummaries)
-        }
+        
+        // Notify UI that repeat is complete, UI will handle next repeat logic
+        print("Completed repeat \(repeatIndex)")
+        // NOTE: onComplete is NOT called here - UI will call completeDrill() when all repeats are done
     }
 
     private func prepareForRepeatStart() {
-        currentRepeatShots.removeAll()
+        // DO NOT clear currentRepeatShots here - it's cleared in sendReadyCommands() at the start of readiness check
+        // This ensures grace period shots from previous repeat are not lost
         currentRepeatStartTime = Date()
         startCommandTime = nil
-        beepTime = nil
+        // DO NOT reset beepTime here - it's set by UI via setBeepTime() before startExecution()
         endCommandTime = nil
         drillDuration = nil
         
@@ -488,8 +472,9 @@ class DrillExecutionManager {
         // Validate: if no shots received at all, invalidate this repeat
         if sortedShots.isEmpty {
             print("No shots received from any target for repeat \(repeatIndex), invalidating repeat")
+            // DO NOT clear currentRepeatStartTime here - let grace period shots be collected
+            // It will be cleared in sendReadyCommands() when next repeat starts
             currentRepeatShots.removeAll()
-            currentRepeatStartTime = nil
             return
         }
 
@@ -621,8 +606,10 @@ class DrillExecutionManager {
             repeatSummaries.append(summary)
         }
 
+        // Clear shots after processing, but DO NOT clear currentRepeatStartTime yet
+        // Grace period is still active and may have more shots arriving
+        // currentRepeatStartTime will be cleared in sendReadyCommands() when next repeat starts
         currentRepeatShots.removeAll()
-        currentRepeatStartTime = nil
     }
 
     private func startObservingShots() {
@@ -649,6 +636,13 @@ class DrillExecutionManager {
         do {
             let jsonData = try JSONSerialization.data(withJSONObject: shotDict, options: [])
             let shot = try JSONDecoder().decode(ShotData.self, from: jsonData)
+            
+            // Filter shots by repeat number: only accept shots for the current repeat
+            if let shotRepeatNumber = shot.content.`repeat`, shotRepeatNumber != currentRepeat {
+                print("Ignoring shot from repeat \(shotRepeatNumber), currently in repeat \(currentRepeat)")
+                return
+            }
+            
             let event = ShotEvent(shot: shot, receivedAt: Date())
             currentRepeatShots.append(event)
             

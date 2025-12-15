@@ -27,6 +27,7 @@ struct Content: Codable {
     let timeDiff: Double
     let device: String?
     let targetPos: Position?
+    let `repeat`: Int?
 
     enum CodingKeys: String, CodingKey {
         case command
@@ -37,9 +38,10 @@ struct Content: Codable {
         case timeDiff = "time_diff"
         case device
         case targetPos = "targetPos"
+        case `repeat` = "repeat"
     }
 
-    init(command: String, hitArea: String, hitPosition: Position, rotationAngle: Double, targetType: String, timeDiff: Double, device: String? = nil, targetPos: Position? = nil) {
+    init(command: String, hitArea: String, hitPosition: Position, rotationAngle: Double, targetType: String, timeDiff: Double, device: String? = nil, targetPos: Position? = nil, `repeat`: Int? = nil) {
         self.command = command
         self.hitArea = hitArea
         self.hitPosition = hitPosition
@@ -48,6 +50,7 @@ struct Content: Codable {
         self.timeDiff = timeDiff
         self.device = device
         self.targetPos = targetPos
+        self.`repeat` = `repeat`
     }
 
     init(from decoder: Decoder) throws {
@@ -80,6 +83,7 @@ struct Content: Codable {
         
         self.device = try container.decodeIfPresent(String.self, forKey: .device)
         self.targetPos = try container.decodeIfPresent(Position.self, forKey: .targetPos)
+        self.`repeat` = try container.decodeIfPresent(Int.self, forKey: .`repeat`)
     }
 }
 

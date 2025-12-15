@@ -45,7 +45,6 @@ struct TimerSessionView: View {
     @State private var accumulatedSummaries: [DrillRepeatSummary] = []
     @State private var isPauseActive: Bool = false
     @State private var pauseRemaining: TimeInterval = 0
-    @State private var shouldContinueRepeats: Bool = false
 
     var body: some View {
         ZStack {
@@ -190,7 +189,9 @@ struct TimerSessionView: View {
         .alert(NSLocalizedString("end_drill", comment: "End drill alert title"), isPresented: $showEndDrillAlert) {
             Button(NSLocalizedString("cancel", comment: "Cancel button"), role: .cancel) { }
             Button(NSLocalizedString("confirm", comment: "Confirm button"), role: .destructive) {
-                executionManager?.manualStopDrill()
+                // User confirmed drill end - use manualStopDrill to ensure grace period and finalization
+                executionManager?.manualStopRepeat()
+                timerState = .idle
                 gracePeriodActive = true
                 gracePeriodRemaining = gracePeriodDuration
                 stopUpdateTimer()
@@ -254,18 +255,31 @@ struct TimerSessionView: View {
             .map { $0.compactMap { $0.targetName } } ?? []
         expectedDevices = expectedDevicesList
         
-        // Create drill execution manager for readiness checking
+        // Initialize state
+        currentRepeat = 1
+        totalRepeats = Int(drillSetup.repeats)
+        accumulatedSummaries.removeAll()
+        
+        // Create execution manager for the entire drill session
         let manager = DrillExecutionManager(
             bleManager: bleManager,
             drillSetup: drillSetup,
             expectedDevices: expectedDevices,
-            randomDelay: 0, // Not used for readiness check
-            totalRepeats: Int(drillSetup.repeats),
+            randomDelay: 0,
+            totalRepeats: totalRepeats,
             onComplete: { summaries in
-                // Not used for readiness check
+                // This callback is ONLY called when completeDrill() is explicitly called by UI
+                // It provides all summaries for all completed repeats
+                DispatchQueue.main.async {
+                    // All repeats completed - call the parent's callback to trigger navigation and save
+                    self.onDrillComplete(summaries)
+                    // NOTE: Do NOT dismiss here - let parent view handle navigation
+                }
             },
             onFailure: {
-                // Not used for readiness check
+                DispatchQueue.main.async {
+                    self.onDrillFailed()
+                }
             },
             onReadinessUpdate: { readyCount, totalCount in
                 DispatchQueue.main.async {
@@ -281,13 +295,13 @@ struct TimerSessionView: View {
         )
         
         executionManager = manager
+        // Set currentRepeat to 1 for first repeat
+        manager.setCurrentRepeat(1)
+        // Perform initial readiness check for first repeat
         manager.performReadinessCheck()
     }
 
     private func startSequence() {
-        // Stop any existing execution manager
-        executionManager?.stopExecution()
-        
         timerState = .standby
         playStandbySound()
         let randomDelayValue = Double.random(in: 2...5)
@@ -297,68 +311,9 @@ struct TimerSessionView: View {
         timerStartDate = nil
         startUpdateTimer()
         
-        // Reset readiness state when starting new sequence
-        readyTargetsCount = 0
-        nonResponsiveTargets = []
-        readinessTimeoutOccurred = false
-        
-        totalRepeats = Int(drillSetup.repeats)
-        let originalRepeats = drillSetup.repeats
-        drillSetup.repeats = 1
-        
-        if currentRepeat == 1 {
-            accumulatedSummaries.removeAll()
-        }
-        
-        // Create new execution manager for actual drill execution with proper callbacks
-        let manager = DrillExecutionManager(
-            bleManager: bleManager,
-            drillSetup: drillSetup,
-            expectedDevices: expectedDevices,
-            randomDelay: randomDelayValue,
-            totalRepeats: totalRepeats,
-            onComplete: { summaries in
-                DispatchQueue.main.async {
-                    if let summary = summaries.first {
-                        let correctedSummary = DrillRepeatSummary(
-                            id: summary.id,
-                            repeatIndex: self.currentRepeat,
-                            totalTime: summary.totalTime,
-                            numShots: summary.numShots,
-                            firstShot: summary.firstShot,
-                            fastest: summary.fastest,
-                            score: summary.score,
-                            shots: summary.shots
-                        )
-                        self.accumulatedSummaries.append(correctedSummary)
-                    }
-                    if self.currentRepeat < self.totalRepeats {
-                        self.shouldContinueRepeats = true
-                        self.currentRepeat += 1
-                    } else {
-                        self.shouldContinueRepeats = false
-                        self.onDrillComplete(self.accumulatedSummaries)
-                    }
-                }
-            },
-            onFailure: {
-                DispatchQueue.main.async {
-                    self.onDrillFailed()
-                }
-            },
-            onReadinessUpdate: { readyCount, totalCount in
-                // Not used during execution
-            },
-            onReadinessTimeout: { nonResponsiveList in
-                // Not used during execution
-            }
-        )
-        
-        // Restore original repeats value
-        drillSetup.repeats = originalRepeats
-        
-        executionManager = manager
-        manager.startExecutionWithReadyTargets()
+        // Set the current repeat and random delay in the manager
+        executionManager?.setCurrentRepeat(currentRepeat)
+        executionManager?.setRandomDelay(randomDelayValue)
     }
 
     private func startButtonAnimation() {
@@ -392,46 +347,36 @@ struct TimerSessionView: View {
                 gracePeriodRemaining = max(0, gracePeriodRemaining - 0.05)
                 if gracePeriodRemaining <= 0 {
                     gracePeriodActive = false
-                    if shouldContinueRepeats {
+                    
+                    // Collect the summary from the just-completed repeat
+                    // Use currentRepeat - 1 as the index since currentRepeat starts at 1
+                    if let summaries = executionManager?.summaries, currentRepeat - 1 < summaries.count {
+                        let completedSummary = summaries[currentRepeat - 1]
+                        accumulatedSummaries.append(completedSummary)
+                        print("Collected repeat \(completedSummary.repeatIndex) summary, total collected: \(accumulatedSummaries.count)")
+                    }
+                    
+                    // Check if more repeats remain
+                    if currentRepeat < totalRepeats {
+                        // More repeats to go - start pause and prepare next repeat
                         isPauseActive = true
                         pauseRemaining = Double(drillSetup.pause)
-                        shouldContinueRepeats = false
-                        // Reset readiness state and perform check for next repeat
+                        
+                        // Increment repeat for next drill
+                        currentRepeat += 1
+                        
+                        // Reset readiness state
                         readyTargetsCount = 0
                         nonResponsiveTargets = []
                         readinessTimeoutOccurred = false
                         
-                        // Create new readiness manager for between-repeats check
-                        let readinessManager = DrillExecutionManager(
-                            bleManager: bleManager,
-                            drillSetup: drillSetup,
-                            expectedDevices: expectedDevices,
-                            randomDelay: 0, // Not used for readiness check
-                            totalRepeats: totalRepeats,
-                            onComplete: { summaries in
-                                // Not used for readiness check
-                            },
-                            onFailure: {
-                                // Not used for readiness check
-                            },
-                            onReadinessUpdate: { readyCount, totalCount in
-                                DispatchQueue.main.async {
-                                    self.readyTargetsCount = readyCount
-                                }
-                            },
-                            onReadinessTimeout: { nonResponsiveList in
-                                DispatchQueue.main.async {
-                                    self.nonResponsiveTargets = nonResponsiveList
-                                    self.readinessTimeoutOccurred = true
-                                }
-                            }
-                        )
-                        
-                        self.readinessManager = readinessManager
-                        readinessManager.performReadinessCheck()
+                        // Set the next repeat in the manager and perform readiness check
+                        executionManager?.setCurrentRepeat(currentRepeat)
+                        executionManager?.performReadinessCheck()
                     } else {
+                        // All repeats completed - finalize drill
                         stopUpdateTimer()
-                        dismiss()
+                        executionManager?.completeDrill()
                     }
                 }
             }
@@ -440,8 +385,6 @@ struct TimerSessionView: View {
                 pauseRemaining = max(0, pauseRemaining - 0.05)
                 if pauseRemaining <= 0 {
                     isPauseActive = false
-                    readinessManager?.stopExecution()
-                    readinessManager = nil
                     resetTimer()
                     startSequence()
                 }
@@ -460,6 +403,7 @@ struct TimerSessionView: View {
         timerStartDate = timestamp
         playHighBeep()
         executionManager?.setBeepTime(timestamp)
+        executionManager?.startExecution()
     }
 
     private func buttonTapped() {
@@ -474,7 +418,7 @@ struct TimerSessionView: View {
             return
         case .running:
             // End the drill by calling manualStopDrill and show grace period
-            executionManager?.manualStopDrill()
+            executionManager?.manualStopRepeat()
             timerState = .idle  // Stop the elapsed timer display
             gracePeriodActive = true
             gracePeriodRemaining = gracePeriodDuration
@@ -517,7 +461,6 @@ struct TimerSessionView: View {
         gracePeriodRemaining = 0
         isPauseActive = false
         pauseRemaining = 0
-        shouldContinueRepeats = false
     }
 
     private func playHighBeep() {
