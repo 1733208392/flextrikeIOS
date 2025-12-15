@@ -403,9 +403,12 @@ class DrillExecutionManager {
 
     private func beginWaitingForEnd() {
         guard bleManager.isConnected else {
+            print("[DrillExecutionManager] beginWaitingForEnd() - BLE not connected")
             onFailure()
             return
         }
+
+        print("[DrillExecutionManager] beginWaitingForEnd() - starting to listen for shots in repeat \(currentRepeat)")
 
         // Get the last target name
         if let targetsSet = drillSetup.targets as? Set<DrillTargetsConfig> {
@@ -423,6 +426,7 @@ class DrillExecutionManager {
 
         // If no expected devices, proceed immediately
         if expectedDevices.isEmpty {
+            print("[DrillExecutionManager] No expected devices, completing repeat immediately")
             completeRepeat()
         }
     }
@@ -454,6 +458,8 @@ class DrillExecutionManager {
         endCommandTime = nil
         drillDuration = nil
         
+        print("[DrillExecutionManager] prepareForRepeatStart() - ready for repeat \(currentRepeat)")
+        
         // Set first target name for later use in finalizeRepeat
         if let targetsSet = drillSetup.targets as? Set<DrillTargetsConfig> {
             let sortedTargets = targetsSet.sorted { $0.seqNo < $1.seqNo }
@@ -463,20 +469,27 @@ class DrillExecutionManager {
 
     private func finalizeRepeat(repeatIndex: Int) {
         guard let startTime = currentRepeatStartTime else {
-            print("No start time for repeat \(repeatIndex), skipping summary")
+            print("[DrillExecutionManager] No start time for repeat \(repeatIndex), skipping summary")
             return
         }
 
         let sortedShots = currentRepeatShots.sorted { $0.receivedAt < $1.receivedAt }
         
+        print("[DrillExecutionManager] finalizeRepeat(\(repeatIndex)) - currentRepeatShots count: \(currentRepeatShots.count), sorted: \(sortedShots.count)")
+        
         // Validate: if no shots received at all, invalidate this repeat
         if sortedShots.isEmpty {
-            print("No shots received from any target for repeat \(repeatIndex), invalidating repeat")
+            print("[DrillExecutionManager] ⚠️ No shots received from any target for repeat \(repeatIndex), invalidating repeat")
+            print("[DrillExecutionManager] - currentRepeat: \(currentRepeat)")
+            print("[DrillExecutionManager] - isWaitingForEnd: \(isWaitingForEnd)")
+            print("[DrillExecutionManager] - BeepTime: \(beepTime?.description ?? "nil")")
             // DO NOT clear currentRepeatStartTime here - let grace period shots be collected
             // It will be cleared in sendReadyCommands() when next repeat starts
             currentRepeatShots.removeAll()
             return
         }
+        
+        print("[DrillExecutionManager] ✅ finalizeRepeat(\(repeatIndex)) - found \(sortedShots.count) shots")
 
         // Calculate total time: from BEEP to last shot
         var totalTime: TimeInterval = 0.0
@@ -613,6 +626,7 @@ class DrillExecutionManager {
     }
 
     private func startObservingShots() {
+        print("[DrillExecutionManager] startObservingShots() - registering .bleShotReceived observer")
         shotObserver = NotificationCenter.default.addObserver(
             forName: .bleShotReceived,
             object: nil,
@@ -620,6 +634,7 @@ class DrillExecutionManager {
         ) { [weak self] notification in
             self?.handleShotNotification(notification)
         }
+        print("[DrillExecutionManager] Shot observer registered")
     }
 
     private func stopObservingShots() {
@@ -630,25 +645,44 @@ class DrillExecutionManager {
     }
 
     private func handleShotNotification(_ notification: Notification) {
-        guard currentRepeatStartTime != nil else { return }
-        guard let shotDict = notification.userInfo?["shot_data"] as? [String: Any] else { return }
+        guard currentRepeatStartTime != nil else {
+            print("[DrillExecutionManager] Shot received but no currentRepeatStartTime set")
+            return
+        }
+        
+        guard let shotDict = notification.userInfo?["shot_data"] as? [String: Any] else {
+            let keyList = notification.userInfo?.keys.map { String(describing: $0) }.joined(separator: ", ") ?? "none"
+            print("[DrillExecutionManager] No shot_data in notification userInfo. Available keys: \(keyList)")
+            return
+        }
 
+        print("[DrillExecutionManager] Received shot data: \(shotDict)")
+        
         do {
             let jsonData = try JSONSerialization.data(withJSONObject: shotDict, options: [])
+            print("[DrillExecutionManager] JSON serialized successfully")
+            
             let shot = try JSONDecoder().decode(ShotData.self, from: jsonData)
+            print("[DrillExecutionManager] Shot decoded successfully - cmd: \(shot.content.command), ha: \(shot.content.hitArea), device: \(shot.device ?? "unknown")")
             
             // Filter shots by repeat number: only accept shots for the current repeat
-            if let shotRepeatNumber = shot.content.`repeat`, shotRepeatNumber != currentRepeat {
-                print("Ignoring shot from repeat \(shotRepeatNumber), currently in repeat \(currentRepeat)")
-                return
+            if let shotRepeatNumber = shot.content.`repeat` {
+                if shotRepeatNumber != currentRepeat {
+                    print("[DrillExecutionManager] Ignoring shot from repeat \(shotRepeatNumber), currently in repeat \(currentRepeat)")
+                    return
+                }
+                print("[DrillExecutionManager] Shot repeat \(shotRepeatNumber) matches current repeat \(currentRepeat)")
+            } else {
+                print("[DrillExecutionManager] Shot has no repeat number, accepting for current repeat \(currentRepeat)")
             }
             
             let event = ShotEvent(shot: shot, receivedAt: Date())
             currentRepeatShots.append(event)
             
-            print("Shot notification count: \(currentRepeatShots.count)")
+            print("[DrillExecutionManager] Shot accepted! Total shots in repeat \(currentRepeat): \(currentRepeatShots.count)")
         } catch {
-            print("Failed to process shot notification: \(error)")
+            print("[DrillExecutionManager] Failed to decode shot: \(error)")
+            print("[DrillExecutionManager] Error details: \(String(describing: error))")
         }
     }
 

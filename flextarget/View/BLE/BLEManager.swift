@@ -542,14 +542,18 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
                         }
                     }
                     
-                    // Handle incoming shot data
+                    // Handle incoming shot data (supports both old format "command" and new format "cmd")
                     if let type = json["type"] as? String, type == "netlink",
                        let action = json["action"] as? String, action == "forward",
-                       let content = json["content"] as? [String: Any],
-                       let command = content["command"] as? String, command == "shot" {
-                        print("Received shot data: \(json)")
-                        NotificationCenter.default.post(name: .bleShotReceived, object: nil, userInfo: ["shot_data": json])
-                        notificationHandled = true
+                       let content = json["content"] as? [String: Any] {
+                        
+                        // Check for old format "command" or new format "cmd"
+                        let commandValue = content["command"] as? String ?? content["cmd"] as? String
+                        if commandValue == "shot" {
+                            print("[BLEManager] Received shot data (both formats supported): \(json)")
+                            NotificationCenter.default.post(name: .bleShotReceived, object: nil, userInfo: ["shot_data": json])
+                            notificationHandled = true
+                        }
                     }
                     
                     // Handle notice for non-master device connection failure

@@ -22,7 +22,7 @@ struct Content: Codable {
     let command: String
     let hitArea: String
     let hitPosition: Position
-    let rotationAngle: Double
+    let rotationAngle: Double?
     let targetType: String
     let timeDiff: Double
     let device: String?
@@ -30,6 +30,7 @@ struct Content: Codable {
     let `repeat`: Int?
 
     enum CodingKeys: String, CodingKey {
+        // Old format keys
         case command
         case hitArea = "hit_area"
         case hitPosition = "hit_position"
@@ -39,9 +40,19 @@ struct Content: Codable {
         case device
         case targetPos = "targetPos"
         case `repeat` = "repeat"
+        // New abbreviated format keys
+        case cmd = "cmd"
+        case ha = "ha"
+        case hp = "hp"
+        case rot = "rot"
+        case tt = "tt"
+        case td = "td"
+        case std = "std"
+        case tgt_pos = "tgt_pos"
+        case rep = "rep"
     }
 
-    init(command: String, hitArea: String, hitPosition: Position, rotationAngle: Double, targetType: String, timeDiff: Double, device: String? = nil, targetPos: Position? = nil, `repeat`: Int? = nil) {
+    init(command: String, hitArea: String, hitPosition: Position, rotationAngle: Double? = nil, targetType: String, timeDiff: Double, device: String? = nil, targetPos: Position? = nil, `repeat`: Int? = nil) {
         self.command = command
         self.hitArea = hitArea
         self.hitPosition = hitPosition
@@ -55,25 +66,58 @@ struct Content: Codable {
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.command = try container.decode(String.self, forKey: .command)
-        self.hitArea = try container.decode(String.self, forKey: .hitArea)
-        self.hitPosition = try container.decode(Position.self, forKey: .hitPosition)
         
-        // Handle rotationAngle as either Double, Int, or String
-        if let rotAngleDouble = try? container.decode(Double.self, forKey: .rotationAngle) {
-            self.rotationAngle = rotAngleDouble
-        } else if let rotAngleInt = try? container.decode(Int.self, forKey: .rotationAngle) {
-            self.rotationAngle = Double(rotAngleInt)
-        } else if let rotAngleStr = try? container.decode(String.self, forKey: .rotationAngle), let rotAngleDouble = Double(rotAngleStr) {
-            self.rotationAngle = rotAngleDouble
+        // Decode command: try new key first, then old key
+        if let cmd = try? container.decode(String.self, forKey: .cmd) {
+            self.command = cmd
         } else {
-            self.rotationAngle = 0.0
+            self.command = try container.decode(String.self, forKey: .command)
         }
         
-        self.targetType = try container.decode(String.self, forKey: .targetType)
+        // Decode hitArea: try new key first, then old key
+        if let ha = try? container.decode(String.self, forKey: .ha) {
+            self.hitArea = ha
+        } else {
+            self.hitArea = try container.decode(String.self, forKey: .hitArea)
+        }
         
-        // Handle timeDiff as either Double or String
-        if let timeDiffDouble = try? container.decode(Double.self, forKey: .timeDiff) {
+        // Decode hitPosition: try new key first, then old key
+        if let hp = try? container.decode(Position.self, forKey: .hp) {
+            self.hitPosition = hp
+        } else {
+            self.hitPosition = try container.decode(Position.self, forKey: .hitPosition)
+        }
+        
+        // Decode rotationAngle: try new key first, then old key, handle multiple types and optional
+        var rotAngle: Double? = nil
+        if let rot = try? container.decodeIfPresent(Double.self, forKey: .rot) {
+            rotAngle = rot
+        } else if let rot = try? container.decodeIfPresent(Int.self, forKey: .rot) {
+            rotAngle = Double(rot)
+        } else if let rotAngleDouble = try? container.decodeIfPresent(Double.self, forKey: .rotationAngle) {
+            rotAngle = rotAngleDouble
+        } else if let rotAngleInt = try? container.decodeIfPresent(Int.self, forKey: .rotationAngle) {
+            rotAngle = Double(rotAngleInt)
+        } else if let rotAngleStr = try? container.decodeIfPresent(String.self, forKey: .rotationAngle), let rotAngleDouble = Double(rotAngleStr) {
+            rotAngle = rotAngleDouble
+        }
+        self.rotationAngle = rotAngle
+        
+        // Decode targetType: try new key first, then old key
+        if let tt = try? container.decode(String.self, forKey: .tt) {
+            self.targetType = tt
+        } else {
+            self.targetType = try container.decode(String.self, forKey: .targetType)
+        }
+        
+        // Decode timeDiff: try new key first, then old key, handle multiple types
+        if let td = try? container.decode(Double.self, forKey: .td) {
+            self.timeDiff = td
+        } else if let td = try? container.decode(Int.self, forKey: .td) {
+            self.timeDiff = Double(td)
+        } else if let tdStr = try? container.decode(String.self, forKey: .td), let tdDouble = Double(tdStr) {
+            self.timeDiff = tdDouble
+        } else if let timeDiffDouble = try? container.decode(Double.self, forKey: .timeDiff) {
             self.timeDiff = timeDiffDouble
         } else if let timeDiffStr = try? container.decode(String.self, forKey: .timeDiff), let timeDiffDouble = Double(timeDiffStr) {
             self.timeDiff = timeDiffDouble
@@ -82,8 +126,36 @@ struct Content: Codable {
         }
         
         self.device = try container.decodeIfPresent(String.self, forKey: .device)
-        self.targetPos = try container.decodeIfPresent(Position.self, forKey: .targetPos)
-        self.`repeat` = try container.decodeIfPresent(Int.self, forKey: .`repeat`)
+        
+        // Decode targetPos: try new key first, then old key (both optional for rotation targets)
+        var targetPosition: Position? = nil
+        if let tgt_pos = try? container.decodeIfPresent(Position.self, forKey: .tgt_pos), tgt_pos != nil {
+            targetPosition = tgt_pos
+        } else if let targetPosValue = try? container.decodeIfPresent(Position.self, forKey: .targetPos), targetPosValue != nil {
+            targetPosition = targetPosValue
+        }
+        self.targetPos = targetPosition
+        
+        // Decode repeat: try new key first, then old key
+        if let rep = try? container.decodeIfPresent(Int.self, forKey: .rep) {
+            self.`repeat` = rep
+        } else {
+            self.`repeat` = try container.decodeIfPresent(Int.self, forKey: .`repeat`)
+        }
+    }
+    
+    // Encode using old format keys for backward compatibility
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(command, forKey: .command)
+        try container.encode(hitArea, forKey: .hitArea)
+        try container.encode(hitPosition, forKey: .hitPosition)
+        try container.encodeIfPresent(rotationAngle, forKey: .rotationAngle)
+        try container.encode(targetType, forKey: .targetType)
+        try container.encode(timeDiff, forKey: .timeDiff)
+        try container.encodeIfPresent(device, forKey: .device)
+        try container.encodeIfPresent(targetPos, forKey: .targetPos)
+        try container.encodeIfPresent(`repeat`, forKey: .`repeat`)
     }
 }
 
@@ -94,6 +166,11 @@ struct Position: Codable {
     init(x: Double, y: Double) {
         self.x = x
         self.y = y
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case x
+        case y
     }
 
     init(from decoder: Decoder) throws {
@@ -108,6 +185,12 @@ struct Position: Codable {
         } else {
             self.y = try container.decode(Double.self, forKey: .y)
         }
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(x, forKey: .x)
+        try container.encode(y, forKey: .y)
     }
 }
 
@@ -169,7 +252,7 @@ private struct TargetDisplayView: View {
                     if let shotWithPos = chosenShot, let targetPos: Position = shotWithPos.content.targetPos {
                         let transformedX = (targetPos.x / 720.0) * frameWidth
                         let transformedY = (targetPos.y / 1280.0) * frameHeight
-                        let rotationRad = shotWithPos.content.rotationAngle
+                        let rotationRad = shotWithPos.content.rotationAngle ?? 0.0
 
                         // Scale the overlay from the design coordinate space (720x1280)
                         // into the current frame so the image size matches the target
@@ -684,9 +767,9 @@ struct PreviewContent: View {
         
         // Create mock shots with device info
         let mockShots = [
-            ShotData(target: "target1", content: Content(command: "shot", hitArea: "B", hitPosition: Position(x: 395.0, y: 495.0), rotationAngle: 0, targetType: "hostage", timeDiff: 0.18, device: "device1", targetPos: nil), type: "shot", action: "hit", device: "device1"),
-            ShotData(target: "target1", content: Content(command: "shot", hitArea: "B", hitPosition: Position(x: 400.0, y: 500.0), rotationAngle: 0, targetType: "hostage", timeDiff: 0.21, device: "device1", targetPos: nil), type: "shot", action: "hit", device: "device1"),
-            ShotData(target: "target1", content: Content(command: "shot", hitArea: "A", hitPosition: Position(x: 205.0, y: 295.0), rotationAngle: 0, targetType: "hostage", timeDiff: 1.35, device: "device2", targetPos: nil), type: "shot", action: "hit", device: "device2"),
+            ShotData(target: "target1", content: Content(command: "shot", hitArea: "B", hitPosition: Position(x: 395.0, y: 495.0), rotationAngle: nil, targetType: "hostage", timeDiff: 0.18, device: "device1", targetPos: nil), type: "shot", action: "hit", device: "device1"),
+            ShotData(target: "target1", content: Content(command: "shot", hitArea: "B", hitPosition: Position(x: 400.0, y: 500.0), rotationAngle: nil, targetType: "hostage", timeDiff: 0.21, device: "device1", targetPos: nil), type: "shot", action: "hit", device: "device1"),
+            ShotData(target: "target1", content: Content(command: "shot", hitArea: "A", hitPosition: Position(x: 205.0, y: 295.0), rotationAngle: nil, targetType: "hostage", timeDiff: 1.35, device: "device2", targetPos: nil), type: "shot", action: "hit", device: "device2"),
         ]
         
         self.context = context
