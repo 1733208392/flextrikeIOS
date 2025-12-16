@@ -1,0 +1,187 @@
+package com.flextarget.android.ui.drills
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import com.flextarget.android.data.ble.BLEManager
+import com.flextarget.android.data.ble.DiscoveredPeripheral
+import com.flextarget.android.data.ble.NetworkDevice
+import com.flextarget.android.data.model.DrillTargetsConfigData
+import org.burnoutcrew.reorderable.ReorderableItem
+import org.burnoutcrew.reorderable.ReorderableLazyListState
+import org.burnoutcrew.reorderable.reorderable
+import org.burnoutcrew.reorderable.rememberReorderableLazyListState
+import org.json.JSONObject
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TargetConfigListView(
+    bleManager: BLEManager,
+    targetConfigs: List<DrillTargetsConfigData>,
+    onAddTarget: () -> Unit,
+    onDeleteTarget: (Int) -> Unit,
+    onUpdateTargetDevice: (Int, String) -> Unit,
+    onUpdateTargetType: (Int, String) -> Unit,
+    onDone: () -> Unit,
+    onBack: () -> Unit
+) {
+    var showMaxTargetsAlert by remember { mutableStateOf(false) }
+    var showDevicePicker by remember { mutableStateOf<DrillTargetsConfigData?>(null) }
+    var showTypePicker by remember { mutableStateOf<DrillTargetsConfigData?>(null) }
+
+    // Query device list on appear
+    LaunchedEffect(Unit) {
+        queryDeviceList(bleManager)
+    }
+
+    // val reorderableState = rememberReorderableLazyListState(
+    //     onMove = { from, to ->
+    //         targetConfigs.apply {
+    //             add(to.index, removeAt(from.index))
+    //             // Update sequence numbers
+    //             forEachIndexed { index, config ->
+    //                 this[index] = config.copy(seqNo = index + 1)
+    //             }
+    //         }
+    //     }
+    // )
+
+    val maxTargets = bleManager.networkDevices.size
+    val canAddMore = targetConfigs.size < maxTargets
+
+    // Content without Scaffold since navigation is handled at parent level
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // List of targets
+            LazyColumn(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                itemsIndexed(targetConfigs) { index, config ->
+                    TargetConfigRow(
+                        config = config,
+                        availableDevices = getAvailableDevices(bleManager.networkDevices, targetConfigs, config),
+                        isDragging = false,
+                        onDeviceClick = { showDevicePicker = config },
+                        onTypeClick = { showTypePicker = config },
+                        onDelete = { onDeleteTarget(index) }
+                    )
+                }
+            }
+
+            // Add Button
+            Button(
+                onClick = {
+                    if (canAddMore) {
+                        onAddTarget()
+                    } else {
+                        showMaxTargetsAlert = true
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
+            ) {
+                Text("Add Target", color = Color.White)
+            }
+
+            // Save Button
+            Button(
+                onClick = onDone,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+            ) {
+                Text("Save", color = Color.White)
+            }
+        }
+    }
+
+    // Max targets alert
+    if (showMaxTargetsAlert) {
+        AlertDialog(
+            onDismissRequest = { showMaxTargetsAlert = false },
+            title = { Text("Maximum Targets Reached") },
+            text = { Text("You can only configure up to ${maxTargets} targets (${targetConfigs.size}/${maxTargets})") },
+            confirmButton = {
+                TextButton(onClick = { showMaxTargetsAlert = false }) {
+                    Text("OK")
+                }
+            }
+        )
+    }
+
+    // Device picker
+    showDevicePicker?.let { config ->
+        DevicePickerDialog(
+            availableDevices = getAvailableDevices(bleManager.networkDevices, targetConfigs, config),
+            selectedDevice = config.targetName,
+            onDeviceSelected = { deviceName ->
+                val configIndex = targetConfigs.indexOfFirst { it.id == config.id }
+                if (configIndex != -1) {
+                    onUpdateTargetDevice(configIndex, deviceName)
+                }
+                showDevicePicker = null
+            },
+            onDismiss = { showDevicePicker = null }
+        )
+    }
+
+    // Type picker
+    showTypePicker?.let { config ->
+        TargetTypePickerDialog(
+            targetTypes = DrillTargetsConfigData.DEFAULT_TARGET_TYPES,
+            selectedType = config.targetType,
+            onTypeSelected = { type ->
+                val configIndex = targetConfigs.indexOfFirst { it.id == config.id }
+                if (configIndex != -1) {
+                    onUpdateTargetType(configIndex, type)
+                }
+                showTypePicker = null
+            },
+            onDismiss = { showTypePicker = null }
+        )
+    }
+}
+
+private fun queryDeviceList(bleManager: BLEManager) {
+    if (!bleManager.isConnected) {
+        println("BLE not connected, cannot query device list")
+        return
+    }
+
+    val command = mapOf("action" to "netlink_query_device_list")
+    val jsonString = JSONObject(command).toString()
+
+    println("Query message length: ${jsonString.toByteArray().size}")
+    bleManager.writeJSON(jsonString)
+    println("Sent netlink_query_device_list command: $jsonString")
+}
+
+private fun getAvailableDevices(
+    networkDevices: List<NetworkDevice>,
+    targetConfigs: List<DrillTargetsConfigData>,
+    currentConfig: DrillTargetsConfigData
+): List<NetworkDevice> {
+    return networkDevices.filter { device ->
+        !targetConfigs.any { config ->
+            config.targetName == device.name && config.id != currentConfig.id
+        }
+    }
+}

@@ -78,9 +78,14 @@ class DrillSetupRepository(
         drillSetupDao.deleteDrillSetup(drillSetup)
     }
     
-    // Delete drill setup by ID
-    suspend fun deleteDrillSetupById(id: UUID) {
-        drillSetupDao.deleteDrillSetupById(id)
+    // Delete target configs by drill setup ID
+    suspend fun deleteTargetConfigsByDrillSetupId(drillSetupId: UUID) {
+        targetConfigDao.deleteTargetConfigsByDrillSetupId(drillSetupId)
+    }
+    
+    // Insert target configs
+    suspend fun insertTargetConfigs(targets: List<DrillTargetsConfigEntity>) {
+        targetConfigDao.insertTargetConfigs(targets)
     }
     
     // Get count

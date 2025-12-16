@@ -96,7 +96,6 @@ abstract class FlexTargetDatabase : RoomDatabase() {
             
             // Example: Add a sample drill setup (can be removed in production)
             // Uncomment to add seed data:
-            /*
             val sampleDrill = DrillSetupEntity(
                 name = "Sample Drill",
                 desc = "A sample drill for testing",
@@ -105,8 +104,26 @@ abstract class FlexTargetDatabase : RoomDatabase() {
                 repeats = 3,
                 pause = 10
             )
-            drillSetupDao.insertDrillSetup(sampleDrill)
-            */
+            val drillId = drillSetupDao.insertDrillSetup(sampleDrill)
+            
+            // Add some sample targets
+            val target1 = DrillTargetsConfigEntity(
+                seqNo = 1,
+                targetName = "Target 1",
+                targetType = "popper",
+                timeout = 5.0,
+                countedShots = 1,
+                drillSetupId = sampleDrill.id
+            )
+            val target2 = DrillTargetsConfigEntity(
+                seqNo = 2,
+                targetName = "Target 2", 
+                targetType = "popper",
+                timeout = 5.0,
+                countedShots = 1,
+                drillSetupId = sampleDrill.id
+            )
+            targetConfigDao.insertTargetConfigs(listOf(target1, target2))
         }
         
         /**
