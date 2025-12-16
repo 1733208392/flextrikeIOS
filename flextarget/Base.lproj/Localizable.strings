@@ -141,3 +141,13 @@
 "firmware_upgrade" = "Firmware Upgrade";
 "firmware_upgrade_title" = "Firmware Upgrade";
 "firmware_upgrade_message" = "Ensure the new firmware USB drive is securely inserted into the USB port on the right side of the device.";
+
+/* DrillResultView - Hit Areas */
+"hit_area_azone" = "Alpha";
+"hit_area_czone" = "Charlie";
+"hit_area_dzone" = "Delta";
+"hit_area_miss" = "Miss";
+"hit_area_barrel_miss" = "Barricade";
+"hit_area_circlearea" = "Knocked Down";
+"hit_area_standarea" = "Knocked Down";
+"hit_area_popperzone" = "Knocked Down";

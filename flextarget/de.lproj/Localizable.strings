@@ -191,3 +191,13 @@
 "processing_shots" = "Schüsse verarbeiten";
 "pause_between_repeats" = "Pause zwischen Wiederholungen";
 "repeat_of_total" = "Wiederholung %d von %d";
+
+/* DrillResultView - Hit Areas */
+"hit_area_azone" = "Alpha";
+"hit_area_czone" = "Charlie";
+"hit_area_dzone" = "Delta";
+"hit_area_miss" = "Fehlschuss";
+"hit_area_barrel_miss" = "Deckung";
+"hit_area_circlearea" = "Umgeworfen";
+"hit_area_standarea" = "Umgeworfen";
+"hit_area_popperzone" = "Umgeworfen";

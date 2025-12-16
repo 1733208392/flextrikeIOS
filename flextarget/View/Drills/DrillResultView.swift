@@ -88,19 +88,45 @@ struct Content: Codable {
             self.hitPosition = try container.decode(Position.self, forKey: .hitPosition)
         }
         
-        // Decode rotationAngle: try new key first, then old key, handle multiple types and optional
+        // Decode rotationAngle: try a variety of key names and types (Double, Int, String)
         var rotAngle: Double? = nil
-        if let rot = try? container.decodeIfPresent(Double.self, forKey: .rot) {
-            rotAngle = rot
-        } else if let rot = try? container.decodeIfPresent(Int.self, forKey: .rot) {
-            rotAngle = Double(rot)
-        } else if let rotAngleDouble = try? container.decodeIfPresent(Double.self, forKey: .rotationAngle) {
-            rotAngle = rotAngleDouble
-        } else if let rotAngleInt = try? container.decodeIfPresent(Int.self, forKey: .rotationAngle) {
-            rotAngle = Double(rotAngleInt)
-        } else if let rotAngleStr = try? container.decodeIfPresent(String.self, forKey: .rotationAngle), let rotAngleDouble = Double(rotAngleStr) {
-            rotAngle = rotAngleDouble
+
+        // First, try the explicit keys we know about
+        if let val = try? container.decodeIfPresent(Double.self, forKey: .rot) {
+            rotAngle = val
+        } else if let val = try? container.decodeIfPresent(Int.self, forKey: .rot) {
+            rotAngle = Double(val)
+        } else if let val = try? container.decodeIfPresent(String.self, forKey: .rot), let d = Double(val) {
+            rotAngle = d
+        } else if let val = try? container.decodeIfPresent(Double.self, forKey: .rotationAngle) {
+            rotAngle = val
+        } else if let val = try? container.decodeIfPresent(Int.self, forKey: .rotationAngle) {
+            rotAngle = Double(val)
+        } else if let val = try? container.decodeIfPresent(String.self, forKey: .rotationAngle), let d = Double(val) {
+            rotAngle = d
         }
+
+        // If not found yet, scan all keys for anything that looks like a rotation key
+        if rotAngle == nil {
+            for key in container.allKeys {
+                let name = key.stringValue.lowercased()
+                if name.contains("rot") || name.contains("rotation") {
+                    if let d = try? container.decodeIfPresent(Double.self, forKey: key) {
+                        rotAngle = d
+                        break
+                    }
+                    if let i = try? container.decodeIfPresent(Int.self, forKey: key) {
+                        rotAngle = Double(i)
+                        break
+                    }
+                    if let s = try? container.decodeIfPresent(String.self, forKey: key), let d = Double(s) {
+                        rotAngle = d
+                        break
+                    }
+                }
+            }
+        }
+
         self.rotationAngle = rotAngle
         
         // Decode targetType: try new key first, then old key
@@ -288,6 +314,22 @@ private struct TargetDisplayView: View {
                                 .stroke(Color.white, lineWidth: 12)
                         )
 
+                    // Get rotation angle if this is a rotation target with selected shot
+                    let rotationAngle: Double? = {
+                        if display.icon.lowercased() == "rotation",
+                           let selIndex = selectedShotIndex,
+                           shots.indices.contains(selIndex) {
+                            let shot = shots[selIndex]
+                            if display.matches(shot) {
+                                let angle = shot.content.rotationAngle ?? 0.0
+                                let degrees = angle * 180.0 / .pi
+                                print("[DrillResultView] Applying rotation to target: \(angle) rad (\(degrees)°)")
+                                return angle
+                            }
+                        }
+                        return nil
+                    }()
+
                     Image("\(display.icon).live.target")
                         .resizable()
                         .scaledToFit()
@@ -351,6 +393,32 @@ struct DrillResultView: View {
     
     // Array to store received shots
     @State private var shots: [ShotData] = []
+    
+    /// Translates hit area names to localized display text
+    private func translateHitArea(_ hitArea: String) -> String {
+        let trimmed = hitArea.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        
+        switch trimmed {
+        case "azone":
+            return NSLocalizedString("hit_area_azone", comment: "Alpha zone")
+        case "czone":
+            return NSLocalizedString("hit_area_czone", comment: "Charlie zone")
+        case "dzone":
+            return NSLocalizedString("hit_area_dzone", comment: "Delta zone")
+        case "miss":
+            return NSLocalizedString("hit_area_miss", comment: "Miss")
+        case "barrel_miss":
+            return NSLocalizedString("hit_area_barrel_miss", comment: "Barrel miss")
+        case "circlearea":
+            return NSLocalizedString("hit_area_circlearea", comment: "Circle area")
+        case "standarea":
+            return NSLocalizedString("hit_area_standarea", comment: "Stand area")
+        case "popperzone":
+            return NSLocalizedString("hit_area_popperzone", comment: "Popper zone")
+        default:
+            return hitArea
+        }
+    }
     
     // Timer for drill duration
     @State private var drillTimer: Timer?
@@ -511,7 +579,7 @@ struct DrillResultView: View {
                                     Text("#\(idx + 1)")
                                         .frame(width: 64, alignment: .center)
                                         .foregroundColor(.white)
-                                    Text(shot.content.hitArea)
+                                    Text(translateHitArea(shot.content.hitArea))
                                         .frame(width: 80, alignment: .center)
                                         .foregroundColor(.white)
                                     Text(String(format: "%.2f", shot.content.timeDiff))

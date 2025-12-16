@@ -183,7 +183,7 @@
 "target_not_ready" = "标靶尚未准备好接收";
 
 /* TimerSessionView - Target Readiness */
-"targets_ready" = "所有标靶已准备好进行练习";
+"targets_ready" = "标靶已准备好进行练习";
 "targets_not_ready" = "标靶未准备好";
 "targets_not_ready_message" = "以下标靶未响应:";
 "end_drill" = "结束练习?";
@@ -191,3 +191,22 @@
 "processing_shots" = "正在处理数据";
 "pause_between_repeats" = "重复间暂停";
 "repeat_of_total" = "第 %d 次 (共 %d 次)";
+
+/* DrillResultView - Hit Areas */
+"hit_area_azone" = "A区";
+"hit_area_czone" = "C区";
+"hit_area_dzone" = "D区";
+"hit_area_miss" = "脱靶";
+"hit_area_barrel_miss" = "掩体";
+"hit_area_circlearea" = "击倒";
+"hit_area_standarea" = "击倒";
+"hit_area_popperzone" = "击倒";
+/* DrillResultView - Hit Areas */
+"hit_area_azone" = "A区";
+"hit_area_czone" = "C区";
+"hit_area_dzone" = "D区";
+"hit_area_miss" = "脱靶";
+"hit_area_barrel_miss" = "掩体";
+"hit_area_circlearea" = "击倒";
+"hit_area_standarea" = "击倒";
+"hit_area_popperzone" = "击倒";

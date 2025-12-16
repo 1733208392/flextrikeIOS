@@ -1,5 +1,6 @@
 import AVFoundation
 import SwiftUI
+import UIKit
 
 enum TimerState {
     case idle
@@ -125,11 +126,11 @@ struct TimerSessionView: View {
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
                     .frame(width: 200, height: 200)
-                    .foregroundColor(.white)
-                    .background(buttonColor)
+                    .foregroundColor(buttonTextColor)
+                    .background(buttonBackgroundColor)
                     .clipShape(Circle())
                     .shadow(color: Color.black.opacity(0.25), radius: 10, x: 0, y: 10)
-                    .disabled(timerState == .standby || (timerState == .idle && readyTargetsCount < expectedDevices.count && expectedDevices.count > 0))
+                    .disabled(timerState == .standby || isWaitingForTargetReadiness)
                 }
 
                 Spacer()
@@ -174,7 +175,7 @@ struct TimerSessionView: View {
                                 .foregroundColor(.orange)
                         } else {
                             Text("\(readyTargetsCount)/\(expectedDevices.count) \(NSLocalizedString("targets_ready", comment: "Targets ready"))")
-                                .font(.subheadline)
+                                .font(.title3)
                                 .foregroundColor(readyTargetsCount == expectedDevices.count && expectedDevices.count > 0 ? .green : .white)
                         }
                     }
@@ -203,6 +204,8 @@ struct TimerSessionView: View {
             stopUpdateTimer()
             readinessManager?.stopExecution()
             readinessManager = nil
+            // Re-enable idle timer when leaving the view
+            UIApplication.shared.isIdleTimerDisabled = false
         }
         .onReceive(NotificationCenter.default.publisher(for: .bleNetlinkForwardReceived)) { notification in
             executionManager?.handleNetlinkForward(notification)
@@ -229,7 +232,19 @@ struct TimerSessionView: View {
         }
     }
 
-    private var buttonColor: Color {
+    private var isWaitingForTargetReadiness: Bool {
+        timerState == .idle && expectedDevices.count > 0 && readyTargetsCount < expectedDevices.count
+    }
+
+    private var buttonTextColor: Color {
+        isWaitingForTargetReadiness ? .black : .white
+    }
+
+    private var buttonBackgroundColor: Color {
+        if isWaitingForTargetReadiness {
+            return Color.gray
+        }
+
         switch timerState {
         case .idle:
             return Color.red
@@ -267,6 +282,8 @@ struct TimerSessionView: View {
                 // This callback is ONLY called when completeDrill() is explicitly called by UI
                 // It provides all summaries for all completed repeats
                 DispatchQueue.main.async {
+                    // Re-enable idle timer when drill completes
+                    UIApplication.shared.isIdleTimerDisabled = false
                     // All repeats completed - call the parent's callback to trigger navigation and save
                     self.onDrillComplete(summaries)
                     // NOTE: Do NOT dismiss here - let parent view handle navigation
@@ -274,6 +291,8 @@ struct TimerSessionView: View {
             },
             onFailure: {
                 DispatchQueue.main.async {
+                    // Re-enable idle timer on drill failure
+                    UIApplication.shared.isIdleTimerDisabled = false
                     self.onDrillFailed()
                 }
             },
@@ -400,6 +419,8 @@ struct TimerSessionView: View {
         playHighBeep()
         executionManager?.setBeepTime(timestamp)
         executionManager?.startExecution()
+        // Disable idle timer to prevent screen lock during drill
+        UIApplication.shared.isIdleTimerDisabled = true
     }
 
     private func buttonTapped() {

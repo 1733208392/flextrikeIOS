@@ -473,7 +473,9 @@ class DrillExecutionManager {
             return
         }
 
-        let sortedShots = currentRepeatShots.sorted { $0.receivedAt < $1.receivedAt }
+        // Sort shots by time_diff from the shot data message (not by receivedAt timestamp)
+        // time_diff = timing of shot on target device - timing when repeat starts
+        let sortedShots = currentRepeatShots.sorted { $0.shot.content.timeDiff < $1.shot.content.timeDiff }
         
         print("[DrillExecutionManager] finalizeRepeat(\(repeatIndex)) - currentRepeatShots count: \(currentRepeatShots.count), sorted: \(sortedShots.count)")
         
@@ -516,23 +518,17 @@ class DrillExecutionManager {
             }
         }
 
-        // Recalculate timeDiff: first shot relative to beepTime, rest relative to previous shot's timestamp
+        // Use original time_diff from shot data message
+        // time_diff is already: timing of shot on target device - timing when repeat starts
+        // 1st shot keeps original time_diff, subsequent shots show difference from previous shot
         let adjustedShots = sortedShots.enumerated().map { (index, event) -> ShotData in
             let newTimeDiff: TimeInterval
-            if let beepTime = beepTime {
-                if index == 0 {
-                    newTimeDiff = event.receivedAt.timeIntervalSince(beepTime)
-                } else {
-                    let previousReceivedAt = sortedShots[index - 1].receivedAt
-                    newTimeDiff = event.receivedAt.timeIntervalSince(previousReceivedAt)
-                }
+            if index == 0 {
+                // First shot keeps original time_diff
+                newTimeDiff = event.shot.content.timeDiff
             } else {
-                // Fallback to old adjustment
-                if event.shot.device != firstTargetName {
-                    newTimeDiff = max(0, event.shot.content.timeDiff - timerDelay)
-                } else {
-                    newTimeDiff = event.shot.content.timeDiff
-                }
+                // Subsequent shots: current shot's time_diff - previous shot's time_diff
+                newTimeDiff = event.shot.content.timeDiff - sortedShots[index - 1].shot.content.timeDiff
             }
             let adjustedContent = Content(
                 command: event.shot.content.command,

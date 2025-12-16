@@ -50,6 +50,9 @@ struct TargetConfigListView: View {
         } message: {
             Text(String(format: NSLocalizedString("maximum_targets_message", comment: "Maximum targets reached message"), targetConfigs.count, deviceList.count))
         }
+        .onAppear {
+            addAllAvailableTargets()
+        }
     }
 
     private var listView: some View {
@@ -74,7 +77,6 @@ struct TargetConfigListView: View {
         .listStyle(.plain)
         .background(Color.black)
         .scrollContentBackgroundHidden()
-        .environment(\.editMode, .constant(.active))
         .onChange(of: targetConfigs) { _ in
             saveTargetConfigs()
         }
@@ -104,6 +106,58 @@ struct TargetConfigListView: View {
         deviceList.filter { device in
             !targetConfigs.contains(where: { $0.targetName == device.name && $0.id != config.id })
         }
+    }
+
+    private var sortedUnusedNetworkDevices: [NetworkDevice] {
+        let existingNames = Set(targetConfigs.map { $0.targetName })
+        return sortedNetworkDevices().filter { !existingNames.contains($0.name) }
+    }
+
+    private func sortedNetworkDevices() -> [NetworkDevice] {
+        deviceList.sorted { lhs, rhs in
+            let lhsNumber = numericValue(from: lhs.name)
+            let rhsNumber = numericValue(from: rhs.name)
+
+            if let lhsNumber, let rhsNumber, lhsNumber != rhsNumber {
+                return lhsNumber < rhsNumber
+            }
+            if lhsNumber != nil && rhsNumber == nil {
+                return true
+            }
+            if rhsNumber != nil && lhsNumber == nil {
+                return false
+            }
+
+            return lhs.name.localizedStandardCompare(rhs.name) == .orderedAscending
+        }
+    }
+
+    private func numericValue(from name: String) -> Int? {
+        let digits = name.compactMap { $0.isNumber ? String($0) : nil }.joined()
+        guard !digits.isEmpty else { return nil }
+        return Int(digits)
+    }
+
+    private func addAllAvailableTargets() {
+        let newDevices = sortedUnusedNetworkDevices
+        guard !newDevices.isEmpty else { return }
+
+        for device in newDevices {
+            appendTarget(named: device.name)
+        }
+        updateSeqNos()
+        saveTargetConfigs()
+    }
+
+    private func appendTarget(named name: String) {
+        let newConfig = DrillTargetsConfigData(
+            seqNo: targetConfigs.count + 1,
+            targetName: name,
+            targetType: "ipsc",
+            timeout: 30.0,
+            countedShots: 5
+        )
+        targetConfigs.append(newConfig)
     }
 
     private func addNewTarget() {
@@ -169,10 +223,10 @@ struct TargetRowView: View {
     var body: some View {
         HStack(spacing: 16) {
             // 1) seqNo
-            Text("\(config.seqNo)")
-                .foregroundColor(.white)
-                .frame(width: 40, alignment: .leading)
-                .font(.system(size: 16, weight: .medium))
+//            Text("\(config.seqNo)")
+//                .foregroundColor(.white)
+//                .frame(width: 20, alignment: .leading)
+//                .font(.system(size: 16, weight: .medium))
 
             // 2) Device (targetName)
             VStack(alignment: .leading, spacing: 4) {
