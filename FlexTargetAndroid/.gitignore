@@ -23,3 +23,4 @@ captures/
 output.json
 *.hprof
 *.jar
+*.zip
