@@ -154,7 +154,7 @@ class DrillExecutionManager {
                     "command": "ready",
                     "delay": roundedDelay,
                     "targetType": target.targetType ?? "",
-                    "timeout": 300,
+                    "timeout": 1200,
                     "countedShots": target.countedShots,
                     "repeat": currentRepeat,
                     "isFirst": index == 0,

@@ -19,9 +19,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.flextarget.android.data.ble.AndroidBLEManager
 import com.flextarget.android.data.ble.BLEManager
 import com.flextarget.android.data.local.FlexTargetDatabase
 import com.flextarget.android.data.local.entity.DrillSetupEntity
+import com.flextarget.android.data.local.entity.DrillTargetsConfigEntity
 import com.flextarget.android.data.repository.DrillSetupRepository
 import com.flextarget.android.ui.viewmodel.DrillFormViewModel
 import com.flextarget.android.data.model.DrillTargetsConfigData
@@ -51,6 +53,7 @@ fun DrillFormView(
     viewModel: DrillFormViewModel
 ) {
     val coroutineScope = rememberCoroutineScope()
+    val androidBleManager = bleManager.androidManager
 
     // Form state
     var drillName by remember { mutableStateOf(existingDrill?.name ?: "") }
@@ -178,7 +181,8 @@ fun DrillFormView(
                     onBack = onBack,
                     viewModel = viewModel,
                     coroutineScope = coroutineScope,
-                    paddingValues = paddingValues
+                    paddingValues = paddingValues,
+                    androidBleManager = androidBleManager
                 )
             }
             DrillFormScreen.TARGET_CONFIG -> {
@@ -250,8 +254,13 @@ private fun FormScreen(
     onBack: () -> Unit,
     viewModel: DrillFormViewModel,
     coroutineScope: CoroutineScope,
-    paddingValues: PaddingValues
+    paddingValues: PaddingValues,
+    androidBleManager: AndroidBLEManager?
 ) {
+    var showTimerSession by remember { mutableStateOf(false) }
+    var timerSessionDrill by remember { mutableStateOf<DrillSetupEntity?>(null) }
+    var timerSessionTargets by remember { mutableStateOf<List<DrillTargetsConfigEntity>>(emptyList()) }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -346,13 +355,38 @@ private fun FormScreen(
                     )
                 }
 
-                // Start Drill Button (placeholder)
+                // Start drill session
                 Button(
-                    onClick = { /* TODO: Implement start drill */ },
-                    enabled = isFormValid && mode == DrillFormMode.EDIT,
+                    onClick = {
+                        val sessionDrill = (existingDrill ?: DrillSetupEntity()).copy(
+                            name = drillName,
+                            desc = description,
+                            delay = delay,
+                            drillDuration = drillDuration,
+                            repeats = repeats,
+                            pause = pause
+                        )
+
+                        val sessionTargets = targets.map { target ->
+                            DrillTargetsConfigEntity(
+                                id = target.id,
+                                seqNo = target.seqNo,
+                                targetName = target.targetName.takeIf { it.isNotBlank() },
+                                targetType = target.targetType,
+                                timeout = target.timeout,
+                                countedShots = target.countedShots,
+                                drillSetupId = sessionDrill.id
+                            )
+                        }
+
+                        timerSessionDrill = sessionDrill
+                        timerSessionTargets = sessionTargets
+                        showTimerSession = true
+                    },
+                    enabled = isFormValid && mode == DrillFormMode.EDIT && androidBleManager != null,
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isFormValid && mode == DrillFormMode.EDIT) Color.Green else Color.Gray
+                        containerColor = if (isFormValid && mode == DrillFormMode.EDIT && androidBleManager != null) Color.Green else Color.Gray
                     )
                 ) {
                     Text("Start Drill", color = Color.White)
@@ -364,6 +398,22 @@ private fun FormScreen(
             CircularProgressIndicator(
                 modifier = Modifier.align(Alignment.Center),
                 color = Color.Red
+            )
+        }
+        if (showTimerSession && timerSessionDrill != null && androidBleManager != null) {
+            TimerSessionView(
+                drillSetup = timerSessionDrill!!,
+                targets = timerSessionTargets,
+                bleManager = androidBleManager,
+                onDrillComplete = {
+                    showTimerSession = false
+                },
+                onDrillFailed = {
+                    showTimerSession = false
+                },
+                onBack = {
+                    showTimerSession = false
+                }
             )
         }
     }

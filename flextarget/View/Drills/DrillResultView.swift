@@ -237,6 +237,11 @@ private struct TargetDisplay: Identifiable, Hashable {
     }
 }
 
+private func isScoringZone(_ hitArea: String) -> Bool {
+    let trimmed = hitArea.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+    return trimmed == "azone" || trimmed == "czone" || trimmed == "dzone"
+}
+
 private struct TargetDisplayView: View {
     let targetDisplays: [TargetDisplay]
     @Binding var selectedTargetKey: String
@@ -253,6 +258,8 @@ private struct TargetDisplayView: View {
         let display: TargetDisplay
         let shots: [ShotData]
         let selectedShotIndex: Int?
+        let pulsingShotIndex: Int?
+        let pulseScale: CGFloat
         let frameWidth: CGFloat
         let frameHeight: CGFloat
 
@@ -290,12 +297,75 @@ private struct TargetDisplayView: View {
                         let overlayBaseWidth: CGFloat = 396.0
                         let overlayBaseHeight: CGFloat = 489.5
 
-                        Image("ipsc")
-                            // .resizable()
-                            // .scaledToFit()
+                        ZStack(alignment: .center) {
+                            // Back: Target image and scoring zone bullets (rotate together)
+                            ZStack(alignment: .center) {
+                                Image("ipsc")
+                                    .resizable()
+                                    .frame(width: overlayBaseWidth * scaleX, height: overlayBaseHeight * scaleY)
+                                    .aspectRatio(contentMode: .fill)
+
+                                // Bullet holes for scoring zones
+                                ForEach(shots.indices, id: \.self) { index in
+                                    let shot = shots[index]
+                                    if display.matches(shot), let shotTargetPos = shot.content.targetPos, isScoringZone(shot.content.hitArea) {
+                                        let dx = shot.content.hitPosition.x - shotTargetPos.x
+                                        let dy = shot.content.hitPosition.y - shotTargetPos.y
+                                        let cosTheta = cos(-rotationRad)
+                                        let sinTheta = sin(-rotationRad)
+                                        let localDx = dx * cosTheta - dy * sinTheta
+                                        let localDy = dx * sinTheta + dy * cosTheta
+                                        let scaledDx = localDx * scaleX
+                                        let scaledDy = localDy * scaleY
+
+                                        ZStack {
+                                            Image("bullet_hole2")
+                                                .resizable()
+                                                .scaledToFit()
+                                                .frame(width: 16, height: 16)
+
+                                            if selectedShotIndex == index {
+                                                Circle()
+                                                    .stroke(Color.yellow, lineWidth: 2.5)
+                                                    .frame(width: 21, height: 21)
+                                                    .scaleEffect(pulsingShotIndex == index ? pulseScale : 1.0)
+                                            }
+                                        }
+                                        .offset(x: scaledDx, y: scaledDy)
+                                    }
+                                }
+                            }
                             .frame(width: overlayBaseWidth * scaleX, height: overlayBaseHeight * scaleY)
                             .rotationEffect(Angle(radians: rotationRad))
-                            .position(x: transformedX, y: transformedY)
+
+                            // Front: Missed bullets (no rotation)
+                            ForEach(shots.indices, id: \.self) { index in
+                                let shot = shots[index]
+                                if display.matches(shot), let shotTargetPos = shot.content.targetPos, !isScoringZone(shot.content.hitArea) {
+                                    let dx = shot.content.hitPosition.x - shotTargetPos.x
+                                    let dy = shot.content.hitPosition.y - shotTargetPos.y
+                                    let scaledDx = dx * scaleX
+                                    let scaledDy = dy * scaleY
+
+                                    ZStack {
+                                        Image("bullet_hole2")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 16, height: 16)
+
+                                        if selectedShotIndex == index {
+                                            Circle()
+                                                .stroke(Color.yellow, lineWidth: 2.5)
+                                                .frame(width: 21, height: 21)
+                                                .scaleEffect(pulsingShotIndex == index ? pulseScale : 1.0)
+                                        }
+                                    }
+                                    .offset(x: scaledDx, y: scaledDy)
+                                }
+                            }
+                        }
+                        .frame(width: overlayBaseWidth * scaleX, height: overlayBaseHeight * scaleY)
+                        .position(x: transformedX, y: transformedY)
                     }
                 }
             }
@@ -314,26 +384,10 @@ private struct TargetDisplayView: View {
                                 .stroke(Color.white, lineWidth: 12)
                         )
 
-                    // Get rotation angle if this is a rotation target with selected shot
-                    let rotationAngle: Double? = {
-                        if display.icon.lowercased() == "rotation",
-                           let selIndex = selectedShotIndex,
-                           shots.indices.contains(selIndex) {
-                            let shot = shots[selIndex]
-                            if display.matches(shot) {
-                                let angle = shot.content.rotationAngle ?? 0.0
-                                let degrees = angle * 180.0 / .pi
-                                print("[DrillResultView] Applying rotation to target: \(angle) rad (\(degrees)°)")
-                                return angle
-                            }
-                        }
-                        return nil
-                    }()
-
                     Image("\(display.icon).live.target")
                         .resizable()
                         .scaledToFit()
-                        .frame(width: frameWidth - 20, height: frameHeight - 20)
+                        .frame(width: frameWidth, height: frameHeight)
                         .overlay(alignment: .topTrailing) {
                             if let targetName = display.targetName {
                                 Text(targetName)
@@ -347,11 +401,29 @@ private struct TargetDisplayView: View {
                             }
                         }
 
-                    RotationOverlayView(display: display, shots: shots, selectedShotIndex: selectedShotIndex, frameWidth: frameWidth, frameHeight: frameHeight)
+                    RotationOverlayView(display: display, shots: shots, selectedShotIndex: selectedShotIndex, pulsingShotIndex: pulsingShotIndex, pulseScale: pulseScale, frameWidth: frameWidth, frameHeight: frameHeight)
+
+                    // Barrel image for rotation targets (fixed to background, not affected by target position/rotation)
+                    if display.icon.lowercased() == "rotation" {
+                        let scaleX = frameWidth / 720.0
+                        let scaleY = frameHeight / 1280.0
+                        let barrelWidth: CGFloat = 420.0
+                        let barrelHeight: CGFloat = 641.0
+                        let barrelOffsetX: CGFloat = -200.0
+                        let barrelOffsetY: CGFloat = 230.0
+                        
+                        let barrelCenterX = (frameWidth / 2.0) + (barrelOffsetX * scaleX)
+                        let barrelCenterY = (frameHeight / 2.0) + (barrelOffsetY * scaleY)
+
+                        Image("barrel")
+                            .resizable()
+                            .frame(width: barrelWidth * scaleX, height: barrelHeight * scaleY)
+                            .position(x: barrelCenterX, y: barrelCenterY)
+                    }
 
                     ForEach(shots.indices, id: \.self) { index in
                         let shot = shots[index]
-                        if display.matches(shot) {
+                        if display.matches(shot) && display.icon.lowercased() != "rotation" && isScoringZone(shot.content.hitArea) {
                             let x = shot.content.hitPosition.x
                             let y = shot.content.hitPosition.y
                             let transformedX = (x / 720.0) * frameWidth
@@ -361,13 +433,39 @@ private struct TargetDisplayView: View {
                                 Image("bullet_hole2")
                                     .resizable()
                                     .scaledToFit()
-                                    .frame(width: 21, height: 21)
+                                    .frame(width: 15, height: 15)
 
                                 if selectedShotIndex == index {
                                     Circle()
                                         .stroke(Color.yellow, lineWidth: 2.5)
                                         .frame(width: 21, height: 21)
                                         .scaleEffect(pulsingShotIndex == index ? pulseScale : 1.0)
+                                }
+                            }
+                            .position(x: transformedX, y: transformedY)
+                        }
+                    }
+
+                    // Non-scoring shots rendered on top
+                    ForEach(shots.indices, id: \.self) { index in
+                        let shot = shots[index]
+                        if display.matches(shot) && !isScoringZone(shot.content.hitArea) {
+                            let x = shot.content.hitPosition.x
+                            let y = shot.content.hitPosition.y
+                            let transformedX = (x / 720.0) * frameWidth
+                            let transformedY = (y / 1280.0) * frameHeight
+
+                            ZStack {
+                                Image("bullet_hole2")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 15, height: 15)
+
+                                if selectedShotIndex == index {
+                                    Circle()
+                                        .stroke(Color.yellow, lineWidth: 2.5)
+                                    .frame(width: 21, height: 21)
+                                    .scaleEffect(pulsingShotIndex == index ? pulseScale : 1.0)
                                 }
                             }
                             .position(x: transformedX, y: transformedY)

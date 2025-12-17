@@ -19,6 +19,9 @@ class BLEManager private constructor() {
 
     private var androidBLEManager: AndroidBLEManager? = null
 
+    val androidManager: AndroidBLEManager?
+        get() = androidBLEManager
+
     // Observable state
     var discoveredPeripherals by mutableStateOf<List<DiscoveredPeripheral>>(emptyList())
     var isConnected by mutableStateOf(false)

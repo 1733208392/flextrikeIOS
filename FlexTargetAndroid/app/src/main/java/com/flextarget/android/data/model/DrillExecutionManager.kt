@@ -2,6 +2,7 @@ package com.flextarget.android.data.model
 
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -146,7 +147,7 @@ class DrillExecutionManager(
         val sortedTargets = targets.sortedBy { it.seqNo }
 
         for ((index, target) in sortedTargets.withIndex()) {
-            val delayValue = if (randomDelay > 0) randomDelay else drillSetup.delay
+            val delayValue = 0.0  // Always 0 for ready command, matching iOS
             val roundedDelay = String.format("%.2f", delayValue).toDouble()
 
             val content = mapOf(
@@ -167,7 +168,7 @@ class DrillExecutionManager(
             )
 
             val messageData = Gson().toJson(message)
-            println("Sending ready message for target ${target.targetName}, length: ${messageData.length}")
+            Log.d("DrillExecutionManager","Sending ready message for target ${target.targetName}, Data: ${messageData}")
             bleManager.writeJSON(messageData)
 
             // TODO: Add simulator mock logic if needed
@@ -213,6 +214,7 @@ class DrillExecutionManager(
     }
 
     fun handleNetlinkForward(json: Map<String, Any>) {
+        println("[DrillExecutionManager] handleNetlinkForward called with: $json")
         val device = json["device"] as? String ?: return
 
         // Content may be a string or object; normalize and detect "ready"
@@ -460,22 +462,15 @@ class DrillExecutionManager(
             }
         }
 
-        // Recalculate timeDiff: first shot relative to beepTime, rest relative to previous shot's timestamp
+        // Recalculate timeDiff: first shot keeps original time_diff, subsequent shots show difference from previous shot's time_diff
+        // time_diff from shot data is already: timing of shot on target device - timing when repeat starts
         val adjustedShots = sortedShots.mapIndexed { index, event ->
-            val newTimeDiff = if (beepTime != null) {
-                if (index == 0) {
-                    (event.receivedAt.time - beepTime!!.time) / 1000.0
-                } else {
-                    val previousReceivedAt = sortedShots[index - 1].receivedAt
-                    (event.receivedAt.time - previousReceivedAt.time) / 1000.0
-                }
+            val newTimeDiff = if (index == 0) {
+                // First shot keeps original time_diff
+                event.shot.content.actualTimeDiff
             } else {
-                // Fallback to old adjustment
-                if (event.shot.device != firstTargetName) {
-                    maxOf(0.0, event.shot.content.actualTimeDiff - timerDelay)
-                } else {
-                    event.shot.content.actualTimeDiff
-                }
+                // Subsequent shots: current shot's time_diff - previous shot's time_diff
+                event.shot.content.actualTimeDiff - sortedShots[index - 1].shot.content.actualTimeDiff
             }
 
             val adjustedContent = Content(
@@ -571,13 +566,17 @@ class DrillExecutionManager(
         bleManager.onShotReceived = { shotData ->
             handleShotNotification(shotData)
         }
-        println("[DrillExecutionManager] Shot observer registered")
+        bleManager.onNetlinkForwardReceived = { message ->
+            handleNetlinkForward(message)
+        }
+        println("[DrillExecutionManager] Shot and netlink forward observers registered")
     }
 
     private fun stopObservingShots() {
         println("[DrillExecutionManager] stopObservingShots() - removing BLE shot observer")
         bleManager.onShotReceived = null
-        println("[DrillExecutionManager] Shot observer removed")
+        bleManager.onNetlinkForwardReceived = null
+        println("[DrillExecutionManager] Shot and netlink forward observers removed")
     }
 
     private fun handleShotNotification(shotData: ShotData) {

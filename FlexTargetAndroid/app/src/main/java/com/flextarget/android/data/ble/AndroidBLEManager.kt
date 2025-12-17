@@ -3,20 +3,17 @@ package com.flextarget.android.data.ble
 import android.Manifest
 import android.bluetooth.*
 import android.bluetooth.le.ScanCallback
-import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Handler
 import android.os.Looper
-import android.os.ParcelUuid
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.app.ActivityCompat
 import java.util.*
-import kotlin.collections.ArrayList
 import org.json.JSONObject
 import com.google.gson.Gson
 import com.flextarget.android.data.model.ShotData
@@ -47,12 +44,16 @@ class AndroidBLEManager(private val context: Context) {
     // Callback for shot data
     var onShotReceived: ((ShotData) -> Unit)? = null
 
+    // Callback for netlink forward messages (acks, etc.)
+    var onNetlinkForwardReceived: ((Map<String, Any>) -> Unit)? = null
+
     private var bluetoothGatt: BluetoothGatt? = null
     private var writeCharacteristic: BluetoothGattCharacteristic? = null
     private var notifyCharacteristic: BluetoothGattCharacteristic? = null
 
     private var writeCompletion: ((Boolean) -> Unit)? = null
     private val messageBuffer = mutableListOf<Byte>()
+    private var pendingPeripheral: DiscoveredPeripheral? = null
 
     // Scan callback
     private val scanCallback = object : ScanCallback() {
@@ -60,28 +61,29 @@ class AndroidBLEManager(private val context: Context) {
             val device = result.device
             val deviceName = device.name ?: "Unknown"
 
-            // Check if device advertises our service
             val scanRecord = result.scanRecord
             val serviceUuids = scanRecord?.serviceUuids
+            val hasTargetService = serviceUuids?.any { it.uuid == advServiceUUID } == true
+            val shouldProcess = hasTargetService || BLEManager.shared.autoConnectTargetName != null
 
-            if (serviceUuids?.any { it.uuid == advServiceUUID } == true) {
-                val discovered = DiscoveredPeripheral(
-                    id = UUID.randomUUID(), // Use device address as ID
-                    name = deviceName,
-                    device = device
-                )
+            if (!shouldProcess) {
+                return
+            }
 
-                // Add if not already discovered
-                if (BLEManager.shared.discoveredPeripherals.none { it.device.address == device.address }) {
-                    BLEManager.shared.discoveredPeripherals = BLEManager.shared.discoveredPeripherals + discovered
-                }
+            val discovered = DiscoveredPeripheral(
+                id = UUID.randomUUID(),
+                name = deviceName,
+                device = device
+            )
 
-                // Auto-connect if target name matches
-                BLEManager.shared.autoConnectTargetName?.let { targetName ->
-                    if (matchesName(deviceName, targetName)) {
-                        BLEManager.shared.autoConnectTargetName = null
-                        connectToSelectedPeripheral(discovered)
-                    }
+            if (BLEManager.shared.discoveredPeripherals.none { it.device.address == device.address }) {
+                BLEManager.shared.discoveredPeripherals = BLEManager.shared.discoveredPeripherals + discovered
+            }
+
+            BLEManager.shared.autoConnectTargetName?.let { targetName ->
+                if (matchesName(deviceName, targetName)) {
+                    BLEManager.shared.autoConnectTargetName = null
+                    connectToSelectedPeripheral(discovered)
                 }
             }
         }
@@ -111,6 +113,7 @@ class AndroidBLEManager(private val context: Context) {
                     bluetoothGatt = null
                     writeCharacteristic = null
                     notifyCharacteristic = null
+                    pendingPeripheral = null
 
                     if (status != BluetoothGatt.GATT_SUCCESS) {
                         this@AndroidBLEManager.error = "Disconnected with status: $status"
@@ -146,9 +149,10 @@ class AndroidBLEManager(private val context: Context) {
                         this@AndroidBLEManager.isReady = ready
                         if (ready) {
                             this@AndroidBLEManager.isConnected = true
-                            // Find connected peripheral in discovered list
-                            val device = gatt.device
-                            this@AndroidBLEManager.connectedPeripheral = device // simplified
+                            BLEManager.shared.isConnected = true
+                            pendingPeripheral?.let {
+                                BLEManager.shared.connectedPeripheral = it
+                            }
                         }
                     }
                 } else {
@@ -157,6 +161,8 @@ class AndroidBLEManager(private val context: Context) {
                 }
             } else {
                 BLEManager.shared.error = BLEError.Unknown("Service discovery failed: $status")
+                BLEManager.shared.isConnected = false
+                pendingPeripheral = null
             }
         }
 
@@ -203,6 +209,7 @@ class AndroidBLEManager(private val context: Context) {
     }
 
     private fun processMessage(message: String) {
+        println("[AndroidBLEManager] Received BLE message: $message")
         // Parse JSON and handle notifications similar to iOS
         try {
             val json = org.json.JSONObject(message)
@@ -230,9 +237,13 @@ class AndroidBLEManager(private val context: Context) {
                     }
                 }
                 type == "netlink" && action == "forward" -> {
-                    // Handle shot data from targets
+                    // Handle all netlink forward messages
+                    val messageMap = jsonToMap(json)
+                    this.onNetlinkForwardReceived?.invoke(messageMap)
+
+                    // Specifically handle shot data from targets
                     val content = json.optJSONObject("content")
-                    if (content != null && content.optString("command") == "shot") {
+                    if (content != null && (content.optString("command") == "shot" || content.optString("cmd") == "shot")) {
                         println("Received shot data: $json")
                         val shotData = Gson().fromJson(json.toString(), ShotData::class.java)
                         this.onShotReceived?.invoke(shotData)
@@ -304,15 +315,11 @@ class AndroidBLEManager(private val context: Context) {
         BLEManager.shared.error = null
         BLEManager.shared.isScanning = true
 
-        val scanFilter = ScanFilter.Builder()
-            .setServiceUuid(ParcelUuid(advServiceUUID))
-            .build()
-
         val scanSettings = ScanSettings.Builder()
             .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
             .build()
 
-        bluetoothLeScanner?.startScan(listOf(scanFilter), scanSettings, scanCallback)
+        bluetoothLeScanner?.startScan(null, scanSettings, scanCallback)
 
         // Stop scan after 60 seconds
         handler.postDelayed({
@@ -333,6 +340,8 @@ class AndroidBLEManager(private val context: Context) {
 
         stopScan()
         BLEManager.shared.error = null
+        pendingPeripheral = discoveredPeripheral
+        BLEManager.shared.connectedPeripheral = discoveredPeripheral
 
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
             bluetoothGatt = discoveredPeripheral.device.connectGatt(context, false, gattCallback)
@@ -348,6 +357,10 @@ class AndroidBLEManager(private val context: Context) {
         this.isConnected = false
         this.isReady = false
         this.connectedPeripheral = null
+        pendingPeripheral = null
+        BLEManager.shared.isConnected = false
+        BLEManager.shared.isReady = false
+        BLEManager.shared.connectedPeripheral = null
     }
 
     fun write(data: ByteArray, completion: (Boolean) -> Unit) {
@@ -377,17 +390,22 @@ class AndroidBLEManager(private val context: Context) {
                 }
             }
         } else {
-            // Split into chunks
-            var startIndex = 0
-            while (startIndex < data.size) {
-                val endIndex = minOf(startIndex + 100, data.size)
-                val chunk = data.copyOfRange(startIndex, endIndex)
-                write(chunk) { success ->
-                    if (!success) {
-                        println("Failed to write chunk")
-                    }
-                }
-                startIndex = endIndex
+            // Split into chunks and send sequentially
+            writeChunks(data, 0)
+        }
+    }
+
+    private fun writeChunks(data: ByteArray, startIndex: Int) {
+        if (startIndex >= data.size) return
+
+        val endIndex = minOf(startIndex + 100, data.size)
+        val chunk = data.copyOfRange(startIndex, endIndex)
+        write(chunk) { success ->
+            if (!success) {
+                println("Failed to write chunk starting at $startIndex")
+            } else {
+                // Send next chunk after success
+                writeChunks(data, endIndex)
             }
         }
     }
