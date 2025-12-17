@@ -192,12 +192,18 @@
 "pause_between_repeats" = "重複間暫停";
 "repeat_of_total" = "第 %d 次 (共 %d 次)";
 
-/* DrillResultView - Hit Areas */
 "hit_area_azone" = "A區";
 "hit_area_czone" = "C區";
 "hit_area_dzone" = "D區";
 "hit_area_miss" = "脫靶";
 "hit_area_barrel_miss" = "掩體";
+"hit_area_circlearea" = "擊倒";
+"hit_area_standarea" = "擊倒";
+"hit_area_popperzone" = "擊倒";
+"hit_area_blackzone" = "黑區";
+"hit_area_blackzoneleft" = "黑區左";
+"hit_area_blackzone" = "黑區";
+"hit_area_blackzoneleft" = "黑區左";
 "hit_area_circlearea" = "擊倒";
 "hit_area_standarea" = "擊倒";
 "hit_area_popperzone" = "擊倒";

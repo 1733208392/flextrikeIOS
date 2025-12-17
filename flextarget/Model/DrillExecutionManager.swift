@@ -565,8 +565,13 @@ class DrillExecutionManager {
         }
         
         // Keep best 2 shots per target, but always include no-shoot zone hits
+        // Exception: for paddle and popper targets, keep all shots (no best 2 limit)
         var bestShotsPerTarget: [ShotData] = []
         for (_, shots) in shotsByTarget {
+            // Detect target type from shots
+            let targetType = shots.first?.content.targetType.lowercased() ?? ""
+            let isPaddleOrPopper = targetType == "paddle" || targetType == "popper"
+            
             let noShootZoneShots = shots.filter { shot in
                 let trimmed = shot.content.hitArea.trimmingCharacters(in: .whitespaces).lowercased()
                 return trimmed == "whitezone" || trimmed == "blackzone"
@@ -577,15 +582,20 @@ class DrillExecutionManager {
                 return trimmed != "whitezone" && trimmed != "blackzone"
             }
             
-            // Sort other shots by score (descending) and keep best 2
-            let sortedOtherShots = otherShots.sorted {
-                scoreForHitArea($0.content.hitArea) > scoreForHitArea($1.content.hitArea)
+            // For paddle and popper: keep all shots; for others: keep best 2
+            let selectedOtherShots: [ShotData]
+            if isPaddleOrPopper {
+                selectedOtherShots = otherShots
+            } else {
+                let sortedOtherShots = otherShots.sorted {
+                    scoreForHitArea($0.content.hitArea) > scoreForHitArea($1.content.hitArea)
+                }
+                selectedOtherShots = Array(sortedOtherShots.prefix(2))
             }
-            let bestOtherShots = Array(sortedOtherShots.prefix(2))
             
-            // Always include no-shoot zone shots plus best 2 other shots
+            // Always include no-shoot zone shots
             bestShotsPerTarget.append(contentsOf: noShootZoneShots)
-            bestShotsPerTarget.append(contentsOf: bestOtherShots)
+            bestShotsPerTarget.append(contentsOf: selectedOtherShots)
         }
         
         var totalScore = bestShotsPerTarget.reduce(0) { $0 + scoreForHitArea($1.content.hitArea) }
@@ -598,6 +608,9 @@ class DrillExecutionManager {
         if missedTargetCount > 0 {
             print("Repeat \(repeatIndex): \(missedTargetCount) target(s) missed, penalty: -\(missedTargetPenalty) points")
         }
+        
+        // Ensure score never goes below 0
+        totalScore = max(0, totalScore)
         
         let summary = DrillRepeatSummary(
             repeatIndex: repeatIndex,

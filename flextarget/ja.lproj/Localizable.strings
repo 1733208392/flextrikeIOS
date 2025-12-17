@@ -192,12 +192,18 @@
 "pause_between_repeats" = "リピート間の休止";
 "repeat_of_total" = "%d回目 (%d回中)";
 
-/* DrillResultView - Hit Areas */
 "hit_area_azone" = "アルファ";
 "hit_area_czone" = "チャーリー";
 "hit_area_dzone" = "デルタ";
 "hit_area_miss" = "ミス";
 "hit_area_barrel_miss" = "バレル";
+"hit_area_circlearea" = "ノックダウン";
+"hit_area_standarea" = "ノックダウン";
+"hit_area_popperzone" = "ノックダウン";
+"hit_area_blackzone" = "ブラックゾーン";
+"hit_area_blackzoneleft" = "ブラックゾーン左";
+"hit_area_blackzone" = "ブラックゾーン";
+"hit_area_blackzoneleft" = "ブラックゾーン左";
 "hit_area_circlearea" = "ノックダウン";
 "hit_area_standarea" = "ノックダウン";
 "hit_area_popperzone" = "ノックダウン";

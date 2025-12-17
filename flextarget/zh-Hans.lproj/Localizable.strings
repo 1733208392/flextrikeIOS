@@ -201,12 +201,5 @@
 "hit_area_circlearea" = "击倒";
 "hit_area_standarea" = "击倒";
 "hit_area_popperzone" = "击倒";
-/* DrillResultView - Hit Areas */
-"hit_area_azone" = "A区";
-"hit_area_czone" = "C区";
-"hit_area_dzone" = "D区";
-"hit_area_miss" = "脱靶";
-"hit_area_barrel_miss" = "掩体";
-"hit_area_circlearea" = "击倒";
-"hit_area_standarea" = "击倒";
-"hit_area_popperzone" = "击倒";
+"hit_area_blackzone" = "黑区";
+"hit_area_blackzoneleft" = "黑区左";

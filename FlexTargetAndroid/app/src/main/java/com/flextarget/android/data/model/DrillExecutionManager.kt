@@ -498,17 +498,20 @@ class DrillExecutionManager(
         val fastest = adjustedShots.map { it.content.actualTimeDiff }.minOrNull() ?: 0.0
         val firstShot = adjustedShots.firstOrNull()?.content?.actualTimeDiff ?: 0.0
 
-        // Group shots by target/device and keep only the best 2 per target
-        // Exception: shots in no-shoot zones (whitezone, blackzone) always count as they deduct score
+        // Group shots by target/device
         val shotsByTarget = mutableMapOf<String, MutableList<ShotData>>()
         for (shot in adjustedShots) {
             val device = shot.device ?: shot.target ?: "unknown"
             shotsByTarget.getOrPut(device) { mutableListOf() }.add(shot)
         }
 
-        // Keep best 2 shots per target, but always include no-shoot zone hits
+        // Process shots: keep best 2 per target, BUT for paddle and popper targets, keep all shots
         val bestShotsPerTarget = mutableListOf<ShotData>()
         for ((_, shots) in shotsByTarget) {
+            // Detect target type from shots
+            val targetType = shots.firstOrNull()?.content?.actualTargetType?.lowercase() ?: ""
+            val isPaddleOrPopper = targetType == "paddle" || targetType == "popper"
+
             val noShootZoneShots = shots.filter { shot ->
                 val trimmed = shot.content.actualHitArea.trim().lowercase()
                 trimmed == "whitezone" || trimmed == "blackzone"
@@ -519,13 +522,17 @@ class DrillExecutionManager(
                 trimmed != "whitezone" && trimmed != "blackzone"
             }
 
-            // Sort other shots by score (descending) and keep best 2
-            val sortedOtherShots = otherShots.sortedByDescending { scoreForHitArea(it.content.actualHitArea) }
-            val bestOtherShots = sortedOtherShots.take(2)
+            // For paddle and popper: keep all shots; for others: keep best 2
+            val selectedOtherShots = if (isPaddleOrPopper) {
+                otherShots
+            } else {
+                val sortedOtherShots = otherShots.sortedByDescending { scoreForHitArea(it.content.actualHitArea) }
+                sortedOtherShots.take(2)
+            }
 
-            // Always include no-shoot zone shots plus best 2 other shots
+            // Always include no-shoot zone shots
             bestShotsPerTarget.addAll(noShootZoneShots)
-            bestShotsPerTarget.addAll(bestOtherShots)
+            bestShotsPerTarget.addAll(selectedOtherShots)
         }
 
         var totalScore = bestShotsPerTarget.sumOf { scoreForHitArea(it.content.actualHitArea) }
@@ -538,6 +545,9 @@ class DrillExecutionManager(
         if (missedTargetCount > 0) {
             println("Repeat $repeatIndex: $missedTargetCount target(s) missed, penalty: -$missedTargetPenalty points")
         }
+        
+        // Ensure score never goes below 0
+        totalScore = maxOf(0, totalScore)
 
         val summary = DrillRepeatSummary(
             repeatIndex = repeatIndex,

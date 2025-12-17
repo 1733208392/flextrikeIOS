@@ -198,3 +198,7 @@
 "hit_area_circlearea" = "Knocked Down";
 "hit_area_standarea" = "Knocked Down";
 "hit_area_popperzone" = "Knocked Down";
+"hit_area_blackzone" = "Black zone";
+"hit_area_blackzoneleft" = "Black zone left";
+"hit_area_blackzone" = "Black zone";
+"hit_area_blackzoneleft" = "Black zone left";

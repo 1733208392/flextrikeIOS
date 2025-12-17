@@ -487,6 +487,10 @@ struct DrillResultView: View {
             return NSLocalizedString("hit_area_standarea", comment: "Stand area")
         case "popperzone":
             return NSLocalizedString("hit_area_popperzone", comment: "Popper zone")
+        case "blackzone":
+            return NSLocalizedString("hit_area_blackzone", comment: "Black zone")
+        case "blackzoneleft":
+            return NSLocalizedString("hit_area_blackzoneleft", comment: "Black zone left")
         default:
             return hitArea
         }
