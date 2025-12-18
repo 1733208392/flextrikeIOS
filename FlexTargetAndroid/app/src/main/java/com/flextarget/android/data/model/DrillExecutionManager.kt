@@ -436,29 +436,22 @@ class DrillExecutionManager(
 
         println("[DrillExecutionManager] ✅ finalizeRepeat($repeatIndex) - found ${sortedShots.size} shots")
 
-        // Calculate total time: from BEEP to last shot
+        // Calculate total time: use time_diff of last shot (original value from shot data)
         var totalTime = 0.0
-        val timerDelay = if (randomDelay > 0) randomDelay else drillSetup.delay
 
-        if (beepTime != null && sortedShots.isNotEmpty()) {
-            val lastShotTime = sortedShots.last().receivedAt
-            totalTime = maxOf(0.0, (lastShotTime.time - beepTime!!.time) / 1000.0)
-            println("Total time calculation - beep: $beepTime, last shot: $lastShotTime, total: $totalTime")
-        } else {
-            println("Warning: No beepTime or shots received for repeat $repeatIndex, using fallback calculation")
+        sortedShots.lastOrNull()?.shot?.content?.actualTimeDiff?.let { lastShotTimeDiff ->
+            totalTime = lastShotTimeDiff
+            println("Total time calculation - using last shot time_diff: $totalTime")
+        } ?: run {
+            println("Warning: No shots with time_diff for repeat $repeatIndex, using fallback calculation")
             // Fallback to old method if drill_duration available
             drillDuration?.let { duration ->
+                val timerDelay = if (randomDelay > 0) randomDelay else drillSetup.delay
                 totalTime = maxOf(0.0, duration - timerDelay)
                 println("Fallback total time - drill_duration: $duration, delay_time: $timerDelay, total: $totalTime")
             } ?: run {
-                // Last resort: use shot-based calculation
-                val timeSumPerTarget = mutableMapOf<String, Double>()
-                for (shot in sortedShots) {
-                    val device = shot.shot.device ?: shot.shot.target ?: "unknown"
-                    val currentSum = timeSumPerTarget[device] ?: 0.0
-                    timeSumPerTarget[device] = currentSum + shot.shot.content.actualTimeDiff
-                }
-                totalTime = timeSumPerTarget.values.maxOrNull() ?: 0.0
+                totalTime = 0.0
+                println("No valid time calculation available for repeat $repeatIndex, setting total time to 0.0")
             }
         }
 
@@ -526,7 +519,7 @@ class DrillExecutionManager(
             val selectedOtherShots = if (isPaddleOrPopper) {
                 otherShots
             } else {
-                val sortedOtherShots = otherShots.sortedByDescending { scoreForHitArea(it.content.actualHitArea) }
+                val sortedOtherShots = otherShots.sortedByDescending { ScoringUtility.scoreForHitArea(it.content.actualHitArea) }
                 sortedOtherShots.take(2)
             }
 
@@ -535,7 +528,7 @@ class DrillExecutionManager(
             bestShotsPerTarget.addAll(selectedOtherShots)
         }
 
-        var totalScore = bestShotsPerTarget.sumOf { scoreForHitArea(it.content.actualHitArea) }
+        var totalScore = bestShotsPerTarget.sumOf { ScoringUtility.scoreForHitArea(it.content.actualHitArea).toDouble() }
 
         // Auto re-evaluate score: deduct 10 points for each missed target
         val missedTargetCount = calculateMissedTargets(adjustedShots)
@@ -622,33 +615,12 @@ class DrillExecutionManager(
         }
     }
 
-    private fun scoreForHitArea(hitArea: String): Int {
-        val trimmed = hitArea.trim().lowercase()
-        return when (trimmed) {
-            "azone" -> 5
-            "czone" -> 3
-            "dzone" -> 2
-            "miss" -> 0
-            "whitezone" -> -10
-            "blackzone" -> -10
-            "circlearea" -> 5 // Paddle
-            "popperzone" -> 5 // Popper
-            else -> 0
-        }
-    }
+
 
     /// Calculate the number of missed targets in a drill repeat
     /// A target is considered missed if no shots were received from it
     private fun calculateMissedTargets(shots: List<ShotData>): Int {
-        val expectedTargets = targets
-            .mapNotNull { it.targetName }
-            .filter { it.isNotEmpty() }
-            .toSet()
-
-        val shotsDevices = shots.mapNotNull { it.device ?: it.target }.toSet()
-        val missedTargets = expectedTargets - shotsDevices
-
-        return missedTargets.size
+        return ScoringUtility.calculateMissedTargets(shots, drillSetup)
     }
 
     private data class ShotEvent(

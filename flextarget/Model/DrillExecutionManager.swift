@@ -493,28 +493,22 @@ class DrillExecutionManager {
         
         print("[DrillExecutionManager] ✅ finalizeRepeat(\(repeatIndex)) - found \(sortedShots.count) shots")
 
-        // Calculate total time: from BEEP to last shot
+        // Calculate total time: use time_diff of last shot (original value from shot data)
         var totalTime: TimeInterval = 0.0
-        let timerDelay: TimeInterval = self.randomDelay > 0 ? self.randomDelay : TimeInterval(drillSetup.delay)
         
-        if let startTime = beepTime, let lastShotTime = sortedShots.last?.receivedAt {
-            totalTime = max(0.0, lastShotTime.timeIntervalSince(startTime))
-            print("Total time calculation - beep: \(startTime), last shot: \(lastShotTime), total: \(totalTime)")
+        if let lastShotTimeDiff = sortedShots.last?.shot.content.timeDiff {
+            totalTime = lastShotTimeDiff
+            print("Total time calculation - using last shot time_diff: \(totalTime)")
         } else {
-            print("Warning: No beepTime or shots received for repeat \(repeatIndex), using fallback calculation")
+            print("Warning: No shots with time_diff for repeat \(repeatIndex), using fallback calculation")
             // Fallback to old method if drill_duration available
             if let duration = drillDuration {
+                let timerDelay: TimeInterval = self.randomDelay > 0 ? self.randomDelay : TimeInterval(drillSetup.delay)
                 totalTime = max(0.0, duration - timerDelay)
                 print("Fallback total time - drill_duration: \(duration), delay_time: \(timerDelay), total: \(totalTime)")
             } else {
-                // Last resort: use shot-based calculation
-                var timeSumPerTarget: [String: TimeInterval] = [:]
-                for shot in sortedShots {
-                    let device = shot.shot.device ?? shot.shot.target ?? "unknown"
-                    let currentSum = timeSumPerTarget[device] ?? 0.0
-                    timeSumPerTarget[device] = currentSum + shot.shot.content.timeDiff
-                }
-                totalTime = timeSumPerTarget.values.max() ?? 0.0
+                totalTime = 0.0
+                print("No valid time calculation available for repeat \(repeatIndex), setting total time to 0.0")
             }
         }
 
@@ -588,7 +582,7 @@ class DrillExecutionManager {
                 selectedOtherShots = otherShots
             } else {
                 let sortedOtherShots = otherShots.sorted {
-                    scoreForHitArea($0.content.hitArea) > scoreForHitArea($1.content.hitArea)
+                    ScoringUtility.scoreForHitArea($0.content.hitArea) > ScoringUtility.scoreForHitArea($1.content.hitArea)
                 }
                 selectedOtherShots = Array(sortedOtherShots.prefix(2))
             }
@@ -598,7 +592,7 @@ class DrillExecutionManager {
             bestShotsPerTarget.append(contentsOf: selectedOtherShots)
         }
         
-        var totalScore = bestShotsPerTarget.reduce(0) { $0 + scoreForHitArea($1.content.hitArea) }
+        var totalScore = bestShotsPerTarget.reduce(0) { $0 + ScoringUtility.scoreForHitArea($1.content.hitArea) }
         
         // Auto re-evaluate score: deduct 10 points for each missed target
         let missedTargetCount = calculateMissedTargets(shots: adjustedShots)
@@ -695,43 +689,12 @@ class DrillExecutionManager {
         }
     }
 
-    private func scoreForHitArea(_ hitArea: String) -> Int {
-        let trimmed = hitArea.trimmingCharacters(in: .whitespaces).lowercased()
-        
-        switch trimmed {
-        case "azone":
-            return 5
-        case "czone":
-            return 3
-        case "dzone":
-            return 2
-        case "miss":
-            return 0
-        case "whitezone":
-            return -10
-        case "blackzone":
-            return -10
-        case "circlearea": // Paddle
-            return 5
-        case "popperzone": // Popper
-            return 5
-        default:
-            return 0
-        }
-    }
+
     
     /// Calculate the number of missed targets in a drill repeat
     /// A target is considered missed if no shots were received from it
     private func calculateMissedTargets(shots: [ShotData]) -> Int {
-        guard let targetsSet = drillSetup.targets as? Set<DrillTargetsConfig> else {
-            return 0
-        }
-        
-        let expectedTargets = Set(targetsSet.map { $0.targetName ?? "" }.filter { !$0.isEmpty })
-        let shotsDevices = Set(shots.compactMap { $0.device ?? $0.target })
-        
-        let missedTargets = expectedTargets.subtracting(shotsDevices)
-        return missedTargets.count
+        return ScoringUtility.calculateMissedTargets(shots: shots, drillSetup: drillSetup)
     }
 
     private struct ShotEvent {
