@@ -263,6 +263,8 @@ private fun FormScreen(
     var timerSessionTargets by remember { mutableStateOf<List<DrillTargetsConfigEntity>>(emptyList()) }
     var showDrillSummary by remember { mutableStateOf(false) }
     var drillSummaries by remember { mutableStateOf<List<DrillRepeatSummary>>(emptyList()) }
+    var showDrillResult by remember { mutableStateOf(false) }
+    var selectedResultSummary by remember { mutableStateOf<DrillRepeatSummary?>(null) }
 
     Box(
         modifier = Modifier
@@ -434,9 +436,20 @@ private fun FormScreen(
                     showDrillSummary = false
                 },
                 onViewResult = { summary ->
-                    // TODO: Navigate to detailed result view
-                    // For now, just go back to form
-                    showDrillSummary = false
+                    selectedResultSummary = summary
+                    showDrillResult = true
+                }
+            )
+        }
+
+        if (showDrillResult && timerSessionDrill != null && selectedResultSummary != null) {
+            DrillResultView(
+                drillSetup = timerSessionDrill!!,
+                targets = timerSessionTargets.map { DrillTargetsConfigData.fromEntity(it) },
+                repeatSummary = selectedResultSummary,
+                onBack = {
+                    showDrillResult = false
+                    selectedResultSummary = null
                 }
             )
         }

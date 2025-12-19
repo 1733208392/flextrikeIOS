@@ -1,5 +1,6 @@
 package com.flextarget.android.data.model
 
+import com.flextarget.android.data.local.entity.DrillTargetsConfigEntity
 import java.util.UUID
 
 /**
@@ -25,5 +26,16 @@ data class DrillTargetsConfigData(
             "special_2",
             "testTarget"
         )
+
+        fun fromEntity(entity: DrillTargetsConfigEntity): DrillTargetsConfigData {
+            return DrillTargetsConfigData(
+                id = entity.id,
+                seqNo = entity.seqNo,
+                targetName = entity.targetName ?: "",
+                targetType = entity.targetType ?: "ipsc",
+                timeout = entity.timeout,
+                countedShots = entity.countedShots
+            )
+        }
     }
 }
