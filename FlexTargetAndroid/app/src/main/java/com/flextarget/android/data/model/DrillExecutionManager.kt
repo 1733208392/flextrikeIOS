@@ -14,6 +14,7 @@ import java.util.TimerTask
 import com.flextarget.android.data.local.entity.DrillSetupEntity
 import com.flextarget.android.data.local.entity.DrillTargetsConfigEntity
 import com.flextarget.android.data.ble.AndroidBLEManager
+import kotlin.math.max
 
 /**
  * Drill Execution Manager for Android - ported from iOS DrillExecutionManager
@@ -52,6 +53,7 @@ class DrillExecutionManager(
     private var pauseTimer: Timer? = null
     private var gracePeriodTimer: Timer? = null
     private var isStopped = false
+    private var onRepeatFinalized: ((Int) -> Unit)? = null
     private var drillDuration: Double? = null
     private var isReadinessCheckOnly = false
 
@@ -60,12 +62,6 @@ class DrillExecutionManager(
 
     init {
         startObservingShots()
-    }
-
-    /// Call this when all repeats are completed to finalize the drill
-    fun completeDrill() {
-        stopObservingShots()
-        onComplete(repeatSummaries)
     }
 
     fun performReadinessCheck() {
@@ -95,12 +91,26 @@ class DrillExecutionManager(
         this.beepTime = time
     }
 
+    fun setOnRepeatFinalized(callback: ((Int) -> Unit)?) {
+        onRepeatFinalized = callback
+    }
+
     fun stopExecution() {
         isStopped = true
         ackTimeoutTimer?.cancel()
         pauseTimer?.cancel()
         gracePeriodTimer?.cancel()
         stopObservingShots()
+    }
+
+    fun completeDrill() {
+        println("[DrillExecutionManager] completeDrill() - drill fully completed")
+        println("[DrillExecutionManager] completeDrill() - returning ${summaries.size} summaries")
+        summaries.forEach { summary ->
+            println("[DrillExecutionManager] Summary ${summary.repeatIndex}: ${summary.numShots} shots, score: ${summary.score}")
+        }
+        stopExecution()
+        onComplete(summaries)
     }
 
     fun manualStopRepeat() {
@@ -130,7 +140,9 @@ class DrillExecutionManager(
         // stopObservingShots() will be called when stopping execution or leaving the view
         val repeatIndex = currentRepeat
         finalizeRepeat(repeatIndex)
-        // NOTE: Do NOT call onComplete here - UI manages the next repeat or drill completion
+        // Notify UI that repeat is finalized
+        onRepeatFinalized?.invoke(repeatIndex)
+        // NOTE: Do NOT call onComplete here - UI will call completeDrill() when ready
     }
 
     private fun sendReadyCommands() {
@@ -413,155 +425,166 @@ class DrillExecutionManager(
     }
 
     private fun finalizeRepeat(repeatIndex: Int) {
-        val startTime = currentRepeatStartTime ?: run {
-            println("[DrillExecutionManager] No start time for repeat $repeatIndex, skipping summary")
-            return
-        }
+        try {
+            val startTime = currentRepeatStartTime ?: run {
+                println("[DrillExecutionManager] No start time for repeat $repeatIndex, skipping summary")
+                return
+            }
 
-        val sortedShots = currentRepeatShots.sortedBy { it.receivedAt }
+            val sortedShots = currentRepeatShots.sortedBy { it.receivedAt }
 
-        println("[DrillExecutionManager] finalizeRepeat($repeatIndex) - currentRepeatShots count: ${currentRepeatShots.size}, sorted: ${sortedShots.size}")
+            println("[DrillExecutionManager] finalizeRepeat($repeatIndex) - currentRepeatShots count: ${currentRepeatShots.size}, sorted: ${sortedShots.size}")
 
-        // Validate: if no shots received at all, invalidate this repeat
-        if (sortedShots.isEmpty()) {
-            println("[DrillExecutionManager] ⚠️ No shots received from any target for repeat $repeatIndex, invalidating repeat")
-            println("[DrillExecutionManager] - currentRepeat: $currentRepeat")
-            println("[DrillExecutionManager] - isWaitingForEnd: $isWaitingForEnd")
-            println("[DrillExecutionManager] - BeepTime: $beepTime")
-            // DO NOT clear currentRepeatStartTime here - let grace period shots be collected
-            // It will be cleared in sendReadyCommands() when next repeat starts
-            currentRepeatShots.clear()
-            return
-        }
+            // Validate: if no shots received at all, invalidate this repeat
+            if (sortedShots.isEmpty()) {
+                println("[DrillExecutionManager] ⚠️ No shots received from any target for repeat $repeatIndex, invalidating repeat")
+                println("[DrillExecutionManager] - currentRepeat: $currentRepeat")
+                println("[DrillExecutionManager] - isWaitingForEnd: $isWaitingForEnd")
+                println("[DrillExecutionManager] - BeepTime: $beepTime")
+                // DO NOT clear currentRepeatStartTime here - let grace period shots be collected
+                // It will be cleared in sendReadyCommands() when next repeat starts
+                currentRepeatShots.clear()
+                return
+            }
 
-        println("[DrillExecutionManager] ✅ finalizeRepeat($repeatIndex) - found ${sortedShots.size} shots")
+            println("[DrillExecutionManager] ✅ finalizeRepeat($repeatIndex) - found ${sortedShots.size} shots")
 
-        // Calculate total time: use time_diff of last shot (original value from shot data)
-        var totalTime = 0.0
+            // Calculate total time: use time_diff of last shot (original value from shot data)
+            var totalTime = 0.0
 
-        sortedShots.lastOrNull()?.shot?.content?.actualTimeDiff?.let { lastShotTimeDiff ->
-            totalTime = lastShotTimeDiff
-            println("Total time calculation - using last shot time_diff: $totalTime")
-        } ?: run {
-            println("Warning: No shots with time_diff for repeat $repeatIndex, using fallback calculation")
-            // Fallback to old method if drill_duration available
-            drillDuration?.let { duration ->
-                val timerDelay = if (randomDelay > 0) randomDelay else drillSetup.delay
-                totalTime = maxOf(0.0, duration - timerDelay)
-                println("Fallback total time - drill_duration: $duration, delay_time: $timerDelay, total: $totalTime")
+            sortedShots.lastOrNull()?.shot?.content?.actualTimeDiff?.let { lastShotTimeDiff ->
+                totalTime = lastShotTimeDiff
+                println("Total time calculation - using last shot time_diff: $totalTime")
             } ?: run {
-                totalTime = 0.0
-                println("No valid time calculation available for repeat $repeatIndex, setting total time to 0.0")
-            }
-        }
-
-        // Recalculate timeDiff: first shot keeps original time_diff, subsequent shots show difference from previous shot's time_diff
-        // time_diff from shot data is already: timing of shot on target device - timing when repeat starts
-        val adjustedShots = sortedShots.mapIndexed { index, event ->
-            val newTimeDiff = if (index == 0) {
-                // First shot keeps original time_diff
-                event.shot.content.actualTimeDiff
-            } else {
-                // Subsequent shots: current shot's time_diff - previous shot's time_diff
-                event.shot.content.actualTimeDiff - sortedShots[index - 1].shot.content.actualTimeDiff
+                println("Warning: No shots with time_diff for repeat $repeatIndex, using fallback calculation")
+                // Fallback to old method if drill_duration available
+                drillDuration?.let { duration ->
+                    val timerDelay = if (randomDelay > 0) randomDelay else drillSetup.delay
+                    totalTime = maxOf(0.0, duration - timerDelay)
+                    println("Fallback total time - drill_duration: $duration, delay_time: $timerDelay, total: $totalTime")
+                } ?: run {
+                    totalTime = 0.0
+                    println("No valid time calculation available for repeat $repeatIndex, setting total time to 0.0")
+                }
             }
 
-            val adjustedContent = Content(
-                command = event.shot.content.actualCommand,
-                hitArea = event.shot.content.actualHitArea,
-                hitPosition = event.shot.content.actualHitPosition,
-                rotationAngle = event.shot.content.actualRotationAngle,
-                targetType = event.shot.content.actualTargetType,
-                timeDiff = newTimeDiff,
-                device = event.shot.content.device,
-                targetPos = event.shot.content.actualTargetPos,
-                `repeat` = event.shot.content.actualRepeat
+            // Recalculate timeDiff: first shot keeps original time_diff, subsequent shots show difference from previous shot's time_diff
+            // time_diff from shot data is already: timing of shot on target device - timing when repeat starts
+            val adjustedShots = sortedShots.mapIndexed { index, event ->
+                val newTimeDiff = if (index == 0) {
+                    // First shot keeps original time_diff
+                    event.shot.content.actualTimeDiff
+                } else {
+                    // Subsequent shots: current shot's time_diff - previous shot's time_diff
+                    event.shot.content.actualTimeDiff - sortedShots[index - 1].shot.content.actualTimeDiff
+                }
+
+                val adjustedContent = Content(
+                    command = event.shot.content.actualCommand,
+                    hitArea = event.shot.content.actualHitArea,
+                    hitPosition = event.shot.content.actualHitPosition,
+                    rotationAngle = event.shot.content.actualRotationAngle,
+                    targetType = event.shot.content.actualTargetType,
+                    timeDiff = newTimeDiff,
+                    device = event.shot.content.device,
+                    targetPos = event.shot.content.actualTargetPos,
+                    `repeat` = event.shot.content.actualRepeat
+                )
+
+                ShotData(
+                    target = event.shot.target,
+                    content = adjustedContent,
+                    type = event.shot.type,
+                    action = event.shot.action,
+                    device = event.shot.device
+                )
+            }
+
+            val numShots = adjustedShots.size
+            val fastest = adjustedShots.map { it.content.actualTimeDiff }.minOrNull() ?: 0.0
+            val firstShot = adjustedShots.firstOrNull()?.content?.actualTimeDiff ?: 0.0
+
+            // Group shots by target/device
+            val shotsByTarget = mutableMapOf<String, MutableList<ShotData>>()
+            for (shot in adjustedShots) {
+                val device = shot.device ?: shot.target ?: "unknown"
+                shotsByTarget.getOrPut(device) { mutableListOf() }.add(shot)
+            }
+
+            // Process shots: keep best 2 per target, BUT for paddle and popper targets, keep all shots
+            val bestShotsPerTarget = mutableListOf<ShotData>()
+            for ((_, shots) in shotsByTarget) {
+                // Detect target type from shots
+                val targetType = shots.firstOrNull()?.content?.actualTargetType?.lowercase() ?: ""
+                val isPaddleOrPopper = targetType == "paddle" || targetType == "popper"
+
+                val noShootZoneShots = shots.filter { shot ->
+                    val trimmed = shot.content.actualHitArea.trim().lowercase()
+                    trimmed == "whitezone" || trimmed == "blackzone"
+                }
+
+                val otherShots = shots.filter { shot ->
+                    val trimmed = shot.content.actualHitArea.trim().lowercase()
+                    trimmed != "whitezone" && trimmed != "blackzone"
+                }
+
+                // For paddle and popper: keep all shots; for others: keep best 2
+                val selectedOtherShots = if (isPaddleOrPopper) {
+                    otherShots
+                } else {
+                    val sortedOtherShots = otherShots.sortedByDescending { ScoringUtility.scoreForHitArea(it.content.actualHitArea) }
+                    sortedOtherShots.take(2)
+                }
+
+                // Always include no-shoot zone shots
+                bestShotsPerTarget.addAll(noShootZoneShots)
+                bestShotsPerTarget.addAll(selectedOtherShots)
+            }
+
+            var totalScore: Int =
+                bestShotsPerTarget.sumOf { ScoringUtility.scoreForHitArea(it.content.actualHitArea).toDouble() }
+                    .toInt()
+
+            // Auto re-evaluate score: deduct 10 points for each missed target
+            val missedTargetCount = calculateMissedTargets(adjustedShots)
+            val missedTargetPenalty = missedTargetCount * 10
+            totalScore -= missedTargetPenalty
+
+            if (missedTargetCount > 0) {
+                println("Repeat $repeatIndex: $missedTargetCount target(s) missed, penalty: -$missedTargetPenalty points")
+            }
+            
+            // Ensure score never goes below 0
+            totalScore = maxOf(0, totalScore)
+
+            val summary = DrillRepeatSummary(
+                repeatIndex = repeatIndex,
+                totalTime = totalTime,
+                numShots = numShots,
+                firstShot = firstShot,
+                fastest = fastest,
+                score = totalScore,
+                shots = adjustedShots
             )
 
-            ShotData(
-                target = event.shot.target,
-                content = adjustedContent,
-                type = event.shot.type,
-                action = event.shot.action,
-                device = event.shot.device
-            )
-        }
+            println("[DrillExecutionManager] Created summary for repeat $repeatIndex")
 
-        val numShots = adjustedShots.size
-        val fastest = adjustedShots.map { it.content.actualTimeDiff }.minOrNull() ?: 0.0
-        val firstShot = adjustedShots.firstOrNull()?.content?.actualTimeDiff ?: 0.0
-
-        // Group shots by target/device
-        val shotsByTarget = mutableMapOf<String, MutableList<ShotData>>()
-        for (shot in adjustedShots) {
-            val device = shot.device ?: shot.target ?: "unknown"
-            shotsByTarget.getOrPut(device) { mutableListOf() }.add(shot)
-        }
-
-        // Process shots: keep best 2 per target, BUT for paddle and popper targets, keep all shots
-        val bestShotsPerTarget = mutableListOf<ShotData>()
-        for ((_, shots) in shotsByTarget) {
-            // Detect target type from shots
-            val targetType = shots.firstOrNull()?.content?.actualTargetType?.lowercase() ?: ""
-            val isPaddleOrPopper = targetType == "paddle" || targetType == "popper"
-
-            val noShootZoneShots = shots.filter { shot ->
-                val trimmed = shot.content.actualHitArea.trim().lowercase()
-                trimmed == "whitezone" || trimmed == "blackzone"
-            }
-
-            val otherShots = shots.filter { shot ->
-                val trimmed = shot.content.actualHitArea.trim().lowercase()
-                trimmed != "whitezone" && trimmed != "blackzone"
-            }
-
-            // For paddle and popper: keep all shots; for others: keep best 2
-            val selectedOtherShots = if (isPaddleOrPopper) {
-                otherShots
+            if (repeatIndex - 1 < repeatSummaries.size) {
+                repeatSummaries[repeatIndex - 1] = summary
             } else {
-                val sortedOtherShots = otherShots.sortedByDescending { ScoringUtility.scoreForHitArea(it.content.actualHitArea) }
-                sortedOtherShots.take(2)
+                repeatSummaries.add(summary)
             }
 
-            // Always include no-shoot zone shots
-            bestShotsPerTarget.addAll(noShootZoneShots)
-            bestShotsPerTarget.addAll(selectedOtherShots)
+            println("[DrillExecutionManager] Added summary for repeat $repeatIndex, repeatSummaries.size = ${repeatSummaries.size}")
+
+            // Clear shots after processing, but DO NOT clear currentRepeatStartTime yet
+            // Grace period is still active and may have more shots arriving
+            // currentRepeatStartTime will be cleared in sendReadyCommands() when next repeat starts
+            currentRepeatShots.clear()
+        } catch (e: Exception) {
+            println("[DrillExecutionManager] Exception in finalizeRepeat: ${e.message}")
+            e.printStackTrace()
         }
-
-        var totalScore = bestShotsPerTarget.sumOf { ScoringUtility.scoreForHitArea(it.content.actualHitArea).toDouble() }
-
-        // Auto re-evaluate score: deduct 10 points for each missed target
-        val missedTargetCount = calculateMissedTargets(adjustedShots)
-        val missedTargetPenalty = missedTargetCount * 10
-        totalScore -= missedTargetPenalty
-
-        if (missedTargetCount > 0) {
-            println("Repeat $repeatIndex: $missedTargetCount target(s) missed, penalty: -$missedTargetPenalty points")
-        }
-        
-        // Ensure score never goes below 0
-        totalScore = maxOf(0, totalScore)
-
-        val summary = DrillRepeatSummary(
-            repeatIndex = repeatIndex,
-            totalTime = totalTime,
-            numShots = numShots,
-            firstShot = firstShot,
-            fastest = fastest,
-            score = totalScore,
-            shots = adjustedShots
-        )
-
-        if (repeatIndex - 1 < repeatSummaries.size) {
-            repeatSummaries[repeatIndex - 1] = summary
-        } else {
-            repeatSummaries.add(summary)
-        }
-
-        // Clear shots after processing, but DO NOT clear currentRepeatStartTime yet
-        // Grace period is still active and may have more shots arriving
-        // currentRepeatStartTime will be cleared in sendReadyCommands() when next repeat starts
-        currentRepeatShots.clear()
     }
 
     private fun startObservingShots() {
@@ -620,7 +643,7 @@ class DrillExecutionManager(
     /// Calculate the number of missed targets in a drill repeat
     /// A target is considered missed if no shots were received from it
     private fun calculateMissedTargets(shots: List<ShotData>): Int {
-        return ScoringUtility.calculateMissedTargets(shots, drillSetup)
+        return ScoringUtility.calculateMissedTargets(shots, targets)
     }
 
     private data class ShotEvent(

@@ -26,6 +26,7 @@ import com.flextarget.android.data.local.entity.DrillSetupEntity
 import com.flextarget.android.data.local.entity.DrillTargetsConfigEntity
 import com.flextarget.android.data.repository.DrillSetupRepository
 import com.flextarget.android.ui.viewmodel.DrillFormViewModel
+import com.flextarget.android.data.model.DrillRepeatSummary
 import com.flextarget.android.data.model.DrillTargetsConfigData
 import com.flextarget.android.ui.drills.TargetConfigListView
 import kotlinx.coroutines.CoroutineScope
@@ -260,6 +261,8 @@ private fun FormScreen(
     var showTimerSession by remember { mutableStateOf(false) }
     var timerSessionDrill by remember { mutableStateOf<DrillSetupEntity?>(null) }
     var timerSessionTargets by remember { mutableStateOf<List<DrillTargetsConfigEntity>>(emptyList()) }
+    var showDrillSummary by remember { mutableStateOf(false) }
+    var drillSummaries by remember { mutableStateOf<List<DrillRepeatSummary>>(emptyList()) }
 
     Box(
         modifier = Modifier
@@ -405,14 +408,35 @@ private fun FormScreen(
                 drillSetup = timerSessionDrill!!,
                 targets = timerSessionTargets,
                 bleManager = androidBleManager,
-                onDrillComplete = {
+                onDrillComplete = { summaries ->
+                    println("[DrillFormView] onDrillComplete called with ${summaries.size} summaries")
+                    summaries.forEach { summary ->
+                        println("[DrillFormView] Summary ${summary.repeatIndex}: ${summary.numShots} shots, score: ${summary.score}, time: ${summary.totalTime}")
+                    }
+                    drillSummaries = summaries
                     showTimerSession = false
+                    showDrillSummary = true
                 },
                 onDrillFailed = {
                     showTimerSession = false
                 },
                 onBack = {
                     showTimerSession = false
+                }
+            )
+        }
+
+        if (showDrillSummary && timerSessionDrill != null) {
+            DrillSummaryView(
+                drillSetup = timerSessionDrill!!,
+                summaries = drillSummaries,
+                onBack = {
+                    showDrillSummary = false
+                },
+                onViewResult = { summary ->
+                    // TODO: Navigate to detailed result view
+                    // For now, just go back to form
+                    showDrillSummary = false
                 }
             )
         }

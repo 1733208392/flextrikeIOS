@@ -1,6 +1,8 @@
 package com.flextarget.android.ui.drills
 
 import android.media.MediaPlayer
+import android.os.Handler
+import android.os.Looper
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -8,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -27,7 +30,6 @@ import com.flextarget.android.data.local.entity.DrillSetupEntity
 import com.flextarget.android.data.local.entity.DrillTargetsConfigEntity
 import com.flextarget.android.data.model.DrillExecutionManager
 import com.flextarget.android.data.model.DrillRepeatSummary
-import java.util.*
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.random.Random
@@ -57,7 +59,7 @@ fun TimerSessionView(
     var timerStartDate by remember { mutableStateOf<Date?>(null) }
     var elapsedDuration by remember { mutableStateOf(0.0) }
     var updateTimer by remember { mutableStateOf<Timer?>(null) }
-    var startSequence: () -> Unit = {}
+    var startSequence by remember { mutableStateOf<(() -> Unit)?>(null) }
     var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
     var showEndDrillAlert by remember { mutableStateOf(false) }
     var gracePeriodActive by remember { mutableStateOf(false) }
@@ -81,6 +83,11 @@ fun TimerSessionView(
     var isPauseActive by remember { mutableStateOf(false) }
     var pauseRemaining by remember { mutableStateOf(0.0) }
     var drillEndedEarly by remember { mutableStateOf(false) }
+    var isReady by remember { mutableStateOf(false) }
+
+    // Drill duration timer properties
+    var drillDurationTimer by remember { mutableStateOf<Timer?>(null) }
+    var drillTimeRemaining by remember { mutableStateOf(0.0) }
 
     // Audio players
     val standbyPlayer = remember { MediaPlayer.create(context, R.raw.standby) }
@@ -138,6 +145,11 @@ fun TimerSessionView(
         updateTimer = null
     }
 
+    fun stopDrillTimer() {
+        drillDurationTimer?.cancel()
+        drillDurationTimer = null
+    }
+
     fun transitionToRunning(timestamp: Date) {
         timerState = TimerState.RUNNING
         timerStartDate = timestamp
@@ -164,69 +176,76 @@ fun TimerSessionView(
         updateTimer = Timer().apply {
             scheduleAtFixedRate(object : TimerTask() {
                 override fun run() {
-                    val now = Date()
+                    Handler(Looper.getMainLooper()).post {
+                        val now = Date()
 
-                    if (timerState == TimerState.STANDBY && delayTarget != null) {
-                        if (now >= delayTarget) {
-                            delayTarget = null
-                            delayRemaining = 0.0
-                            transitionToRunning(now)
-                        } else {
-                            delayRemaining = (delayTarget!!.time - now.time) / 1000.0
-                        }
-                    }
-
-                    if (timerState == TimerState.RUNNING && timerStartDate != null) {
-                        elapsedDuration = (now.time - timerStartDate!!.time) / 1000.0
-                    }
-
-                    if (gracePeriodActive) {
-                        gracePeriodRemaining = maxOf(0.0, gracePeriodRemaining - 0.05)
-                        if (gracePeriodRemaining <= 0) {
-                            gracePeriodActive = false
-
-                            // Collect the summary from the just-completed repeat
-                            // Use currentRepeat - 1 as the index since currentRepeat starts at 1
-                            executionManager?.summaries?.getOrNull(currentRepeat - 1)?.let { completedSummary ->
-                                accumulatedSummaries = accumulatedSummaries + completedSummary
-                                println("Collected repeat ${completedSummary.repeatIndex} summary, total collected: ${accumulatedSummaries.size}")
-                            }
-
-                            // Check if drill was ended early or all repeats are complete
-                            if (drillEndedEarly || currentRepeat >= totalRepeats) {
-                                // Drill completed (either manually ended or all repeats done) - finalize drill
-                                stopUpdateTimer()
-                                executionManager?.completeDrill()
-                            } else if (currentRepeat < totalRepeats) {
-                                // More repeats to go - start pause and prepare next repeat
-                                isPauseActive = true
-                                pauseRemaining = drillSetup.pause.toDouble()
-
-                                // Increment repeat for next drill
-                                currentRepeat += 1
-
-                                // Reset readiness state
-                                readyTargetsCount = 0
-                                nonResponsiveTargets = emptyList()
-                                readinessTimeoutOccurred = false
-
-                                // Set the next repeat in the manager and perform readiness check
-                                executionManager?.setCurrentRepeat(currentRepeat)
-                                executionManager?.performReadinessCheck()
+                        if (timerState == TimerState.STANDBY && delayTarget != null) {
+                            if (now >= delayTarget) {
+                                delayTarget = null
+                                delayRemaining = 0.0
+                                transitionToRunning(now)
+                            } else {
+                                delayRemaining = (delayTarget!!.time - now.time) / 1000.0
                             }
                         }
-                    }
 
-                    if (isPauseActive) {
-                        pauseRemaining = maxOf(0.0, pauseRemaining - 0.05)
-                        if (pauseRemaining <= 0) {
-                            isPauseActive = false
-                            resetTimer()
-                            startSequence()
+                        if (timerState == TimerState.RUNNING && timerStartDate != null) {
+                            elapsedDuration = (now.time - timerStartDate!!.time) / 1000.0
+                        }
+
+                        if (gracePeriodActive) {
+                            val oldRemaining = gracePeriodRemaining
+                            gracePeriodRemaining = maxOf(0.0, gracePeriodRemaining - 0.05)
+                            if (gracePeriodRemaining <= 0) {
+                                println("[TimerSessionView] Grace period ended, waiting for finalize")
+                                gracePeriodActive = false
+
+                                // Wait for finalizeRepeat to complete and notify us
+                                // completeDrill() will be called by the callback
+                            }
+                        }
+
+                        if (isPauseActive) {
+                            pauseRemaining = maxOf(0.0, pauseRemaining - 0.05)
+                            if (pauseRemaining <= 0) {
+                                isPauseActive = false
+                                resetTimer()
+                                startSequence?.invoke()
+                            }
                         }
                     }
                 }
             }, 0, 50)
+        }
+    }
+    
+    fun onDrillTimerExpired() {
+        println("[TimerSessionView] Drill timer expired")
+        drillEndedEarly = true
+        // End the current repeat immediately
+        executionManager?.manualStopRepeat()
+        timerState = TimerState.IDLE
+        gracePeriodActive = true
+        gracePeriodRemaining = gracePeriodDuration
+        stopUpdateTimer()
+        startUpdateTimer()
+    }
+
+    fun startDrillTimer() {
+        stopDrillTimer()
+        // Hardcode drill duration to 5 minutes (300 seconds)
+        drillTimeRemaining = 300.0
+        
+        drillDurationTimer = Timer().apply {
+            scheduleAtFixedRate(object : TimerTask() {
+                override fun run() {
+                    drillTimeRemaining -= 1.0
+                    if (drillTimeRemaining <= 0) {
+                        cancel()
+                        onDrillTimerExpired()
+                    }
+                }
+            }, 1000, 1000)
         }
     }
 
@@ -238,6 +257,7 @@ fun TimerSessionView(
     }
 
     fun initializeReadinessCheck() {
+        println("[TimerSessionView] initializeReadinessCheck called")
         // Stop any existing execution manager
         executionManager?.stopExecution()
 
@@ -259,7 +279,23 @@ fun TimerSessionView(
             onComplete = { summaries ->
                 // This callback is ONLY called when completeDrill() is explicitly called by UI
                 // It provides all summaries for all completed repeats
-                onDrillComplete(summaries)
+                println("[TimerSessionView] onComplete called with ${summaries.size} summaries")
+                summaries.forEach { summary ->
+                    println("[TimerSessionView] Summary ${summary.repeatIndex}: ${summary.numShots} shots, score: ${summary.score}")
+                }
+                // Always collect from manager's summaries, ignoring the summaries parameter
+                executionManager?.summaries?.let { sumMap ->
+                    val collected = if (sumMap is Map<*, *>) {
+                        sumMap.values.filterIsInstance<DrillRepeatSummary>()
+                    } else if (sumMap is List<*>) {
+                        sumMap.filterIsInstance<DrillRepeatSummary>()
+                    } else {
+                        emptyList()
+                    }
+                    accumulatedSummaries = collected
+                    println("[TimerSessionView] Collected ${collected.size} summaries from manager")
+                }
+                onDrillComplete(accumulatedSummaries)
                 // NOTE: Do NOT navigate here - let parent view handle navigation
             },
             onFailure = {
@@ -279,27 +315,60 @@ fun TimerSessionView(
         manager.setCurrentRepeat(1)
         // Perform initial readiness check for first repeat
         manager.performReadinessCheck()
-    }
+        // Set callback for when repeat is finalized
+        manager.setOnRepeatFinalized { repeatIndex ->
+            println("[TimerSessionView] Repeat $repeatIndex finalized, collecting summaries")
+            executionManager?.summaries?.let { sumMap ->
+                val collected = if (sumMap is Map<*, *>) {
+                    sumMap.values.filterIsInstance<DrillRepeatSummary>()
+                } else if (sumMap is List<*>) {
+                    sumMap.filterIsInstance<DrillRepeatSummary>()
+                } else {
+                    emptyList()
+                }
+                accumulatedSummaries = collected
+                println("[TimerSessionView] Collected ${collected.size} summaries after finalize")
+            }
+            executionManager?.completeDrill()
+        }
+        println("[TimerSessionView] performReadinessCheck called")
 
-    startSequence = {
-        timerState = TimerState.STANDBY
-        playStandbySound()
-        val randomDelayValue = Random.nextInt(2, 6).toDouble()
-        randomDelay = randomDelayValue
-        delayTarget = Date(Date().time + (randomDelayValue * 1000).toLong())
-        delayRemaining = randomDelayValue
-        timerStartDate = null
-        startUpdateTimer()
+        startSequence = {
+            println("[TimerSessionView] startSequence called")
+            timerState = TimerState.STANDBY
+            playStandbySound()
+            val randomDelayValue = Random.nextInt(2, 6).toDouble()
+            randomDelay = randomDelayValue
+            delayTarget = Date(Date().time + (randomDelayValue * 1000).toLong())
+            delayRemaining = randomDelayValue
+            timerStartDate = null
+            startUpdateTimer()
 
-        // Set the current repeat and random delay in the manager
-        executionManager?.setCurrentRepeat(currentRepeat)
-        executionManager?.setRandomDelay(randomDelayValue)
+            // Start drill timer for the first repeat
+            if (currentRepeat == 1) {
+                startDrillTimer()
+            }
+
+            // Set the current repeat and random delay in the manager
+            executionManager?.setCurrentRepeat(currentRepeat)
+            executionManager?.setRandomDelay(randomDelayValue)
+        }
+        println("[TimerSessionView] startSequence assigned")
+        isReady = true
     }
 
     fun buttonTapped() {
+        println("[TimerSessionView] buttonTapped called, timerState: $timerState, isPauseActive: $isPauseActive")
         if (isPauseActive) return
         when (timerState) {
-            TimerState.IDLE -> startSequence()
+            TimerState.IDLE -> {
+                if (startSequence != null) {
+                    println("[TimerSessionView] calling startSequence")
+                    startSequence!!()
+                } else {
+                    println("[TimerSessionView] startSequence not assigned yet")
+                }
+            }
             TimerState.STANDBY -> {} // Do nothing while delay is running
             TimerState.RUNNING -> {
                 // End the drill by calling manualStopDrill and show grace period
@@ -485,7 +554,7 @@ fun TimerSessionView(
                         containerColor = buttonColor,
                         disabledContainerColor = buttonColor.copy(alpha = 0.5f)
                     ),
-                    enabled = !(timerState == TimerState.STANDBY || (timerState == TimerState.IDLE && readyTargetsCount < expectedDevices.size && expectedDevices.isNotEmpty()))
+                    enabled = !(timerState == TimerState.STANDBY || (timerState == TimerState.IDLE && (readyTargetsCount < expectedDevices.size || !isReady) && expectedDevices.isNotEmpty()))
                 ) {
                     Text(
                         text = buttonText,
@@ -553,6 +622,14 @@ fun TimerSessionView(
                     }
                 }
             )
+        }
+
+        // Cleanup drill timer when composable is disposed
+        DisposableEffect(Unit) {
+            onDispose {
+                drillDurationTimer?.cancel()
+                drillDurationTimer = null
+            }
         }
     }
 }

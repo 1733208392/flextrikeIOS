@@ -1,6 +1,7 @@
 package com.flextarget.android.data.model
 
 import com.flextarget.android.data.local.entity.DrillSetupEntity
+import com.flextarget.android.data.local.entity.DrillTargetsConfigEntity
 
 /**
  * Utility class for drill scoring calculations
@@ -29,8 +30,8 @@ object ScoringUtility {
     /**
      * Calculate the number of missed targets
      */
-    fun calculateMissedTargets(shots: List<ShotData>, drillSetup: DrillSetupEntity?): Int {
-        val targetsSet = drillSetup?.targets ?: return 0
+    fun calculateMissedTargets(shots: List<ShotData>, targets: List<DrillTargetsConfigEntity>?): Int {
+        val targetsSet = targets ?: return 0
         val expectedTargets = targetsSet.mapNotNull { it.targetName }.filter { it.isNotEmpty() }.toSet()
         val shotsDevices = shots.mapNotNull { it.device ?: it.target }.toSet()
         val missedTargets = expectedTargets.subtract(shotsDevices)
@@ -40,7 +41,7 @@ object ScoringUtility {
     /**
      * Calculate total score with drill rules applied
      */
-    fun calculateTotalScore(shots: List<ShotData>, drillSetup: DrillSetupEntity?): Double {
+    fun calculateTotalScore(shots: List<ShotData>, targets: List<DrillTargetsConfigEntity>?): Double {
         // Group shots by target/device
         val shotsByTarget = mutableMapOf<String, MutableList<ShotData>>()
         for (shot in shots) {
@@ -82,7 +83,7 @@ object ScoringUtility {
         var totalScore = bestShotsPerTarget.sumOf { scoreForHitArea(it.content.actualHitArea).toDouble() }
 
         // Auto re-evaluate score: deduct 10 points for each missed target
-        val missedTargetCount = calculateMissedTargets(shots, drillSetup)
+        val missedTargetCount = calculateMissedTargets(shots, targets)
         val missedTargetPenalty = missedTargetCount * 10
         totalScore -= missedTargetPenalty.toDouble()
 
