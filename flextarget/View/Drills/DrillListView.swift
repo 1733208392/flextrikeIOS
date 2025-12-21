@@ -15,6 +15,7 @@ struct DrillListView: View {
     @State private var searchText: String = ""
     @State private var showConnectionAlert = false
     @State private var alertMessage = ""
+    @State private var showAddDrillView = false
 
     @Environment(\.managedObjectContext) private var environmentContext
 
@@ -104,13 +105,17 @@ struct DrillListView: View {
             Text(alertMessage)
         }
         .environment(\.managedObjectContext, viewContext)
+        
+        NavigationLink(destination: AddDrillView(bleManager: bleManager), isActive: $showAddDrillView) {
+            EmptyView()
+        }
     }
 
     // MARK: - Row View
     
     @ViewBuilder
     private func drillRow(for drill: DrillSetup) -> some View {
-        NavigationLink(destination: EditDrillView(drillSetup: drill, bleManager: bleManager)) {
+        NavigationLink(destination: EditDrillView(drillSetup: drill, bleManager: bleManager, onCreateNewDrillSetup: { showAddDrillView = true })) {
             drillRowContent(for: drill)
         }
         .listRowBackground(Color.clear)

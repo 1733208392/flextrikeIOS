@@ -48,6 +48,7 @@ struct DrillFormView: View {
     @State private var showBackConfirmationAlert: Bool = false
     @State private var navigateToTimerSession: Bool = false
     @State private var drillSetupForTimer: DrillSetup? = nil
+    @State private var showTargetConfigAlert: Bool = false
     
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.managedObjectContext) private var environmentContext
@@ -65,6 +66,11 @@ struct DrillFormView: View {
             return setup
         }
         return nil
+    }
+    
+    private var isEditingDisabled: Bool {
+        guard let drillSetup = currentDrillSetup else { return false }
+        return (drillSetup.results?.count ?? 0) > 0
     }
     
     init(bleManager: BLEManager, mode: DrillFormMode) {
@@ -133,14 +139,15 @@ struct DrillFormView: View {
                         ScrollView {
                             // Grouped Section: Drill Name, Description, Add Video
                             VStack(spacing: 20) {
-                                DrillNameSectionView(drillName: $drillName)
+                                DrillNameSectionView(drillName: $drillName, disabled: isEditingDisabled)
                                 
                                 DescriptionVideoSectionView(
                                     description: $description,
                                     demoVideoURL: $demoVideoURL,
                                     demoVideoThumbnail: $demoVideoThumbnail,
                                     thumbnailFileURL: $thumbnailFileURL,
-                                    showVideoPlayer: $showVideoPlayer
+                                    showVideoPlayer: $showVideoPlayer,
+                                    disabled: isEditingDisabled
                                 )
                                 .sheet(isPresented: $showVideoPlayer) {
                                     if let url = demoVideoURL {
@@ -155,7 +162,8 @@ struct DrillFormView: View {
                             
                             // Delay of Set Starting
                             RepeatsConfigView(
-                                repeatsValue: $repeatsValue
+                                repeatsValue: $repeatsValue,
+                                disabled: false
                             )
                             .padding(.horizontal)
                             
@@ -164,7 +172,8 @@ struct DrillFormView: View {
                                 drillDuration: Binding(
                                     get: { Double(pauseValue) },
                                     set: { pauseValue = Int($0) }
-                                )
+                                ),
+                                disabled: false
                             )
                             .padding(.horizontal)
                             
@@ -173,7 +182,9 @@ struct DrillFormView: View {
                                 isTargetListReceived: $isTargetListReceived,
                                 bleManager: bleManager,
                                 targetConfigs: $targetConfigs,
-                                onTargetConfigDone: { targets = targetConfigs }
+                                onTargetConfigDone: { targets = targetConfigs },
+                                disabled: isEditingDisabled,
+                                onDisabledTap: { showTargetConfigAlert = true }
                             )
                             .padding(.horizontal)
                             
@@ -267,6 +278,11 @@ struct DrillFormView: View {
         } message: {
             Text(NSLocalizedString("drill_in_progress_back_message", comment: "Message when trying to go back during drill execution"))
         }
+        .alert("Training Records Available", isPresented: $showTargetConfigAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Changing the Target Config is not allowed. Please create new Drill")
+        }
         .navigationBarBackButtonHidden(true)
     }
     
@@ -281,10 +297,10 @@ struct DrillFormView: View {
                     .fontWeight(.semibold)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(bleManager.isConnected ? Color.red : Color.gray)
+                    .background((bleManager.isConnected && !isEditingDisabled) ? Color.red : Color.gray)
                     .cornerRadius(8)
             }
-            .disabled(!bleManager.isConnected)
+            .disabled(!bleManager.isConnected || isEditingDisabled)
             
             Button(action: saveAndStartDrill) {
                 Text(NSLocalizedString("start_drill", comment: "Start drill button"))

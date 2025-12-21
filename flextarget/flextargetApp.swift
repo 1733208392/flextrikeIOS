@@ -50,6 +50,7 @@ struct flextargetApp: App {
                         .environment(\.managedObjectContext, persistenceController.container.viewContext)
                 }
                 .navigationViewStyle(.stack)
+                .background(Color.black)
 //                NavigationStack {
 //                    DrillListView(bleManager: BLEManager.shared)
 //                        .environment(\.managedObjectContext, persistenceController.container.viewContext)

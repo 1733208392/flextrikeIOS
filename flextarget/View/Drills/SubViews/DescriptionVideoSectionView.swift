@@ -8,6 +8,7 @@ struct CustomTextEditor: UIViewRepresentable {
     @Binding var text: String
     var foregroundColor: UIColor = .white
     var backgroundColor: UIColor = UIColor(red: 0.5, green: 0.5, blue: 0.5, alpha: 0.2)
+    var disabled: Bool = false
     
     func makeUIView(context: Context) -> UITextView {
         let textView = UITextView()
@@ -17,8 +18,8 @@ struct CustomTextEditor: UIViewRepresentable {
         textView.backgroundColor = backgroundColor
         textView.text = text
         textView.isScrollEnabled = true
-        textView.isEditable = true
-        textView.isSelectable = true
+        textView.isEditable = !disabled
+        textView.isSelectable = !disabled
         return textView
     }
     
@@ -26,6 +27,8 @@ struct CustomTextEditor: UIViewRepresentable {
         if uiView.text != text {
             uiView.text = text
         }
+        uiView.isEditable = !disabled
+        uiView.isSelectable = !disabled
     }
     
     func makeCoordinator() -> Coordinator {
@@ -69,6 +72,7 @@ struct DescriptionVideoSectionView: View {
     @Binding var demoVideoThumbnail: UIImage?
     @Binding var thumbnailFileURL: URL?
     @Binding var showVideoPlayer: Bool
+    var disabled: Bool = false
     
     @State private var isGeneratingThumbnail: Bool = false
     @State private var isDownloadingVideo: Bool = false
@@ -92,7 +96,7 @@ struct DescriptionVideoSectionView: View {
             }
             
             ZStack(alignment: .topLeading) {
-                CustomTextEditor(text: $description, foregroundColor: .white, backgroundColor: UIColor(red: 0.5, green: 0.5, blue: 0.5, alpha: 0.2))
+                CustomTextEditor(text: $description, foregroundColor: .white, backgroundColor: UIColor(red: 0.5, green: 0.5, blue: 0.5, alpha: 0.2), disabled: disabled)
                     .frame(height: 120) // Fixed height for 5 lines
                     .disableAutocorrection(true)
                     .focused($isDescriptionFocused)
@@ -152,9 +156,11 @@ struct DescriptionVideoSectionView: View {
                                             HStack {
                                                 Spacer()
                                                 Button(action: {
-                                                    demoVideoThumbnail = nil
-                                                    demoVideoURL = nil
-                                                    selectedVideoItem = nil
+                                                    if !disabled {
+                                                        demoVideoThumbnail = nil
+                                                        demoVideoURL = nil
+                                                        selectedVideoItem = nil
+                                                    }
                                                 }) {
                                                     Image(systemName: "xmark.circle.fill")
                                                         .resizable()
@@ -164,13 +170,16 @@ struct DescriptionVideoSectionView: View {
                                                         .clipShape(Circle())
                                                         .shadow(radius: 2)
                                                 }
+                                                .disabled(disabled)
                                                 .padding(8)
                                             }
                                             Spacer()
                                         }
                                     }
                                     .onTapGesture {
-                                        showVideoPlayer = true
+                                        if !disabled {
+                                            showVideoPlayer = true
+                                        }
                                     }
                                 } else {
                                     VStack {
@@ -186,6 +195,7 @@ struct DescriptionVideoSectionView: View {
                         )
                 }
             }
+            .disabled(disabled)
         }
         .onChange(of: demoVideoURL) { _ in
             // Process the selected video URL
