@@ -206,6 +206,17 @@
 "hit_area_whitezone" = "白區";
 "hit_area_blackzone" = "黑區";
 "hit_area_blackzoneleft" = "黑區左";
+
+/* SummaryEditSheet */
+"edit_hit_zone_counts_title" = "編輯命中區域計數";
+"a_zone_label" = "A區";
+"c_zone_label" = "C區";
+"d_zone_label" = "D區";
+"no_shoot_label" = "禁止射擊";
+"miss_label" = "脫靶";
+"penalty_label" = "罰分";
+"cancel_button" = "取消";
+"save_button" = "儲存";
 "hit_area_circlearea" = "擊倒";
 "hit_area_standarea" = "擊倒";
 "hit_area_popperzone" = "擊倒";

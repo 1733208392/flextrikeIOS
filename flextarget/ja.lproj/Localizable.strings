@@ -206,6 +206,17 @@
 "hit_area_whitezone" = "ホワイトゾーン";
 "hit_area_blackzone" = "ブラックゾーン";
 "hit_area_blackzoneleft" = "ブラックゾーン左";
+
+/* SummaryEditSheet */
+"edit_hit_zone_counts_title" = "ヒットゾーン数を編集";
+"a_zone_label" = "Aゾーン";
+"c_zone_label" = "Cゾーン";
+"d_zone_label" = "Dゾーン";
+"no_shoot_label" = "射撃禁止";
+"miss_label" = "ミス";
+"penalty_label" = "ペナルティ";
+"cancel_button" = "キャンセル";
+"save_button" = "保存";
 "hit_area_circlearea" = "ノックダウン";
 "hit_area_standarea" = "ノックダウン";
 "hit_area_popperzone" = "ノックダウン";

@@ -157,3 +157,14 @@
 "hit_area_whitezone" = "White zone";
 "hit_area_blackzone" = "Black zone";
 "hit_area_blackzoneleft" = "Black zone left";
+
+/* SummaryEditSheet */
+"edit_hit_zone_counts_title" = "Edit Hit Zone Counts";
+"a_zone_label" = "A Zone";
+"c_zone_label" = "C Zone";
+"d_zone_label" = "D Zone";
+"no_shoot_label" = "No Shoot";
+"miss_label" = "Miss";
+"penalty_label" = "Penalty";
+"cancel_button" = "Cancel";
+"save_button" = "Save";

@@ -139,6 +139,11 @@ struct TargetConfigListView: View {
     }
 
     private func addAllAvailableTargets() {
+        let currentDeviceNames = Set(deviceList.map { $0.name })
+        
+        // Remove targets that are no longer in the network device list
+        targetConfigs.removeAll { !currentDeviceNames.contains($0.targetName) }
+        
         let newDevices = sortedUnusedNetworkDevices
         guard !newDevices.isEmpty else { return }
 

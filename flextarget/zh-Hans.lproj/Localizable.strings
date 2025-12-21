@@ -205,3 +205,14 @@
 "hit_area_blackzoneleft" = "黑区左";
 "hit_area_blackzoneright" = "黑区右";
 "hit_area_whitezone" = "白区";
+
+/* SummaryEditSheet */
+"edit_hit_zone_counts_title" = "编辑命中区域计数";
+"a_zone_label" = "A区";
+"c_zone_label" = "C区";
+"d_zone_label" = "D区";
+"no_shoot_label" = "禁止射击";
+"miss_label" = "脱靶";
+"penalty_label" = "罚分";
+"cancel_button" = "取消";
+"save_button" = "保存";

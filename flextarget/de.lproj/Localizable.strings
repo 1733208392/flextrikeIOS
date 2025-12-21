@@ -206,6 +206,17 @@
 "hit_area_whitezone" = "Weiße Zone";
 "hit_area_blackzone" = "Schwarze Zone";
 "hit_area_blackzoneleft" = "Schwarze Zone links";
+
+/* SummaryEditSheet */
+"edit_hit_zone_counts_title" = "Trefferzonenanzahlen bearbeiten";
+"a_zone_label" = "A-Zone";
+"c_zone_label" = "C-Zone";
+"d_zone_label" = "D-Zone";
+"no_shoot_label" = "Nicht schießen";
+"miss_label" = "Daneben";
+"penalty_label" = "Strafe";
+"cancel_button" = "Abbrechen";
+"save_button" = "Speichern";
 "hit_area_circlearea" = "Umgeworfen";
 "hit_area_standarea" = "Umgeworfen";
 "hit_area_popperzone" = "Umgeworfen";

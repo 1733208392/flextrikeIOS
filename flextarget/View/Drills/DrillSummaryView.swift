@@ -660,7 +660,7 @@ struct SummaryEditSheet: View {
             VStack(spacing: 20) {
                 // Header with title and close button
                 HStack {
-                    Text("Edit Hit Zone Counts")
+                    Text(NSLocalizedString("edit_hit_zone_counts_title", comment: "Title for editing hit zone counts"))
                         .font(.title)
                         .foregroundColor(.white)
                     
@@ -676,18 +676,18 @@ struct SummaryEditSheet: View {
                 }
                 
                 VStack(spacing: 16) {
-                    zoneStepper(label: "A Zone", icon: "a.circle.fill", count: $aCount)
-                    zoneStepper(label: "C Zone", icon: "c.circle.fill", count: $cCount)
-                    zoneStepper(label: "D Zone", icon: "d.circle.fill", count: $dCount)
-                    zoneStepper(label: "No Shoot", icon: "xmark.circle.fill", count: $nCount)
-                    zoneStepper(label: "Miss", icon: "slash.circle.fill", count: $mCount)
-                    zoneStepper(label: "Penalty", icon: "minus.circle.fill", count: $peCount)
+                    zoneStepper(label: NSLocalizedString("a_zone_label", comment: "A zone label"), icon: "a.circle.fill", count: $aCount)
+                    zoneStepper(label: NSLocalizedString("c_zone_label", comment: "C zone label"), icon: "c.circle.fill", count: $cCount)
+                    zoneStepper(label: NSLocalizedString("d_zone_label", comment: "D zone label"), icon: "d.circle.fill", count: $dCount)
+                    zoneStepper(label: NSLocalizedString("no_shoot_label", comment: "No shoot zone label"), icon: "xmark.circle.fill", count: $nCount)
+                    zoneStepper(label: NSLocalizedString("miss_label", comment: "Miss zone label"), icon: "slash.circle.fill", count: $mCount)
+                    zoneStepper(label: NSLocalizedString("penalty_label", comment: "Penalty label"), icon: "minus.circle.fill", count: $peCount)
                 }
                 
                 Spacer()
                 
                 HStack(spacing: 20) {
-                    Button("Cancel") {
+                    Button(NSLocalizedString("cancel_button", comment: "Cancel button text")) {
                         onCancel()
                     }
                     .foregroundColor(.red)
@@ -696,7 +696,7 @@ struct SummaryEditSheet: View {
                     .background(Color.gray.opacity(0.2))
                     .cornerRadius(8)
                     
-                    Button("Save") {
+                    Button(NSLocalizedString("save_button", comment: "Save button text")) {
                         let updated = [
                             "A": aCount,
                             "C": cCount,

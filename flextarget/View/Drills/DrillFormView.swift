@@ -707,8 +707,96 @@ struct DrillFormView: View {
         }
     }
     
-    // MARK: - Helper Methods
+    // MARK: - File Storage Methods
     
+    /// Get the appropriate directory for persistent file storage (iCloud Drive if available, otherwise Documents)
+    private func getPersistentStorageDirectory() -> URL? {
+        let fileManager = FileManager.default
+        
+        // Try iCloud Drive first
+        if let iCloudURL = fileManager.url(forUbiquityContainerIdentifier: nil)?.appendingPathComponent("Documents") {
+            // Check if iCloud is available
+            if fileManager.fileExists(atPath: iCloudURL.path) || (try? fileManager.createDirectory(at: iCloudURL, withIntermediateDirectories: true)) != nil {
+                print("Using iCloud Drive for file storage: \(iCloudURL.path)")
+                return iCloudURL
+            }
+        }
+        
+        // Fall back to local Documents directory
+        let docs = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        print("Using local Documents directory for file storage: \(docs.path)")
+        return docs
+    }
+
+    // Save JPEG data into persistent storage and return URL
+    private func saveThumbnailDataToDocuments(_ data: Data) -> URL? {
+        guard let storageDir = getPersistentStorageDirectory() else {
+            print("Failed to get storage directory")
+            return nil
+        }
+        
+        let dest = storageDir.appendingPathComponent(UUID().uuidString + ".jpg")
+        do {
+            try data.write(to: dest)
+            print("Successfully saved thumbnail to persistent storage: \(dest.lastPathComponent)")
+            return dest
+        } catch {
+            print("Failed to write thumbnail data to persistent storage: \(error)")
+            return nil
+        }
+    }
+
+    // Move a file from temp directory into persistent storage and return new URL
+    private func moveFileToDocuments(from url: URL) -> URL? {
+        let fileManager = FileManager.default
+        
+        // Check if source file exists
+        guard fileManager.fileExists(atPath: url.path) else {
+            print("Source file does not exist at: \(url.path)")
+            return nil
+        }
+        
+        guard let storageDir = getPersistentStorageDirectory() else {
+            print("Failed to get storage directory")
+            return nil
+        }
+        
+        let dest = storageDir.appendingPathComponent(UUID().uuidString + "." + (url.pathExtension.isEmpty ? "dat" : url.pathExtension))
+        do {
+            if fileManager.fileExists(atPath: dest.path) {
+                try fileManager.removeItem(at: dest)
+            }
+            try fileManager.copyItem(at: url, to: dest)
+            print("Successfully moved file to persistent storage: \(dest.lastPathComponent)")
+            // Try to remove the original temp file after successful copy
+            do { try fileManager.removeItem(at: url) } catch { print("Could not remove temp file: \(error)") }
+            return dest
+        } catch {
+            print("Failed to move file to persistent storage: \(error.localizedDescription)")
+            print("Source: \(url.path)")
+            print("Destination: \(dest.path)")
+            return nil
+        }
+    }
+
+    // Synchronous thumbnail generation helper (used from background thread)
+    private func generateThumbnailSync(for url: URL) -> UIImage? {
+        let asset = AVAsset(url: url)
+        let imageGenerator = AVAssetImageGenerator(asset: asset)
+        imageGenerator.appliesPreferredTrackTransform = true
+        let time = CMTime(seconds: 0.1, preferredTimescale: 600)
+        do {
+            let cgImage = try imageGenerator.copyCGImage(at: time, actualTime: nil)
+            let uiImage = UIImage(cgImage: cgImage)
+            // Optionally crop or scale if needed; return as-is for now
+            return uiImage
+        } catch {
+            print("generateThumbnailSync error: \(error)")
+            return nil
+        }
+    }
+
+    // Load thumbnail if we have a URL for it, or try to regenerate from video
     private func loadThumbnailIfNeeded() {
         // If we have a thumbnail URL, try to load it and validate existence
         if let url = thumbnailFileURL {
@@ -760,70 +848,6 @@ struct DrillFormView: View {
             }
         }
     }
-
-    // Synchronous thumbnail generation helper (used from background thread)
-    private func generateThumbnailSync(for url: URL) -> UIImage? {
-        let asset = AVAsset(url: url)
-        let imageGenerator = AVAssetImageGenerator(asset: asset)
-        imageGenerator.appliesPreferredTrackTransform = true
-        let time = CMTime(seconds: 0.1, preferredTimescale: 600)
-        do {
-            let cgImage = try imageGenerator.copyCGImage(at: time, actualTime: nil)
-            let uiImage = UIImage(cgImage: cgImage)
-            // Optionally crop or scale if needed; return as-is for now
-            return uiImage
-        } catch {
-            print("generateThumbnailSync error: \(error)")
-            return nil
-        }
-    }
-
-    // Save JPEG data into Documents and return URL
-    private func saveThumbnailDataToDocuments(_ data: Data) -> URL? {
-        let fileManager = FileManager.default
-        let docs = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        let dest = docs.appendingPathComponent(UUID().uuidString + ".jpg")
-        do {
-            try data.write(to: dest)
-            return dest
-        } catch {
-            print("Failed to write thumbnail data to Documents: \(error)")
-            return nil
-        }
-    }
-
-    // Move a file from temp directory into app Documents and return new URL
-    private func moveFileToDocuments(from url: URL) -> URL? {
-        let fileManager = FileManager.default
-        
-        // Check if source file exists
-        guard fileManager.fileExists(atPath: url.path) else {
-            print("Source file does not exist at: \(url.path)")
-            return nil
-        }
-        
-        let docs = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        let dest = docs.appendingPathComponent(UUID().uuidString + "." + (url.pathExtension.isEmpty ? "dat" : url.pathExtension))
-        do {
-            if fileManager.fileExists(atPath: dest.path) {
-                try fileManager.removeItem(at: dest)
-            }
-            try fileManager.copyItem(at: url, to: dest)
-            print("Successfully moved file to Documents: \(dest.lastPathComponent)")
-            // Try to remove the original temp file after successful copy
-            do { try fileManager.removeItem(at: url) } catch { print("Could not remove temp file: \(error)") }
-            return dest
-        } catch {
-            print("Failed to move file to Documents: \(error.localizedDescription)")
-            print("Source: \(url.path)")
-            print("Destination: \(dest.path)")
-            return nil
-        }
-    }
-    
-
-    
-    // MARK: - Device List Query
     
     private func queryDeviceList() {
         guard bleManager.isConnected else {

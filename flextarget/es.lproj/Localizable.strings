@@ -206,6 +206,17 @@
 "hit_area_whitezone" = "Zona blanca";
 "hit_area_blackzone" = "Zona negra";
 "hit_area_blackzoneleft" = "Zona negra izquierda";
+
+/* SummaryEditSheet */
+"edit_hit_zone_counts_title" = "Editar recuentos de zonas de impacto";
+"a_zone_label" = "Zona A";
+"c_zone_label" = "Zona C";
+"d_zone_label" = "Zona D";
+"no_shoot_label" = "No disparar";
+"miss_label" = "Fallo";
+"penalty_label" = "Penalización";
+"cancel_button" = "Cancelar";
+"save_button" = "Guardar";
 "hit_area_circlearea" = "Derribado";
 "hit_area_standarea" = "Derribado";
 "hit_area_popperzone" = "Derribado";
