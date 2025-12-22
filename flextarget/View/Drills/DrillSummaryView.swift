@@ -84,6 +84,10 @@ struct DrillSummaryView: View {
         return Double(score) / time
     }
 
+    private func missedTargets(for summary: DrillRepeatSummary) -> Int {
+        return ScoringUtility.calculateMissedTargets(shots: summary.shots, drillSetup: drillSetup)
+    }
+
     private func deductScore(at index: Int) {
         guard index >= 0 && index < summaries.count else { return }
         
@@ -201,8 +205,8 @@ struct DrillSummaryView: View {
             adjustedZones["M"] = effectiveMissCount
         }
         
-        // Update the penalty count
-        adjustedZones["PE"] = penaltyCount
+        // Update the penalty count (manual + auto from missed targets)
+        adjustedZones["PE"] = penaltyCount + missedTargets(for: summaries[index])
         
         // Update the summary
         summaries[index].adjustedHitZones = adjustedZones
@@ -218,9 +222,10 @@ struct DrillSummaryView: View {
                 originalScores[summary.id] = summary.score
             }
             if penaltyCounts[summary.id] == nil {
-                // Load penalty count from adjusted hit zones if available
-                let peCount = summary.adjustedHitZones?["PE"] ?? 0
-                penaltyCounts[summary.id] = peCount
+                // Load penalty count from adjusted hit zones if available, subtracting auto-calculated missed targets
+                let totalPE = summary.adjustedHitZones?["PE"] ?? 0
+                let missed = missedTargets(for: summary)
+                penaltyCounts[summary.id] = totalPE - missed
             }
         }
     }
@@ -307,8 +312,8 @@ struct DrillSummaryView: View {
                         
                         summaries[index].adjustedHitZones = finalZones
                         
-                        // Update penalty count state
-                        penaltyCounts[summary.id] = finalZones["PE"] ?? 0
+                        // Update penalty count state (subtract auto-calculated missed targets)
+                        penaltyCounts[summary.id] = (finalZones["PE"] ?? 0) - missedTargets(for: summaries[index])
                         
                         // Persist to Core Data
                         if let drillResultId = summaries[index].drillResultId {
@@ -419,7 +424,7 @@ struct DrillSummaryView: View {
                 // PE Button for penalty deduction
                 PenaltyButton(action: {
                     deductScore(at: summaryIndex)
-                }, penaltyCount: penaltyCounts[summaries[summaryIndex].id, default: 0])
+                }, penaltyCount: penaltyCounts[summaries[summaryIndex].id, default: 0] + missedTargets(for: summaries[summaryIndex]))
                 
                 // Restore Button
                 RestoreButton(action: {

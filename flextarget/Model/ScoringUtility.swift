@@ -125,35 +125,8 @@ class ScoringUtility {
         let penaltyDeduction = peCount * 10
         totalScore -= penaltyDeduction
         
-        // Apply missed target penalty (10 points per missed target)
-        // We need to estimate missed targets from the adjusted data
-        // This is an approximation since we don't have exact target information
-        let missedTargetCount = max(0, ScoringUtility.estimateMissedTargetsFromAdjustedCounts(adjustedHitZones, drillSetup: drillSetup))
-        let missedTargetPenalty = missedTargetCount * 10
-        totalScore -= missedTargetPenalty
-        
         // Ensure score never goes below 0
         return max(0, totalScore)
     }
     
-    /// Estimate missed targets from adjusted hit zone counts
-    static func estimateMissedTargetsFromAdjustedCounts(_ adjustedHitZones: [String: Int], drillSetup: DrillSetup?) -> Int {
-        guard let drillSetup = drillSetup,
-              let targetsSet = drillSetup.targets as? Set<DrillTargetsConfig> else {
-            return 0
-        }
-        
-        let expectedTargets = targetsSet.count
-        let aCount = adjustedHitZones["A"] ?? 0
-        let cCount = adjustedHitZones["C"] ?? 0
-        let dCount = adjustedHitZones["D"] ?? 0
-        let nCount = adjustedHitZones["N"] ?? 0
-        
-        // Estimate targets hit: assume each target gets at most 2 scoring shots
-        // This is a rough approximation
-        let estimatedTargetsHit = min(expectedTargets, (aCount + cCount + dCount + nCount + 1) / 2)
-        let missedTargets = max(0, expectedTargets - estimatedTargetsHit)
-        
-        return missedTargets
-    }
 }

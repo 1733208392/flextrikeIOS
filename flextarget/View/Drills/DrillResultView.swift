@@ -326,12 +326,22 @@ struct DrillResultView: View {
     private var targetDisplays: [TargetDisplay] {
         let sortedTargets = drillSetup.sortedTargets
         
-        return sortedTargets.map { target in
+        // Create TargetDisplay instances
+        let displays = sortedTargets.map { target in
             let iconName = target.targetType ?? ""
             let resolvedIcon = iconName.isEmpty ? "hostage" : iconName
             let id = target.id?.uuidString ?? UUID().uuidString
             return TargetDisplay(id: id, config: target, icon: resolvedIcon, targetName: target.targetName)
         }
+        
+        // Sort displays based on the earliest shot index for each target
+        let sortedDisplays = displays.sorted { display1, display2 in
+            let minIndex1 = shots.enumerated().first(where: { display1.matches($0.element) })?.offset ?? Int.max
+            let minIndex2 = shots.enumerated().first(where: { display2.matches($0.element) })?.offset ?? Int.max
+            return minIndex1 < minIndex2
+        }
+        
+        return sortedDisplays
     }
     
     var totalDuration: Double {
