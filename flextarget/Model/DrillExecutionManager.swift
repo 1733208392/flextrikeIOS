@@ -25,6 +25,7 @@ class DrillExecutionManager {
     private var endCommandTime: Date?
     private var shotObserver: NSObjectProtocol?
     private let firstShotMockValue: TimeInterval = 1.0
+    private let gracePeriodDuration: TimeInterval = 5.0
     private var deviceDelayTimes: [String: String] = [:]
     private var globalDelayTime: String?
     private var firstTargetName: String?
@@ -114,7 +115,7 @@ class DrillExecutionManager {
         // Start grace period to collect in-flight shots before finalizing
         // Keep shot observer active during this period
         gracePeriodTimer?.invalidate()
-        gracePeriodTimer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: false) { [weak self] _ in
+        gracePeriodTimer = Timer.scheduledTimer(withTimeInterval: self.gracePeriodDuration, repeats: false) { [weak self] _ in
             self?.completeManualStopRepeat()
         }
     }
