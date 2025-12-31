@@ -152,7 +152,7 @@ struct TargetConfigListView: View {
         case "idpa":
             return "idpa"
         case "cqb":
-            return "ipsc"
+            return "cqb_enemy_front"
         default:
             return "ipsc"
         }
@@ -248,14 +248,9 @@ struct TargetRowView: View {
             ]
         case "cqb":
             return [
-                "ipsc",
-                "hostage",
-                "special_1",
-                "special_2",
-                "idpa",
-                "idpa_ns",
-                "idpa_hard_cover_1",
-                "idpa_hard_cover_2"
+                "cqb_enemy_swing",
+                "cqb_enemy_front",
+                "cqb_enemy_moving"
             ]
         default:
             return []
