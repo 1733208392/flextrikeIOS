@@ -567,72 +567,8 @@ class DrillExecutionManager {
         let fastest = adjustedShots.map { $0.content.timeDiff }.min() ?? 0.0
         let firstShot = adjustedShots.first?.content.timeDiff ?? 0.0
         
-        // Group shots by target/device and keep only the best 2 per target
-        // Exception: shots in no-shoot zones (whitezone, blackzone) always count as they deduct score
-        var shotsByTarget: [String: [ShotData]] = [:]
-        for shot in adjustedShots {
-            let device = shot.device ?? shot.target ?? "unknown"
-            if shotsByTarget[device] == nil {
-                shotsByTarget[device] = []
-            }
-            shotsByTarget[device]?.append(shot)
-        }
-        
-        // Keep best 2 shots per target, but always include no-shoot zone hits
-        // Exception: for paddle and popper targets, keep all shots (no best 2 limit)
-        var bestShotsPerTarget: [ShotData] = []
-        for (_, shots) in shotsByTarget {
-            // Detect target type from shots
-            let targetType = shots.first?.content.targetType.lowercased() ?? ""
-            let isPaddleOrPopper = targetType == "paddle" || targetType == "popper"
-            
-            let noShootZoneShots = shots.filter { shot in
-                let trimmed = shot.content.hitArea.trimmingCharacters(in: .whitespaces).lowercased()
-                return trimmed == "whitezone" || trimmed == "blackzone"
-            }
-            
-            let otherShots = shots.filter { shot in
-                let trimmed = shot.content.hitArea.trimmingCharacters(in: .whitespaces).lowercased()
-                return trimmed != "whitezone" && trimmed != "blackzone"
-            }
-            
-            // For paddle and popper: keep all shots; for others: keep best 2
-            let selectedOtherShots: [ShotData]
-            if isPaddleOrPopper {
-                let validShots = otherShots.filter { s in
-                    let a = s.content.hitArea.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-                    return a != "miss" && a != "m" && !a.isEmpty
-                }
-                if validShots.count >= 2 {
-                    selectedOtherShots = validShots
-                } else {
-                    selectedOtherShots = otherShots
-                }
-            } else {
-                let sortedOtherShots = otherShots.sorted {
-                    ScoringUtility.scoreForHitArea($0.content.hitArea) > ScoringUtility.scoreForHitArea($1.content.hitArea)
-                }
-                selectedOtherShots = Array(sortedOtherShots.prefix(2))
-            }
-            
-            // Always include no-shoot zone shots
-            bestShotsPerTarget.append(contentsOf: noShootZoneShots)
-            bestShotsPerTarget.append(contentsOf: selectedOtherShots)
-        }
-        
-        var totalScore = bestShotsPerTarget.reduce(0) { $0 + ScoringUtility.scoreForHitArea($1.content.hitArea) }
-        
-        // Auto re-evaluate score: deduct 10 points for each missed target
-        let missedTargetCount = calculateMissedTargets(shots: adjustedShots)
-        let missedTargetPenalty = missedTargetCount * 10
-        totalScore -= missedTargetPenalty
-        
-        if missedTargetCount > 0 {
-            print("Repeat \(repeatIndex): \(missedTargetCount) target(s) missed, penalty: -\(missedTargetPenalty) points")
-        }
-        
-        // Ensure score never goes below 0
-        totalScore = max(0, totalScore)
+        // Calculate total score using centralized ScoringUtility
+        let totalScore = Int(ScoringUtility.calculateTotalScore(shots: adjustedShots, drillSetup: drillSetup))
         
         let summary = DrillRepeatSummary(
             repeatIndex: repeatIndex,
@@ -707,6 +643,13 @@ class DrillExecutionManager {
                 print("[DrillExecutionManager] Shot repeat \(shotRepeatNumber) matches current repeat \(currentRepeat)")
             } else {
                 print("[DrillExecutionManager] Shot has no repeat number, accepting for current repeat \(currentRepeat)")
+            }
+            
+            // Check for duplicate shots (same device, same content)
+            let isDuplicate = currentRepeatShots.contains { $0.shot == shot }
+            if isDuplicate {
+                print("[DrillExecutionManager] Ignoring duplicate shot from device \(shot.device ?? "unknown") at time \(shot.content.timeDiff)")
+                return
             }
             
             let event = ShotEvent(shot: shot, receivedAt: Date())

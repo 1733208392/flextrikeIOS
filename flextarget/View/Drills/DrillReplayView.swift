@@ -246,10 +246,7 @@ struct DrillReplayView: View {
     @State private var timer: Timer?
     
     private var totalDuration: Double {
-        let lastShotTime = shots.enumerated().map { (index, shot) in
-            shots.prefix(index + 1).reduce(0.0) { $0 + $1.content.timeDiff }
-        }.last ?? 0.0
-        return max(lastShotTime, drillSetup.drillDuration)
+        shots.reduce(0.0) { $0 + $1.content.timeDiff }
     }
     
     private var shotTimelineData: [(index: Int, time: Double, diff: Double)] {

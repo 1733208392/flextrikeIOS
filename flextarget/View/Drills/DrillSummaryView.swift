@@ -28,8 +28,8 @@ struct DrillSummaryView: View {
 
     private func metrics(for summary: DrillRepeatSummary) -> [SummaryMetric] {
         // Calculate effective score using adjusted hit zones if available
-        let effectiveScore = summary.adjustedHitZones != nil ? 
-            ScoringUtility.calculateScoreFromAdjustedHitZones(summary.adjustedHitZones!, drillSetup: drillSetup) : 
+        let effectiveScore = summary.adjustedHitZones != nil ?
+            ScoringUtility.calculateScoreFromAdjustedHitZones(summary.adjustedHitZones!, drillSetup: drillSetup) :
             summary.score
         
         return [
@@ -43,25 +43,27 @@ struct DrillSummaryView: View {
 
     private func hitZoneMetrics(for summary: DrillRepeatSummary) -> [SummaryMetric] {
         if let adjusted = summary.adjustedHitZones,
-           adjusted.keys.contains(where: { ["A", "C", "D", "N", "M"].contains($0) }) {
+           adjusted.keys.contains(where: { ["A", "C", "D", "N", "M", "PE"].contains($0) }) {
             return [
                 SummaryMetric(iconName: "a.circle.fill", label: "A", value: "\(adjusted["A"] ?? 0)"),
                 SummaryMetric(iconName: "c.circle.fill", label: "C", value: "\(adjusted["C"] ?? 0)"),
                 SummaryMetric(iconName: "d.circle.fill", label: "D", value: "\(adjusted["D"] ?? 0)"),
                 SummaryMetric(iconName: "xmark.circle.fill", label: "N", value: "\(adjusted["N"] ?? 0)"),
-                SummaryMetric(iconName: "slash.circle.fill", label: "M", value: "\(adjusted["M"] ?? 0)")
+                SummaryMetric(iconName: "slash.circle.fill", label: "M", value: "\(adjusted["M"] ?? 0)"),
+                SummaryMetric(iconName: "exclamationmark.triangle.fill", label: "PE", value: "\(adjusted["PE"] ?? 0)")
             ]
         }
         
         // Use centralized ScoringUtility to get effective counts for fallback
-        let effectiveCounts = ScoringUtility.calculateEffectiveCounts(shots: summary.shots)
+        let effectiveCounts = ScoringUtility.calculateEffectiveCounts(shots: summary.shots, drillSetup: drillSetup)
 
         return [
             SummaryMetric(iconName: "a.circle.fill", label: "A", value: "\(effectiveCounts["A"] ?? 0)"),
             SummaryMetric(iconName: "c.circle.fill", label: "C", value: "\(effectiveCounts["C"] ?? 0)"),
             SummaryMetric(iconName: "d.circle.fill", label: "D", value: "\(effectiveCounts["D"] ?? 0)"),
             SummaryMetric(iconName: "xmark.circle.fill", label: "N", value: "\(effectiveCounts["N"] ?? 0)"),
-            SummaryMetric(iconName: "slash.circle.fill", label: "M", value: "\(effectiveCounts["M"] ?? 0)")
+            SummaryMetric(iconName: "slash.circle.fill", label: "M", value: "\(effectiveCounts["M"] ?? 0)"),
+            SummaryMetric(iconName: "exclamationmark.triangle.fill", label: "PE", value: "\(effectiveCounts["PE"] ?? 0)")
         ]
     }
 
@@ -123,13 +125,14 @@ struct DrillSummaryView: View {
         // If this is the first time adjusting, initialize with adjusted hit zone counts (after applying scoring rules)
         if adjustedZones.isEmpty {
             // Use centralized ScoringUtility to get effective counts
-            let effectiveCounts = ScoringUtility.calculateEffectiveCounts(shots: summaries[index].shots)
+            let effectiveCounts = ScoringUtility.calculateEffectiveCounts(shots: summaries[index].shots, drillSetup: drillSetup)
             
             adjustedZones["A"] = effectiveCounts["A"] ?? 0
             adjustedZones["C"] = effectiveCounts["C"] ?? 0
             adjustedZones["D"] = effectiveCounts["D"] ?? 0
             adjustedZones["N"] = effectiveCounts["N"] ?? 0
             adjustedZones["M"] = effectiveCounts["M"] ?? 0
+            adjustedZones["PE"] = effectiveCounts["PE"] ?? 0
         }
         
         // Update the penalty count (manual + auto from missed targets)
@@ -204,14 +207,14 @@ struct DrillSummaryView: View {
                                     NavigationLink(destination: DrillResultView(drillSetup: drillSetup, repeatSummary: summaries[index])) {
                                         summaryCard(
                                             title: String(format: NSLocalizedString("repeat_number", comment: "Repeat number format"), summaries[index].repeatIndex),
-                                            subtitle: HStack(spacing: 2) {
+                                            subtitle: AnyView(HStack(spacing: 2) {
                                                 Text("\(NSLocalizedString("factor_label", comment: "Factor label")):")
                                                     .font(.system(size: 14, weight: .medium))
                                                     .foregroundColor(Color.white.opacity(0.7))
                                                 Text(String(format: "%.2f", calculateFactor(score: summaries[index].score, time: summaries[index].totalTime)))
                                                     .font(.system(size: 18, weight: .bold))
                                                     .foregroundColor(.red)
-                                            },
+                                            }),
                                             iconName: "scope",
                                             metrics: metrics(for: summaries[index]),
                                             hitZoneMetrics: hitZoneMetrics(for: summaries[index]),
@@ -610,11 +613,11 @@ struct SummaryEditSheet: View {
         let aZoneCount = summary.shots.filter { $0.content.hitArea.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) == "azone" }.count
         let cZoneCount = summary.shots.filter { $0.content.hitArea.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) == "czone" }.count
         let dZoneCount = summary.shots.filter { $0.content.hitArea.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) == "dzone" }.count
-        let noShootCount = summary.shots.filter { 
+        let noShootCount = summary.shots.filter {
             let area = $0.content.hitArea.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
             return area == "blackzone" || area == "whitezone"
         }.count
-        let missCount = summary.shots.filter { 
+        let missCount = summary.shots.filter {
             let area = $0.content.hitArea.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
             return area == "miss" || area == "m" || area.isEmpty
         }.count

@@ -1,12 +1,20 @@
 import Foundation
 
 // Codable structs for JSON decoding
-struct ShotData: Codable {
+struct ShotData: Codable, Equatable {
     let target: String?
     let content: Content
     let type: String?
     let action: String?
     let device: String?
+
+    static func == (lhs: ShotData, rhs: ShotData) -> Bool {
+        return lhs.target == rhs.target &&
+               lhs.content == rhs.content &&
+               lhs.type == rhs.type &&
+               lhs.action == rhs.action &&
+               lhs.device == rhs.device
+    }
 
     enum CodingKeys: String, CodingKey {
         case target
@@ -17,7 +25,7 @@ struct ShotData: Codable {
     }
 }
 
-struct Content: Codable {
+struct Content: Codable, Equatable {
     let command: String
     let hitArea: String
     let hitPosition: Position
@@ -27,6 +35,18 @@ struct Content: Codable {
     let device: String?
     let targetPos: Position?
     let `repeat`: Int?
+
+    static func == (lhs: Content, rhs: Content) -> Bool {
+        return lhs.command == rhs.command &&
+               lhs.hitArea == rhs.hitArea &&
+               lhs.hitPosition == rhs.hitPosition &&
+               lhs.rotationAngle == rhs.rotationAngle &&
+               lhs.targetType == rhs.targetType &&
+               lhs.timeDiff == rhs.timeDiff &&
+               lhs.device == rhs.device &&
+               lhs.targetPos == rhs.targetPos &&
+               lhs.`repeat` == rhs.`repeat`
+    }
 
     enum CodingKeys: String, CodingKey {
         // Old format keys
@@ -184,9 +204,13 @@ struct Content: Codable {
     }
 }
 
-struct Position: Codable {
+struct Position: Codable, Equatable {
     let x: Double
     let y: Double
+
+    static func == (lhs: Position, rhs: Position) -> Bool {
+        return lhs.x == rhs.x && lhs.y == rhs.y
+    }
 
     init(x: Double, y: Double) {
         self.x = x

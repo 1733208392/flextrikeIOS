@@ -10,42 +10,31 @@ class ScoringUtility {
         let trimmed = hitArea.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         
         switch trimmed {
-        case "azone":
+        case "azone", "a":
             return 5
-        case "czone":
+        case "czone", "c":
             return 3
-        case "dzone":
-            return 2
-        case "miss":
+        case "dzone", "d":
+            return 1
+        case "miss", "m":
             return -15
-        case "whitezone":
-            return -25
-        case "blackzone":
+        case "whitezone", "blackzone", "n":
             return -10
-        case "circlearea": // Paddle
-            return 5
-        case "popperzone": // Popper
+        case "circlearea", "popperzone": // Steel
             return 5
         default:
             return 0
         }
     }
     
-    /// Calculate the number of missed targets
+    /// Calculate the number of missed targets (targets with no valid hits)
     static func calculateMissedTargets(shots: [ShotData], drillSetup: DrillSetup?) -> Int {
         guard let targetsSet = drillSetup?.targets as? Set<DrillTargetsConfig> else {
             return 0
         }
         
         let expectedTargets = Set(targetsSet.map { $0.targetName ?? "" }.filter { !$0.isEmpty })
-        let shotsDevices = Set(shots.compactMap { $0.device ?? $0.target })
         
-        let missedTargets = expectedTargets.subtracting(shotsDevices)
-        return missedTargets.count
-    }
-    
-    /// Calculate total score with drill rules applied
-    static func calculateTotalScore(shots: [ShotData], drillSetup: DrillSetup?) -> Double {
         // Group shots by target/device
         var shotsByTarget: [String: [ShotData]] = [:]
         for shot in shots {
@@ -56,61 +45,47 @@ class ScoringUtility {
             shotsByTarget[device]?.append(shot)
         }
         
-        // Keep best 2 shots per target, but always include no-shoot zone hits
-        // Exception: for paddle and popper targets, keep all shots (no best 2 limit)
-        var bestShotsPerTarget: [ShotData] = []
-        for (_, targetShots) in shotsByTarget {
-            // Detect target type from shots
-            let targetType = targetShots.first?.content.targetType.lowercased() ?? ""
-            let isPaddleOrPopper = targetType == "paddle" || targetType == "popper"
-            
-            let noShootZoneShots = targetShots.filter { shot in
-                let trimmed = shot.content.hitArea.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-                return trimmed == "whitezone" || trimmed == "blackzone"
+        var targetsWithValidHits = Set<String>()
+        for (device, targetShots) in shotsByTarget {
+            let hasValidHit = targetShots.contains { shot in
+                let area = shot.content.hitArea.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+                // Check if it's a scoring zone (A, C, D, circlearea, popperzone)
+                return ScoringUtility.scoreForHitArea(area) > 0
             }
-            
-            let otherShots = targetShots.filter { shot in
-                let trimmed = shot.content.hitArea.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-                return trimmed != "whitezone" && trimmed != "blackzone"
+            if hasValidHit {
+                targetsWithValidHits.insert(device)
             }
-            
-            // For paddle and popper: keep all shots; for others: keep best 2
-            let selectedOtherShots: [ShotData]
-            if isPaddleOrPopper {
-                let validShots = otherShots.filter { s in
-                    let a = s.content.hitArea.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-                    return a != "miss" && a != "m" && !a.isEmpty
-                }
-                if validShots.count >= 2 {
-                    selectedOtherShots = validShots
-                } else {
-                    selectedOtherShots = otherShots
-                }
-            } else {
-                let sortedOtherShots = otherShots.sorted {
-                    Double(ScoringUtility.scoreForHitArea($0.content.hitArea)) > Double(ScoringUtility.scoreForHitArea($1.content.hitArea))
-                }
-                selectedOtherShots = Array(sortedOtherShots.prefix(2))
-            }
-            
-            // Always include no-shoot zone shots
-            bestShotsPerTarget.append(contentsOf: noShootZoneShots)
-            bestShotsPerTarget.append(contentsOf: selectedOtherShots)
         }
         
-        var totalScore = bestShotsPerTarget.reduce(0.0) { $0 + Double(ScoringUtility.scoreForHitArea($1.content.hitArea)) }
+        let missedTargets = expectedTargets.subtracting(targetsWithValidHits)
+        return missedTargets.count
+    }
+    
+    /// Calculate total score with drill rules applied
+    static func calculateTotalScore(shots: [ShotData], drillSetup: DrillSetup?) -> Double {
+        let counts = ScoringUtility.calculateEffectiveCounts(shots: shots, drillSetup: drillSetup)
         
-        // Auto re-evaluate score: deduct 10 points for each missed target
-        let missedTargetCount = ScoringUtility.calculateMissedTargets(shots: shots, drillSetup: drillSetup)
-        let missedTargetPenalty = missedTargetCount * 10
-        totalScore -= Double(missedTargetPenalty)
+        let aScore = Double(counts["A"] ?? 0) * 5.0
+        let cScore = Double(counts["C"] ?? 0) * 3.0
+        let dScore = Double(counts["D"] ?? 0) * 1.0
+        let mScore = Double(counts["M"] ?? 0) * -15.0
+        let nScore = Double(counts["N"] ?? 0) * -10.0
+        let peScore = Double(counts["PE"] ?? 0) * -10.0
+        
+        let totalScore = aScore + cScore + dScore + mScore + nScore + peScore
         
         // Ensure score never goes below 0
         return max(0, totalScore)
     }
     
     /// Calculate effective hit zone counts based on drill rules
-    static func calculateEffectiveCounts(shots: [ShotData]) -> [String: Int] {
+    static func calculateEffectiveCounts(shots: [ShotData], drillSetup: DrillSetup? = nil) -> [String: Int] {
+        var aCount = 0
+        var cCount = 0
+        var dCount = 0
+        var nCount = 0
+        var mCount = 0
+        
         // Group shots by target/device
         var shotsByTarget: [String: [ShotData]] = [:]
         for shot in shots {
@@ -121,15 +96,19 @@ class ScoringUtility {
             shotsByTarget[device]?.append(shot)
         }
         
-        var aCount = 0
-        var cCount = 0
-        var dCount = 0
-        var nCount = 0
-        var mCount = 0
+        // Get all expected targets from setup
+        let expectedTargets = (drillSetup?.targets as? Set<DrillTargetsConfig>) ?? []
+        let expectedTargetNames = Set(expectedTargets.compactMap { $0.targetName }.filter { !$0.isEmpty })
         
-        for (_, targetShots) in shotsByTarget {
-            // Detect target type from shots
-            let targetType = targetShots.first?.content.targetType.lowercased() ?? ""
+        // Combine expected targets and targets that actually fired shots
+        let allTargetNames = expectedTargetNames.union(shotsByTarget.keys)
+        
+        for targetName in allTargetNames {
+            let targetShots = shotsByTarget[targetName] ?? []
+            
+            // Find target config to determine type
+            let config = expectedTargets.first { $0.targetName == targetName }
+            let targetType = config?.targetType?.lowercased() ?? targetShots.first?.content.targetType.lowercased() ?? ""
             let isPaddleOrPopper = targetType == "paddle" || targetType == "popper"
             
             let noShootZoneShots = targetShots.filter { shot in
@@ -145,51 +124,50 @@ class ScoringUtility {
             // Count no-shoot zones (always included)
             nCount += noShootZoneShots.count
             
-            // For paddle and popper: count all scoring shots; for others: count best 2
-            let scoringShots: [ShotData]
-            
-            let validShots = otherShots.filter { s in
-                let a = s.content.hitArea.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-                return a != "miss" && a != "m" && !a.isEmpty
-            }
+            // Filter for valid hits
+            let validHits = otherShots.filter { ScoringUtility.scoreForHitArea($0.content.hitArea) > 0 }
             
             if isPaddleOrPopper {
-                if validShots.count >= 2 {
-                    scoringShots = validShots
-                } else {
-                    scoringShots = otherShots
+                // Paddles/Poppers: 1 valid hit required
+                let requiredHits = 1
+                let deficit = max(0, requiredHits - validHits.count)
+                mCount += deficit
+                
+                // Count all valid hits for paddles/poppers
+                for shot in validHits {
+                    let area = shot.content.hitArea.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+                    switch area {
+                    case "azone", "a", "circlearea", "popperzone": aCount += 1
+                    case "czone", "c": cCount += 1
+                    case "dzone", "d": dCount += 1
+                    default: break
+                    }
                 }
             } else {
-                let sortedOtherShots = otherShots.sorted {
-                    Double(ScoringUtility.scoreForHitArea($0.content.hitArea)) > Double(ScoringUtility.scoreForHitArea($1.content.hitArea))
+                // Paper target: 2 valid hits required
+                let requiredHits = 2
+                let deficit = max(0, requiredHits - validHits.count)
+                mCount += deficit
+                
+                // Count best 2 valid hits
+                let sortedValidHits = validHits.sorted {
+                    ScoringUtility.scoreForHitArea($0.content.hitArea) > ScoringUtility.scoreForHitArea($1.content.hitArea)
                 }
-                scoringShots = Array(sortedOtherShots.prefix(2))
-            }
-            
-            // Count effective shots by zone
-            for shot in scoringShots {
-                let area = shot.content.hitArea.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-                switch area {
-                case "azone":
-                    aCount += 1
-                case "czone":
-                    cCount += 1
-                case "dzone":
-                    dCount += 1
-                case "miss", "m", "":
-                    // Special consideration: if target has 2 valid shots, don't count miss
-                    // (This is already handled for non-paddles by prefix(2), 
-                    // and for paddles by the validShots.count >= 2 check above)
-                    if validShots.count < 2 {
-                        mCount += 1
+                let scoringHits = Array(sortedValidHits.prefix(requiredHits))
+                for shot in scoringHits {
+                    let area = shot.content.hitArea.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+                    switch area {
+                    case "azone", "a": aCount += 1
+                    case "czone", "c": cCount += 1
+                    case "dzone", "d": dCount += 1
+                    default: break
                     }
-                default:
-                    break
                 }
             }
         }
         
-        return ["A": aCount, "C": cCount, "D": dCount, "N": nCount, "M": mCount]
+        let peCount = ScoringUtility.calculateMissedTargets(shots: shots, drillSetup: drillSetup)
+        return ["A": aCount, "C": cCount, "D": dCount, "N": nCount, "M": mCount, "PE": peCount]
     }
     
     /// Calculate score based on adjusted hit zone metrics
@@ -204,17 +182,8 @@ class ScoringUtility {
         let mCount = adjustedHitZones["M"] ?? 0
         
         // Calculate base score from adjusted counts
-        // A=5, C=3, D=2, N=-10 (black zone) or -25 (white zone), M=-15
-        var totalScore = (aCount * 5) + (cCount * 3) + (dCount * 2) + (mCount * -15)
-        
-        // Apply penalties for no-shoot zones
-        // Assume half are black zone (-10) and half are white zone (-25) for average penalty
-        let avgNoShootPenalty = nCount > 0 ? (nCount / 2 * (-10) + (nCount + 1) / 2 * (-25)) : 0
-        totalScore += avgNoShootPenalty
-        
-        // Apply penalty deductions (10 points per PE)
-        let penaltyDeduction = peCount * 10
-        totalScore -= penaltyDeduction
+        // A=5, C=3, D=1, N=-10, M=-15, PE=-10
+        let totalScore = (aCount * 5) + (cCount * 3) + (dCount * 1) + (mCount * -15) + (nCount * -10) + (peCount * -10)
         
         // Ensure score never goes below 0
         return max(0, totalScore)
