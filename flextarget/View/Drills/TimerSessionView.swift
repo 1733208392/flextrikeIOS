@@ -298,7 +298,13 @@ struct TimerSessionView: View {
             },
             onReadinessUpdate: { readyCount, totalCount in
                 DispatchQueue.main.async {
+                    let wasReady = self.readyTargetsCount == self.expectedDevices.count && self.expectedDevices.count > 0
                     self.readyTargetsCount = readyCount
+                    let isReady = readyCount == totalCount && totalCount > 0
+                    
+                    if isReady && !wasReady {
+                        self.playReadySound()
+                    }
                 }
             },
             onReadinessTimeout: { nonResponsiveList in
@@ -527,6 +533,20 @@ struct TimerSessionView: View {
             audioPlayer?.play()
         } catch {
             print("Failed to play standby audio: \(error)")
+        }
+    }
+
+    private func playReadySound() {
+        guard let url = Bundle.main.url(forResource: "ready", withExtension: "mp3") else {
+            print("Ready audio file not found")
+            return
+        }
+        
+        do {
+            audioPlayer = try AVAudioPlayer(contentsOf: url)
+            audioPlayer?.play()
+        } catch {
+            print("Failed to play ready audio: \(error)")
         }
     }
 }

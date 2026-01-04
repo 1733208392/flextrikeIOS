@@ -1,4 +1,5 @@
 import SwiftUI
+import AVFoundation
 
 /// A version of TargetDisplay specifically for the replay view to avoid conflicts with private definitions in DrillResultView.
 struct ReplayTargetDisplay: Identifiable, Hashable {
@@ -242,11 +243,16 @@ struct DrillReplayView: View {
     @State private var selectedShotIndex: Int? = nil
     @State private var pulsingShotIndex: Int? = nil
     @State private var pulseScale: CGFloat = 1.0
+    @State private var audioPlayer: AVAudioPlayer?
     
     @State private var timer: Timer?
     
     private var totalDuration: Double {
         shots.reduce(0.0) { $0 + $1.content.timeDiff }
+    }
+    
+    private var playingDuration: Double {
+        totalDuration + 1.0
     }
     
     private var shotTimelineData: [(index: Int, time: Double, diff: Double)] {
@@ -298,7 +304,7 @@ struct DrillReplayView: View {
                 // Timeline and Controls
                 VStack(spacing: 15) {
                     HStack {
-                        Text(String(format: "%.2f", currentProgress))
+                        Text(String(format: "%.2f", min(currentProgress, totalDuration)))
                             .font(.system(.body, design: .monospaced))
                             .foregroundColor(.white)
                         
@@ -323,6 +329,7 @@ struct DrillReplayView: View {
                             selectedShotIndex = index
                             pulsingShotIndex = index
                             triggerPulse()
+                            playShotSound()
                         }
                     )
                     .frame(height: 40)
@@ -346,8 +353,8 @@ struct DrillReplayView: View {
                         }
                         
                         Button(action: {
-                            currentProgress = totalDuration
-                            updateSelectionForTime(totalDuration)
+                            currentProgress = playingDuration
+                            updateSelectionForTime(playingDuration)
                         }) {
                             Image(systemName: "forward.fill")
                                 .font(.title2)
@@ -366,6 +373,9 @@ struct DrillReplayView: View {
             if let firstTarget = targetDisplays.first {
                 selectedTargetKey = firstTarget.id
             }
+            // Configure audio session
+            try? AVAudioSession.sharedInstance().setCategory(.ambient, mode: .default)
+            try? AVAudioSession.sharedInstance().setActive(true)
         }
         .onDisappear {
             stopTimer()
@@ -376,7 +386,7 @@ struct DrillReplayView: View {
         if isPlaying {
             stopTimer()
         } else {
-            if currentProgress >= totalDuration {
+            if currentProgress >= playingDuration {
                 currentProgress = 0
             }
             startTimer()
@@ -387,8 +397,8 @@ struct DrillReplayView: View {
     private func startTimer() {
         timer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { _ in
             currentProgress += 0.05
-            if currentProgress >= totalDuration {
-                currentProgress = totalDuration
+            if currentProgress >= playingDuration {
+                currentProgress = playingDuration
                 stopTimer()
                 isPlaying = false
             }
@@ -410,6 +420,10 @@ struct DrillReplayView: View {
                 pulsingShotIndex = lastShot.index
                 triggerPulse()
                 
+                if isPlaying {
+                    playShotSound()
+                }
+                
                 // Update target key if needed
                 let shot = shots[lastShot.index]
                 if let matching = targetDisplays.first(where: { $0.matches(shot) }) {
@@ -421,6 +435,19 @@ struct DrillReplayView: View {
         } else {
             selectedShotIndex = nil
             pulsingShotIndex = nil
+        }
+    }
+    
+    private func playShotSound() {
+        guard let url = Bundle.main.url(forResource: "paper_hit", withExtension: "mp3") else {
+            return
+        }
+        
+        do {
+            audioPlayer = try AVAudioPlayer(contentsOf: url)
+            audioPlayer?.play()
+        } catch {
+            print("Failed to play shot sound: \(error)")
         }
     }
     

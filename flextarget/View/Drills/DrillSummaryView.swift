@@ -663,19 +663,19 @@ struct SummaryEditSheet: View {
                 
                 Spacer()
 
-                Button(NSLocalizedString("submit_to_leaderboard_button", comment: "Submit to leaderboard button")) {
-                    showAthletePicker = true
-                }
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(Color.gray.opacity(0.2))
-                .cornerRadius(8)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color.red.opacity(0.8), lineWidth: 1)
-                )
-                .padding(.horizontal)
+//                Button(NSLocalizedString("submit_to_leaderboard_button", comment: "Submit to leaderboard button")) {
+//                    showAthletePicker = true
+//                }
+//                .foregroundColor(.white)
+//                .frame(maxWidth: .infinity)
+//                .padding()
+//                .background(Color.gray.opacity(0.2))
+//                .cornerRadius(8)
+//                .overlay(
+//                    RoundedRectangle(cornerRadius: 8)
+//                        .stroke(Color.red.opacity(0.8), lineWidth: 1)
+//                )
+//                .padding(.horizontal)
                 
                 HStack(spacing: 20) {
                     Button(NSLocalizedString("cancel_button", comment: "Cancel button text")) {
@@ -708,21 +708,21 @@ struct SummaryEditSheet: View {
             }
             .padding()
         }
-        .sheet(isPresented: $showAthletePicker) {
-            NavigationView {
-                AthletePickerSheet { athlete in
-                    let didSubmit = submitToLeaderboard(athlete: athlete)
-                    showAthletePicker = false
-                    if didSubmit {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                            showLeaderboard = true
-                        }
-                    }
-                }
-                .preferredColorScheme(.dark)
-            }
-            .environment(\.managedObjectContext, viewContext)
-        }
+//        .sheet(isPresented: $showAthletePicker) {
+//            NavigationView {
+//                AthletePickerSheet { athlete in
+//                    let didSubmit = submitToLeaderboard(athlete: athlete)
+//                    showAthletePicker = false
+//                    if didSubmit {
+//                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+//                            showLeaderboard = true
+//                        }
+//                    }
+//                }
+//                .preferredColorScheme(.dark)
+//            }
+//            .environment(\.managedObjectContext, viewContext)
+//        }
         .sheet(isPresented: $showLeaderboard) {
             NavigationView {
                 LeaderboardView()

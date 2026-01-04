@@ -99,15 +99,15 @@ struct DrillMainPageView: View {
                             showDrillList = true
                         }
 
-                    MainMenuButton(icon: "person.3", text: NSLocalizedString("athletes", comment: "Athletes menu button"), color: .red)
-                        .onTapGesture {
-                            showAthletes = true
-                        }
-
-                    MainMenuButton(icon: "list.number", text: NSLocalizedString("leaderboard_title", comment: "Leaderboard menu button"), color: .red)
-                        .onTapGesture {
-                            showLeaderboard = true
-                        }
+//                    MainMenuButton(icon: "person.3", text: NSLocalizedString("athletes", comment: "Athletes menu button"), color: .red)
+//                        .onTapGesture {
+//                            showAthletes = true
+//                        }
+//
+//                    MainMenuButton(icon: "list.number", text: NSLocalizedString("leaderboard_title", comment: "Leaderboard menu button"), color: .red)
+//                        .onTapGesture {
+//                            showLeaderboard = true
+//                        }
 //                     // Disabled IPSC button (non-interactive, visually muted)
 //                     MainMenuButton(icon: "scope", text: NSLocalizedString("ipsc_questionaries", comment: "IPSC Questionaries menu button"), color: .gray)
 //                         .allowsHitTesting(false)
@@ -155,19 +155,19 @@ struct DrillMainPageView: View {
                 EmptyView()
             }
 
-            NavigationLink(isActive: $showAthletes) {
-                AthletesManagementView()
-                    .environment(\.managedObjectContext, persistenceController.container.viewContext)
-            } label: {
-                EmptyView()
-            }
-
-            NavigationLink(isActive: $showLeaderboard) {
-                LeaderboardView()
-                    .environment(\.managedObjectContext, persistenceController.container.viewContext)
-            } label: {
-                EmptyView()
-            }
+//            NavigationLink(isActive: $showAthletes) {
+//                AthletesManagementView()
+//                    .environment(\.managedObjectContext, persistenceController.container.viewContext)
+//            } label: {
+//                EmptyView()
+//            }
+//
+//            NavigationLink(isActive: $showLeaderboard) {
+//                LeaderboardView()
+//                    .environment(\.managedObjectContext, persistenceController.container.viewContext)
+//            } label: {
+//                EmptyView()
+//            }
         }
         .toolbar {
             // Leading: BLE Connection Status
