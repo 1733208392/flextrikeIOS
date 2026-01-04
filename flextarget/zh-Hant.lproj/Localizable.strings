@@ -41,6 +41,7 @@
 "copy" = "複製";
 "targets" = "目標";
 "targets_count" = "%d 個目標";
+"performed" = "已執行";
 "delay_seconds" = "延遲: %d秒";
 
 /* BLE/ConnectSmartTargetView */
@@ -247,6 +248,10 @@
 "no_results" = "無結果";
 "no_results_hint" = "執行訓練以查看歷史記錄";
 "unknown_date" = "未知日期";
+
+/* Tab Navigation */
+"history" = "歷史";
+"admin" = "管理";
 
 /* 排行榜提交錯誤 */
 "error_title" = "錯誤";

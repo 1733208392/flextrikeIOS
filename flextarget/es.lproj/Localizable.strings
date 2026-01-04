@@ -41,6 +41,7 @@
 "copy" = "Copiar";
 "targets" = "Objetivos";
 "targets_count" = "%d objetivos";
+"performed" = "Realizado";
 "delay_seconds" = "retraso: %ds";
 
 /* BLE/ConnectSmartTargetView */
@@ -246,6 +247,10 @@
 "no_results" = "Sin resultados";
 "no_results_hint" = "Realice ejercicios para ver el historial";
 "unknown_date" = "Fecha desconocida";
+
+/* Tab Navigation */
+"history" = "Historial";
+"admin" = "Admin";
 
 /* Errores de envío al ranking */
 "error_title" = "Error";

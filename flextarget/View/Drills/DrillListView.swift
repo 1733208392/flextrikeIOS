@@ -39,7 +39,12 @@ struct DrillListView: View {
     @State private var drillToDelete: DrillSetup?
 
     private var filteredDrills: [DrillSetup] {
-        let all = Array(drills)
+        let all = Array(drills).sorted { (drill1, drill2) -> Bool in
+            let count1 = (drill1.results as? Set<DrillResult>)?.count ?? 0
+            let count2 = (drill2.results as? Set<DrillResult>)?.count ?? 0
+            return count1 > count2 // Descending order
+        }
+        
         if searchText.isEmpty { return all }
         return all.filter { $0.name?.localizedCaseInsensitiveContains(searchText) ?? false }
     }
@@ -61,7 +66,6 @@ struct DrillListView: View {
         .tint(.red)
         .navigationTitle(NSLocalizedString("my_drills", comment: "Navigation title for drill list"))
         .navigationBarTitleDisplayMode(.inline)
-//        .navigationBarBackButtonHidden(isInTabView ? false : true)
         .alert(NSLocalizedString("delete_drill_title", comment: "Alert title for deleting drill"), isPresented: $showDeleteAlert, presenting: drillToDelete) { drill in
             Button(NSLocalizedString("delete", comment: "Delete button"), role: .destructive) {
                 deleteDrill(drill)
@@ -76,10 +80,6 @@ struct DrillListView: View {
             Text(alertMessage)
         }
         .environment(\.managedObjectContext, viewContext)
-        
-//        NavigationLink(destination: AddDrillView(bleManager: bleManager), isActive: $showAddDrillView) {
-//            EmptyView()
-//        }
     }
 
     // MARK: - Row View
@@ -136,20 +136,13 @@ struct DrillListView: View {
                 .foregroundColor(.gray)
                 .font(.caption)
             
+            let performanceCount = (drill.results as? Set<DrillResult>)?.count ?? 0
+            Text("\(NSLocalizedString("performed", comment: "Label for number of times drill was performed")): \(performanceCount)")
+                .foregroundColor(.gray)
+                .font(.caption)
+            
             if drill.repeats > 1 {
                 Text("Repeats: \(drill.repeats)")
-                    .foregroundColor(.gray)
-                    .font(.caption)
-            }
-            
-            if drill.pause > 0 {
-                Text("Pause: \(drill.pause)s")
-                    .foregroundColor(.gray)
-                    .font(.caption)
-            }
-            
-            if drill.delay > 0 {
-                Text(String(format: NSLocalizedString("delay_seconds", comment: "Delay in seconds"), Int(drill.delay)))
                     .foregroundColor(.gray)
                     .font(.caption)
             }

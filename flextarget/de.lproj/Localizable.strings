@@ -41,6 +41,7 @@
 "copy" = "Kopieren";
 "targets" = "Ziele";
 "targets_count" = "%d Ziele";
+"performed" = "Ausgeführt";
 "delay_seconds" = "Verzögerung: %ds";
 
 /* BLE/ConnectSmartTargetView */
@@ -247,6 +248,10 @@
 "no_results" = "Keine Ergebnisse";
 "no_results_hint" = "Führen Sie Übungen durch, um den Verlauf zu sehen";
 "unknown_date" = "Unbekanntes Datum";
+
+/* Tab Navigation */
+"history" = "Verlauf";
+"admin" = "Admin";
 
 /* Rangliste - Einreichungsfehler */
 "error_title" = "Fehler";

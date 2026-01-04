@@ -37,6 +37,7 @@
 "copy_suffix" = " Copy";
 "targets" = "Targets";
 "targets_count" = "%d targets";
+"performed" = "Performed";
 "delay_seconds" = "delay: %ds";
 
 /* BLE/ConnectSmartTargetView */

@@ -25,6 +25,7 @@ struct AdminTabView: View {
             }
         }
         .navigationTitle(NSLocalizedString("admin", comment: "Admin tab title"))
+        .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             loadAuthToken()
         }

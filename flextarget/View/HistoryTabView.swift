@@ -227,6 +227,7 @@ struct HistoryTabView: View {
                 }
             }
             .navigationTitle(NSLocalizedString("history", comment: "History tab title"))
+            .navigationBarTitleDisplayMode(.inline)
         }
     }
     

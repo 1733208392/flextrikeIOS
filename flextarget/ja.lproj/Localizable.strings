@@ -41,6 +41,7 @@
 "copy" = "コピー";
 "targets" = "ターゲット";
 "targets_count" = "%d個のターゲット";
+"performed" = "実行済み";
 "delay_seconds" = "遅延: %d秒";
 
 /* BLE/ConnectSmartTargetView */
@@ -248,6 +249,10 @@
 "no_results" = "結果なし";
 "no_results_hint" = "ドリルを実行して履歴を表示";
 "unknown_date" = "不明な日付";
+
+/* Tab Navigation */
+"history" = "履歴";
+"admin" = "管理者";
 
 /* ランキング送信エラー */
 "error_title" = "エラー";
