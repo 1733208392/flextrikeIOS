@@ -12,6 +12,7 @@ struct CompetitionDetailView: View {
     @State private var drillRepeatSummaries: [DrillRepeatSummary] = []
     @State private var navigateToDrillSummary = false
     @State private var showAckTimeoutAlert = false
+    @State private var selectedResult: DrillResult?
     
     var body: some View {
         ZStack {
@@ -54,7 +55,16 @@ struct CompetitionDetailView: View {
                     Section(header: Text(NSLocalizedString("results", comment: "")).foregroundColor(.white)) {
                         if let results = competition.results?.allObjects as? [DrillResult], !results.isEmpty {
                             ForEach(results.sorted(by: { ($0.date ?? Date()) > ($1.date ?? Date()) })) { result in
-                                CompetitionResultRow(result: result)
+                                NavigationLink(destination: 
+                                    ZStack {
+                                        Color.black.ignoresSafeArea()
+                                        if let drillSetup = result.drillSetup {
+                                            DrillSummaryView(drillSetup: drillSetup, summaries: reconstructSummaries(from: result), competition: competition)
+                                        }
+                                    }
+                                ) {
+                                    CompetitionResultRow(result: result)
+                                }
                             }
                             .listRowBackground(Color.white.opacity(0.1))
                         } else {
@@ -183,6 +193,41 @@ struct CompetitionDetailView: View {
             print("Failed to save competition results: \(error)")
         }
     }
+    
+    private func reconstructSummaries(from result: DrillResult) -> [DrillRepeatSummary] {
+        guard let shots = result.shots?.allObjects as? [Shot] else { return [] }
+        
+        let sortedShots = shots.sorted { ($0.timestamp ?? 0) < ($1.timestamp ?? 0) }
+        var shotDataArray: [ShotData] = []
+        
+        for shot in sortedShots {
+            if let jsonString = shot.data,
+               let jsonData = jsonString.data(using: .utf8) {
+                do {
+                    let shotData = try JSONDecoder().decode(ShotData.self, from: jsonData)
+                    shotDataArray.append(shotData)
+                } catch {
+                    print("Failed to decode shot data: \(error)")
+                }
+            }
+        }
+        
+        // Create a single DrillRepeatSummary from the DrillResult
+        let summary = DrillRepeatSummary(
+            id: UUID(),
+            repeatIndex: 0,
+            totalTime: result.totalTime,
+            numShots: shotDataArray.count,
+            firstShot: shotDataArray.first?.content.timeDiff ?? 0,
+            fastest: shotDataArray.map { $0.content.timeDiff }.min() ?? 0,
+            score: 0,  // This will be calculated in DrillSummaryView
+            shots: shotDataArray,
+            drillResultId: result.id,
+            adjustedHitZones: nil
+        )
+        
+        return [summary]
+    }
 }
 
 struct CompetitionResultRow: View {
@@ -208,10 +253,18 @@ struct CompetitionResultRow: View {
             
             Spacer()
             
-            Text(String(format: "%.2fs", result.totalTime))
-                .font(.title3)
-                .fontWeight(.bold)
-                .foregroundColor(.red)
+            VStack(alignment: .trailing, spacing: 4) {
+                Text(String(format: "%.2fs", result.totalTime))
+                    .font(.caption)
+                    .foregroundColor(.gray)
+                
+                if let leaderboardEntry = (result.leaderboardEntries?.allObjects as? [LeaderboardEntry])?.first {
+                    Text(String(format: "%.3f", leaderboardEntry.scoreFactor))
+                        .font(.title3)
+                        .fontWeight(.bold)
+                        .foregroundColor(.red)
+                }
+            }
         }
         .padding(.vertical, 5)
     }

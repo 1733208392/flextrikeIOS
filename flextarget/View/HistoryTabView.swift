@@ -137,7 +137,7 @@ struct HistoryTabView: View {
                         }
                     } label: {
                         HStack {
-                            Image(systemName: "funnel")
+                            Image(systemName: "line.3.horizontal.decrease")
                             Text(selectedDrillType?.uppercased() ?? NSLocalizedString("all_drills", comment: "All drills filter"))
                                 .lineLimit(1)
                             Spacer()

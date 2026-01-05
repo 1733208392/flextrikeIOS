@@ -33,12 +33,15 @@ struct DrillSummaryView: View {
             ScoringUtility.calculateScoreFromAdjustedHitZones(summary.adjustedHitZones!, drillSetup: drillSetup) :
             summary.score
         
+        let factor = calculateFactor(score: effectiveScore, time: summary.totalTime)
+        
         return [
             SummaryMetric(iconName: "clock.arrow.circlepath", label: NSLocalizedString("total_time_label", comment: "Total time metric label"), value: format(time: summary.totalTime)),
             SummaryMetric(iconName: "scope", label: NSLocalizedString("shots_metric_label", comment: "Shots metric label"), value: "\(summary.numShots)"),
             SummaryMetric(iconName: "bolt.circle", label: NSLocalizedString("fastest_label", comment: "Fastest shot label"), value: format(time: summary.fastest)),
             SummaryMetric(iconName: "timer", label: NSLocalizedString("first_shot_label", comment: "First shot label"), value: format(time: summary.firstShot)),
-            SummaryMetric(iconName: "flame.fill", label: NSLocalizedString("score_label", comment: "Score label"), value: "\(effectiveScore)")
+            SummaryMetric(iconName: "flame.fill", label: NSLocalizedString("score_label", comment: "Score label"), value: "\(effectiveScore)"),
+            SummaryMetric(iconName: "percent", label: NSLocalizedString("factor_label", comment: "Factor label"), value: String(format: "%.3f", factor))
         ]
     }
 

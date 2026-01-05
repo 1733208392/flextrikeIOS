@@ -69,7 +69,10 @@ struct AthletesManagementView: View {
                                 .foregroundColor(.red)
                         }
                         .foregroundColor(.white)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .contentShape(Rectangle())
                     }
+                    .buttonStyle(PlainButtonStyle())
                     .listRowBackground(Color.gray.opacity(0.2))
                     .onChange(of: selectedPhoto) { newItem in
                         guard let newItem else {
@@ -102,7 +105,10 @@ struct AthletesManagementView: View {
                                 .foregroundColor(.white)
                             Spacer()
                         }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .contentShape(Rectangle())
                     }
+                    .buttonStyle(PlainButtonStyle())
                     .listRowBackground(Color.gray.opacity(0.2))
                     .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
