@@ -270,3 +270,18 @@
 "password" = "Password";
 "login" = "Login";
 "login_title" = "Login";
+/* Competition Submission */
+"error_title" = "Error";
+"no_competition_error" = "No competition associated with this result";
+"invalid_competition_id_error" = "Invalid competition ID";
+"device_disconnected_title" = "Device Disconnected";
+"connect_device_before_submit" = "Please connect to the device before submitting";
+"device_auth_required_title" = "Device Auth Required";
+"device_token_unavailable" = "Device authentication token is not available. Please ensure device is properly connected";
+"not_authenticated_title" = "Not Authenticated";
+"login_before_submit" = "Please log in before submitting results";
+"success_title" = "Success";
+"submit_success_message" = "Competition result submitted successfully";
+"submit_failed_title" = "Submission Failed";
+"alert_title" = "Alert";
+"ok_button" = "OK";

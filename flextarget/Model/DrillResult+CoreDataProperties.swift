@@ -24,6 +24,9 @@ extension DrillResult {
     @NSManaged public var totalTime: Double
     @NSManaged public var adjustedHitZones: String?
     @NSManaged public var id: UUID?
+    @NSManaged public var serverPlayId: String?
+    @NSManaged public var serverDeviceId: String?
+    @NSManaged public var submittedAt: Date?
     @NSManaged public var drillSetup: DrillSetup?
     @NSManaged public var competition: Competition?
     @NSManaged public var leaderboardEntries: NSSet?

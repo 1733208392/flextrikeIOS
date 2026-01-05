@@ -179,12 +179,20 @@ class DeviceAuthManager: ObservableObject {
     // MARK: - Authorization Header Generation
     
     /// Generates the Authorization header value for API requests
-    /// - Parameter userAccessToken: User's access token (required)
-    /// - Returns: Authorization header value in format "Bearer {token}" or "Bearer {userToken}|{deviceToken}"
-    func getAuthorizationHeaderValue(userAccessToken: String) -> String {
+    /// - Parameters:
+    ///   - userAccessToken: User's access token (required)
+    ///   - requireDeviceToken: If true, throws error when device token is unavailable. If false (default), includes device token only if available
+    /// - Returns: Authorization header value
+    ///   - Format with device token: "Bearer {userToken}|{deviceToken}"
+    ///   - Format without device token: "Bearer {userToken}"
+    /// - Throws: Error if requireDeviceToken is true but device token is unavailable
+    func getAuthorizationHeaderValue(userAccessToken: String, requireDeviceToken: Bool = false) throws -> String {
         if let deviceToken = deviceToken {
             return "Bearer \(userAccessToken)|\(deviceToken)"
         } else {
+            if requireDeviceToken {
+                throw NSError(domain: "DeviceAuthManager", code: -1, userInfo: [NSLocalizedDescriptionKey: "Device token required but unavailable"])
+            }
             return "Bearer \(userAccessToken)"
         }
     }

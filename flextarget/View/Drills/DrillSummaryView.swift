@@ -9,9 +9,17 @@ struct DrillSummaryView: View {
     @State private var originalScores: [UUID: Int] = [:]
     @State private var penaltyCounts: [UUID: Int] = [:]
     @State private var editingSummary: DrillRepeatSummary? = nil
+    
+    // Submission state
+    @State private var isSubmitting = false
+    @State private var showSubmitAlert = false
+    @State private var submitAlertTitle = ""
+    @State private var submitAlertMessage = ""
+    @State private var submitError: Error? = nil
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.managedObjectContext) private var environmentContext
+    @EnvironmentObject private var bleManager: BLEManager
 
     // Use the shared persistence controller's viewContext as a fallback to
     // ensure we always point at a live store even if the environment is missing
@@ -193,6 +201,132 @@ struct DrillSummaryView: View {
             print("savePenaltyCount: drillResultId is nil or adjustedHitZones is nil")
         }
     }
+    
+    // MARK: - Submission Methods
+    
+    private func submitCompetitionResult() {
+        // Validate prerequisites
+        guard let competition = competition else {
+            showSubmitError(title: NSLocalizedString("error_title", comment: "Error"), message: NSLocalizedString("no_competition_error", comment: "No competition associated with this result"))
+            return
+        }
+        
+        guard let competitionId = competition.id else {
+            showSubmitError(title: NSLocalizedString("error_title", comment: "Error"), message: NSLocalizedString("invalid_competition_id_error", comment: "Invalid competition ID"))
+            return
+        }
+        
+        guard bleManager.isConnected else {
+            showSubmitError(title: NSLocalizedString("device_disconnected_title", comment: "Device Disconnected"), message: NSLocalizedString("connect_device_before_submit", comment: "Please connect to the device before submitting"))
+            return
+        }
+        
+        guard let deviceToken = DeviceAuthManager.shared.deviceToken, !deviceToken.isEmpty else {
+            showSubmitError(title: NSLocalizedString("device_auth_required_title", comment: "Device Auth Required"), message: NSLocalizedString("device_token_unavailable", comment: "Device authentication token is not available. Please ensure device is properly connected"))
+            return
+        }
+        
+        guard let userToken = AuthManager.shared.currentUser?.accessToken, !userToken.isEmpty else {
+            showSubmitError(title: NSLocalizedString("not_authenticated_title", comment: "Not Authenticated"), message: NSLocalizedString("login_before_submit", comment: "Please log in before submitting results"))
+            return
+        }
+        
+        isSubmitting = true
+        
+        Task {
+            do {
+                // Prepare submission data from first summary (main result)
+                guard let firstSummary = summaries.first else {
+                    throw NSError(domain: "DrillSummaryView", code: -1, userInfo: [NSLocalizedDescriptionKey: "No drill summary available"])
+                }
+                
+                // Calculate final score using adjusted hit zones
+                let finalScore = firstSummary.adjustedHitZones != nil ?
+                    ScoringUtility.calculateScoreFromAdjustedHitZones(firstSummary.adjustedHitZones!, drillSetup: drillSetup) :
+                    firstSummary.score
+                
+                // Calculate factor
+                let factor = calculateFactor(score: finalScore, time: firstSummary.totalTime)
+                
+                // Format play time
+                let playTime = formatPlayTime(Date())
+                
+                // Prepare detail JSON with shot data
+                var detail: [String: Any] = [
+                    "drillName": drillSetup.name ?? "Unknown",
+                    "score": finalScore,
+                    "factor": factor,
+                    "drillDuration": drillSetup.drillDuration,
+                    "totalTime": firstSummary.totalTime,
+                    "numShots": firstSummary.numShots,
+                    "fastest": firstSummary.fastest,
+                    "firstShot": firstSummary.firstShot
+                ]
+                
+                // Add hit zone details
+                if let adjustedZones = firstSummary.adjustedHitZones {
+                    detail["hitZones"] = adjustedZones
+                }
+                
+                // Submit to server
+                let response = try await CompetitionResultAPIService.shared.addGamePlay(
+                    gameType: competitionId.uuidString,  // Competition ID
+                    gameVer: "1.0",
+                    score: Float(finalScore),
+                    detail: detail,
+                    playTime: playTime,
+                    playerMobile: AuthManager.shared.currentUser?.mobile,
+                    playerNickname: AuthManager.shared.currentUser?.username,
+                    isPublic: true
+                )
+                
+                // Save response data to Core Data (link play_uuid back to local result)
+                if let drillResultId = firstSummary.drillResultId {
+                    let fetchRequest = NSFetchRequest<DrillResult>(entityName: "DrillResult")
+                    fetchRequest.predicate = NSPredicate(format: "id == %@", drillResultId as CVarArg)
+                    
+                    let results = try viewContext.fetch(fetchRequest)
+                    if let result = results.first {
+                        // Store server response data
+                        result.serverPlayId = response.play_uuid
+                        result.serverDeviceId = response.device_uuid
+                        result.submittedAt = Date()
+                        try viewContext.save()
+                    }
+                }
+                
+                await MainActor.run {
+                    isSubmitting = false
+                    showSubmitSuccess(title: NSLocalizedString("success_title", comment: "Success"), message: NSLocalizedString("submit_success_message", comment: "Competition result submitted successfully"))
+                }
+            } catch {
+                await MainActor.run {
+                    isSubmitting = false
+                    showSubmitError(title: NSLocalizedString("submit_failed_title", comment: "Submission Failed"), message: error.localizedDescription)
+                }
+            }
+        }
+    }
+    
+    private func formatPlayTime(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        return formatter.string(from: date)
+    }
+    
+    private func showSubmitError(title: String, message: String) {
+        submitAlertTitle = title
+        submitAlertMessage = message
+        submitError = NSError(domain: "Submit", code: -1)
+        showSubmitAlert = true
+    }
+    
+    private func showSubmitSuccess(title: String, message: String) {
+        submitAlertTitle = title
+        submitAlertMessage = message
+        submitError = nil
+        showSubmitAlert = true
+    }
 
     var body: some View {
         ZStack {
@@ -298,6 +432,16 @@ struct DrillSummaryView: View {
                 }
             )
         }
+        .alert(NSLocalizedString("alert_title", comment: "Alert"), isPresented: $showSubmitAlert) {
+            Button(NSLocalizedString("ok_button", comment: "OK button")) {
+                if submitError == nil {
+                    // Success - dismiss the view
+                    dismiss()
+                }
+            }
+        } message: {
+            Text(submitAlertMessage)
+        }
     }
 
     private var navigationBar: some View {
@@ -334,6 +478,57 @@ struct DrillSummaryView: View {
             }
 
             Spacer()
+            
+            // Submit button - only for competition results
+            if competition != nil {
+                let isSubmittingNow = isSubmitting
+                let isDeviceConnected = bleManager.isConnected
+                let deviceTokenExists = DeviceAuthManager.shared.deviceToken != nil
+                let isButtonDisabled = isSubmittingNow || !isDeviceConnected || !deviceTokenExists
+                
+                Button(action: {
+                    print("=== Submit Button Tapped ===")
+                    print("isSubmitting: \(isSubmittingNow)")
+                    print("bleManager.isConnected: \(isDeviceConnected)")
+                    print("deviceToken: \(DeviceAuthManager.shared.deviceToken ?? "nil")")
+                    print("Button disabled: \(isButtonDisabled)")
+                    print("============================")
+                    if !isButtonDisabled {
+                        submitCompetitionResult()
+                    } else {
+                        print("Button is disabled - action not triggered")
+                    }
+                }) {
+                    ZStack {
+                        Circle()
+                            .fill(Color.black)
+                            .frame(width: 40, height: 40)
+                            .overlay(
+                                Circle()
+                                    .stroke(Color.red, lineWidth: 2)
+                            )
+                        
+                        if isSubmitting {
+                            ProgressView()
+                                .tint(.red)
+                        } else {
+                            Image(systemName: "paperplane.fill")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(.red)
+                        }
+                    }
+                    .shadow(color: Color.red.opacity(0.3), radius: 8, x: 0, y: 4)
+                }
+                .disabled(isButtonDisabled)
+                .opacity(isButtonDisabled ? 0.5 : 1.0)
+                .onAppear {
+                    print("=== NavigationBar onAppear ===")
+                    print("competition: \(competition != nil)")
+                    print("bleManager.isConnected: \(bleManager.isConnected)")
+                    print("deviceToken: \(DeviceAuthManager.shared.deviceToken ?? "nil")")
+                    print("================================")
+                }
+            }
         }
         .padding(.horizontal, 20)
         .padding(.top, 16)

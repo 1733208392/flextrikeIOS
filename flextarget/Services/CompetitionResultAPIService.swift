@@ -1,7 +1,7 @@
 import Foundation
 
-class CompetitionAPIService {
-    static let shared = CompetitionAPIService()
+class CompetitionResultAPIService {
+    static let shared = CompetitionResultAPIService()
     
     private let baseURL = "https://etarget.topoint-archery.cn"
     private let session = URLSession.shared
@@ -21,18 +21,20 @@ class CompetitionAPIService {
     
     // MARK: - API Methods
     
-    /// Submit competition/game play data to the server
+    /// Submit competition result to the server
+    /// The competition info itself is always saved locally in Core Data.
+    /// This method submits the result and links it back to the competition created locally.
     /// - Parameters:
-    ///   - gameType: Game type (required)
+    ///   - gameType: Competition ID saved locally (required) - used to link result back to local competition
     ///   - gameVer: Game version (required)
     ///   - score: Game score (required)
-    ///   - detail: Game details as JSON
+    ///   - detail: Game details as JSON (shot data, metrics, etc.)
     ///   - playTime: Time of play in format "2025-12-12 12:23:35" (required)
-    ///   - playerMobile: Player's mobile number
-    ///   - playerNickname: Player's nickname
-    ///   - userAccessToken: User's access token
-    ///   - isPublic: Whether the competition is public (default: true)
+    ///   - playerMobile: Player's mobile number (optional)
+    ///   - playerNickname: Player's nickname (optional)
+    ///   - isPublic: Whether the competition result is public (default: true)
     ///   - namespace: Namespace (default: "default")
+    /// - Returns: GamePlayResponse with device_uuid and play_uuid for linking to local record
     func addGamePlay(
         gameType: String,
         gameVer: String,
@@ -41,7 +43,6 @@ class CompetitionAPIService {
         playTime: String,
         playerMobile: String?,
         playerNickname: String?,
-        userAccessToken: String,
         isPublic: Bool = true,
         namespace: String = "default"
     ) async throws -> GamePlayResponse {
@@ -50,13 +51,20 @@ class CompetitionAPIService {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
-        // Get authorization header with device token if available
-        let authHeader = DeviceAuthManager.shared.getAuthorizationHeaderValue(userAccessToken: userAccessToken)
+        // Get user access token from AuthManager
+        guard let userAccessToken = AuthManager.shared.currentUser?.accessToken else {
+            throw NSError(domain: "CompetitionResultAPI", code: -1, userInfo: [NSLocalizedDescriptionKey: "User not authenticated"])
+        }
+        
+        // Get authorization header with device token (device token required for game play submission)
+        let authHeader = try DeviceAuthManager.shared.getAuthorizationHeaderValue(userAccessToken: userAccessToken, requireDeviceToken: true)
         request.setValue(authHeader, forHTTPHeaderField: "Authorization")
         
         var body: [String: Any] = [
             "game_type": gameType,
             "game_ver": gameVer,
+            "player_mobile": playerMobile ?? "",
+            "player_nickname": playerNickname ?? "",
             "score": score,
             "detail": detail,
             "play_time": playTime,
@@ -64,25 +72,17 @@ class CompetitionAPIService {
             "namespace": namespace
         ]
         
-        if let mobile = playerMobile {
-            body["player_mobile"] = mobile
-        }
-        
-        if let nickname = playerNickname {
-            body["player_nickname"] = nickname
-        }
-        
         request.httpBody = try JSONSerialization.data(withJSONObject: body, options: [])
         
         let (data, _) = try await session.data(for: request)
         let response: APIResponse<GamePlayResponse> = try JSONDecoder().decode(APIResponse.self, from: data)
         
         if response.code != 0 {
-            throw NSError(domain: "CompetitionAPI", code: response.code, userInfo: [NSLocalizedDescriptionKey: response.msg])
+            throw NSError(domain: "CompetitionResultAPI", code: response.code, userInfo: [NSLocalizedDescriptionKey: response.msg])
         }
         
         guard let gameData = response.data else {
-            throw NSError(domain: "CompetitionAPI", code: -1, userInfo: [NSLocalizedDescriptionKey: "No data received"])
+            throw NSError(domain: "CompetitionResultAPI", code: -1, userInfo: [NSLocalizedDescriptionKey: "No data received"])
         }
         
         return gameData

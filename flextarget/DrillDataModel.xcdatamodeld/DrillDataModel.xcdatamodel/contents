@@ -7,6 +7,9 @@
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="sessionId" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="totalTime" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="serverPlayId" optional="YES" attributeType="String"/>
+        <attribute name="serverDeviceId" optional="YES" attributeType="String"/>
+        <attribute name="submittedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <relationship name="competition" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Competition" inverseName="results" inverseEntity="Competition"/>
         <relationship name="drillSetup" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="DrillSetup" inverseName="results" inverseEntity="DrillSetup"/>
         <relationship name="leaderboardEntries" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="LeaderboardEntry" inverseName="drillResult" inverseEntity="LeaderboardEntry"/>
