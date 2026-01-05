@@ -318,3 +318,19 @@
 "password" = "密碼";
 "login" = "登錄";
 "login_title" = "登錄";
+
+/* Competition Submission */
+"error_title" = "錯誤";
+"no_competition_error" = "此結果沒有關聯的競賽";
+"invalid_competition_id_error" = "無效的競賽ID";
+"device_disconnected_title" = "設備已斷開連接";
+"connect_device_before_submit" = "請在提交前連接設備";
+"device_auth_required_title" = "需要設備認證";
+"device_token_unavailable" = "設備認證令牌不可用。請確保設備已正確連接";
+"not_authenticated_title" = "未認證";
+"login_before_submit" = "請在提交結果前登錄";
+"success_title" = "成功";
+"submit_success_message" = "競賽結果已成功提交";
+"submit_failed_title" = "提交失敗";
+"alert_title" = "提示";
+"ok_button" = "確定";
