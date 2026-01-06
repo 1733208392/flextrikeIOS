@@ -3,59 +3,89 @@ import CoreData
 
 struct LeaderboardView: View {
     @Environment(\.managedObjectContext) private var viewContext
-
     @FetchRequest(
-        entity: LeaderboardEntry.entity(),
-        sortDescriptors: [NSSortDescriptor(keyPath: \LeaderboardEntry.scoreFactor, ascending: false)],
+        entity: Competition.entity(),
+        sortDescriptors: [NSSortDescriptor(keyPath: \Competition.date, ascending: false)],
         animation: .default
     )
-    private var entries: FetchedResults<LeaderboardEntry>
-
+    private var competitions: FetchedResults<Competition>
+    
+    @State private var selectedCompetition: Competition?
+    @State private var rankingRows: [CompetitionResultAPIService.RankingRow] = []
+    @State private var isLoadingRanking = false
+    @State private var rankingError: String?
+    @State private var showRankingError = false
+    @State private var currentPage = 1
+    @State private var totalPages = 1
     @State private var selectedSummaryContext: SelectedSummaryContext? = nil
 
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
 
-            List {
-                ForEach(Array(entries.enumerated()), id: \.element.objectID) { index, entry in
-                    row(rank: index + 1, entry: entry, isEven: index % 2 == 0)
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            openLinkedSummary(for: entry)
+            VStack(spacing: 0) {
+                // Competition Picker
+                if !competitions.isEmpty {
+                    Picker(NSLocalizedString("select_competition", comment: "Select competition"), selection: $selectedCompetition) {
+                        Text(NSLocalizedString("choose_competition", comment: "Choose competition"))
+                            .tag(nil as Competition?)
+                        ForEach(competitions, id: \.self) { competition in
+                            Text(competition.name ?? NSLocalizedString("untitled_competition", comment: ""))
+                                .tag(competition as Competition?)
                         }
-                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                            Button(role: .destructive) {
-                                deleteEntry(entry)
-                            } label: {
-                                Label(NSLocalizedString("delete", comment: "Delete"), systemImage: "trash")
-                            }
-                        }
-                        .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                        .listRowSeparator(.hidden)
-                        .listRowBackground(Color.clear)
-                }
-            }
-            .scrollContentBackground(.hidden)
-            .listStyle(.plain)
-            .background(Color.black)
-
-            NavigationLink(
-                isActive: Binding(
-                    get: { selectedSummaryContext != nil },
-                    set: { newValue in
-                        if !newValue { selectedSummaryContext = nil }
                     }
-                )
-            ) {
-                if let selectedSummaryContext {
-                    DrillSummaryView(drillSetup: selectedSummaryContext.drillSetup, summaries: selectedSummaryContext.summaries)
-                        .environment(\.managedObjectContext, viewContext)
+                    .pickerStyle(.menu)
+                    .padding()
+                    .background(Color.gray.opacity(0.2))
+                    .onChange(of: selectedCompetition) { _ in
+                        resetAndFetchRanking()
+                    }
+                } else {
+                    VStack {
+                        Text(NSLocalizedString("no_competitions", comment: "No competitions available"))
+                            .foregroundColor(.gray)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
-            } label: {
-                EmptyView()
+                
+                if isLoadingRanking {
+                    VStack {
+                        ProgressView()
+                            .tint(.red)
+                        Text(NSLocalizedString("loading_ranking", comment: "Loading ranking"))
+                            .foregroundColor(.gray)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else if let error = rankingError {
+                    VStack(spacing: 12) {
+                        Image(systemName: "exclamationmark.circle.fill")
+                            .font(.title)
+                            .foregroundColor(.red)
+                        Text(NSLocalizedString("ranking_error", comment: "Error loading ranking"))
+                            .foregroundColor(.white)
+                        Text(error)
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                        Button(action: { resetAndFetchRanking() }) {
+                            Text(NSLocalizedString("retry", comment: "Retry"))
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 10)
+                                .background(Color.red)
+                                .cornerRadius(6)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else if rankingRows.isEmpty && selectedCompetition != nil {
+                    VStack {
+                        Text(NSLocalizedString("no_ranking_data", comment: "No ranking data"))
+                            .foregroundColor(.gray)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else if !rankingRows.isEmpty {
+                    rankingList
+                }
             }
-            .hidden()
         }
         .navigationTitle(NSLocalizedString("leaderboard_title", comment: "Leaderboard title"))
         #if os(iOS)
@@ -63,6 +93,25 @@ struct LeaderboardView: View {
         .toolbarBackground(Color.black, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
         #endif
+        .onAppear {
+            if selectedCompetition == nil && !competitions.isEmpty {
+                selectedCompetition = competitions.first
+            }
+        }
+    }
+    
+    private var rankingList: some View {
+        List {
+            ForEach(Array(rankingRows.enumerated()), id: \.element.play_uuid) { index, row in
+                rankingRow(rank: index + 1, row: row, isEven: index % 2 == 0)
+                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
+            }
+        }
+        .scrollContentBackground(.hidden)
+        .listStyle(.plain)
+        .background(Color.black)
     }
 
     private struct SelectedSummaryContext {
@@ -70,56 +119,43 @@ struct LeaderboardView: View {
         let summaries: [DrillRepeatSummary]
     }
 
-    private func openLinkedSummary(for entry: LeaderboardEntry) {
-        guard let drillResult = entry.drillResult else { return }
-        guard let drillSetup = drillResult.drillSetup else { return }
-
-        selectedSummaryContext = SelectedSummaryContext(
-            drillSetup: drillSetup,
-            summaries: [makeRepeatSummary(from: drillResult)]
-        )
-    }
-
-    private func makeRepeatSummary(from result: DrillResult) -> DrillRepeatSummary {
-        let shots = result.decodedShots
-
-        var adjustedHitZones: [String: Int]? = nil
-        if let adjustedData = result.adjustedHitZones?.data(using: .utf8) {
-            adjustedHitZones = try? JSONDecoder().decode([String: Int].self, from: adjustedData)
+    private func resetAndFetchRanking() {
+        currentPage = 1
+        rankingRows = []
+        rankingError = nil
+        
+        guard let competition = selectedCompetition,
+              let competitionId = competition.id?.uuidString else {
+            rankingRows = []
+            return
         }
-
-        return DrillRepeatSummary(
-            id: result.id ?? UUID(),
-            repeatIndex: 1,
-            totalTime: result.effectiveTotalTime,
-            numShots: shots.count,
-            firstShot: shots.first?.content.timeDiff ?? 0,
-            fastest: result.fastestShot,
-            score: Int(result.totalScore),
-            shots: shots,
-            drillResultId: result.id,
-            adjustedHitZones: adjustedHitZones
-        )
-    }
-
-    private func deleteEntry(_ entry: LeaderboardEntry) {
-        viewContext.delete(entry)
-        do {
-            try viewContext.save()
-        } catch {
-            viewContext.rollback()
-            print("Failed to delete LeaderboardEntry: \(error)")
+        
+        isLoadingRanking = true
+        
+        Task {
+            do {
+                let ranking = try await CompetitionResultAPIService.shared.getGameRanking(
+                    gameType: competitionId,
+                    page: currentPage)
+                await MainActor.run {
+                    rankingRows = ranking
+                    isLoadingRanking = false
+                }
+            } catch {
+                await MainActor.run {
+                    rankingError = error.localizedDescription
+                    isLoadingRanking = false
+                }
+            }
         }
     }
 
-    private func row(rank: Int, entry: LeaderboardEntry, isEven: Bool) -> some View {
+    private func rankingRow(rank: Int, row: CompetitionResultAPIService.RankingRow, isEven: Bool) -> some View {
         let background = isEven ? Color.gray.opacity(0.25) : Color.gray.opacity(0.15)
-
-        let athleteName = entry.athlete?.name?.trimmingCharacters(in: .whitespacesAndNewlines)
-        let displayName = (athleteName?.isEmpty == false) ? athleteName! : NSLocalizedString("untitled", comment: "Fallback name")
+        let displayName = (row.player_nickname?.isEmpty == false) ? row.player_nickname! : row.player_mobile ?? NSLocalizedString("untitled", comment: "")
 
         return HStack(spacing: 16) {
-            Text("\(rank)")
+            Text("\(row.rank)")
                 .font(.system(size: 34, weight: .bold))
                 .foregroundColor(.white.opacity(0.9))
                 .frame(width: 44, alignment: .center)
@@ -129,14 +165,18 @@ struct LeaderboardView: View {
                 .frame(width: 1)
                 .padding(.vertical, 12)
 
-            HStack(spacing: 12) {
-                avatarPreview(data: entry.athlete?.avatarData)
-
+            VStack(alignment: .leading, spacing: 4) {
                 Text(displayName)
-                    .font(.system(size: 34, weight: .bold))
+                    .font(.system(size: 18, weight: .semibold))
                     .foregroundColor(.white)
                     .lineLimit(1)
-                    .minimumScaleFactor(0.7)
+                
+                if let deviceName = row.bluetooth_name {
+                    Text(deviceName)
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                        .lineLimit(1)
+                }
             }
 
             Spacer(minLength: 10)
@@ -146,39 +186,20 @@ struct LeaderboardView: View {
                 .frame(width: 1)
                 .padding(.vertical, 12)
 
-            Text(String(format: "%.2f", entry.scoreFactor))
-                .font(.system(size: 34, weight: .bold))
-                .foregroundColor(.white)
-                .frame(width: 108, alignment: .trailing)
+            VStack(alignment: .trailing, spacing: 4) {
+                Text(String(format: "%.2f", row.score))
+                    .font(.system(size: 28, weight: .bold))
+                    .foregroundColor(.white)
+                
+                Text(NSLocalizedString("points", comment: "Points label"))
+                    .font(.caption2)
+                    .foregroundColor(.gray)
+            }
+            .frame(width: 80, alignment: .trailing)
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 18)
+        .padding(.vertical, 12)
         .background(background)
-    }
-
-    @ViewBuilder
-    private func avatarPreview(data: Data?) -> some View {
-        if let data, let image = UIImage(data: data) {
-            Image(uiImage: image)
-                .resizable()
-                .scaledToFill()
-                .frame(width: 56, height: 56)
-                .clipShape(Circle())
-                .overlay(
-                    Circle()
-                        .stroke(Color.white, lineWidth: 2)
-                )
-        } else {
-            Image(systemName: "person.crop.circle.fill")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 56, height: 56)
-                .foregroundColor(.gray)
-                .overlay(
-                    Circle()
-                        .stroke(Color.white, lineWidth: 2)
-                )
-        }
     }
 }
 

@@ -267,7 +267,16 @@
 "view_competitions" = "查看竞赛";
 "shooters" = "射手";
 "manage_shooters" = "管理射手";
+"leaderboard" = "排行榜";
 "view_leaderboard" = "查看排行榜";
+"select_competition" = "选择竞赛";
+"choose_competition" = "选择一个竞赛";
+"no_competitions" = "暂无竞赛";
+"loading_ranking" = "加载排行榜...";
+"ranking_error" = "加载排行榜出错";
+"no_ranking_data" = "暂无排行数据";
+"retry" = "重试";
+"points" = "分";
 "untitled_competition" = "未命名竞赛";
 "competition_info" = "竞赛信息";
 "competition_name" = "竞赛名称";

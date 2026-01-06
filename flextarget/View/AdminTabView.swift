@@ -132,7 +132,8 @@ struct AdminContentView: View {
                     NavigationLink(destination: ConnectSmartTargetView(
                         bleManager: bleManager,
                         navigateToMain: .constant(false),
-                        isAlreadyConnected: true
+                        isAlreadyConnected: true,
+                        hideCloseButton: true
                     )) {
                         HStack(spacing: 12) {
                             Image(systemName: "antenna.radiowaves.left.and.right")
@@ -164,6 +165,8 @@ struct AdminContentView: View {
                     }
                 }
                 .padding(12)
+                
+                Spacer()
             } else {
                 VStack(spacing: 16) {
                     // QR Scan Option
@@ -176,7 +179,7 @@ struct AdminContentView: View {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                             showConnectView = true
                         }
-                    })) {
+                    }, hideBackButton: true)) {
                         HStack(spacing: 12) {
                             Image(systemName: "qrcode.viewfinder")
                                 .font(.title2)

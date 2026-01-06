@@ -264,7 +264,16 @@
 "view_competitions" = "View competitions";
 "shooters" = "Shooters";
 "manage_shooters" = "Manage shooters";
+"leaderboard" = "Leaderboard";
 "view_leaderboard" = "View leaderboard";
+"select_competition" = "Select Competition";
+"choose_competition" = "Choose a competition";
+"no_competitions" = "No competitions available";
+"loading_ranking" = "Loading ranking...";
+"ranking_error" = "Error loading ranking";
+"no_ranking_data" = "No ranking data available";
+"retry" = "Retry";
+"points" = "Points";
 "untitled_competition" = "Untitled Competition";
 "competition_info" = "Competition Information";
 "competition_name" = "Competition Name";

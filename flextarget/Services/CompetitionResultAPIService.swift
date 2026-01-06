@@ -39,6 +39,21 @@ class CompetitionResultAPIService {
         let is_public: Bool
     }
     
+    struct RankingRow: Codable {
+        let play_uuid: String
+        let bluetooth_name: String?
+        let game_type: String
+        let game_ver: String
+        let score: Float
+        let rank: Int
+        let play_time: String
+        let player_mobile: String?
+        let player_nickname: String?
+    }
+    
+    // GameRankingResponse is just [RankingRow] array
+    typealias GameRankingResponse = [RankingRow]
+    
     // MARK: - API Methods
     
     /// Fetch competition results from the server
@@ -166,5 +181,51 @@ class CompetitionResultAPIService {
         }
         
         return gameData
+    }
+    
+    /// Fetch game ranking from the server
+    /// - Parameters:
+    ///   - gameType: Game/competition type (required) - uses the competition ID
+    ///   - namespace: Namespace (default: "default")
+    ///   - gameVer: Game version (optional)
+    ///   - page: Page number (default: 1)
+    ///   - limit: Records per page (default: 30)
+    /// - Returns: Array of RankingRow with ranked results
+    func getGameRanking(
+        gameType: String,
+        namespace: String = "default",
+        gameVer: String = "1.0",
+        page: Int = 1,
+        limit: Int = 30
+    ) async throws -> [RankingRow] {
+        let url = URL(string: "\(baseURL)/game/play/ranking")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let body: [String: Any] = [
+            "game_type": gameType,
+            "namespace": namespace,
+            "page": page,
+            "limit": limit,
+            "game_ver": gameVer
+        ]
+        
+        request.httpBody = try JSONSerialization.data(withJSONObject: body, options: [])
+        
+        let (data, _) = try await session.data(for: request)
+        
+        // Decode the response wrapper first
+        let response: APIResponse<[RankingRow]> = try JSONDecoder().decode(APIResponse.self, from: data)
+        
+        if response.code != 0 {
+            throw NSError(domain: "CompetitionResultAPI", code: response.code, userInfo: [NSLocalizedDescriptionKey: response.msg])
+        }
+        
+        guard let rankingData = response.data else {
+            return [] // Return empty array if no data
+        }
+        
+        return rankingData
     }
 }

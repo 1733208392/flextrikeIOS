@@ -269,6 +269,7 @@
 "view_competitions" = "大会を表示";
 "shooters" = "射手";
 "manage_shooters" = "射手を管理";
+"leaderboard" = "ランキング";
 "view_leaderboard" = "ランキングを表示";
 "untitled_competition" = "無題の大会";
 "competition_info" = "大会情報";

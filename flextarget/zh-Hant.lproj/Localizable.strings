@@ -268,6 +268,7 @@
 "view_competitions" = "查看競賽";
 "shooters" = "射手";
 "manage_shooters" = "管理射手";
+"leaderboard" = "排行榜";
 "view_leaderboard" = "查看排行榜";
 "untitled_competition" = "未命名競賽";
 "competition_info" = "競賽信息";

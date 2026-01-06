@@ -267,6 +267,7 @@
 "view_competitions" = "Ver competiciones";
 "shooters" = "Tiradores";
 "manage_shooters" = "Gestionar tiradores";
+"leaderboard" = "Tabla de clasificación";
 "view_leaderboard" = "Ver tabla de clasificación";
 "untitled_competition" = "Competición sin título";
 "competition_info" = "Información de la competición";

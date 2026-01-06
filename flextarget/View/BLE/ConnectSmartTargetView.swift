@@ -7,6 +7,7 @@ struct ConnectSmartTargetView: View {
     var targetPeripheralName: String? = nil
     // Flag indicating if BLE is already connected
     var isAlreadyConnected: Bool = false
+    var hideCloseButton: Bool = false
     @Environment(\.dismiss) var dismiss
     @State private var statusText: String = "CONNECTING"
     @State private var showReconnect: Bool = false
@@ -173,17 +174,19 @@ struct ConnectSmartTargetView: View {
             //                .border(Color.white, width: 1)
         }//Top Level Geometry Reader
         .overlay(alignment: .topTrailing) {
-            Button(action: { dismiss() }) {
-                Image(systemName: "xmark")
-                    .foregroundColor(.white)
-                    .font(.system(size: 20))
-                    .padding(12)
-                    .background(Color.white.opacity(0.2))
-                    .clipShape(Circle())
+            if !hideCloseButton {
+                Button(action: { dismiss() }) {
+                    Image(systemName: "xmark")
+                        .foregroundColor(.white)
+                        .font(.system(size: 20))
+                        .padding(12)
+                        .background(Color.white.opacity(0.2))
+                        .clipShape(Circle())
+                }
+                .padding(.trailing, 20)
+                .padding(.top, 20)
+                .accessibilityLabel(Text("Close"))
             }
-            .padding(.trailing, 20)
-            .padding(.top, 20)
-            .accessibilityLabel(Text("Close"))
         }
         .sheet(isPresented: $showImageCrop) {
             ImageCropView()
