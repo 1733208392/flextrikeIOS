@@ -53,6 +53,16 @@ struct AdminContentView: View {
         }
         .navigationTitle(NSLocalizedString("admin", comment: "Admin tab title"))
         .navigationBarTitleDisplayMode(.inline)
+        .onChange(of: authManager.isAuthenticated) { newValue in
+            if !newValue {
+                // User was logged out (either manually or due to token expiration)
+                showMainMenu = false
+                showDeviceManagement = false
+                showUserProfile = false
+                showInformation = false
+                showLoginFlow = true
+            }
+        }
         .sheet(isPresented: $showConnectView) {
             ConnectSmartTargetView(
                 bleManager: bleManager,

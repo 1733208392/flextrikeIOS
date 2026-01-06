@@ -6,18 +6,25 @@ class AuthManager: ObservableObject {
     
     @Published var currentUser: User?
     @Published var isAuthenticated: Bool = false
+    @Published var tokenExpired: Bool = false
     
     private let userDefaults = UserDefaults.standard
     private let userKey = "currentUser"
+    private var tokenRefreshTimer: Timer?
+    private let tokenRefreshInterval: TimeInterval = 55 * 60 // Refresh every 55 minutes
     
     private init() {
         loadUser()
+        if currentUser != nil {
+            startTokenRefreshTimer()
+        }
     }
     
     func login(user: User) {
         currentUser = user
         isAuthenticated = true
         saveUser()
+        startTokenRefreshTimer()
     }
     
     func logout() async {
@@ -29,8 +36,10 @@ class AuthManager: ObservableObject {
             }
         }
         
+        stopTokenRefreshTimer()
         currentUser = nil
         isAuthenticated = false
+        tokenExpired = false
         userDefaults.removeObject(forKey: userKey)
         
         // Clear device authentication on logout
@@ -50,6 +59,41 @@ class AuthManager: ObservableObject {
         user.username = username
         currentUser = user
         saveUser()
+    }
+    
+    // MARK: - Token Refresh
+    
+    func refreshToken() async {
+        guard let refreshToken = currentUser?.refreshToken else {
+            print("No refresh token available")
+            return
+        }
+        
+        do {
+            let refreshData = try await UserAPIService.shared.refreshToken(refreshToken: refreshToken)
+            await MainActor.run {
+                self.updateTokens(accessToken: refreshData.access_token, refreshToken: refreshToken)
+                print("Token refreshed successfully")
+            }
+        } catch {
+            print("Token refresh failed: \(error)")
+            // If refresh fails, logout the user
+            await logout()
+        }
+    }
+    
+    private func startTokenRefreshTimer() {
+        stopTokenRefreshTimer()
+        tokenRefreshTimer = Timer.scheduledTimer(withTimeInterval: tokenRefreshInterval, repeats: true) { [weak self] _ in
+            Task {
+                await self?.refreshToken()
+            }
+        }
+    }
+    
+    private func stopTokenRefreshTimer() {
+        tokenRefreshTimer?.invalidate()
+        tokenRefreshTimer = nil
     }
     
     private func saveUser() {

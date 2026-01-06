@@ -336,5 +336,9 @@
 /* Competition Results Sync */
 "sync_results" = "Sync Results";
 "sync_error_title" = "Sync Error";
+"device_reauth_message" = "Please connect your target device to re-authorize your device";
 "submitted" = "Submitted";
 "local_unsubmitted" = "Local/Unsubmitted";
+/* Athlete Deletion */
+"delete_athlete" = "Delete Athlete";
+"delete_athlete_confirm" = "This will delete the athlete and all their competition results. This action cannot be undone.";

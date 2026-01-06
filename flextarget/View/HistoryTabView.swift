@@ -53,6 +53,16 @@ struct HistoryTabView: View {
         var grouped: [String: [(DrillSetup, [DrillResult])]] = [:]
         
         let filtered = drillResults.filter { result in
+            // Exclude results from competitions that have associated athletes
+            // These are competition/match records, not personal drill records
+            if result.competition != nil {
+                if let entries = result.leaderboardEntries as? Set<LeaderboardEntry> {
+                    if entries.contains(where: { $0.athlete != nil }) {
+                        return false // Exclude competition results with athletes
+                    }
+                }
+            }
+            
             // Filter by date range
             if let startDate = selectedDateRange.startDate, let resultDate = result.date {
                 if resultDate < startDate || resultDate > selectedDateRange.endDate {

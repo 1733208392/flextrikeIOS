@@ -208,7 +208,8 @@ struct CompetitionDetailView: View {
                 self.syncRemoteResultsWithLocal(remoteResults: listResponse.rows)
             }
         } catch {
-            lastSyncError = error.localizedDescription
+            // Set user-friendly error message for sync failures
+            lastSyncError = NSLocalizedString("device_reauth_message", comment: "Device re-authorization message")
             showSyncError = true
         }
         

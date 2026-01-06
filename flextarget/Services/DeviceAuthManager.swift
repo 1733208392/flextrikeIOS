@@ -124,7 +124,17 @@ class DeviceAuthManager: ObservableObject {
             print("  - Error type: \(type(of: error))")
             print("  - Error: \(error.localizedDescription)")
             print("  - Full error: \(error)")
-            // Silently fail - app continues with user-only auth
+            
+            // Check if error is due to expired user token (401)
+            if let nsError = error as? NSError, nsError.code == 401 {
+                print("DeviceAuthManager: User token expired (401), disconnecting device and logging out")
+                // Disconnect the BLE device to force manual reconnection
+                self.bleManager?.disconnect()
+                Task {
+                    await AuthManager.shared.logout()
+                }
+            }
+            // Otherwise silently fail - app continues with user-only auth
         }
     }
     

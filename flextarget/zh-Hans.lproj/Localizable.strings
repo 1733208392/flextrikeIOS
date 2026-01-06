@@ -249,7 +249,7 @@
 "unknown_date" = "未知日期";
 
 /* Tab Navigation */
-"history" = "历史";
+"history" = "记录";
 "admin" = "管理";
 "competition" = "竞赛";
 
@@ -356,5 +356,9 @@
 /* Competition Results Sync */
 "sync_results" = "同步结果";
 "sync_error_title" = "同步错误";
+"device_reauth_message" = "请连接您的标靶设备以重新授权设备";
 "submitted" = "已提交";
 "local_unsubmitted" = "本地/未提交";
+/* Athlete Deletion */
+"delete_athlete" = "删除运动员";
+"delete_athlete_confirm" = "这将删除该运动员及其所有竞赛成绩。此操作无法撤销。";

@@ -31,6 +31,8 @@ struct AthletesManagementView: View {
 
     @State private var showError: Bool = false
     @State private var errorMessage: String = ""
+    @State private var athleteToDelete: Athlete? = nil
+    @State private var showDeleteConfirmation: Bool = false
 
     var body: some View {
         ZStack {
@@ -123,8 +125,16 @@ struct AthletesManagementView: View {
                         ForEach(athletes) { athlete in
                             athleteRow(athlete)
                                 .listRowBackground(Color.gray.opacity(0.2))
+                                .contentShape(Rectangle())
+                                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                    Button(role: .destructive) {
+                                        athleteToDelete = athlete
+                                        showDeleteConfirmation = true
+                                    } label: {
+                                        Label(NSLocalizedString("delete", comment: "Delete button"), systemImage: "trash")
+                                    }
+                                }
                         }
-                        .onDelete(perform: deleteAthletes)
                     }
                 }
             }
@@ -154,6 +164,18 @@ struct AthletesManagementView: View {
                 title: Text("Error"),
                 message: Text(errorMessage),
                 dismissButton: .default(Text(NSLocalizedString("ok", comment: "OK button")))
+            )
+        }
+        .alert(isPresented: $showDeleteConfirmation) {
+            Alert(
+                title: Text(NSLocalizedString("delete_athlete", comment: "Delete athlete")),
+                message: Text(NSLocalizedString("delete_athlete_confirm", comment: "Confirm athlete deletion with competition results cleanup")),
+                primaryButton: .destructive(Text(NSLocalizedString("delete", comment: "Delete button"))) {
+                    if let athlete = athleteToDelete {
+                        deleteAthleteWithResults(athlete)
+                    }
+                },
+                secondaryButton: .cancel()
             )
         }
     }
@@ -221,13 +243,22 @@ struct AthletesManagementView: View {
         }
     }
 
-    private func deleteAthletes(offsets: IndexSet) {
-        for index in offsets {
-            viewContext.delete(athletes[index])
-        }
-
+    private func deleteAthleteWithResults(_ athlete: Athlete) {
+        // Fetch all competition results associated with this athlete
+        let fetchRequest = NSFetchRequest<DrillResult>(entityName: "DrillResult")
+        fetchRequest.predicate = NSPredicate(format: "ANY leaderboardEntries.athlete == %@", athlete)
+        
         do {
+            let results = try viewContext.fetch(fetchRequest)
+            for result in results {
+                viewContext.delete(result)
+            }
+            
+            // Delete the athlete
+            viewContext.delete(athlete)
+            
             try viewContext.save()
+            athleteToDelete = nil
         } catch {
             viewContext.rollback()
             errorMessage = error.localizedDescription

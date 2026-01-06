@@ -250,7 +250,7 @@
 "unknown_date" = "未知日期";
 
 /* Tab Navigation */
-"history" = "歷史";
+"history" = "記錄";
 "admin" = "管理";
 "competition" = "競賽";
 
@@ -352,5 +352,9 @@
 /* Competition Results Sync */
 "sync_results" = "同步結果";
 "sync_error_title" = "同步錯誤";
+"device_reauth_message" = "請連接您的標靶設備以重新授權設備";
 "submitted" = "已提交";
 "local_unsubmitted" = "本機/未提交";
+/* Athlete Deletion */
+"delete_athlete" = "刪除運動員";
+"delete_athlete_confirm" = "這將刪除該運動員及其所有競賽成績。此操作無法撤銷。";
