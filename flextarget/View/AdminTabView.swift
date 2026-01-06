@@ -88,7 +88,7 @@ struct AdminContentView: View {
                         // User Profile
                         adminMenuButton(
                             icon: "person.circle",
-                            title: authManager.currentUser?.username ?? "User Profile",
+                            title: authManager.currentUser?.username ?? NSLocalizedString("user_profile", comment: "User Profile"),
                             description: NSLocalizedString("manage_profile", comment: "Manage user profile"),
                             isActive: false
                         ) {

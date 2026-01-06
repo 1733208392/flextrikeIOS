@@ -319,6 +319,7 @@
 "password" = "Contraseña";
 "login" = "Iniciar sesión";
 "login_title" = "Iniciar sesión";
+"manage_profile" = "Gestionar perfil de usuario";
 
 /* Competition Submission */
 "error_title" = "Error";
@@ -335,3 +336,15 @@
 "submit_failed_title" = "Envío Fallido";
 "alert_title" = "Alerta";
 "ok_button" = "OK";
+
+/* User Profile */
+"user_profile" = "Perfil de Usuario";
+"profile" = "Perfil";
+"edit_profile" = "Editar Perfil";
+"change_password" = "Cambiar Contraseña";
+"update_profile" = "Actualizar Perfil";
+"current_password" = "Contraseña Actual";
+"new_password" = "Nueva Contraseña";
+"confirm_password" = "Confirmar Nueva Contraseña";
+"profile_updated_success" = "Perfil actualizado correctamente";
+"username" = "Nombre de Usuario";

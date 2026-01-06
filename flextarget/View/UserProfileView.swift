@@ -19,9 +19,9 @@ struct UserProfileView: View {
     
     var body: some View {
         VStack {
-            Picker("Profile", selection: $selectedTab) {
-                Text("Edit Profile").tag(0)
-                Text("Change Password").tag(1)
+            Picker(NSLocalizedString("profile", comment: "Profile"), selection: $selectedTab) {
+                Text(NSLocalizedString("edit_profile", comment: "Edit Profile")).tag(0)
+                Text(NSLocalizedString("change_password", comment: "Change Password")).tag(1)
             }
             .pickerStyle(SegmentedPickerStyle())
             .padding(.horizontal)
@@ -49,7 +49,7 @@ struct UserProfileView: View {
             Spacer()
         }
         .background(Color.black.ignoresSafeArea())
-        .navigationTitle("User Profile")
+        .navigationTitle(NSLocalizedString("user_profile", comment: "User Profile"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
@@ -60,7 +60,7 @@ struct UserProfileView: View {
             }
         }
         .alert(isPresented: $showSuccess) {
-            Alert(title: Text("Success"), message: Text("Profile updated successfully"), dismissButton: .default(Text("OK")))
+            Alert(title: Text(NSLocalizedString("success_title", comment: "Success")), message: Text(NSLocalizedString("profile_updated_success", comment: "Profile updated successfully")), dismissButton: .default(Text(NSLocalizedString("ok_button", comment: "OK"))))
         }
         .alert(isPresented: $showLogoutAlert) {
             Alert(
@@ -89,7 +89,7 @@ struct UserProfileView: View {
                 .foregroundColor(.red)
             
             VStack(spacing: 16) {
-                TextField("Username", text: $username)
+                TextField(NSLocalizedString("username", comment: "Username"), text: $username)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .autocapitalization(.words)
                 
@@ -104,7 +104,7 @@ struct UserProfileView: View {
                         ProgressView()
                             .progressViewStyle(CircularProgressViewStyle(tint: .white))
                     } else {
-                        Text("Update Profile")
+                        Text(NSLocalizedString("update_profile", comment: "Update Profile"))
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
                             .padding()
@@ -125,13 +125,13 @@ struct UserProfileView: View {
                 .foregroundColor(.red)
             
             VStack(spacing: 16) {
-                SecureField("Current Password", text: $oldPassword)
+                SecureField(NSLocalizedString("current_password", comment: "Current Password"), text: $oldPassword)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                 
-                SecureField("New Password", text: $newPassword)
+                SecureField(NSLocalizedString("new_password", comment: "New Password"), text: $newPassword)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                 
-                SecureField("Confirm New Password", text: $confirmPassword)
+                SecureField(NSLocalizedString("confirm_password", comment: "Confirm New Password"), text: $confirmPassword)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                 
                 if showError {
@@ -145,7 +145,7 @@ struct UserProfileView: View {
                         ProgressView()
                             .progressViewStyle(CircularProgressViewStyle(tint: .white))
                     } else {
-                        Text("Change Password")
+                        Text(NSLocalizedString("change_password", comment: "Change Password"))
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
                             .padding()

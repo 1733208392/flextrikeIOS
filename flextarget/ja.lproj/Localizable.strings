@@ -319,6 +319,7 @@
 "password" = "パスワード";
 "login" = "ログイン";
 "login_title" = "ログイン";
+"manage_profile" = "ユーザープロフィールを管理";
 
 /* Competition Submission */
 "error_title" = "エラー";
@@ -335,3 +336,15 @@
 "submit_failed_title" = "送信失敗";
 "alert_title" = "アラート";
 "ok_button" = "OK";
+
+/* User Profile */
+"user_profile" = "ユーザープロフィール";
+"profile" = "プロフィール";
+"edit_profile" = "プロフィールを編集";
+"change_password" = "パスワードを変更";
+"update_profile" = "プロフィールを更新";
+"current_password" = "現在のパスワード";
+"new_password" = "新しいパスワード";
+"confirm_password" = "新しいパスワードを確認";
+"profile_updated_success" = "プロフィールが正常に更新されました";
+"username" = "ユーザー名";

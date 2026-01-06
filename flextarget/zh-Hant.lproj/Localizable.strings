@@ -318,6 +318,7 @@
 "password" = "密碼";
 "login" = "登錄";
 "login_title" = "登錄";
+"manage_profile" = "管理用戶資料";
 
 /* Competition Submission */
 "error_title" = "錯誤";
@@ -334,3 +335,15 @@
 "submit_failed_title" = "提交失敗";
 "alert_title" = "提示";
 "ok_button" = "確定";
+
+/* User Profile */
+"user_profile" = "用戶資料";
+"profile" = "資料";
+"edit_profile" = "編輯資料";
+"change_password" = "更改密碼";
+"update_profile" = "更新資料";
+"current_password" = "目前密碼";
+"new_password" = "新密碼";
+"confirm_password" = "確認新密碼";
+"profile_updated_success" = "資料更新成功";
+"username" = "用戶名稱";

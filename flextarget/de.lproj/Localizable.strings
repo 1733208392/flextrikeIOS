@@ -320,6 +320,7 @@
 "password" = "Passwort";
 "login" = "Anmelden";
 "login_title" = "Anmelden";
+"manage_profile" = "Benutzerprofil verwalten";
 
 /* Competition Submission */
 "error_title" = "Fehler";
@@ -336,3 +337,15 @@
 "submit_failed_title" = "Senden fehlgeschlagen";
 "alert_title" = "Benachrichtigung";
 "ok_button" = "OK";
+
+/* User Profile */
+"user_profile" = "Benutzerprofil";
+"profile" = "Profil";
+"edit_profile" = "Profil bearbeiten";
+"change_password" = "Passwort ändern";
+"update_profile" = "Profil aktualisieren";
+"current_password" = "Aktuelles Passwort";
+"new_password" = "Neues Passwort";
+"confirm_password" = "Neues Passwort bestätigen";
+"profile_updated_success" = "Profil erfolgreich aktualisiert";
+"username" = "Benutzername";

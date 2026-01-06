@@ -295,6 +295,7 @@
 "manage_connection" = "Manage connection";
 "scan_qr_code" = "Scan QR Code";
 "scan_device_qr" = "Scan device QR code";
+"manage_profile" = "Manage user profile";
 
 /* Competition Submission */
 "error_title" = "Error";
@@ -311,3 +312,15 @@
 "submit_failed_title" = "Submission Failed";
 "alert_title" = "Alert";
 "ok_button" = "OK";
+
+/* User Profile */
+"user_profile" = "User Profile";
+"profile" = "Profile";
+"edit_profile" = "Edit Profile";
+"change_password" = "Change Password";
+"update_profile" = "Update Profile";
+"current_password" = "Current Password";
+"new_password" = "New Password";
+"confirm_password" = "Confirm New Password";
+"profile_updated_success" = "Profile updated successfully";
+"username" = "Username";
