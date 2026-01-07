@@ -111,35 +111,6 @@ struct DrillFormView: View {
                     }
                 
                 VStack(spacing: 20) {
-                        // History Record Button - only show in edit mode
-                        if let drillSetup = currentDrillSetup {
-                            // Extract destination into a local constant to help the compiler
-                            let drillRecordDestination = DrillRecordView(drillSetup: drillSetup)
-                                .environment(\.managedObjectContext, viewContext)
-
-                            NavigationLink(destination: drillRecordDestination) {
-                                HStack(spacing: 8) {
-                                    Image(systemName: "clock.arrow.circlepath")
-                                        .foregroundColor(.red)
-                                        .font(.title3)
-                                    Text(NSLocalizedString("history_record", comment: "History Record button label"))
-                                        .foregroundColor(.white)
-                                        .font(.footnote)
-                                    Spacer()
-                                }
-                                .frame(height: 36)
-                                .frame(maxWidth: .infinity)
-                                .padding(.horizontal)
-                                .padding(.vertical, 8)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 16)
-                                        .stroke(Color.red, lineWidth: 1)
-                                )
-                            }
-                            .padding(.horizontal)
-                            .padding(.top)
-                        }
-                        
                         ScrollView {
                             if isEditingDisabled {
                                 HStack {

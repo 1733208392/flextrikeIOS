@@ -1,10 +1,23 @@
 import SwiftUI
 import CoreData
 
+struct DrillSession {
+    let sessionId: UUID
+    let setup: DrillSetup
+    let date: Date?
+    let results: [DrillResult]
+    
+    var repeatCount: Int { results.count }
+    var totalShots: Int {
+        results.reduce(0) { $0 + (($1.shots as? Set<Shot>)?.count ?? 0) }
+    }
+}
+
 struct HistoryTabView: View {
     @Environment(\.managedObjectContext) var managedObjectContext
     
     @State private var selectedDrillType: String? = nil
+    @State private var selectedDrillName: String? = nil
     @State private var selectedDateRange: DateRange = .all
     @State private var expandedDrillSetups: Set<UUID> = []
     @State private var selectedResult: DrillResult? = nil
@@ -49,8 +62,8 @@ struct HistoryTabView: View {
         }
     }
     
-    var groupedResults: [String: [(DrillSetup, [DrillResult])]] {
-        var grouped: [String: [(DrillSetup, [DrillResult])]] = [:]
+    var groupedResults: [String: [DrillSession]] {
+        var grouped: [String: [DrillSession]] = [:]
         
         let filtered = drillResults.filter { result in
             // Exclude results from competitions that have associated athletes
@@ -73,44 +86,55 @@ struct HistoryTabView: View {
                 }
             }
             
+            // Filter by drill name
+            if let selectedName = selectedDrillName {
+                if result.drillSetup?.name != selectedName {
+                    return false
+                }
+            }
+            
             return true
         }
         
-        // Group by drill setup
-        var setupGroups: [DrillSetup: [DrillResult]] = [:]
+        // Group by sessionId
+        var sessionGroups: [UUID: [DrillResult]] = [:]
         for result in filtered {
-            if let setup = result.drillSetup {
-                if setupGroups[setup] == nil {
-                    setupGroups[setup] = []
-                }
-                setupGroups[setup]?.append(result)
+            let sid = result.sessionId ?? UUID()
+            if sessionGroups[sid] == nil {
+                sessionGroups[sid] = []
             }
+            sessionGroups[sid]?.append(result)
         }
         
-        // Group by date for each setup
-        for (setup, results) in setupGroups {
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateStyle = .medium
-            dateFormatter.timeStyle = .none
-            
-            for result in results {
-                let dateKey = result.date.map { dateFormatter.string(from: $0) } ?? NSLocalizedString("unknown_date", comment: "Unknown date")
-                
-                if grouped[dateKey] == nil {
-                    grouped[dateKey] = []
-                }
-                
-                if !grouped[dateKey]!.contains(where: { $0.0 == setup }) {
-                    grouped[dateKey]!.append((setup, []))
-                }
-                
-                if var setupGroup = grouped[dateKey]?.first(where: { $0.0 == setup }) {
-                    setupGroup.1.append(result)
-                    if let index = grouped[dateKey]?.firstIndex(where: { $0.0 == setup }) {
-                        grouped[dateKey]?[index] = setupGroup
-                    }
-                }
+        // Create sessions
+        var sessions: [DrillSession] = sessionGroups.compactMap { (sid: UUID, results: [DrillResult]) -> DrillSession? in
+            guard let firstResult = results.first, let setup = firstResult.drillSetup else { return nil }
+            return DrillSession(sessionId: sid, setup: setup, date: firstResult.date, results: results)
+        }
+        
+        // Sort sessions by date descending to ensure stable order
+        sessions.sort { (a, b) -> Bool in
+            let dateA = a.date ?? Date.distantPast
+            let dateB = b.date ?? Date.distantPast
+            if dateA != dateB {
+                return dateA > dateB
             }
+            return a.sessionId.uuidString > b.sessionId.uuidString
+        }
+        
+        // Group by date
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateStyle = .medium
+        dateFormatter.timeStyle = .none
+        
+        for session in sessions {
+            let dateKey = session.date.map { dateFormatter.string(from: $0) } ?? NSLocalizedString("unknown_date", comment: "Unknown date")
+            
+            if grouped[dateKey] == nil {
+                grouped[dateKey] = []
+            }
+            
+            grouped[dateKey]?.append(session)
         }
         
         return grouped
@@ -119,6 +143,11 @@ struct HistoryTabView: View {
     var uniqueDrillTypes: [String] {
         let types = Set(drillResults.compactMap { $0.drillSetup?.mode })
         return Array(types).sorted()
+    }
+    
+    var uniqueDrillNames: [String] {
+        let names = Set(drillResults.compactMap { $0.drillSetup?.name })
+        return Array(names).sorted()
     }
     
     var body: some View {
@@ -181,6 +210,33 @@ struct HistoryTabView: View {
                         .background(Color.gray.opacity(0.2))
                         .cornerRadius(8)
                     }
+                    
+                    // Drill Name Filter
+                    Menu {
+                        Button(NSLocalizedString("all_names", comment: "All names filter")) {
+                            selectedDrillName = nil
+                        }
+                        
+                        Divider()
+                        
+                        ForEach(uniqueDrillNames, id: \.self) { name in
+                            Button(name) {
+                                selectedDrillName = name
+                            }
+                        }
+                    } label: {
+                        HStack {
+                            Image(systemName: "target")
+                            Text(selectedDrillName ?? NSLocalizedString("all_names", comment: "All names filter"))
+                                .lineLimit(1)
+                            Spacer()
+                            Image(systemName: "chevron.down")
+                        }
+                        .foregroundColor(.red)
+                        .padding(12)
+                        .background(Color.gray.opacity(0.2))
+                        .cornerRadius(8)
+                    }
                 }
                 .padding(12)
                 
@@ -206,22 +262,56 @@ struct HistoryTabView: View {
                 } else {
                     ScrollView {
                         VStack(spacing: 16) {
-                            ForEach(groupedResults.sorted(by: { $0.key > $1.key }), id: \.key) { dateKey, setupGroups in
+                            ForEach(groupedResults.sorted(by: { $0.key > $1.key }), id: \.key) { dateKey, sessions in
                                 VStack(alignment: .leading, spacing: 8) {
                                     Text(dateKey)
                                         .font(.subheadline)
                                         .foregroundColor(.red)
                                         .padding(.horizontal)
                                     
-                                    ForEach(setupGroups, id: \.0.id) { setup, results in
-                                        VStack(spacing: 8) {
-                                            ForEach(results, id: \.objectID) { result in
-                                                NavigationLink(destination: DrillSummaryView(drillSetup: setup, summaries: createSummaries(from: result) ?? [])
-                                                    .environment(\.managedObjectContext, persistenceController.container.viewContext)) {
-                                                    if let summaries = createSummaries(from: result) {
-                                                        DrillSummaryCard(drillSetup: setup, summaries: summaries)
+                                    ForEach(sessions, id: \.sessionId) { session in
+                                        let isExpanded = expandedDrillSetups.contains(session.sessionId)
+                                        VStack(spacing: 0) {
+                                            Button(action: {
+                                                withAnimation {
+                                                    if isExpanded {
+                                                        expandedDrillSetups.remove(session.sessionId)
+                                                    } else {
+                                                        expandedDrillSetups.insert(session.sessionId)
                                                     }
                                                 }
+                                            }) {
+                                                HStack {
+                                                    VStack(alignment: .leading, spacing: 4) {
+                                                        Text(session.setup.name ?? NSLocalizedString("untitled", comment: "Untitled"))
+                                                            .font(.headline)
+                                                            .foregroundColor(.white)
+                                                        Text("\(session.repeatCount) repeats")
+                                                            .font(.caption)
+                                                            .foregroundColor(.gray)
+                                                    }
+                                                    Spacer()
+                                                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                                                        .foregroundColor(.red)
+                                                }
+                                                .padding(12)
+                                                .background(Color.gray.opacity(0.15))
+                                                .cornerRadius(8)
+                                            }
+                                            .buttonStyle(PlainButtonStyle())
+                                            
+                                            if isExpanded {
+                                                VStack(spacing: 8) {
+                                                    ForEach(session.results, id: \.objectID) { result in
+                                                        NavigationLink(destination: DrillSummaryView(drillSetup: session.setup, summaries: createSummaries(from: result) ?? [])
+                                                            .environment(\.managedObjectContext, persistenceController.container.viewContext)) {
+                                                            if let summaries = createSummaries(from: result) {
+                                                                DrillSummaryCard(drillSetup: session.setup, summaries: summaries)
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                                .padding(.top, 8)
                                             }
                                         }
                                     }
@@ -279,6 +369,27 @@ struct HistoryTabView: View {
         )
         
         return [summary]
+    }
+    
+    private func createSummaries(for session: DrillSession) -> [DrillRepeatSummary]? {
+        var summaries: [DrillRepeatSummary] = []
+        for (index, result) in session.results.enumerated() {
+            if let summary = createSummaries(from: result)?.first {
+                let updatedSummary = DrillRepeatSummary(
+                    repeatIndex: index + 1,
+                    totalTime: summary.totalTime,
+                    numShots: summary.numShots,
+                    firstShot: summary.firstShot,
+                    fastest: summary.fastest,
+                    score: summary.score,
+                    shots: summary.shots,
+                    drillResultId: summary.drillResultId,
+                    adjustedHitZones: summary.adjustedHitZones
+                )
+                summaries.append(updatedSummary)
+            }
+        }
+        return summaries.isEmpty ? nil : summaries
     }
     
     private var dateRangeLabel: String {

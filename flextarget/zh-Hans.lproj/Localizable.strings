@@ -27,7 +27,7 @@
 "drill_mode" = "训练模式";
 
 /* DrillListView */
-"my_drills" = "我的训练";
+"my_drills" = "我的练习";
 "search_drills" = "搜索训练";
 "delete_drill_title" = "删除训练";
 "delete" = "删除";
@@ -58,6 +58,9 @@
 "my_target" = "上传图片";
 "scanning_for_target" = "正在扫描 %@";
 "ready_to_scan" = "准备扫描";
+
+/* HistoryTabView - Filters */
+"all_names" = "所有名称";
 
 /* LaserDryFire/OverlayView */
 "fps_display" = "FPS: %d";

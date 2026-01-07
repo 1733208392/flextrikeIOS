@@ -38,6 +38,9 @@
 "targets" = "Targets";
 "targets_count" = "%d targets";
 "performed" = "Performed";
+
+/* HistoryTabView - Filters */
+"all_names" = "All Names";
 "delay_seconds" = "delay: %ds";
 
 /* BLE/ConnectSmartTargetView */

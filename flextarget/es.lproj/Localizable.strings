@@ -59,6 +59,9 @@
 "scanning_for_target" = "Escaneando %@";
 "ready_to_scan" = "Listo para escanear";
 
+/* HistoryTabView - Filters */
+"all_names" = "Todos los nombres";
+
 /* LaserDryFire/OverlayView */
 "fps_display" = "FPS: %d";
 

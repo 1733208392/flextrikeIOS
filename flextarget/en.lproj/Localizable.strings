@@ -342,3 +342,6 @@
 /* Athlete Deletion */
 "delete_athlete" = "Delete Athlete";
 "delete_athlete_confirm" = "This will delete the athlete and all their competition results. This action cannot be undone.";
+
+/* HistoryTabView - Filters */
+"all_names" = "All Names";

@@ -198,6 +198,9 @@
 "failed_encode_chunk" = "Fehler beim Kodieren des Chunks";
 "failed_encode_complete_command" = "Fehler beim Kodieren des Abschlussbefehls";
 "image_transferred_success" = "Bild erfolgreich übertragen";
+
+/* HistoryTabView - Filters */
+"all_names" = "Alle Namen";
 "transfer_cancelled" = "Übertragung abgebrochen";
 "transfer" = "Übertragen";
 "ensure_target_ready" = "Stellen Sie sicher, dass das Ziel bereit ist";

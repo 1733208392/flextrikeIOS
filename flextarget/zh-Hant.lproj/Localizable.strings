@@ -59,6 +59,9 @@
 "scanning_for_target" = "正在掃描 %@";
 "ready_to_scan" = "準備掃描";
 
+/* HistoryTabView - Filters */
+"all_names" = "所有名稱";
+
 /* LaserDryFire/OverlayView */
 "fps_display" = "FPS: %d";
 

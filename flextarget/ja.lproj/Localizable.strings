@@ -78,6 +78,9 @@
 "duplicate_shot_ignored" = "重複するショットを無視";
 "decode_shot_error" = "ショットデータのデコードに失敗";
 "drill_timer_expired" = "ドリルタイマー期限切れ";
+
+/* HistoryTabView - Filters */
+"all_names" = "すべての名前";
 "shots_received" = "受信したショット";
 "drill_status_completed" = "完了";
 
