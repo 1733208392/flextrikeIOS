@@ -51,6 +51,35 @@ class CompetitionResultAPIService {
         let player_nickname: String?
     }
     
+    struct GamePlayDetailData: Codable {
+        let drillName: String?
+        let score: Int?
+        let factor: Double?
+        let drillDuration: TimeInterval?
+        let totalTime: TimeInterval?
+        let numShots: Int?
+        let fastest: TimeInterval?
+        let firstShot: TimeInterval?
+        let shotData: [ShotData]?
+        let hitZones: [String: Int]?
+        let athleteName: String?
+        let athleteClub: String?
+    }
+    
+    struct GamePlayDetailResponse: Codable {
+        let play_uuid: String
+        let device_uuid: String
+        let bluetooth_name: String?
+        let game_type: String
+        let game_ver: String
+        let score: Float
+        let detail: GamePlayDetailData?
+        let play_time: String
+        let player_mobile: String?
+        let player_nickname: String?
+        let is_public: Bool
+    }
+    
     // GameRankingResponse is just [RankingRow] array
     typealias GameRankingResponse = [RankingRow]
     
@@ -181,6 +210,47 @@ class CompetitionResultAPIService {
         }
         
         return gameData
+    }
+    
+    /// Fetch game play detail including shot data from the server
+    /// - Parameters:
+    ///   - playUuid: The play record UUID to fetch details for
+    /// - Returns: GamePlayDetailResponse with full detail including shots
+    func getGamePlayDetail(
+        playUuid: String
+    ) async throws -> GamePlayDetailResponse {
+        let url = URL(string: "\(baseURL)/game/play/detail")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        // Get user access token from AuthManager
+        guard let userAccessToken = AuthManager.shared.currentUser?.accessToken else {
+            throw NSError(domain: "CompetitionResultAPI", code: -1, userInfo: [NSLocalizedDescriptionKey: "User not authenticated"])
+        }
+        
+        // Get authorization header with user token only (user authentication required)
+        let authHeader = "Bearer \(userAccessToken)"
+        request.setValue(authHeader, forHTTPHeaderField: "Authorization")
+        
+        let body: [String: Any] = [
+            "play_uuid": playUuid
+        ]
+        
+        request.httpBody = try JSONSerialization.data(withJSONObject: body, options: [])
+        
+        let (data, _) = try await session.data(for: request)
+        let response: APIResponse<GamePlayDetailResponse> = try JSONDecoder().decode(APIResponse.self, from: data)
+        
+        if response.code != 0 {
+            throw NSError(domain: "CompetitionResultAPI", code: response.code, userInfo: [NSLocalizedDescriptionKey: response.msg])
+        }
+        
+        guard let detailData = response.data else {
+            throw NSError(domain: "CompetitionResultAPI", code: -1, userInfo: [NSLocalizedDescriptionKey: "No detail data received"])
+        }
+        
+        return detailData
     }
     
     /// Fetch game ranking from the server

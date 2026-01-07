@@ -191,11 +191,7 @@ struct CompetitionDetailView: View {
                 throw NSError(domain: "CompetitionDetailView", code: -1, userInfo: [NSLocalizedDescriptionKey: "Competition ID missing"])
             }
             
-            guard let drillSetup = competition.drillSetup else {
-                throw NSError(domain: "CompetitionDetailView", code: -1, userInfo: [NSLocalizedDescriptionKey: "Drill setup not found"])
-            }
-            
-            let gameVer = drillSetup.mode ?? "default"
+            let gameVer = "1.0"
             
             // Fetch results from server using device UUID from DeviceAuthManager
             let listResponse = try await CompetitionResultAPIService.shared.getGamePlayList(
@@ -220,9 +216,6 @@ struct CompetitionDetailView: View {
         // Get all local results for this competition
         let localResults = (competition.results?.allObjects as? [DrillResult]) ?? []
         
-        // Mark local results that are submitted
-        let localSubmittedSet = Set(localResults.compactMap { $0.serverPlayId })
-        
         // Process remote results - find matches with local results
         for remoteResult in remoteResults {
             // Check if this remote result matches an existing local result
@@ -233,8 +226,20 @@ struct CompetitionDetailView: View {
                 }
             } else {
                 // New remote result that doesn't have a local match
-                // Could optionally create a local result for remote-only submissions
-                // For now, we just track them as remote
+                // Try to fetch detail and reconstruct local result
+                Task {
+                    do {
+                        let detailResponse = try await CompetitionResultAPIService.shared.getGamePlayDetail(playUuid: remoteResult.play_uuid)
+                        
+                        // Reconstruct local DrillResult from remote data
+                        await DispatchQueue.main.async {
+                            self.reconstructDrillResultFromRemote(remoteResult: remoteResult, detailResponse: detailResponse)
+                        }
+                    } catch {
+                        // Silently skip this result if detail fetch fails
+                        print("Failed to fetch detail for remote result \(remoteResult.play_uuid): \(error.localizedDescription)")
+                    }
+                }
             }
         }
         
@@ -251,6 +256,90 @@ struct CompetitionDetailView: View {
             try viewContext.save()
         } catch {
             print("Failed to save sync changes: \(error)")
+        }
+    }
+    
+    private func reconstructDrillResultFromRemote(
+        remoteResult: CompetitionResultAPIService.GamePlayRow,
+        detailResponse: CompetitionResultAPIService.GamePlayDetailResponse
+    ) {
+        guard let drillSetup = competition.drillSetup else { return }
+        
+        // Parse play_time string to Date (format: "yyyy-MM-dd HH:mm:ss")
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        let playDate = dateFormatter.date(from: detailResponse.play_time) ?? Date()
+        
+        // Extract shot data and calculate total time
+        let shotData = detailResponse.detail?.shotData ?? []
+        let totalTime = detailResponse.detail?.drillDuration ?? 0
+        
+        // Find or create athlete using athlete information from detail
+        var athlete: Athlete?
+        if let athleteName = detailResponse.detail?.athleteName {
+            let fetchRequest = NSFetchRequest<Athlete>(entityName: "Athlete")
+            let athleteClub = detailResponse.detail?.athleteClub ?? ""
+            fetchRequest.predicate = NSPredicate(format: "name == %@ AND club == %@", athleteName, athleteClub)
+            
+            if let existingAthlete = try? viewContext.fetch(fetchRequest).first {
+                athlete = existingAthlete
+            } else {
+                // Create new athlete
+                athlete = Athlete(context: viewContext)
+                athlete?.id = UUID()
+                athlete?.name = athleteName
+                athlete?.club = athleteClub
+            }
+        }
+        
+        // Create DrillResult
+        let drillResult = DrillResult(context: viewContext)
+        drillResult.id = UUID()
+        drillResult.drillId = drillSetup.id
+        drillResult.sessionId = UUID()
+        drillResult.date = playDate
+        drillResult.totalTime = totalTime
+        drillResult.serverPlayId = remoteResult.play_uuid
+        drillResult.serverDeviceId = remoteResult.device_uuid
+        drillResult.submittedAt = Date()
+        drillResult.drillSetup = drillSetup
+        drillResult.competition = competition
+        
+        // Create Shot records from shot data
+        var cumulativeTime: Double = 0
+        for shotData in shotData {
+            cumulativeTime += shotData.content.timeDiff
+            let shot = Shot(context: viewContext)
+            do {
+                let jsonData = try JSONEncoder().encode(shotData)
+                shot.data = String(data: jsonData, encoding: .utf8)
+            } catch {
+                print("Failed to encode shot data: \(error)")
+                shot.data = nil
+            }
+            shot.timestamp = Int64(cumulativeTime * 1000)
+            shot.drillResult = drillResult
+        }
+        
+        // Create LeaderboardEntry if athlete exists
+        if let athlete = athlete {
+            let scoreFactor = totalTime > 0 ? Double(remoteResult.score) / totalTime : 0
+            
+            let entry = LeaderboardEntry(context: viewContext)
+            entry.id = UUID()
+            entry.createdAt = Date()
+            entry.baseFactor = scoreFactor
+            entry.adjustment = 0
+            entry.scoreFactor = scoreFactor
+            entry.athlete = athlete
+            entry.drillResult = drillResult
+        }
+        
+        // Save all changes
+        do {
+            try viewContext.save()
+        } catch {
+            print("Failed to save reconstructed result: \(error)")
         }
     }
     

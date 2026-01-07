@@ -2,6 +2,37 @@ import SwiftUI
 import CoreData
 import Foundation
 
+// MARK: - DetailData Codable Struct
+struct DetailData: Codable {
+    let drillName: String
+    let score: Int
+    let factor: Double
+    let drillDuration: TimeInterval
+    let totalTime: TimeInterval
+    let numShots: Int
+    let fastest: TimeInterval
+    let firstShot: TimeInterval
+    let shotData: [ShotData]
+    let hitZones: [String: Int]?
+    let athleteName: String?
+    let athleteClub: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case drillName
+        case score
+        case factor
+        case drillDuration
+        case totalTime
+        case numShots
+        case fastest
+        case firstShot
+        case shotData
+        case hitZones
+        case athleteName
+        case athleteClub
+    }
+}
+
 struct DrillSummaryView: View {
     let drillSetup: DrillSetup
     @State var summaries: [DrillRepeatSummary]
@@ -251,22 +282,42 @@ struct DrillSummaryView: View {
                 // Format play time
                 let playTime = formatPlayTime(Date())
                 
-                // Prepare detail JSON with shot data
-                var detail: [String: Any] = [
-                    "drillName": drillSetup.name ?? "Unknown",
-                    "score": finalScore,
-                    "factor": factor,
-                    "drillDuration": drillSetup.drillDuration,
-                    "totalTime": firstSummary.totalTime,
-                    "numShots": firstSummary.numShots,
-                    "fastest": firstSummary.fastest,
-                    "firstShot": firstSummary.firstShot
-                ]
+                // Extract athlete information from the leaderboard entry if available
+                var athleteName: String? = nil
+                var athleteClub: String? = nil
                 
-                // Add hit zone details
-                if let adjustedZones = firstSummary.adjustedHitZones {
-                    detail["hitZones"] = adjustedZones
+                if let drillResultId = firstSummary.drillResultId {
+                    let fetchRequest = NSFetchRequest<DrillResult>(entityName: "DrillResult")
+                    fetchRequest.predicate = NSPredicate(format: "id == %@", drillResultId as CVarArg)
+                    fetchRequest.fetchLimit = 1
+                    
+                    if let result = try? viewContext.fetch(fetchRequest).first,
+                       let entry = (result.leaderboardEntries?.allObjects as? [LeaderboardEntry])?.first,
+                       let athlete = entry.athlete {
+                        athleteName = athlete.name
+                        athleteClub = athlete.club
+                    }
                 }
+                
+                // Create DetailData struct with shot data and athlete info
+                let detailData = DetailData(
+                    drillName: drillSetup.name ?? "Unknown",
+                    score: finalScore,
+                    factor: factor,
+                    drillDuration: drillSetup.drillDuration,
+                    totalTime: firstSummary.totalTime,
+                    numShots: firstSummary.numShots,
+                    fastest: firstSummary.fastest,
+                    firstShot: firstSummary.firstShot,
+                    shotData: firstSummary.shots,
+                    hitZones: firstSummary.adjustedHitZones,
+                    athleteName: athleteName,
+                    athleteClub: athleteClub
+                )
+                
+                // Encode DetailData to JSON and convert to dictionary
+                let encodedData = try JSONEncoder().encode(detailData)
+                let detail = try JSONSerialization.jsonObject(with: encodedData) as? [String: Any] ?? [:]
                 
                 // Submit to server
                 let response = try await CompetitionResultAPIService.shared.addGamePlay(
