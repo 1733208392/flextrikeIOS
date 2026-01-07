@@ -153,7 +153,7 @@ struct CompetitionDetailView: View {
             
             NavigationLink(isActive: $navigateToDrillSummary) {
                 if let drillSetup = competition.drillSetup {
-                    DrillSummaryView(drillSetup: drillSetup, summaries: drillRepeatSummaries)
+                    DrillSummaryView(drillSetup: drillSetup, summaries: drillRepeatSummaries, competition: competition)
                 }
             } label: {
                 EmptyView()
@@ -272,7 +272,7 @@ struct CompetitionDetailView: View {
         
         // Extract shot data and calculate total time
         let shotData = detailResponse.detail?.shotData ?? []
-        let totalTime = detailResponse.detail?.drillDuration ?? 0
+        let totalTime = detailResponse.detail?.totalTime ?? 0
         
         // Find or create athlete using athlete information from detail
         var athlete: Athlete?
@@ -347,7 +347,7 @@ struct CompetitionDetailView: View {
         guard let drillSetup = competition.drillSetup, let drillId = drillSetup.id else { return }
         
         let sessionId = UUID()
-        for summary in summaries {
+        for (index, summary) in summaries.enumerated() {
             let drillResult = DrillResult(context: viewContext)
             drillResult.id = UUID()
             drillResult.drillId = drillId
@@ -385,6 +385,11 @@ struct CompetitionDetailView: View {
                 shot.timestamp = Int64(cumulativeTime * 1000)
                 shot.drillResult = drillResult
             }
+            
+            // Update the summary with the drillResultId so it can be used in submission
+            if index < drillRepeatSummaries.count {
+                drillRepeatSummaries[index].drillResultId = drillResult.id
+            }
         }
         
         do {
@@ -412,6 +417,14 @@ struct CompetitionDetailView: View {
             }
         }
         
+        // Try to load adjusted hit zones from the result if available
+        var adjustedHitZones: [String: Int]? = nil
+        if let adjustedZonesJSON = result.adjustedHitZones,
+           let jsonData = adjustedZonesJSON.data(using: .utf8),
+           let decoded = try? JSONDecoder().decode([String: Int].self, from: jsonData) {
+            adjustedHitZones = decoded
+        }
+        
         // Create a single DrillRepeatSummary from the DrillResult
         let summary = DrillRepeatSummary(
             id: UUID(),
@@ -420,10 +433,10 @@ struct CompetitionDetailView: View {
             numShots: shotDataArray.count,
             firstShot: shotDataArray.first?.content.timeDiff ?? 0,
             fastest: shotDataArray.map { $0.content.timeDiff }.min() ?? 0,
-            score: 0,  // This will be calculated in DrillSummaryView
+            score: 0,  // Will be recalculated from adjusted hit zones in metrics function
             shots: shotDataArray,
             drillResultId: result.id,
-            adjustedHitZones: nil
+            adjustedHitZones: adjustedHitZones
         )
         
         return [summary]

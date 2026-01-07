@@ -55,7 +55,6 @@ class CompetitionResultAPIService {
         let drillName: String?
         let score: Int?
         let factor: Double?
-        let drillDuration: TimeInterval?
         let totalTime: TimeInterval?
         let numShots: Int?
         let fastest: TimeInterval?

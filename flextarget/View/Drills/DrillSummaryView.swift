@@ -7,7 +7,6 @@ struct DetailData: Codable {
     let drillName: String
     let score: Int
     let factor: Double
-    let drillDuration: TimeInterval
     let totalTime: TimeInterval
     let numShots: Int
     let fastest: TimeInterval
@@ -21,7 +20,6 @@ struct DetailData: Codable {
         case drillName
         case score
         case factor
-        case drillDuration
         case totalTime
         case numShots
         case fastest
@@ -68,9 +66,15 @@ struct DrillSummaryView: View {
 
     private func metrics(for summary: DrillRepeatSummary) -> [SummaryMetric] {
         // Calculate effective score using adjusted hit zones if available
-        let effectiveScore = summary.adjustedHitZones != nil ?
-            ScoringUtility.calculateScoreFromAdjustedHitZones(summary.adjustedHitZones!, drillSetup: drillSetup) :
-            summary.score
+        let effectiveScore: Int
+        if let adjustedHitZones = summary.adjustedHitZones {
+            effectiveScore = ScoringUtility.calculateScoreFromAdjustedHitZones(adjustedHitZones, drillSetup: drillSetup)
+        } else if summary.score > 0 {
+            effectiveScore = summary.score
+        } else {
+            // For fresh summaries, calculate score from shot data
+            effectiveScore = Int(ScoringUtility.calculateTotalScore(shots: summary.shots, drillSetup: drillSetup))
+        }
         
         let factor = calculateFactor(score: effectiveScore, time: summary.totalTime)
         
@@ -304,7 +308,6 @@ struct DrillSummaryView: View {
                     drillName: drillSetup.name ?? "Unknown",
                     score: finalScore,
                     factor: factor,
-                    drillDuration: drillSetup.drillDuration,
                     totalTime: firstSummary.totalTime,
                     numShots: firstSummary.numShots,
                     fastest: firstSummary.fastest,

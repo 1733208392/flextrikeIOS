@@ -11,7 +11,7 @@ struct DrillRepeatSummary: Identifiable, Codable {
     let fastest: TimeInterval
     var score: Int
     let shots: [ShotData]
-    let drillResultId: UUID?
+    var drillResultId: UUID?
     var adjustedHitZones: [String: Int]?
 
     init(
