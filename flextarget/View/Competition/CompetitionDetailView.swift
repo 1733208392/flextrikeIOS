@@ -1,5 +1,6 @@
 import SwiftUI
 import CoreData
+import Foundation
 
 struct CompetitionDetailView: View {
     @ObservedObject var competition: Competition
@@ -298,42 +299,13 @@ struct CompetitionDetailView: View {
         drillResult.drillId = drillSetup.id
         drillResult.sessionId = UUID()
         drillResult.date = playDate
-        drillResult.totalTime = totalTime
+        drillResult.totalTime = NSNumber(value: totalTime)
         drillResult.serverPlayId = remoteResult.play_uuid
         drillResult.serverDeviceId = remoteResult.device_uuid
         drillResult.submittedAt = Date()
         drillResult.drillSetup = drillSetup
         drillResult.competition = competition
-        
-        // Create Shot records from shot data
-        var cumulativeTime: Double = 0
-        for shotData in shotData {
-            cumulativeTime += shotData.content.timeDiff
-            let shot = Shot(context: viewContext)
-            do {
-                let jsonData = try JSONEncoder().encode(shotData)
-                shot.data = String(data: jsonData, encoding: .utf8)
-            } catch {
-                print("Failed to encode shot data: \(error)")
-                shot.data = nil
-            }
-            shot.timestamp = Int64(cumulativeTime * 1000)
-            shot.drillResult = drillResult
-        }
-        
-        // Create LeaderboardEntry if athlete exists
-        if let athlete = athlete {
-            let scoreFactor = totalTime > 0 ? Double(remoteResult.score) / totalTime : 0
-            
-            let entry = LeaderboardEntry(context: viewContext)
-            entry.id = UUID()
-            entry.createdAt = Date()
-            entry.baseFactor = scoreFactor
-            entry.adjustment = 0
-            entry.scoreFactor = scoreFactor
-            entry.athlete = athlete
-            entry.drillResult = drillResult
-        }
+        drillResult.athlete = athlete
         
         // Save all changes
         do {
@@ -353,23 +325,10 @@ struct CompetitionDetailView: View {
             drillResult.drillId = drillId
             drillResult.sessionId = sessionId
             drillResult.date = Date()
-            drillResult.totalTime = summary.totalTime
+            drillResult.totalTime = NSNumber(value: summary.totalTime)
             drillResult.drillSetup = drillSetup
             drillResult.competition = competition
-            
-            // Create LeaderboardEntry for the athlete
-            if let athlete = selectedAthlete {
-                let entry = LeaderboardEntry(context: viewContext)
-                entry.id = UUID()
-                entry.createdAt = Date()
-                entry.athlete = athlete
-                entry.drillResult = drillResult
-                
-                let factor: Double = summary.totalTime > 0 ? (Double(summary.score) / summary.totalTime) : 0
-                entry.baseFactor = factor
-                entry.adjustment = 0
-                entry.scoreFactor = factor
-            }
+            drillResult.athlete = selectedAthlete
             
             var cumulativeTime: Double = 0
             for shotData in summary.shots {
@@ -429,7 +388,7 @@ struct CompetitionDetailView: View {
         let summary = DrillRepeatSummary(
             id: UUID(),
             repeatIndex: 0,
-            totalTime: result.totalTime,
+            totalTime: result.totalTime?.doubleValue ?? 0,
             numShots: shotDataArray.count,
             firstShot: shotDataArray.first?.content.timeDiff ?? 0,
             fastest: shotDataArray.map { $0.content.timeDiff }.min() ?? 0,
@@ -446,10 +405,39 @@ struct CompetitionDetailView: View {
 struct CompetitionResultRow: View {
     let result: DrillResult
     
+    private var displayValue: Double {
+        guard let drillSetup = result.drillSetup else { return 0.0 }
+        let isIPSC = drillSetup.mode?.lowercased() == "ipsc"
+        
+        // Calculate score from adjusted hit zones or shots
+        let score: Int
+        if let adjusted = result.adjustedHitZones,
+           let jsonData = adjusted.data(using: .utf8),
+           let zones = try? JSONDecoder().decode([String: Int].self, from: jsonData) {
+            score = ScoringUtility.calculateScoreFromAdjustedHitZones(zones, drillSetup: drillSetup)
+        } else if let shots = result.shots?.allObjects as? [Shot] {
+            let shotData = shots.compactMap { shot -> ShotData? in
+                guard let jsonString = shot.data,
+                      let jsonData = jsonString.data(using: .utf8),
+                      let shotData = try? JSONDecoder().decode(ShotData.self, from: jsonData) else { return nil }
+                return shotData
+            }
+            score = Int(ScoringUtility.calculateTotalScore(shots: shotData, drillSetup: drillSetup))
+        } else {
+            score = 0
+        }
+        
+        if isIPSC {
+            return (result.totalTime?.doubleValue ?? 0) > 0 ? Double(score) / (result.totalTime?.doubleValue ?? 0) : 0.0
+        } else {
+            return Double(score)
+        }
+    }
+    
     var body: some View {
         HStack {
             VStack(alignment: .leading) {
-                if let athlete = (result.leaderboardEntries?.allObjects as? [LeaderboardEntry])?.first?.athlete {
+                if let athlete = result.athlete {
                     Text(athlete.name ?? "")
                         .font(.headline)
                         .foregroundColor(.white)
@@ -488,16 +476,14 @@ struct CompetitionResultRow: View {
             Spacer()
             
             VStack(alignment: .trailing, spacing: 4) {
-                Text(String(format: "%.2fs", result.totalTime))
+                Text(String(format: "%.2fs", result.totalTime?.doubleValue ?? 0))
                     .font(.caption)
                     .foregroundColor(.gray)
                 
-                if let leaderboardEntry = (result.leaderboardEntries?.allObjects as? [LeaderboardEntry])?.first {
-                    Text(String(format: "%.3f", leaderboardEntry.scoreFactor))
-                        .font(.title3)
-                        .fontWeight(.bold)
-                        .foregroundColor(.red)
-                }
+                Text(String(format: "%.3f", displayValue))
+                    .font(.title3)
+                    .fontWeight(.bold)
+                    .foregroundColor(.red)
             }
         }
         .padding(.vertical, 5)

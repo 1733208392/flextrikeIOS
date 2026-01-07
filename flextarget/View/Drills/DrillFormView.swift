@@ -940,7 +940,7 @@ struct DrillFormView: View {
             drillResult.drillId = drillId
             drillResult.sessionId = sessionId
             drillResult.date = Date()
-            drillResult.totalTime = summary.totalTime
+            drillResult.totalTime = NSNumber(value: summary.totalTime)
             drillResult.drillSetup = drillSetup
             
             var cumulativeTime: Double = 0

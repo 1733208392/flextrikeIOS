@@ -275,18 +275,25 @@ struct DrillSummaryView: View {
                     throw NSError(domain: "DrillSummaryView", code: -1, userInfo: [NSLocalizedDescriptionKey: "No drill summary available"])
                 }
                 
-                // Calculate final score using adjusted hit zones
-                let finalScore = firstSummary.adjustedHitZones != nil ?
-                    ScoringUtility.calculateScoreFromAdjustedHitZones(firstSummary.adjustedHitZones!, drillSetup: drillSetup) :
-                    firstSummary.score
+                // Recalculate adjusted hit zones to ensure we submit the latest counts
+                let submissionHitZones: [String: Int] = {
+                    if let zones = firstSummary.adjustedHitZones, zones.isEmpty == false {
+                        return zones
+                    }
+                    return ScoringUtility.calculateEffectiveCounts(shots: firstSummary.shots, drillSetup: drillSetup)
+                }()
+
+                let finalScore = ScoringUtility.calculateScoreFromAdjustedHitZones(submissionHitZones, drillSetup: drillSetup)
                 
                 // Calculate factor
                 let factor = calculateFactor(score: finalScore, time: firstSummary.totalTime)
+                // For IPSC, the ranking score is the hit factor (score/time); otherwise use total score
+                let rankingScore: Double = (competition.drillSetup?.mode?.lowercased() == "ipsc") ? factor : Double(finalScore)
                 
                 // Format play time
                 let playTime = formatPlayTime(Date())
                 
-                // Extract athlete information from the leaderboard entry if available
+                // Extract athlete information from the drill result if available
                 var athleteName: String? = nil
                 var athleteClub: String? = nil
                 
@@ -296,8 +303,7 @@ struct DrillSummaryView: View {
                     fetchRequest.fetchLimit = 1
                     
                     if let result = try? viewContext.fetch(fetchRequest).first,
-                       let entry = (result.leaderboardEntries?.allObjects as? [LeaderboardEntry])?.first,
-                       let athlete = entry.athlete {
+                       let athlete = result.athlete {
                         athleteName = athlete.name
                         athleteClub = athlete.club
                     }
@@ -313,7 +319,7 @@ struct DrillSummaryView: View {
                     fastest: firstSummary.fastest,
                     firstShot: firstSummary.firstShot,
                     shotData: firstSummary.shots,
-                    hitZones: firstSummary.adjustedHitZones,
+                    hitZones: submissionHitZones,
                     athleteName: athleteName,
                     athleteClub: athleteClub
                 )
@@ -326,7 +332,7 @@ struct DrillSummaryView: View {
                 let response = try await CompetitionResultAPIService.shared.addGamePlay(
                     gameType: competitionId.uuidString,  // Competition ID
                     gameVer: "1.0",
-                    score: Float(finalScore),
+                    score: Float(rankingScore),
                     detail: detail,
                     playTime: playTime,
                     playerMobile: AuthManager.shared.currentUser?.mobile,
@@ -1017,51 +1023,5 @@ struct SummaryEditSheet: View {
             }
         }
         .padding(.horizontal)
-    }
-
-    @discardableResult
-    private func submitToLeaderboard(athlete: Athlete) -> Bool {
-        guard let drillResultId = summary.drillResultId else {
-            errorTitle = NSLocalizedString("error_title", comment: "Generic error title")
-            errorMessage = NSLocalizedString("missing_drill_result_id_message", comment: "Missing drill result id")
-            showError = true
-            return false
-        }
-
-        let athleteInContext = (try? viewContext.existingObject(with: athlete.objectID)) as? Athlete ?? athlete
-
-        let fetchRequest = NSFetchRequest<DrillResult>(entityName: "DrillResult")
-        fetchRequest.predicate = NSPredicate(format: "id == %@", drillResultId as CVarArg)
-        fetchRequest.fetchLimit = 1
-
-        do {
-            let result = try viewContext.fetch(fetchRequest).first
-            guard let result else {
-                errorTitle = NSLocalizedString("error_title", comment: "Generic error title")
-                errorMessage = NSLocalizedString("no_drill_result_found_message", comment: "No drill result found")
-                showError = true
-                return false
-            }
-
-            let factor: Double = summary.totalTime > 0 ? (Double(summary.score) / summary.totalTime) : 0
-
-            let entry = LeaderboardEntry(context: viewContext)
-            entry.id = UUID()
-            entry.createdAt = Date()
-            entry.baseFactor = factor
-            entry.adjustment = 0
-            entry.scoreFactor = factor
-            entry.athlete = athleteInContext
-            entry.drillResult = result
-
-            try viewContext.save()
-            return true
-        } catch {
-            viewContext.rollback()
-            errorTitle = NSLocalizedString("error_title", comment: "Generic error title")
-            errorMessage = error.localizedDescription
-            showError = true
-            return false
-        }
     }
 }

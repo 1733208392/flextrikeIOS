@@ -2,7 +2,7 @@
 //  DrillResult+CoreDataProperties.swift
 //  FlexTarget
 //
-//  Created by Kai Yang on 2025/12/21.
+//  Created by Kai Yang on 2026/1/7.
 //
 //
 
@@ -18,36 +18,19 @@ extension DrillResult {
         return NSFetchRequest<DrillResult>(entityName: "DrillResult")
     }
 
+    @NSManaged public var adjustedHitZones: String?
     @NSManaged public var date: Date?
     @NSManaged public var drillId: UUID?
-    @NSManaged public var sessionId: UUID?
-    @NSManaged public var totalTime: Double
-    @NSManaged public var adjustedHitZones: String?
     @NSManaged public var id: UUID?
-    @NSManaged public var serverPlayId: String?
     @NSManaged public var serverDeviceId: String?
+    @NSManaged public var serverPlayId: String?
+    @NSManaged public var sessionId: UUID?
     @NSManaged public var submittedAt: Date?
-    @NSManaged public var drillSetup: DrillSetup?
+    @NSManaged public var totalTime: NSNumber?
+    @NSManaged public var athlete: Athlete?
     @NSManaged public var competition: Competition?
-    @NSManaged public var leaderboardEntries: NSSet?
+    @NSManaged public var drillSetup: DrillSetup?
     @NSManaged public var shots: NSSet?
-
-}
-
-// MARK: Generated accessors for leaderboardEntries
-extension DrillResult {
-
-    @objc(addLeaderboardEntriesObject:)
-    @NSManaged public func addToLeaderboardEntries(_ value: LeaderboardEntry)
-
-    @objc(removeLeaderboardEntriesObject:)
-    @NSManaged public func removeFromLeaderboardEntries(_ value: LeaderboardEntry)
-
-    @objc(addLeaderboardEntries:)
-    @NSManaged public func addToLeaderboardEntries(_ values: NSSet)
-
-    @objc(removeLeaderboardEntries:)
-    @NSManaged public func removeFromLeaderboardEntries(_ values: NSSet)
 
 }
 

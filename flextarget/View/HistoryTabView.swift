@@ -55,12 +55,8 @@ struct HistoryTabView: View {
         let filtered = drillResults.filter { result in
             // Exclude results from competitions that have associated athletes
             // These are competition/match records, not personal drill records
-            if result.competition != nil {
-                if let entries = result.leaderboardEntries as? Set<LeaderboardEntry> {
-                    if entries.contains(where: { $0.athlete != nil }) {
-                        return false // Exclude competition results with athletes
-                    }
-                }
+            if result.competition != nil && result.athlete != nil {
+                return false // Exclude competition results with athletes
             }
             
             // Filter by date range
@@ -272,7 +268,7 @@ struct HistoryTabView: View {
         
         let summary = DrillRepeatSummary(
             repeatIndex: 1,
-            totalTime: result.totalTime,
+            totalTime: result.totalTime?.doubleValue ?? 0,
             numShots: numShots,
             firstShot: firstShotTime,
             fastest: fastestTime,

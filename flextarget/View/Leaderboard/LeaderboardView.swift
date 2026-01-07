@@ -136,7 +136,8 @@ struct LeaderboardView: View {
             do {
                 let ranking = try await CompetitionResultAPIService.shared.getGameRanking(
                     gameType: competitionId,
-                    page: currentPage)
+                    page: currentPage,
+                    viewContext: viewContext)
                 await MainActor.run {
                     rankingRows = ranking
                     isLoadingRanking = false
@@ -152,7 +153,15 @@ struct LeaderboardView: View {
 
     private func rankingRow(rank: Int, row: CompetitionResultAPIService.RankingRow, isEven: Bool) -> some View {
         let background = isEven ? Color.gray.opacity(0.25) : Color.gray.opacity(0.15)
-        let displayName = (row.player_nickname?.isEmpty == false) ? row.player_nickname! : row.player_mobile ?? NSLocalizedString("untitled", comment: "")
+        let displayName: String = {
+            if let name = row.athleteName, !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                return name
+            }
+            if let nick = row.player_nickname, !nick.isEmpty {
+                return nick
+            }
+            return row.player_mobile ?? NSLocalizedString("untitled", comment: "")
+        }()
 
         return HStack(spacing: 16) {
             Text("\(row.rank)")
@@ -171,7 +180,12 @@ struct LeaderboardView: View {
                     .foregroundColor(.white)
                     .lineLimit(1)
                 
-                if let deviceName = row.bluetooth_name {
+                if let club = row.athleteClub, !club.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    Text(club)
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                        .lineLimit(1)
+                } else if let deviceName = row.bluetooth_name {
                     Text(deviceName)
                         .font(.caption)
                         .foregroundColor(.gray)

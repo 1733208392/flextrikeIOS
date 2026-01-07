@@ -1,4 +1,5 @@
 import Foundation
+import CoreData
 
 class CompetitionResultAPIService {
     static let shared = CompetitionResultAPIService()
@@ -49,6 +50,9 @@ class CompetitionResultAPIService {
         let play_time: String
         let player_mobile: String?
         let player_nickname: String?
+        var athleteName: String?
+        var athleteClub: String?
+        var factor: Double?
     }
     
     struct GamePlayDetailData: Codable {
@@ -265,7 +269,8 @@ class CompetitionResultAPIService {
         namespace: String = "default",
         gameVer: String = "1.0",
         page: Int = 1,
-        limit: Int = 30
+        limit: Int = 30,
+        viewContext: NSManagedObjectContext? = nil
     ) async throws -> [RankingRow] {
         let url = URL(string: "\(baseURL)/game/play/ranking")!
         var request = URLRequest(url: url)
@@ -285,16 +290,58 @@ class CompetitionResultAPIService {
         let (data, _) = try await session.data(for: request)
         
         // Decode the response wrapper first
-        let response: APIResponse<[RankingRow]> = try JSONDecoder().decode(APIResponse.self, from: data)
+        var response: APIResponse<[RankingRow]> = try JSONDecoder().decode(APIResponse.self, from: data)
         
         if response.code != 0 {
             throw NSError(domain: "CompetitionResultAPI", code: response.code, userInfo: [NSLocalizedDescriptionKey: response.msg])
         }
         
-        guard let rankingData = response.data else {
+        guard var rankingData = response.data else {
             return [] // Return empty array if no data
         }
-        
+
+        // Enrich ranking rows with local athlete info via play_uuid -> DrillResult.serverPlayId
+        if let context = viewContext {
+            for index in rankingData.indices {
+                let row = rankingData[index]
+                let fetchRequest = NSFetchRequest<DrillResult>(entityName: "DrillResult")
+                fetchRequest.predicate = NSPredicate(format: "serverPlayId == %@", row.play_uuid)
+                fetchRequest.fetchLimit = 1
+
+                if let drillResult = try? context.fetch(fetchRequest).first,
+                   let athlete = drillResult.athlete {
+                    rankingData[index].athleteName = athlete.name
+                    rankingData[index].athleteClub = athlete.club
+                    
+                    // Compute factor on-the-fly
+                    let isIPSC = drillResult.drillSetup?.mode?.lowercased() == "ipsc"
+                    let score: Double
+                    if let adjusted = drillResult.adjustedHitZones,
+                       let jsonData = adjusted.data(using: .utf8),
+                       let zones = try? JSONDecoder().decode([String: Int].self, from: jsonData),
+                       let drillSetup = drillResult.drillSetup {
+                        score = Double(ScoringUtility.calculateScoreFromAdjustedHitZones(zones, drillSetup: drillSetup))
+                    } else if let shots = drillResult.shots?.allObjects as? [Shot] {
+                        let shotData = shots.compactMap { shot -> ShotData? in
+                            guard let jsonString = shot.data,
+                                  let jsonData = jsonString.data(using: .utf8),
+                                  let shotData = try? JSONDecoder().decode(ShotData.self, from: jsonData) else { return nil }
+                            return shotData
+                        }
+                        if let drillSetup = drillResult.drillSetup {
+                            score = Double(ScoringUtility.calculateTotalScore(shots: shotData, drillSetup: drillSetup))
+                        } else {
+                            score = 0
+                        }
+                    } else {
+                        score = 0
+                    }
+                    
+                    rankingData[index].factor = isIPSC ? (drillResult.totalTime?.doubleValue ?? 0 > 0 ? score / (drillResult.totalTime?.doubleValue ?? 0) : 0) : score
+                }
+            }
+        }
+
         return rankingData
     }
 }

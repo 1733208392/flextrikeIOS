@@ -50,8 +50,8 @@ extension DrillResult {
     /// Get effective total time (uses persisted value or calculated fallback)
     var effectiveTotalTime: TimeInterval {
         // Use persisted totalTime if available (non-zero)
-        if totalTime > 0 {
-            return TimeInterval(totalTime)
+        if let totalTimeValue = totalTime?.doubleValue, totalTimeValue > 0 {
+            return totalTimeValue
         }
         // Fallback to shot-based calculation for backward compatibility
         return calculatedTotalTime

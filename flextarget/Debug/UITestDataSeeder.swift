@@ -69,7 +69,7 @@ enum UITestDataSeeder {
                 result.drillId = drillSetup.id
                 result.date = Date()
                 result.drillSetup = drillSetup
-                result.totalTime = generatedShots.map { $0.content.timeDiff }.reduce(0, +)
+                result.totalTime = NSNumber(value: generatedShots.map { $0.content.timeDiff }.reduce(0, +))
 
                 var cumulativeTime: Double = 0
                 for sd in generatedShots {

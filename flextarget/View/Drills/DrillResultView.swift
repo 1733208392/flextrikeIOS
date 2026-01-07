@@ -673,7 +673,7 @@ struct DrillResultView: View {
         
         // Set totalTime from repeatSummary if available
         if let repeatSummary = repeatSummary {
-            drillResult.totalTime = repeatSummary.totalTime
+            drillResult.totalTime = NSNumber(value: repeatSummary.totalTime)
         }
         
         var cumulativeTime: Double = 0
