@@ -31,6 +31,7 @@
 "delete_drill_message" = "Are you sure you want to delete %@?";
 "connection_required" = "Connection Required";
 "connection_required_message" = "Please connect to the target device before adding drills.";
+"connect_target_first" = "Please connect to your target device first.";
 "ok" = "OK";
 "copy" = "Copy";
 "untitled" = "Untitled";

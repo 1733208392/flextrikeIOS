@@ -36,6 +36,7 @@
 "delete_drill_message" = "您确定要删除 %@ 吗？";
 "connection_required" = "需要连接";
 "connection_required_message" = "请在添加训练前连接标靶设备。";
+"connect_target_first" = "请先连接您的标靶设备。";
 "ok" = "确定";
 "untitled" = "未命名";
 "copy" = "复制";

@@ -36,6 +36,7 @@
 "delete_drill_message" = "%@を削除してもよろしいですか？";
 "connection_required" = "接続が必要です";
 "connection_required_message" = "ドリルを追加する前にターゲットデバイスに接続してください。";
+"connect_target_first" = "まずターゲットデバイスに接続してください。";
 "ok" = "OK";
 "untitled" = "無題";
 "copy" = "コピー";

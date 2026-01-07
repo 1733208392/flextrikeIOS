@@ -36,6 +36,7 @@
 "delete_drill_message" = "¿Estás seguro de que quieres eliminar %@?";
 "connection_required" = "Conexión Requerida";
 "connection_required_message" = "Por favor conecta al dispositivo objetivo antes de añadir ejercicios.";
+"connect_target_first" = "Por favor conecta primero a tu dispositivo objetivo.";
 "ok" = "OK";
 "untitled" = "Sin título";
 "copy" = "Copiar";

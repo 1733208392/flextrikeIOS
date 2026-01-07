@@ -11,6 +11,7 @@ struct DrillsTabView: View {
     @State private var showConnectView = false
     @State private var showQRScanner = false
     @State private var scannedPeripheralName: String? = nil
+    @State private var showConnectionAlert = false
     
     let persistenceController = PersistenceController.shared
     
@@ -38,7 +39,7 @@ struct DrillsTabView: View {
                                 .scaledToFit()
                                 .frame(width: 22, height: 22)
                             
-                            Text(bleManager.connectedPeripheral?.name ?? (bleManager.isConnected ? NSLocalizedString("target_connected", comment: "Status when target is connected") : NSLocalizedString("target_disconnected", comment: "Status when target is disconnected")))
+                            Text(bleManager.isConnected ? NSLocalizedString("target_connected", comment: "Status when target is connected") : NSLocalizedString("target_disconnected", comment: "Status when target is disconnected"))
                                 .font(.footnote)
                                 .foregroundColor(.gray)
                         }
@@ -57,7 +58,7 @@ struct DrillsTabView: View {
                         }
                     } else {
                         Button(action: {
-                            // Could show an alert or just do nothing
+                            showConnectionAlert = true
                         }) {
                             Image(systemName: "plus")
                                 .foregroundColor(.gray)
@@ -84,6 +85,9 @@ struct DrillsTabView: View {
             } label: {
                 EmptyView()
             }
+        }
+        .alert(isPresented: $showConnectionAlert) {
+            Alert(title: Text(NSLocalizedString("connection_required", comment: "Alert title for connection required")), message: Text(NSLocalizedString("connect_target_first", comment: "Alert message for connecting target first")), dismissButton: .default(Text(NSLocalizedString("ok", comment: "OK button"))))
         }
         .sheet(isPresented: $showConnectView) {
             ConnectSmartTargetView(bleManager: bleManager, navigateToMain: .constant(false), targetPeripheralName: scannedPeripheralName, isAlreadyConnected: bleManager.isConnected, onConnected: { showConnectView = false })

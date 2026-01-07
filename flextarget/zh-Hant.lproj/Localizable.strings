@@ -36,6 +36,7 @@
 "delete_drill_message" = "您確定要刪除 %@ 嗎？";
 "connection_required" = "需要連接";
 "connection_required_message" = "請在新增訓練前連接目標裝置。";
+"connect_target_first" = "請先連接您的目標裝置。";
 "ok" = "確定";
 "untitled" = "未命名";
 "copy" = "複製";
