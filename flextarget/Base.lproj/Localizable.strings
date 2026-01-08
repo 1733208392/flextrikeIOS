@@ -92,8 +92,7 @@
 "fastest_label" = "Fastest";
 "first_shot_label" = "First Shot";
 "score_label" = "Score";
-"factor_label" = "Factor";
-
+"factor_label" = "Factor";\"submit_result\" = \"Submit Result\";
 /* SubViews */
 "history_record" = "History Record";
 "delay_seconds_label" = "Delay(s)";

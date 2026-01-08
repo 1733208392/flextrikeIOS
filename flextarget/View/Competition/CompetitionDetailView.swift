@@ -54,33 +54,6 @@ struct CompetitionDetailView: View {
                 .padding()
                 .background(Color.white.opacity(0.1))
                 
-                // Sync Button
-                HStack(spacing: 12) {
-                    if isLoadingSyncResults {
-                        ProgressView()
-                            .tint(.red)
-                    } else {
-                        Image(systemName: "arrow.clockwise")
-                    }
-                    
-                    Button(action: {
-                        Task {
-                            await syncCompetitionResults()
-                        }
-                    }) {
-                        Text(NSLocalizedString("sync_results", comment: "Sync results from server"))
-                            .font(.caption)
-                            .foregroundColor(.white)
-                    }
-                    .disabled(isLoadingSyncResults)
-                }
-                .padding(.horizontal)
-                .padding(.vertical, 8)
-                .background(Color.red.opacity(0.2))
-                .cornerRadius(6)
-                .padding(.horizontal)
-                .padding(.top, 8)
-                
                 // Results List
                 List {
                     Section(header: Text(NSLocalizedString("results", comment: "")).foregroundColor(.white)) {
@@ -162,6 +135,23 @@ struct CompetitionDetailView: View {
         }
         .navigationTitle(NSLocalizedString("competition_details", comment: ""))
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                if isLoadingSyncResults {
+                    ProgressView()
+                        .tint(.red)
+                } else {
+                    Button(action: {
+                        Task {
+                            await syncCompetitionResults()
+                        }
+                    }) {
+                        Image(systemName: "arrow.clockwise")
+                            .foregroundColor(.red)
+                    }
+                }
+            }
+        }
         .preferredColorScheme(.dark)
         .sheet(isPresented: $showAthletePicker) {
             AthletePickerSheet { athlete in

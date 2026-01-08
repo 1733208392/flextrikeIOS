@@ -434,6 +434,47 @@ struct DrillSummaryView: View {
                                         )
                                     }
                                     .padding(.horizontal, 20)
+                                    
+                                    // Submit button - only for competition results
+                                    if competition != nil {
+                                        let isSubmittingNow = isSubmitting
+                                        let isDeviceConnected = bleManager.isConnected
+                                        let deviceTokenExists = DeviceAuthManager.shared.deviceToken != nil
+                                        let isButtonDisabled = isSubmittingNow || !isDeviceConnected || !deviceTokenExists
+                                        
+                                        Button(action: {
+                                            if !isButtonDisabled {
+                                                submitCompetitionResult()
+                                            }
+                                        }) {
+                                            HStack(spacing: 8) {
+                                                if isSubmitting {
+                                                    ProgressView()
+                                                        .tint(.red)
+                                                } else {
+                                                    Image(systemName: "paperplane.fill")
+                                                        .font(.system(size: 16, weight: .bold))
+                                                }
+                                                Text(NSLocalizedString("submit_result", comment: "Submit result button text"))
+                                                    .font(.system(size: 14, weight: .bold))
+                                                    .kerning(0.5)
+                                            }
+                                            .foregroundColor(.red)
+                                            .padding(.vertical, 10)
+                                            .frame(maxWidth: .infinity)
+                                            .background(
+                                                RoundedRectangle(cornerRadius: 12)
+                                                    .fill(Color.red.opacity(0.1))
+                                                    .overlay(
+                                                        RoundedRectangle(cornerRadius: 12)
+                                                            .stroke(Color.red.opacity(0.3), lineWidth: 1)
+                                                    )
+                                            )
+                                        }
+                                        .disabled(isButtonDisabled)
+                                        .opacity(isButtonDisabled ? 0.5 : 1.0)
+                                        .padding(.horizontal, 20)
+                                    }
                                 }
                             }
                         }
@@ -531,57 +572,6 @@ struct DrillSummaryView: View {
             }
 
             Spacer()
-            
-            // Submit button - only for competition results
-            if competition != nil {
-                let isSubmittingNow = isSubmitting
-                let isDeviceConnected = bleManager.isConnected
-                let deviceTokenExists = DeviceAuthManager.shared.deviceToken != nil
-                let isButtonDisabled = isSubmittingNow || !isDeviceConnected || !deviceTokenExists
-                
-                Button(action: {
-                    print("=== Submit Button Tapped ===")
-                    print("isSubmitting: \(isSubmittingNow)")
-                    print("bleManager.isConnected: \(isDeviceConnected)")
-                    print("deviceToken: \(DeviceAuthManager.shared.deviceToken ?? "nil")")
-                    print("Button disabled: \(isButtonDisabled)")
-                    print("============================")
-                    if !isButtonDisabled {
-                        submitCompetitionResult()
-                    } else {
-                        print("Button is disabled - action not triggered")
-                    }
-                }) {
-                    ZStack {
-                        Circle()
-                            .fill(Color.black)
-                            .frame(width: 40, height: 40)
-                            .overlay(
-                                Circle()
-                                    .stroke(Color.red, lineWidth: 2)
-                            )
-                        
-                        if isSubmitting {
-                            ProgressView()
-                                .tint(.red)
-                        } else {
-                            Image(systemName: "paperplane.fill")
-                                .font(.system(size: 16, weight: .semibold))
-                                .foregroundColor(.red)
-                        }
-                    }
-                    .shadow(color: Color.red.opacity(0.3), radius: 8, x: 0, y: 4)
-                }
-                .disabled(isButtonDisabled)
-                .opacity(isButtonDisabled ? 0.5 : 1.0)
-                .onAppear {
-                    print("=== NavigationBar onAppear ===")
-                    print("competition: \(competition != nil)")
-                    print("bleManager.isConnected: \(bleManager.isConnected)")
-                    print("deviceToken: \(DeviceAuthManager.shared.deviceToken ?? "nil")")
-                    print("================================")
-                }
-            }
         }
         .padding(.horizontal, 20)
         .padding(.top, 16)

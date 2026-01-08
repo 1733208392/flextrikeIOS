@@ -93,8 +93,7 @@
 "fastest_label" = "Schnellster";
 "first_shot_label" = "Erster Schuss";
 "score_label" = "Punktzahl";
-"factor_label" = "Faktor";
-
+"factor_label" = "Faktor";\"submit_result\" = \"Ergebnis einreichen\";
 /* SubViews */
 "history_record" = "Verlauf";
 "delay_seconds_label" = "Verzögerung(s)";

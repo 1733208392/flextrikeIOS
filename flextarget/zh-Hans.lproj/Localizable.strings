@@ -96,8 +96,7 @@
 "fastest_label" = "最快";
 "first_shot_label" = "首枪";
 "score_label" = "分数";
-"factor_label" = "系数";
-"watch_replay_button" = "观看回放";
+"factor_label" = "系数";"submit_result" = "提交成绩";"watch_replay_button" = "观看回放";
 
 /* SubViews */
 "history_record" = "历史记录";

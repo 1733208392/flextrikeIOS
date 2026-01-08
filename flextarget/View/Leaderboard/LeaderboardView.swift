@@ -27,9 +27,8 @@ struct LeaderboardView: View {
                 // Competition Filter
                 if !competitions.isEmpty {
                     Menu {
-                        Button(NSLocalizedString("choose_competition", comment: "Choose competition")) {
-                            selectedCompetition = nil
-                        }
+                        Text(NSLocalizedString("choose_competition", comment: "Choose competition"))
+                            .foregroundColor(.gray)
                         
                         Divider()
                         
@@ -52,6 +51,7 @@ struct LeaderboardView: View {
                         .background(Color.gray.opacity(0.2))
                         .cornerRadius(8)
                     }
+                    .menuOrder(.fixed)
                     .padding(12)
                 } else {
                     VStack {
@@ -61,6 +61,8 @@ struct LeaderboardView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
                 
+                Spacer()
+
                 if isLoadingRanking {
                     VStack {
                         ProgressView()
@@ -102,11 +104,6 @@ struct LeaderboardView: View {
         }
         .navigationTitle(Text(NSLocalizedString("leaderboard_title", comment: "Leaderboard title")).foregroundColor(.red))
         .navigationBarTitleDisplayMode(.inline)
-        .onAppear {
-            if selectedCompetition == nil && !competitions.isEmpty {
-                selectedCompetition = competitions.first
-            }
-        }
     }
     
     private var rankingList: some View {

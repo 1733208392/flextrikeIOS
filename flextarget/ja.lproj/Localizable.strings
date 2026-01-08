@@ -96,8 +96,7 @@
 "fastest_label" = "最速";
 "first_shot_label" = "最初のショット";
 "score_label" = "スコア";
-"factor_label" = "ファクター";
-
+"factor_label" = "ファクター";\"submit_result\" = \"成績を送信\";
 /* SubViews */
 "history_record" = "履歴記録";
 "delay_seconds_label" = "遅延(秒)";

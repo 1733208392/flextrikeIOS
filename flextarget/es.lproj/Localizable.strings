@@ -96,8 +96,7 @@
 "fastest_label" = "Más Rápido";
 "first_shot_label" = "Primer Disparo";
 "score_label" = "Puntuación";
-"factor_label" = "Factor";
-
+"factor_label" = "Factor";\"submit_result\" = \"Enviar Resultado\";
 /* SubViews */
 "history_record" = "Registro Histórico";
 "delay_seconds_label" = "Retraso(s)";
