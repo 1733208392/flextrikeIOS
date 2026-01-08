@@ -41,7 +41,7 @@
 "performed" = "Performed";
 
 /* HistoryTabView - Filters */
-"all_names" = "All Names";
+"all_drill_setup" = "All Drill Setup";
 "delay_seconds" = "delay: %ds";
 
 /* BLE/ConnectSmartTargetView */
@@ -237,7 +237,7 @@
 "drill_editing_disabled_hint" = "Editing is disabled because this drill has results or is linked to a competition.";
 
 /* History Tab */
-"all_drills" = "All Drills";
+"all_modes" = "All Modes";
 "all_time" = "All Time";
 "past_week" = "Past Week";
 "past_month" = "Past Month";

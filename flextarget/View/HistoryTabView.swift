@@ -159,7 +159,7 @@ struct HistoryTabView: View {
                 VStack(spacing: 12) {
                     // Drill Type Filter
                     Menu {
-                        Button(NSLocalizedString("all_drills", comment: "All drills filter")) {
+                        Button(NSLocalizedString("all_modes", comment: "All drills filter")) {
                             selectedDrillType = nil
                         }
                         
@@ -173,7 +173,7 @@ struct HistoryTabView: View {
                     } label: {
                         HStack {
                             Image(systemName: "line.3.horizontal.decrease")
-                            Text(selectedDrillType?.uppercased() ?? NSLocalizedString("all_drills", comment: "All drills filter"))
+                            Text(selectedDrillType?.uppercased() ?? NSLocalizedString("all_modes", comment: "All drills filter"))
                                 .lineLimit(1)
                             Spacer()
                             Image(systemName: "chevron.down")
@@ -213,7 +213,7 @@ struct HistoryTabView: View {
                     
                     // Drill Name Filter
                     Menu {
-                        Button(NSLocalizedString("all_names", comment: "All names filter")) {
+                        Button(NSLocalizedString("all_drill_setup", comment: "All names filter")) {
                             selectedDrillName = nil
                         }
                         
@@ -227,7 +227,7 @@ struct HistoryTabView: View {
                     } label: {
                         HStack {
                             Image(systemName: "target")
-                            Text(selectedDrillName ?? NSLocalizedString("all_names", comment: "All names filter"))
+                            Text(selectedDrillName ?? NSLocalizedString("all_drill_setup", comment: "All names filter"))
                                 .lineLimit(1)
                             Spacer()
                             Image(systemName: "chevron.down")

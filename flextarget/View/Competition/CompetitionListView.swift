@@ -11,6 +11,17 @@ struct CompetitionListView: View {
     
     @State private var searchText = ""
     
+    var filteredCompetitions: [Competition] {
+        if searchText.isEmpty {
+            return Array(competitions)
+        } else {
+            return competitions.filter { competition in
+                (competition.name?.localizedCaseInsensitiveContains(searchText) ?? false) ||
+                (competition.venue?.localizedCaseInsensitiveContains(searchText) ?? false)
+            }
+        }
+    }
+    
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
@@ -31,13 +42,13 @@ struct CompetitionListView: View {
                 .padding()
                 
                 List {
-                    ForEach(competitions) { competition in
+                    ForEach(filteredCompetitions, id: \.self) { competition in
                         NavigationLink(destination: CompetitionDetailView(competition: competition)) {
                             CompetitionRow(competition: competition)
                         }
                         .listRowBackground(Color.white.opacity(0.1))
                     }
-                    .onDelete(perform: deleteCompetitions)
+                    .onDelete(perform: deleteCompetitionsFiltered)
                 }
                 .listStyle(PlainListStyle())
                 .scrollContentBackground(.hidden)
@@ -56,9 +67,9 @@ struct CompetitionListView: View {
         }
     }
     
-    private func deleteCompetitions(offsets: IndexSet) {
+    private func deleteCompetitionsFiltered(offsets: IndexSet) {
         withAnimation {
-            offsets.map { competitions[$0] }.forEach(viewContext.delete)
+            offsets.map { filteredCompetitions[$0] }.forEach(viewContext.delete)
             do {
                 try viewContext.save()
             } catch {

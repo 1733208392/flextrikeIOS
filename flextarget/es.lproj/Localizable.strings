@@ -61,7 +61,7 @@
 "ready_to_scan" = "Listo para escanear";
 
 /* HistoryTabView - Filters */
-"all_names" = "Todos los nombres";
+"all_drill_setup" = "Todas las configuraciones de ejercicio";
 
 /* LaserDryFire/OverlayView */
 "fps_display" = "FPS: %d";
@@ -243,7 +243,7 @@
 "save_button" = "Guardar";
 
 /* History Tab */
-"all_drills" = "Todos los ejercicios";
+"all_modes" = "Todos los modos";
 "all_time" = "Todo el tiempo";
 "past_week" = "Semana pasada";
 "past_month" = "Mes pasado";

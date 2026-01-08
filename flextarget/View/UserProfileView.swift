@@ -16,6 +16,7 @@ struct UserProfileView: View {
     @State private var showSuccess = false
     @State private var selectedTab = 0
     @State private var showLogoutAlert = false
+    @FocusState private var usernameFieldFocused: Bool
     
     var body: some View {
         VStack {
@@ -92,6 +93,7 @@ struct UserProfileView: View {
                 TextField(NSLocalizedString("username", comment: "Username"), text: $username)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .autocapitalization(.words)
+                    .focused($usernameFieldFocused)
                 
                 if showError {
                     Text(errorMessage)
@@ -170,7 +172,10 @@ struct UserProfileView: View {
             do {
                 _ = try await UserAPIService.shared.editUser(username: username, accessToken: accessToken)
                 authManager.updateUserInfo(username: username)
-                showSuccess = true
+                await MainActor.run {
+                    usernameFieldFocused = false  // Lose focus on success
+                    showSuccess = true
+                }
             } catch {
                 errorMessage = error.localizedDescription
                 showError = true

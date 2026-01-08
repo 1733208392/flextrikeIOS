@@ -201,7 +201,7 @@
 "image_transferred_success" = "Bild erfolgreich übertragen";
 
 /* HistoryTabView - Filters */
-"all_names" = "Alle Namen";
+"all_drill_setup" = "Alle Trainingseinstellungen";
 "transfer_cancelled" = "Übertragung abgebrochen";
 "transfer" = "Übertragen";
 "ensure_target_ready" = "Stellen Sie sicher, dass das Ziel bereit ist";
@@ -244,7 +244,7 @@
 "save_button" = "Speichern";
 
 /* History Tab */
-"all_drills" = "Alle Übungen";
+"all_modes" = "Alle Modi";
 "all_time" = "Gesamte Zeit";
 "past_week" = "Letzte Woche";
 "past_month" = "Letzter Monat";

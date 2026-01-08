@@ -61,7 +61,7 @@
 "ready_to_scan" = "準備掃描";
 
 /* HistoryTabView - Filters */
-"all_names" = "所有名稱";
+"all_drill_setup" = "所有訓練設定";
 
 /* LaserDryFire/OverlayView */
 "fps_display" = "FPS: %d";
@@ -244,7 +244,7 @@
 "save_button" = "儲存";
 
 /* History Tab */
-"all_drills" = "所有訓練";
+"all_modes" = "所有模式";
 "all_time" = "全部時間";
 "past_week" = "過去一週";
 "past_month" = "過去一個月";

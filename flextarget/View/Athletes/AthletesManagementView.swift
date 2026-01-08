@@ -41,110 +41,96 @@ struct AthletesManagementView: View {
                     hideKeyboard()
                 }
 
-            List {
-                Section(header: Text(NSLocalizedString("new_athlete", comment: "New athlete section header"))
-                    .foregroundColor(.white)) {
+            VStack(spacing: 0) {
+                List {
+                    Section(header: Text(NSLocalizedString("new_athlete", comment: "New athlete section header"))
+                        .foregroundColor(.white)) {
 
-                    HStack(spacing: 12) {
-                        avatarPreview(data: selectedAvatarData)
+                        HStack(spacing: 12) {
+                            PhotosPicker(selection: $selectedPhoto, matching: .images) {
+                                avatarPreview(data: selectedAvatarData)
+                                    .frame(width: 56, height: 56)
+                            }
+                            .buttonStyle(PlainButtonStyle())
 
-                        VStack(spacing: 10) {
-                            TextField(NSLocalizedString("athlete_name", comment: "Athlete name placeholder"), text: $name, prompt: Text(NSLocalizedString("athlete_name", comment: "Athlete name placeholder")).foregroundColor(.white.opacity(0.6)))
-                                .textInputAutocapitalization(.words)
-                                .disableAutocorrection(true)
-                                .foregroundColor(.white)
+                            VStack(spacing: 10) {
+                                TextField(NSLocalizedString("athlete_name", comment: "Athlete name placeholder"), text: $name, prompt: Text(NSLocalizedString("athlete_name", comment: "Athlete name placeholder")).foregroundColor(.white.opacity(0.6)))
+                                    .textInputAutocapitalization(.words)
+                                    .disableAutocorrection(true)
+                                    .foregroundColor(.white)
 
-                            TextField(NSLocalizedString("athlete_club", comment: "Athlete club placeholder"), text: $club, prompt: Text(NSLocalizedString("athlete_club", comment: "Athlete club placeholder")).foregroundColor(.white.opacity(0.6)))
-                                .textInputAutocapitalization(.words)
-                                .disableAutocorrection(true)
-                                .foregroundColor(.white)
+                                TextField(NSLocalizedString("athlete_club", comment: "Athlete club placeholder"), text: $club, prompt: Text(NSLocalizedString("athlete_club", comment: "Athlete club placeholder")).foregroundColor(.white.opacity(0.6)))
+                                    .textInputAutocapitalization(.words)
+                                    .disableAutocorrection(true)
+                                    .foregroundColor(.white)
+                            }
                         }
-                    }
-                    .listRowBackground(Color.gray.opacity(0.2))
-
-                    PhotosPicker(selection: $selectedPhoto, matching: .images) {
-                        HStack {
-                            Image(systemName: "photo")
-                            Text(NSLocalizedString("select_avatar", comment: "Select avatar button"))
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .foregroundColor(.red)
-                        }
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    .listRowBackground(Color.gray.opacity(0.2))
-                    .onChange(of: selectedPhoto) { newItem in
-                        guard let newItem else {
-                            selectedAvatarData = nil
-                            return
-                        }
-                        Task {
-                            do {
-                                if let data = try await newItem.loadTransferable(type: Data.self) {
-                                    await MainActor.run {
-                                        selectedAvatarData = data
+                        .listRowBackground(Color.gray.opacity(0.2))
+                        .onChange(of: selectedPhoto) { newItem in
+                            guard let newItem else {
+                                selectedAvatarData = nil
+                                return
+                            }
+                            Task {
+                                do {
+                                    if let data = try await newItem.loadTransferable(type: Data.self) {
+                                        await MainActor.run {
+                                            selectedAvatarData = data
+                                        }
                                     }
-                                }
-                            } catch {
-                                await MainActor.run {
-                                    errorMessage = error.localizedDescription
-                                    showError = true
+                                } catch {
+                                    await MainActor.run {
+                                        errorMessage = error.localizedDescription
+                                        showError = true
+                                    }
                                 }
                             }
                         }
                     }
 
-                    Button {
-                        addAthlete()
-                    } label: {
-                        HStack {
-                            Image(systemName: "plus.circle.fill")
-                                .foregroundColor(.red)
-                            Text(NSLocalizedString("add_athlete", comment: "Add athlete button"))
-                                .foregroundColor(.white)
-                            Spacer()
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    .listRowBackground(Color.gray.opacity(0.2))
-                    .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                }
-
-                Section(header: Text(NSLocalizedString("athletes", comment: "Athletes section header"))
-                    .foregroundColor(.white)) {
-                    if athletes.isEmpty {
-                        Text(NSLocalizedString("athletes_empty", comment: "Empty athletes list"))
-                            .foregroundColor(.gray)
-                            .listRowBackground(Color.gray.opacity(0.2))
-                    } else {
-                        ForEach(athletes) { athlete in
-                            athleteRow(athlete)
+                    Section(header: Text(NSLocalizedString("athletes", comment: "Athletes section header"))
+                        .foregroundColor(.white)) {
+                        if athletes.isEmpty {
+                            Text(NSLocalizedString("athletes_empty", comment: "Empty athletes list"))
+                                .foregroundColor(.gray)
                                 .listRowBackground(Color.gray.opacity(0.2))
-                                .contentShape(Rectangle())
-                                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                                    Button(role: .destructive) {
-                                        athleteToDelete = athlete
-                                        showDeleteConfirmation = true
-                                    } label: {
-                                        Label(NSLocalizedString("delete", comment: "Delete button"), systemImage: "trash")
+                        } else {
+                            ForEach(athletes) { athlete in
+                                athleteRow(athlete)
+                                    .listRowBackground(Color.gray.opacity(0.2))
+                                    .contentShape(Rectangle())
+                                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                        Button(role: .destructive) {
+                                            athleteToDelete = athlete
+                                            showDeleteConfirmation = true
+                                        } label: {
+                                            Label(NSLocalizedString("delete", comment: "Delete button"), systemImage: "trash")
+                                        }
                                     }
-                                }
+                            }
                         }
                     }
                 }
-            }
-            .scrollContentBackground(.hidden)
-            .listStyle(.plain)
-            .simultaneousGesture(
-                TapGesture().onEnded {
-                    hideKeyboard()
+                .scrollContentBackground(.hidden)
+                .listStyle(.plain)
+                .simultaneousGesture(
+                    TapGesture().onEnded {
+                        hideKeyboard()
+                    }
+                )
+                
+                Button(action: addAthlete) {
+                    Text(NSLocalizedString("add_athlete", comment: "Add athlete button"))
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.red)
+                        .cornerRadius(8)
                 }
-            )
+                .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                .padding()
+            }
         }
         .navigationTitle(NSLocalizedString("athletes_title", comment: "Athletes screen title"))
         .navigationBarBackButtonHidden(true)
@@ -153,10 +139,10 @@ struct AthletesManagementView: View {
         #endif
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
-                Button(NSLocalizedString("back", comment: "Back button")) {
-                    dismiss()
+                Button(action: { dismiss() }) {
+                    Image(systemName: "chevron.left")
+                        .foregroundColor(.white)
                 }
-                .foregroundColor(.red)
             }
         }
         .alert(isPresented: $showError) {

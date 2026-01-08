@@ -61,7 +61,7 @@ struct DrillsTabView: View {
                             showConnectionAlert = true
                         }) {
                             Image(systemName: "plus")
-                                .foregroundColor(.gray)
+                                .foregroundColor(.red)
                         }
                     }
                 }

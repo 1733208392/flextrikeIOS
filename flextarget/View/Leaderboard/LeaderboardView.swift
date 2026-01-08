@@ -24,22 +24,35 @@ struct LeaderboardView: View {
             Color.black.ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // Competition Picker
+                // Competition Filter
                 if !competitions.isEmpty {
-                    Picker(NSLocalizedString("select_competition", comment: "Select competition"), selection: $selectedCompetition) {
-                        Text(NSLocalizedString("choose_competition", comment: "Choose competition"))
-                            .tag(nil as Competition?)
-                        ForEach(competitions, id: \.self) { competition in
-                            Text(competition.name ?? NSLocalizedString("untitled_competition", comment: ""))
-                                .tag(competition as Competition?)
+                    Menu {
+                        Button(NSLocalizedString("choose_competition", comment: "Choose competition")) {
+                            selectedCompetition = nil
                         }
+                        
+                        Divider()
+                        
+                        ForEach(competitions, id: \.self) { competition in
+                            Button(competition.name ?? NSLocalizedString("untitled_competition", comment: "")) {
+                                selectedCompetition = competition
+                                resetAndFetchRanking()
+                            }
+                        }
+                    } label: {
+                        HStack {
+                            Image(systemName: "line.3.horizontal.decrease")
+                            Text(selectedCompetition?.name ?? NSLocalizedString("choose_competition", comment: "Choose competition"))
+                                .lineLimit(1)
+                            Spacer()
+                            Image(systemName: "chevron.down")
+                        }
+                        .foregroundColor(.red)
+                        .padding(12)
+                        .background(Color.gray.opacity(0.2))
+                        .cornerRadius(8)
                     }
-                    .pickerStyle(.menu)
-                    .padding()
-                    .background(Color.gray.opacity(0.2))
-                    .onChange(of: selectedCompetition) { _ in
-                        resetAndFetchRanking()
-                    }
+                    .padding(12)
                 } else {
                     VStack {
                         Text(NSLocalizedString("no_competitions", comment: "No competitions available"))
@@ -87,12 +100,8 @@ struct LeaderboardView: View {
                 }
             }
         }
-        .navigationTitle(NSLocalizedString("leaderboard_title", comment: "Leaderboard title"))
-        #if os(iOS)
+        .navigationTitle(Text(NSLocalizedString("leaderboard_title", comment: "Leaderboard title")).foregroundColor(.red))
         .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(Color.black, for: .navigationBar)
-        .toolbarBackground(.visible, for: .navigationBar)
-        #endif
         .onAppear {
             if selectedCompetition == nil && !competitions.isEmpty {
                 selectedCompetition = competitions.first

@@ -81,7 +81,7 @@
 "drill_timer_expired" = "ドリルタイマー期限切れ";
 
 /* HistoryTabView - Filters */
-"all_names" = "すべての名前";
+"all_drill_setup" = "すべてのトレーニング設定";
 "shots_received" = "受信したショット";
 "drill_status_completed" = "完了";
 
@@ -245,7 +245,7 @@
 "save_button" = "保存";
 
 /* History Tab */
-"all_drills" = "すべてのドリル";
+"all_modes" = "すべてのモード";
 "all_time" = "全期間";
 "past_week" = "過去1週間";
 "past_month" = "過去1ヶ月";

@@ -64,7 +64,7 @@ struct DrillListView: View {
             }
         }
         .tint(.red)
-        .navigationTitle(NSLocalizedString("my_drills", comment: "Navigation title for drill list"))
+        .navigationTitle(NSLocalizedString("drill_setup", comment: "Navigation title for drill list"))
         .navigationBarTitleDisplayMode(.inline)
         .alert(NSLocalizedString("delete_drill_title", comment: "Alert title for deleting drill"), isPresented: $showDeleteAlert, presenting: drillToDelete) { drill in
             Button(NSLocalizedString("delete", comment: "Delete button"), role: .destructive) {
@@ -123,7 +123,7 @@ struct DrillListView: View {
             Spacer()
 
             Image(systemName: "chevron.right")
-                .foregroundColor(.gray)
+                .foregroundColor(.red)
         }
         .padding(.vertical, 8)
     }
@@ -140,12 +140,7 @@ struct DrillListView: View {
             Text("\(NSLocalizedString("performed", comment: "Label for number of times drill was performed")): \(performanceCount)")
                 .foregroundColor(.gray)
                 .font(.caption)
-            
-            if drill.repeats > 1 {
-                Text("Repeats: \(drill.repeats)")
-                    .foregroundColor(.gray)
-                    .font(.caption)
-            }
+
         }
     }
 

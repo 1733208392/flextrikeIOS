@@ -405,14 +405,7 @@ struct DrillSummaryView: View {
                                     NavigationLink(destination: DrillResultView(drillSetup: drillSetup, repeatSummary: summaries[index])) {
                                         summaryCard(
                                             title: String(format: NSLocalizedString("repeat_number", comment: "Repeat number format"), summaries[index].repeatIndex),
-                                            subtitle: AnyView(HStack(spacing: 2) {
-                                                Text("\(NSLocalizedString("factor_label", comment: "Factor label")):")
-                                                    .font(.system(size: 14, weight: .medium))
-                                                    .foregroundColor(Color.white.opacity(0.7))
-                                                Text(String(format: "%.2f", calculateFactor(score: summaries[index].score, time: summaries[index].totalTime)))
-                                                    .font(.system(size: 18, weight: .bold))
-                                                    .foregroundColor(.red)
-                                            }),
+                                            subtitle: AnyView(EmptyView()),
                                             iconName: "scope",
                                             metrics: metrics(for: summaries[index]),
                                             hitZoneMetrics: hitZoneMetrics(for: summaries[index]),
@@ -963,21 +956,6 @@ struct SummaryEditSheet: View {
             }
             .padding()
         }
-//        .sheet(isPresented: $showAthletePicker) {
-//            NavigationView {
-//                AthletePickerSheet { athlete in
-//                    let didSubmit = submitToLeaderboard(athlete: athlete)
-//                    showAthletePicker = false
-//                    if didSubmit {
-//                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-//                            showLeaderboard = true
-//                        }
-//                    }
-//                }
-//                .preferredColorScheme(.dark)
-//            }
-//            .environment(\.managedObjectContext, viewContext)
-//        }
         .sheet(isPresented: $showLeaderboard) {
             NavigationView {
                 LeaderboardView()

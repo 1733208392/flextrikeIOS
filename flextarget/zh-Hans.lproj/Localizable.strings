@@ -27,7 +27,7 @@
 "drill_mode" = "训练模式";
 
 /* DrillListView */
-"my_drills" = "我的练习";
+"my_drills" = "训练设置";
 "search_drills" = "搜索训练";
 "delete_drill_title" = "删除训练";
 "delete" = "删除";
@@ -61,7 +61,7 @@
 "ready_to_scan" = "准备扫描";
 
 /* HistoryTabView - Filters */
-"all_names" = "所有名称";
+"all_drill_setup" = "所有训练设置";
 
 /* LaserDryFire/OverlayView */
 "fps_display" = "FPS: %d";
@@ -243,7 +243,7 @@
 "save_button" = "保存";
 
 /* History Tab */
-"all_drills" = "所有训练";
+"all_modes" = "所有模式";
 "all_time" = "全部时间";
 "past_week" = "过去一周";
 "past_month" = "过去一个月";

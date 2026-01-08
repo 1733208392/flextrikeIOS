@@ -35,6 +35,7 @@ class UserAPIService {
     struct RefreshTokenData: Codable {
         let user_uuid: String
         let access_token: String
+        let refresh_token: String?
     }
     
     struct EditUserData: Codable {
