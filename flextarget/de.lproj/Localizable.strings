@@ -160,6 +160,23 @@
 "action" = "Aktion";
 "duration" = "Dauer";
 "duration_value_format" = "%.1fs";
+"duration_continuous" = "Kontinuierlich";
+"duration_seconds_format" = "%.1fs";
+
+/* CQB Target Types */
+"cqb_swing" = "Spähend";
+"cqb_front" = "Zielend";
+"cqb_move" = "Passieren";
+"disguised_enemy" = "Getarnte Bedrohung";
+
+/* CQB Drill Summary */
+"cqb_total_shots" = "Gesamtschüsse";
+"cqb_duration" = "Dauer";
+"cqb_passed" = "BESTANDEN";
+"cqb_failed" = "NICHT BESTANDEN";
+"cqb_threat" = "BEDROHUNG";
+"cqb_non_threat" = "KEINE BEDROHUNG";
+"cqb_shots_format" = "Schüsse: %d/%d";
 
 /* Drill Execution - Back Navigation */
 "continue_button" = "Fortfahren";

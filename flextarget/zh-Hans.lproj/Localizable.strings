@@ -134,10 +134,28 @@
 "drill_history" = "训练历史";
 "drill_replay" = "训练回放";
 "select_device" = "选择设备";
-"select_target_type" = "选择标靶类型";"select_action" = "选择动作";
+"select_target_type" = "选择标靶类型";
+"select_action" = "选择动作";
 "action" = "动作";
 "duration" = "持续时间";
 "select_duration" = "选择持续时间";
+"duration_continuous" = "连续";
+"duration_seconds_format" = "%.1f秒";
+
+/* CQB Target Types */
+"cqb_swing" = "窥视";
+"cqb_front" = "瞄准";
+"cqb_move" = "跑动";
+"disguised_enemy" = "伪装威胁";
+
+/* CQB Drill Summary */
+"cqb_total_shots" = "总射击数";
+"cqb_duration" = "持续时间";
+"cqb_passed" = "通过";
+"cqb_failed" = "未通过";
+"cqb_threat" = "威胁";
+"cqb_non_threat" = "无威胁";
+"cqb_shots_format" = "射击数：%d/%d";
 "duration_value_format" = "%.1fs";
 /* DrillFormView */
 "start_drill" = "进入训练";

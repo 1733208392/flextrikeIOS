@@ -20,6 +20,8 @@
     </entity>
     <entity name="DrillResult" representedClassName="DrillResult" syncable="YES">
         <attribute name="adjustedHitZones" optional="YES" attributeType="String"/>
+        <attribute name="cqbPassed" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="cqbResults" optional="YES" attributeType="String"/>
         <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="drillId" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>

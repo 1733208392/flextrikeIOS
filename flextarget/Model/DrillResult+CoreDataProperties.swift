@@ -19,6 +19,8 @@ extension DrillResult {
     }
 
     @NSManaged public var adjustedHitZones: String?
+    @NSManaged public var cqbPassed: NSNumber?
+    @NSManaged public var cqbResults: String?
     @NSManaged public var date: Date?
     @NSManaged public var drillId: UUID?
     @NSManaged public var id: UUID?

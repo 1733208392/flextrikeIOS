@@ -138,6 +138,23 @@
 "action" = "アクション";
 "duration" = "期間";
 "select_duration" = "期間を選択";
+"duration_continuous" = "継続的";
+"duration_seconds_format" = "%.1f秒";
+
+/* CQB Target Types */
+"cqb_swing" = "ピーキング";
+"cqb_front" = "エイミング";
+"cqb_move" = "パッシング";
+"disguised_enemy" = "偽装の脅威";
+
+/* CQB Drill Summary */
+"cqb_total_shots" = "総ショット数";
+"cqb_duration" = "期間";
+"cqb_passed" = "合格";
+"cqb_failed" = "不合格";
+"cqb_threat" = "脅威";
+"cqb_non_threat" = "非脅威";
+"cqb_shots_format" = "ショット数：%d/%d";
 "duration_value_format" = "%.1fs";
 
 /* DrillFormView */

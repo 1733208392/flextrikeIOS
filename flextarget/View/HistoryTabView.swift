@@ -356,6 +356,15 @@ struct HistoryTabView: View {
             adjustedHitZones = try? decoder.decode([String: Int].self, from: adjustedStr.data(using: .utf8) ?? Data())
         }
         
+        // Decode CQB data
+        var cqbResults: [CQBShotResult]? = nil
+        if let cqbResultsStr = result.cqbResults, 
+           let data = cqbResultsStr.data(using: .utf8) {
+            cqbResults = try? decoder.decode([CQBShotResult].self, from: data)
+        }
+        
+        let cqbPassed: Bool? = result.cqbPassed?.boolValue
+        
         let summary = DrillRepeatSummary(
             repeatIndex: 1,
             totalTime: result.totalTime?.doubleValue ?? 0,
@@ -365,7 +374,9 @@ struct HistoryTabView: View {
             score: 0,
             shots: shotDataArray,
             drillResultId: result.id,
-            adjustedHitZones: adjustedHitZones
+            adjustedHitZones: adjustedHitZones,
+            cqbResults: cqbResults,
+            cqbPassed: cqbPassed
         )
         
         return [summary]
@@ -384,7 +395,9 @@ struct HistoryTabView: View {
                     score: summary.score,
                     shots: summary.shots,
                     drillResultId: summary.drillResultId,
-                    adjustedHitZones: summary.adjustedHitZones
+                    adjustedHitZones: summary.adjustedHitZones,
+                    cqbResults: summary.cqbResults,
+                    cqbPassed: summary.cqbPassed
                 )
                 summaries.append(updatedSummary)
             }

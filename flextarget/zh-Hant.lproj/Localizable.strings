@@ -134,10 +134,28 @@
 "drill_history" = "訓練歷史";
 "drill_replay" = "訓練重播";
 "select_device" = "選擇裝置";
-"select_target_type" = "選擇目標類型";"select_action" = "選擇動作";
+"select_target_type" = "選擇目標類型";
+"select_action" = "選擇動作";
 "action" = "動作";
 "duration" = "持續時間";
 "select_duration" = "選擇持續時間";
+"duration_continuous" = "連續";
+"duration_seconds_format" = "%.1f秒";
+
+/* CQB Target Types */
+"cqb_swing" = "窺視";
+"cqb_front" = "瞄準";
+"cqb_move" = "跑動";
+"disguised_enemy" = "偽裝威脅";
+
+/* CQB Drill Summary */
+"cqb_total_shots" = "總射擊數";
+"cqb_duration" = "持續時間";
+"cqb_passed" = "通過";
+"cqb_failed" = "未通過";
+"cqb_threat" = "威脅";
+"cqb_non_threat" = "無威脅";
+"cqb_shots_format" = "射擊數：%d/%d";
 "duration_value_format" = "%.1fs";
 /* DrillFormView */
 "start_drill" = "開始訓練";

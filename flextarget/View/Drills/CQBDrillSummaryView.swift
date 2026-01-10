@@ -49,28 +49,20 @@ struct CQBDrillSummaryView: View {
     private var navigationBar: some View {
         HStack {
             Button(action: { dismiss() }) {
-                HStack(spacing: 6) {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 14, weight: .bold))
-                    Text(NSLocalizedString("back_button", comment: "Back button"))
-                        .font(.system(size: 14, weight: .bold))
-                }
-                .foregroundColor(.red)
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
             }
             Spacer()
-            Text(drillName)
+            Text(drillName.capitalized)
                 .font(.system(size: 16, weight: .bold))
                 .foregroundColor(.white)
             Spacer()
             // Placeholder for alignment
-            HStack(spacing: 6) {
-                Image(systemName: "chevron.left")
-                    .font(.system(size: 14, weight: .bold))
-                Text(NSLocalizedString("back_button", comment: "Back button"))
-                    .font(.system(size: 14, weight: .bold))
-            }
-            .foregroundColor(.red)
-            .opacity(0)
+            Image(systemName: "chevron.left")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(.white)
+                .opacity(0)
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 16)
@@ -88,38 +80,41 @@ struct CQBDrillSummaryView: View {
                         .font(.system(size: 16, weight: .bold))
                         .foregroundColor(.white)
                     Spacer()
-                    if let cqbPassed = summary.cqbPassed {
-                        HStack(spacing: 6) {
-                            Image(systemName: cqbPassed ? "checkmark.circle.fill" : "xmark.circle.fill")
-                                .font(.system(size: 14, weight: .bold))
-                            Text(cqbPassed ? "PASSED" : "FAILED")
-                                .font(.system(size: 12, weight: .bold))
-                        }
-                        .foregroundColor(cqbPassed ? .green : .red)
-                    }
                 }
                 
                 // Stats row: Total shots and duration
-                HStack(spacing: 24) {
+                HStack(spacing: 16) {
                     VStack(spacing: 4) {
-                        Text("Total Shots")
+                        Text(NSLocalizedString("cqb_total_shots", comment: "Total shots label"))
                             .font(.system(size: 11, weight: .semibold))
                             .foregroundColor(.white.opacity(0.7))
                         Text("\(summary.numShots)")
                             .font(.system(size: 18, weight: .bold))
                             .foregroundColor(.white)
                     }
+                    .frame(minWidth: 60)
                     
                     VStack(spacing: 4) {
-                        Text("Duration")
+                        Text(NSLocalizedString("cqb_duration", comment: "Duration label"))
                             .font(.system(size: 11, weight: .semibold))
                             .foregroundColor(.white.opacity(0.7))
                         Text(format(time: summary.totalTime))
                             .font(.system(size: 18, weight: .bold))
                             .foregroundColor(.white)
                     }
-                    
+                    .frame(minWidth: 60)
+
                     Spacer()
+                    
+                    if let cqbPassed = summary.cqbPassed {
+                        HStack(spacing: 6) {
+                            Image(systemName: cqbPassed ? "checkmark.circle.fill" : "xmark.circle.fill")
+                                .font(.system(size: 16, weight: .bold))
+                            Text(cqbPassed ? NSLocalizedString("cqb_passed", comment: "Passed status") : NSLocalizedString("cqb_failed", comment: "Failed status"))
+                                .font(.system(size: 12, weight: .bold))
+                        }
+                        .foregroundColor(cqbPassed ? .green : .red)
+                    }
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
@@ -189,7 +184,7 @@ struct CQBDrillSummaryView: View {
                         .foregroundColor(.white)
                     
                     if result.isThreat {
-                        Text("THREAT")
+                        Text(NSLocalizedString("cqb_threat", comment: "Threat label"))
                             .font(.system(size: 10, weight: .bold))
                             .foregroundColor(.white)
                             .padding(.horizontal, 6)
@@ -197,7 +192,7 @@ struct CQBDrillSummaryView: View {
                             .background(Color.orange.opacity(0.3))
                             .cornerRadius(4)
                     } else {
-                        Text("NON-THREAT")
+                        Text(NSLocalizedString("cqb_non_threat", comment: "Non-threat label"))
                             .font(.system(size: 10, weight: .bold))
                             .foregroundColor(.white)
                             .padding(.horizontal, 6)
@@ -215,7 +210,7 @@ struct CQBDrillSummaryView: View {
                 
                 // Shot count for threat targets
                 if result.isThreat {
-                    Text("Shots: \(result.actualValidShots)/\(result.expectedShots)")
+                    Text(String(format: NSLocalizedString("cqb_shots_format", comment: "Shots format"), result.actualValidShots, result.expectedShots))
                         .font(.system(size: 11, weight: .regular))
                         .foregroundColor(.white.opacity(0.6))
                 }

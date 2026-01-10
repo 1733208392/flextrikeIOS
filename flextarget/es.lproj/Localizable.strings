@@ -133,11 +133,29 @@
 "drill_history" = "Historial de Ejercicios";
 "drill_replay" = "Repetición de Ejercicio";
 "select_device" = "Seleccionar Dispositivo";
-"select_target_type" = "Seleccionar Tipo de Objetivo";"select_action" = "Seleccionar Acción";
+"select_target_type" = "Seleccionar Tipo de Objetivo";
+"select_action" = "Seleccionar Acción";
 "action" = "Acción";
 "duration" = "Duración";
 "select_duration" = "Seleccionar Duración";
 "duration_value_format" = "%.1fs";
+"duration_continuous" = "Continuo";
+"duration_seconds_format" = "%.1fs";
+
+/* CQB Target Types */
+"cqb_swing" = "Mirando";
+"cqb_front" = "Apuntando";
+"cqb_move" = "Pasando";
+"disguised_enemy" = "Amenaza Disfrazada";
+
+/* CQB Drill Summary */
+"cqb_total_shots" = "Total de Disparos";
+"cqb_duration" = "Duración";
+"cqb_passed" = "APROBADO";
+"cqb_failed" = "REPROBADO";
+"cqb_threat" = "AMENAZA";
+"cqb_non_threat" = "NO AMENAZA";
+"cqb_shots_format" = "Disparos: %d/%d";
 /* DrillFormView */
 "start_drill" = "Iniciar Ejercicio";
 "save_drill" = "Guardar Ejercicio";

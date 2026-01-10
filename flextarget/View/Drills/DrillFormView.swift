@@ -916,6 +916,19 @@ struct DrillFormView: View {
             drillResult.totalTime = NSNumber(value: summary.totalTime)
             drillResult.drillSetup = drillSetup
             
+            // Save CQB-specific data
+            if let cqbPassed = summary.cqbPassed {
+                drillResult.cqbPassed = NSNumber(value: cqbPassed)
+            }
+            if let cqbResults = summary.cqbResults {
+                do {
+                    let jsonData = try JSONEncoder().encode(cqbResults)
+                    drillResult.cqbResults = String(data: jsonData, encoding: .utf8)
+                } catch {
+                    print("Failed to encode cqbResults: \(error)")
+                }
+            }
+            
             var cumulativeTime: Double = 0
             for shotData in summary.shots {
                 cumulativeTime += shotData.content.timeDiff

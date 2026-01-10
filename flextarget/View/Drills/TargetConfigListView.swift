@@ -266,13 +266,13 @@ struct TargetRowView: View {
         case "cqb_front":
             return ["flash"]
         case "cqb_swing":
-            return ["swing_left", "swing_right"]
+            return ["swing_right"]
         case "cqb_move":
-            return ["run_through", "run_through_reverse"]
+            return ["run_through"]
         case "disguised_enemy":
             return ["disguised_enemy_flash"]
         default:
-            return ["flash", "swing_left", "swing_right", "run_through", "run_through_reverse"]
+            return ["flash", "swing_right", "run_through"]
         }
     }
 
@@ -285,6 +285,22 @@ struct TargetRowView: View {
         }
         if config.targetType == "disguised_enemy" {
             config.duration = -1.0
+            config.action = "disguised_enemy_flash"
+        }
+    }
+
+    private func localizedTargetTypeName(_ type: String) -> String {
+        switch type {
+        case "cqb_swing":
+            return NSLocalizedString("cqb_swing", comment: "Peeking action")
+        case "cqb_front":
+            return NSLocalizedString("cqb_front", comment: "Aiming action")
+        case "cqb_move":
+            return NSLocalizedString("cqb_move", comment: "Passing action")
+        case "disguised_enemy":
+            return NSLocalizedString("disguised_enemy", comment: "Disguised Threat target")
+        default:
+            return type
         }
     }
 
@@ -302,14 +318,21 @@ struct TargetRowView: View {
 
             // Details rows
             VStack(spacing: 12) {
-                cardColumn(title: NSLocalizedString("type", comment: "Type label"), value: config.targetType, icon: config.targetType, action: { activeSheet = .type })
+                cardColumn(title: NSLocalizedString("type", comment: "Type label"), value: localizedTargetTypeName(config.targetType), icon: config.targetType, action: { activeSheet = .type })
 
                 if drillMode == "cqb" {
+                    let isCQBType = ["cqb_swing", "cqb_front", "cqb_move", "disguised_enemy"].contains(config.targetType)
                     let allowed = allowedActions(for: config.targetType)
-                    cardColumn(title: NSLocalizedString("action", comment: "Action label"), value: config.action.isEmpty ? NSLocalizedString("select_action", comment: "Select action") : config.action, icon: nil, action: { activeSheet = .action })
-                        .disabled(allowed.count <= 1)
+                    
+                    // Don't show action for CQB targets or disguised_enemy (device handles actions)
+                    if !isCQBType {
+                        cardColumn(title: NSLocalizedString("action", comment: "Action label"), value: config.action.isEmpty ? NSLocalizedString("select_action", comment: "Select action") : config.action, icon: nil, action: { activeSheet = .action })
+                            .disabled(allowed.count <= 1)
+                    }
 
+                    // Disable duration for disguised_enemy
                     cardColumn(title: NSLocalizedString("duration", comment: "Duration label"), value: config.duration == 0 ? NSLocalizedString("select_duration", comment: "Select duration") : String(format: NSLocalizedString("duration_value_format", comment: "Duration value"), config.duration), icon: nil, action: { activeSheet = .duration })
+                        .disabled(config.targetType == "disguised_enemy")
                 }
             }
         }
@@ -445,6 +468,21 @@ struct TargetTypePickerView: View {
     @Binding var selectedType: String
     var onDone: (() -> Void)? = nil
     
+    private func localizedTypeName(_ type: String) -> String {
+        switch type {
+        case "cqb_swing":
+            return NSLocalizedString("cqb_swing", comment: "Peeking action")
+        case "cqb_front":
+            return NSLocalizedString("cqb_front", comment: "Aiming action")
+        case "cqb_move":
+            return NSLocalizedString("cqb_move", comment: "Passing action")
+        case "disguised_enemy":
+            return NSLocalizedString("disguised_enemy", comment: "Disguised Threat target")
+        default:
+            return type
+        }
+    }
+    
     var body: some View {
         NavigationView {
             ZStack {
@@ -462,7 +500,7 @@ struct TargetTypePickerView: View {
                                     .scaledToFit()
                                     .frame(width: 24, height: 24)
                                     .foregroundColor(.white)
-                                Text(icon)
+                                Text(localizedTypeName(icon))
                                     .foregroundColor(.white)
                                 Spacer()
                                 if selectedType == icon {
@@ -554,6 +592,14 @@ struct ActionDurationPickerView: View {
     
     private let durations = [-1.0, 1.5, 2.5, 3.5, 5.0]
     
+    private func durationLabel(_ duration: Double) -> String {
+        if duration == -1.0 {
+            return NSLocalizedString("duration_continuous", comment: "Continuous duration option")
+        } else {
+            return String(format: NSLocalizedString("duration_seconds_format", comment: "Duration in seconds"), duration)
+        }
+    }
+    
     var body: some View {
         NavigationView {
             ZStack {
@@ -565,7 +611,7 @@ struct ActionDurationPickerView: View {
                             onDone?()
                         }) {
                             HStack {
-                                Text(duration == -1.0 ? "Continuous" : String(format: "%.1fs", duration))
+                                Text(durationLabel(duration))
                                     .foregroundColor(.white)
                                 Spacer()
                                 if selectedDuration == duration {
@@ -582,11 +628,11 @@ struct ActionDurationPickerView: View {
                 .background(Color.black)
                 .scrollContentBackgroundHidden()
             }
-            .navigationTitle("Select Duration")
+            .navigationTitle(NSLocalizedString("select_duration", comment: "Select duration sheet title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Cancel") {
+                    Button(NSLocalizedString("cancel", comment: "Cancel button")) {
                         onDone?()
                     }
                     .foregroundColor(.red)

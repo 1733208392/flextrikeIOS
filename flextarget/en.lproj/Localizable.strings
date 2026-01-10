@@ -130,6 +130,23 @@
 "duration" = "Duration";
 "select_duration" = "Select Duration";
 "duration_value_format" = "%.1fs";
+"duration_continuous" = "Continuous";
+"duration_seconds_format" = "%.1fs";
+
+/* CQB Target Types */
+"cqb_swing" = "Peeking";
+"cqb_front" = "Aiming";
+"cqb_move" = "Passing";
+"disguised_enemy" = "Disguised Threat";
+
+/* CQB Drill Summary */
+"cqb_total_shots" = "Total Shots";
+"cqb_duration" = "Duration";
+"cqb_passed" = "PASSED";
+"cqb_failed" = "FAILED";
+"cqb_threat" = "THREAT";
+"cqb_non_threat" = "NON-THREAT";
+"cqb_shots_format" = "Shots: %d/%d";
 
 /* DrillFormView */
 "start_drill" = "Start Drill";
