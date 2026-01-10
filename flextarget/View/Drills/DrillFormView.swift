@@ -599,6 +599,7 @@ struct DrillFormView: View {
             target.countedShots = Int32(targetData.countedShots)
             target.action = targetData.action
             target.duration = targetData.duration
+            target.targetVariant = targetData.targetVariant
             
             // Use the Core Data generated method to establish relationship
             drillSetup.addToTargets(target)
@@ -700,6 +701,7 @@ struct DrillFormView: View {
             target.countedShots = Int32(targetData.countedShots)
             target.action = targetData.action
             target.duration = targetData.duration
+            target.targetVariant = targetData.targetVariant
         }
         
         // Remove targets that are no longer needed

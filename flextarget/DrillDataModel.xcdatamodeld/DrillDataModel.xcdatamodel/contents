@@ -56,6 +56,7 @@
         <attribute name="seqNo" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="targetName" optional="YES" attributeType="String"/>
         <attribute name="targetType" optional="YES" attributeType="String"/>
+        <attribute name="targetVariant" optional="YES" attributeType="String"/>
         <attribute name="timeout" attributeType="Double" defaultValueString="0.0" usesScalarValueType="NO"/>
         <relationship name="drillSetup" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="DrillSetup" inverseName="targets" inverseEntity="DrillSetup"/>
     </entity>

@@ -149,19 +149,28 @@ class DrillExecutionManager {
         
         for (index, target) in sortedTargets.enumerated() {
             do {
-                let delayValue = randomDelay > 0 ? randomDelay : drillSetup.delay
-                let roundedDelay = Double(String(format: "%.2f", delayValue)) ?? delayValue
-                let content: [String: Any] = [
-                    "command": "ready",
-                    "delay": roundedDelay,
-                    "targetType": target.targetType ?? "",
-                    "timeout": 1200,
-                    "countedShots": target.countedShots,
-                    "repeat": currentRepeat,
-                    "isFirst": index == 0,
-                    "isLast": index == sortedTargets.count - 1,
-                    "mode": drillSetup.mode ?? "ipsc"
-                ]
+                let content: [String: Any]
+                if target.targetType == "disguised_enemy" {
+                    content = [
+                        "command": "ready",
+                        "mode": "cqb",
+                        "targetType": "disguised_enemy"
+                    ]
+                } else {
+                    let delayValue = randomDelay > 0 ? randomDelay : drillSetup.delay
+                    let roundedDelay = Double(String(format: "%.2f", delayValue)) ?? delayValue
+                    content = [
+                        "command": "ready",
+                        "delay": roundedDelay,
+                        "targetType": target.targetType ?? "",
+                        "timeout": 1200,
+                        "countedShots": target.countedShots,
+                        "repeat": currentRepeat,
+                        "isFirst": index == 0,
+                        "isLast": index == sortedTargets.count - 1,
+                        "mode": drillSetup.mode ?? "ipsc"
+                    ]
+                }
                 let message: [String: Any] = [
                     "action": "netlink_forward",
                     "dest": target.targetName ?? "",
@@ -376,7 +385,34 @@ class DrillExecutionManager {
         prepareForRepeatStart()
         startCommandTime = Date()  // Record when start command is sent
 
-        var content: [String: Any] = ["command": "start"]
+        // Handle 'disguised_enemy' targets separately
+        let targets = drillSetup.targets as? Set<DrillTargetsConfig> ?? []
+        for target in targets where target.targetType == "disguised_enemy" {
+            let content: [String: Any] = [
+                "command": "start",
+                "mode": "cqb",
+                "targetType": "disguised_enemy",
+                "timeout": target.timeout,
+                "delay": drillSetup.delay,
+                "repeat": currentRepeat
+            ]
+            let message: [String: Any] = [
+                "action": "netlink_forward",
+                "dest": target.targetName ?? "",
+                "content": content
+            ]
+            do {
+                let data = try JSONSerialization.data(withJSONObject: message, options: [])
+                if let jsonString = String(data: data, encoding: .utf8) {
+                    print("Sending start command to disguised_enemy \(target.targetName ?? ""): \(jsonString)")
+                    bleManager.writeJSON(jsonString)
+                }
+            } catch {
+                print("Failed to serialize start command for disguised_enemy: \(error)")
+            }
+        }
+
+        var content: [String: Any] = ["command": "start", "repeat": currentRepeat]
         if let delayTime = globalDelayTime {
             content["delay_time"] = delayTime
         }
@@ -570,6 +606,27 @@ class DrillExecutionManager {
         // Calculate total score using centralized ScoringUtility
         let totalScore = Int(ScoringUtility.calculateTotalScore(shots: adjustedShots, drillSetup: drillSetup))
         
+        // Calculate CQB validation if this is a CQB drill
+        var cqbResults: [CQBShotResult]? = nil
+        var cqbPassed: Bool? = nil
+        
+        if drillSetup.mode?.lowercased() == "cqb" {
+            // Get all target devices from the drill setup
+            let targetDevices = (drillSetup.targets?.allObjects as? [DrillTargetsConfig])?.compactMap { config -> String? in
+                guard let targetName = config.targetName, !targetName.isEmpty else { return nil }
+                return targetName
+            } ?? ([] as [String])
+            
+            let cqbDrillResult = CQBScoringUtility.generateCQBDrillResult(
+                shots: adjustedShots,
+                drillDuration: totalTime,
+                targetDevices: targetDevices
+            )
+            
+            cqbResults = cqbDrillResult.shotResults
+            cqbPassed = cqbDrillResult.drilPassed
+        }
+        
         let summary = DrillRepeatSummary(
             repeatIndex: repeatIndex,
             totalTime: totalTime,
@@ -579,7 +636,9 @@ class DrillExecutionManager {
             score: totalScore,
             shots: adjustedShots,
             drillResultId: nil,
-            adjustedHitZones: nil
+            adjustedHitZones: nil,
+            cqbResults: cqbResults,
+            cqbPassed: cqbPassed
         )
 
         if repeatIndex - 1 < repeatSummaries.count {

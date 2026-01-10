@@ -7,21 +7,41 @@ struct ReplayTargetDisplay: Identifiable, Hashable {
     let config: DrillTargetsConfig
     let icon: String
     let targetName: String?
+    let variant: TargetVariant?  // Optional variant from targetVariant JSON
 
     func matches(_ shot: ShotData) -> Bool {
         if let targetName = targetName {
             let shotTargetName = shot.device?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-            return shotTargetName == targetName
+            let shotIcon = shot.content.targetType.isEmpty ? "hostage" : shot.content.targetType
+            // Use variant's targetType if present, otherwise use config's targetType
+            let expectedIcon = variant?.targetType ?? icon
+            return shotTargetName == targetName && shotIcon == expectedIcon
         } else {
             let shotIcon = shot.content.targetType.isEmpty ? "hostage" : shot.content.targetType
-            return shotIcon == icon
+            let expectedIcon = variant?.targetType ?? icon
+            return shotIcon == expectedIcon
         }
+    }
+
+    // MARK: - Hashable Conformance
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+        hasher.combine(icon)
+        hasher.combine(targetName)
+        hasher.combine(variant)
+    }
+
+    static func == (lhs: ReplayTargetDisplay, rhs: ReplayTargetDisplay) -> Bool {
+        return lhs.id == rhs.id &&
+               lhs.icon == rhs.icon &&
+               lhs.targetName == rhs.targetName &&
+               lhs.variant == rhs.variant
     }
 }
 
 private func isScoringZone(_ hitArea: String) -> Bool {
     let trimmed = hitArea.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-    return trimmed == "azone" || trimmed == "czone" || trimmed == "dzone"
+    return trimmed == "azone" || trimmed == "czone" || trimmed == "dzone" || trimmed == "head" || trimmed == "body"
 }
 
 /// A version of TargetDisplayView that supports filtering shots by current playback time.
@@ -266,17 +286,49 @@ struct DrillReplayView: View {
     
     private var targetDisplays: [ReplayTargetDisplay] {
         let sortedTargets = drillSetup.sortedTargets
-        let displays = sortedTargets.map { target in
+        var displays: [ReplayTargetDisplay] = []
+        
+        for target in sortedTargets {
             let iconName = target.targetType ?? ""
             let resolvedIcon = iconName.isEmpty ? "hostage" : iconName
-            let id = target.id?.uuidString ?? UUID().uuidString
-            return ReplayTargetDisplay(id: id, config: target, icon: resolvedIcon, targetName: target.targetName)
+            let baseId = target.id?.uuidString ?? UUID().uuidString
+            let variants = target.toStruct().parseVariants()
+            
+            if !variants.isEmpty {
+                // Create a display for each variant
+                for (index, variant) in variants.enumerated() {
+                    let id = "\(baseId)-variant-\(index)"
+                    let variantIcon = variant.targetType.isEmpty ? "hostage" : variant.targetType
+                    let display = ReplayTargetDisplay(
+                        id: id,
+                        config: target,
+                        icon: variantIcon,
+                        targetName: target.targetName,
+                        variant: variant
+                    )
+                    displays.append(display)
+                }
+            } else {
+                // No variants: create single display (legacy behavior)
+                let display = ReplayTargetDisplay(
+                    id: baseId,
+                    config: target,
+                    icon: resolvedIcon,
+                    targetName: target.targetName,
+                    variant: nil
+                )
+                displays.append(display)
+            }
         }
         
-        return displays.sorted { display1, display2 in
-            let minIndex1 = shots.enumerated().first(where: { display1.matches($0.element) })?.offset ?? Int.max
-            let minIndex2 = shots.enumerated().first(where: { display2.matches($0.element) })?.offset ?? Int.max
-            return minIndex1 < minIndex2
+        // Sort by seqNo first, then by startTime (from variant if present)
+        return displays.sorted { d1, d2 in
+            if d1.config.seqNo != d2.config.seqNo {
+                return d1.config.seqNo < d2.config.seqNo
+            }
+            let t1 = d1.variant?.startTime ?? 0
+            let t2 = d2.variant?.startTime ?? 0
+            return t1 < t2
         }
     }
 
@@ -382,6 +434,23 @@ struct DrillReplayView: View {
         }
     }
     
+    // MARK: - Helper Methods for Time Window Handling
+    
+    private func activeTargetId(forTime time: Double) -> String? {
+        // Find target whose time window contains the given time
+        for display in targetDisplays {
+            // Check variant time window if variant exists
+            if let variant = display.variant {
+                if time >= variant.startTime && time < variant.endTime {
+                    return display.id
+                }
+            }
+        }
+        
+        // Fallback: return first target (no time window constraints)
+        return targetDisplays.first?.id
+    }
+    
     private func togglePlayback() {
         if isPlaying {
             stopTimer()
@@ -424,11 +493,10 @@ struct DrillReplayView: View {
                     playShotSound()
                 }
                 
-                // Update target key if needed
-                let shot = shots[lastShot.index]
-                if let matching = targetDisplays.first(where: { $0.matches(shot) }) {
-                    if selectedTargetKey != matching.id {
-                        selectedTargetKey = matching.id
+                // Update target key based on active target at this time
+                if let activeId = activeTargetId(forTime: time) {
+                    if selectedTargetKey != activeId {
+                        selectedTargetKey = activeId
                     }
                 }
             }

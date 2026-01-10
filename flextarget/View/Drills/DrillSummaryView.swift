@@ -63,6 +63,10 @@ struct DrillSummaryView: View {
     private var drillName: String {
         drillSetup.name ?? "Untitled Drill"
     }
+    
+    private var isCQBMode: Bool {
+        drillSetup.mode?.lowercased() == "cqb"
+    }
 
     private func metrics(for summary: DrillRepeatSummary) -> [SummaryMetric] {
         // Calculate effective score using adjusted hit zones if available
@@ -389,6 +393,16 @@ struct DrillSummaryView: View {
     }
 
     var body: some View {
+        if isCQBMode {
+            CQBDrillSummaryView(drillSetup: drillSetup, summaries: summaries)
+        } else {
+            ipscDrillSummaryViewWithAllModifiers
+        }
+    }
+    
+    // MARK: - IPSC Drill Summary View
+    
+    private var ipscDrillSummaryView: some View {
         ZStack {
             Color.black.ignoresSafeArea()
 
@@ -483,59 +497,65 @@ struct DrillSummaryView: View {
                 }
             }
         }
-        .navigationBarHidden(true)
-        .onAppear {
-            initializeOriginalScores()
-        }
-        .sheet(item: $editingSummary) { summary in
-            SummaryEditSheet(
-                summary: summary,
-                onSave: { updatedZones in
-                    // Find the index of the summary being edited
-                    if let index = summaries.firstIndex(where: { $0.id == summary.id }) {
-                        // Use the PE count from the edit sheet
-                        var finalZones = updatedZones
-                        
-                        summaries[index].adjustedHitZones = finalZones
-                        
-                        // Update penalty count state (subtract auto-calculated missed targets)
-                        penaltyCounts[summary.id] = (finalZones["PE"] ?? 0) - missedTargets(for: summaries[index])
-                        
-                        // Persist to Core Data
-                        if let drillResultId = summaries[index].drillResultId {
-                            let fetchRequest = NSFetchRequest<DrillResult>(entityName: "DrillResult")
-                            fetchRequest.predicate = NSPredicate(format: "id == %@", drillResultId as CVarArg)
-                            do {
-                                let results = try viewContext.fetch(fetchRequest)
-                                if let result = results.first {
-                                    if let jsonData = try? JSONEncoder().encode(finalZones),
-                                       let jsonString = String(data: jsonData, encoding: .utf8) {
-                                        result.adjustedHitZones = jsonString
-                                        try viewContext.save()
+    }
+    
+    // MARK: - IPSC Drill Summary with Modifiers
+    
+    private var ipscDrillSummaryViewWithAllModifiers: some View {
+        ipscDrillSummaryView
+            .navigationBarHidden(true)
+            .onAppear {
+                initializeOriginalScores()
+            }
+            .sheet(item: $editingSummary) { summary in
+                SummaryEditSheet(
+                    summary: summary,
+                    onSave: { updatedZones in
+                        // Find the index of the summary being edited
+                        if let index = summaries.firstIndex(where: { $0.id == summary.id }) {
+                            // Use the PE count from the edit sheet
+                            var finalZones = updatedZones
+                            
+                            summaries[index].adjustedHitZones = finalZones
+                            
+                            // Update penalty count state (subtract auto-calculated missed targets)
+                            penaltyCounts[summary.id] = (finalZones["PE"] ?? 0) - missedTargets(for: summaries[index])
+                            
+                            // Persist to Core Data
+                            if let drillResultId = summaries[index].drillResultId {
+                                let fetchRequest = NSFetchRequest<DrillResult>(entityName: "DrillResult")
+                                fetchRequest.predicate = NSPredicate(format: "id == %@", drillResultId as CVarArg)
+                                do {
+                                    let results = try viewContext.fetch(fetchRequest)
+                                    if let result = results.first {
+                                        if let jsonData = try? JSONEncoder().encode(finalZones),
+                                           let jsonString = String(data: jsonData, encoding: .utf8) {
+                                            result.adjustedHitZones = jsonString
+                                            try viewContext.save()
+                                        }
                                     }
+                                } catch {
+                                    print("Failed to save adjusted hit zones: \(error)")
                                 }
-                            } catch {
-                                print("Failed to save adjusted hit zones: \(error)")
                             }
                         }
+                        editingSummary = nil
+                    },
+                    onCancel: {
+                        editingSummary = nil
                     }
-                    editingSummary = nil
-                },
-                onCancel: {
-                    editingSummary = nil
-                }
-            )
-        }
-        .alert(NSLocalizedString("alert_title", comment: "Alert"), isPresented: $showSubmitAlert) {
-            Button(NSLocalizedString("ok_button", comment: "OK button")) {
-                if submitError == nil {
-                    // Success - dismiss the view
-                    dismiss()
-                }
+                )
             }
-        } message: {
-            Text(submitAlertMessage)
-        }
+            .alert(NSLocalizedString("alert_title", comment: "Alert"), isPresented: $showSubmitAlert) {
+                Button(NSLocalizedString("ok_button", comment: "OK button")) {
+                    if submitError == nil {
+                        // Success - dismiss the view
+                        dismiss()
+                    }
+                }
+            } message: {
+                Text(submitAlertMessage)
+            }
     }
 
     private var navigationBar: some View {

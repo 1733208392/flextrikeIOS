@@ -47,30 +47,28 @@ struct TargetConfigListView: View {
 
     private var listView: some View {
         List {
-            ForEach($targetConfigs, id: \.id) { $config in
+            ForEach(targetConfigs.indices, id: \.self) { index in
                 TargetRowView(
-                    config: $config,
-                    availableDevices: availableDevices(for: config),
-                    drillMode: drillMode
+                    config: $targetConfigs[index],
+                    availableDevices: availableDevices(for: targetConfigs[index]),
+                    drillMode: drillMode,
+                    onDisguisedEnemySelected: { _ in
+                        createDisguisedEnemyVariants(forTargetIndex: index)
+                    }
                 )
             }
             .onMove { indices, newOffset in
                 targetConfigs.move(fromOffsets: indices, toOffset: newOffset)
                 updateSeqNos()
-                saveTargetConfigs()
             }
             .onDelete { indices in
                 targetConfigs.remove(atOffsets: indices)
                 updateSeqNos()
-                saveTargetConfigs()
             }
         }
         .listStyle(.plain)
         .background(Color.black)
         .scrollContentBackgroundHidden()
-        .onChange(of: targetConfigs) { _ in
-            saveTargetConfigs()
-        }
     }
 
     private var AddButton: some View {
@@ -142,7 +140,6 @@ struct TargetConfigListView: View {
             appendTarget(named: device.name)
         }
         updateSeqNos()
-        saveTargetConfigs()
     }
 
     private func defaultTargetType() -> String {
@@ -179,13 +176,11 @@ struct TargetConfigListView: View {
             countedShots: 5
         )
         targetConfigs.append(newConfig)
-        saveTargetConfigs()
     }
 
     private func deleteTarget(at index: Int) {
         targetConfigs.remove(at: index)
         updateSeqNos()
-        saveTargetConfigs()
     }
 
     private func updateSeqNos() {
@@ -194,14 +189,20 @@ struct TargetConfigListView: View {
         }
     }
 
-    private func saveTargetConfigs() {
-        let userDefaults = UserDefaults.standard
-        do {
-            let data = try JSONEncoder().encode(targetConfigs)
-            userDefaults.set(data, forKey: "targetConfigs")
-        } catch {
-            print("Failed to save targetConfigs: \(error)")
-        }
+
+
+    private func createDisguisedEnemyVariants(forTargetIndex index: Int) {
+        guard index < targetConfigs.count else { return }
+        
+        // Create two variants: surrender (0-5s) and enemy (5.1-10s)
+        let variants: [TargetVariant] = [
+            TargetVariant(targetType: "disguised_enemy_surrender", startTime: 0, endTime: 5),
+            TargetVariant(targetType: "disguised_enemy", startTime: 5.1, endTime: 10)
+        ]
+        
+        // Encode variants as JSON and set on the target config
+        let variantJSON = DrillTargetsConfigData.encodeVariants(variants)
+        targetConfigs[index].targetVariant = variantJSON
     }
 }
 
@@ -209,6 +210,7 @@ struct TargetRowView: View {
     @Binding var config: DrillTargetsConfigData
     let availableDevices: [NetworkDevice]
     var drillMode: String = "ipsc"
+    var onDisguisedEnemySelected: ((Int) -> Void)? = nil
 
     // Single active sheet state
     @State private var activeSheet: ActiveSheet? = nil
@@ -250,7 +252,8 @@ struct TargetRowView: View {
             return [
                 "cqb_swing",
                 "cqb_front",
-                "cqb_move"
+                "cqb_move",
+                "disguised_enemy"
             ]
         default:
             return []
@@ -266,6 +269,8 @@ struct TargetRowView: View {
             return ["swing_left", "swing_right"]
         case "cqb_move":
             return ["run_through", "run_through_reverse"]
+        case "disguised_enemy":
+            return ["disguised_enemy_flash"]
         default:
             return ["flash", "swing_left", "swing_right", "run_through", "run_through_reverse"]
         }
@@ -277,6 +282,9 @@ struct TargetRowView: View {
         guard let firstAllowed = allowed.first else { return }
         if config.action.isEmpty || !allowed.contains(config.action) {
             config.action = firstAllowed
+        }
+        if config.targetType == "disguised_enemy" {
+            config.duration = -1.0
         }
     }
 
@@ -334,8 +342,11 @@ struct TargetRowView: View {
         .onAppear {
             normalizeActionForCurrentTargetType()
         }
-        .onChange(of: config.targetType) { _ in
+        .onChange(of: config.targetType) { newType in
             normalizeActionForCurrentTargetType()
+            if newType == "disguised_enemy" && drillMode == "cqb" {
+                onDisguisedEnemySelected?(0)  // Index is not needed here; callback will handle it
+            }
         }
     }
 
@@ -541,7 +552,7 @@ struct ActionDurationPickerView: View {
     @Binding var selectedDuration: Double
     var onDone: (() -> Void)? = nil
     
-    private let durations = [1.5, 2.5, 3.5, 5.0]
+    private let durations = [-1.0, 1.5, 2.5, 3.5, 5.0]
     
     var body: some View {
         NavigationView {
@@ -554,7 +565,7 @@ struct ActionDurationPickerView: View {
                             onDone?()
                         }) {
                             HStack {
-                                Text(String(format: "%.1fs", duration))
+                                Text(duration == -1.0 ? "Continuous" : String(format: "%.1fs", duration))
                                     .foregroundColor(.white)
                                 Spacer()
                                 if selectedDuration == duration {

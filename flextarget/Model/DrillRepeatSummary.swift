@@ -13,6 +13,8 @@ struct DrillRepeatSummary: Identifiable, Codable {
     let shots: [ShotData]
     var drillResultId: UUID?
     var adjustedHitZones: [String: Int]?
+    var cqbResults: [CQBShotResult]?
+    var cqbPassed: Bool?
 
     init(
         id: UUID = UUID(),
@@ -24,7 +26,9 @@ struct DrillRepeatSummary: Identifiable, Codable {
         score: Int,
         shots: [ShotData],
         drillResultId: UUID? = nil,
-        adjustedHitZones: [String: Int]? = nil
+        adjustedHitZones: [String: Int]? = nil,
+        cqbResults: [CQBShotResult]? = nil,
+        cqbPassed: Bool? = nil
     ) {
         self.id = id
         self.repeatIndex = repeatIndex
@@ -36,6 +40,8 @@ struct DrillRepeatSummary: Identifiable, Codable {
         self.shots = shots
         self.drillResultId = drillResultId
         self.adjustedHitZones = adjustedHitZones
+        self.cqbResults = cqbResults
+        self.cqbPassed = cqbPassed
     }
     
     /// Returns the effective score, using adjusted hit zones if available
