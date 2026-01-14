@@ -173,12 +173,62 @@ struct AdminContentView: View {
                         .background(Color.gray.opacity(0.1))
                         .cornerRadius(8)
                     }
+                    
+                    // OTA Update Menu
+                    NavigationLink(destination: OTAUpdateView()) {
+                        HStack(spacing: 12) {
+                            Image(systemName: "arrow.triangle.2.circlepath.circle")
+                                .font(.title2)
+                                .foregroundColor(.red)
+                            
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(NSLocalizedString("ota_update_title", comment: "OTA Update"))
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                                Text(NSLocalizedString("ota_update_description", comment: "Check for and install system updates"))
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                            }
+                            
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.red)
+                        }
+                        .padding(12)
+                        .background(Color.gray.opacity(0.1))
+                        .cornerRadius(8)
+                    }
                 }
                 .padding(12)
                 
                 Spacer()
             } else {
                 VStack(spacing: 16) {
+                    // Manual Device Selection
+                    NavigationLink(destination: ManualDeviceSelectionView(bleManager: bleManager)) {
+                        HStack(spacing: 12) {
+                            Image(systemName: "list.bullet.rectangle.portrait")
+                                .font(.title2)
+                                .foregroundColor(.red)
+                            
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(NSLocalizedString("manual_select_title", comment: "Manual Select"))
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                                Text(NSLocalizedString("manual_select_description", comment: "Browse and select available devices"))
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                            }
+                            
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.red)
+                        }
+                        .padding(12)
+                        .background(Color.gray.opacity(0.1))
+                        .cornerRadius(8)
+                    }
+                    
                     // QR Scan Option
                     NavigationLink(destination: QRScannerView(onQRScanned: { code in
                         // Save scanned peripheral name and present connect view

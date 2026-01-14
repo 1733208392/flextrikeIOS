@@ -146,6 +146,7 @@
 "cqb_swing" = "窥视";
 "cqb_front" = "瞄准";
 "cqb_move" = "跑动";
+"cqb_hostage" = "人质";
 "disguised_enemy" = "伪装威胁";
 
 /* CQB Drill Summary */
@@ -380,6 +381,72 @@
 "device_reauth_message" = "请连接您的标靶设备以重新授权设备";
 "submitted" = "已提交";
 "local_unsubmitted" = "本地/未提交";
+
+/* OTA - Over-The-Air Update */
+"ota_waiting_for_confirm" = "等待设备确认进入OTA模式...";
+"ota_device_in_mode" = "设备处于OTA模式。等待下载准备就绪信号...";
+"ota_preparation_timeout" = "设备准备超时（10分钟）。请检查您的设备并重试。";
+"ota_success_confirmation" = "设备已成功进入OTA模式";
+"ota_waiting_for_ready" = "设备正在准备下载...";
+"ota_device_ready" = "设备已就绪。开始升级...";
+"ota_preparation_failed" = "OTA准备失败";
+
+/* OTA Update UI - AdminTabView & OTAUpdateView */
+"ota_update_title" = "OTA更新";
+"ota_update_description" = "检查并安装系统更新";
+"ota_version_history" = "版本历史";
+"ota_fetching_history" = "正在获取历史...";
+"ota_latest_version" = "最新";
+"ota_confirm_title" = "开始OTA更新?";
+"ota_confirm_message" = "将目标设备更新到版本%@?任何未保存的游戏进度将丢失。";
+"ota_cancel_button" = "取消";
+"ota_start_update_button" = "开始更新";
+"ota_retry_verification" = "重新验证";
+"ota_recovery_backup" = "恢复（还原备份）";
+"ota_done_button" = "完成";
+"ota_target_version" = "目标版本:";
+/* Manual Device Selection */
+"device_select_title" = "选择设备";
+"device_select_description" = "具有FlexTarget服务的可用设备";
+"device_scanning" = "正在扫描设备...";
+"device_not_found" = "未发现设备";
+"device_not_found_description" = "确保您的设备已打开电源且在附近";
+"device_start_scan" = "开始扫描";
+"device_scan_again" = "再次扫描";
+"device_cancel" = "取消";
+"manual_select_title" = "手动选择";
+"manual_select_description" = "浏览并选择可用设备";
+
+/* OTA States and Messages */
+"ota_state_idle" = "空闲";
+"ota_state_preparing" = "准备中";
+"ota_state_waiting_for_ready" = "等待中";
+"ota_state_downloading" = "下载中";
+"ota_state_reloading" = "重新加载中";
+"ota_state_verifying" = "验证中";
+"ota_state_completed" = "已完成";
+"ota_state_failed" = "失败";
+
+"ota_msg_preparing" = "等待设备确认进入OTA模式...";
+"ota_msg_ready_to_download" = "设备处于OTA模式。等待下载准备就绪信号...";
+"ota_msg_downloading" = "在目标设备上下载更新...";
+"ota_msg_reloading" = "下载完成。正在重新加载设备应用...";
+"ota_msg_verifying" = "正在验证安装...";
+"ota_msg_success" = "更新成功！";
+"ota_msg_prep_timeout" = "设备准备超时（10分钟）。请检查您的设备并重试。";
+"ota_msg_ready_timeout" = "设备未进入OTA模式。请重试。";
+"ota_msg_verification_timeout" = "验证超时。更新可能失败。";
+"ota_msg_no_upgrade_info" = "升级信息不可用。";
+"ota_msg_retrying_verification" = "正在重试验证...";
+"ota_msg_restoring_backup" = "正在恢复备份...";
+"ota_msg_no_metadata" = "找不到版本%@的升级元数据。";
+"ota_msg_fetch_metadata_failed" = "获取升级元数据失败。";
+"ota_msg_auth_failed" = "获取OTA认证数据失败。";
+"ota_msg_no_version_selected" = "未选择OTA版本。";
+
+/* OTA Error Alerts */
+"ota_failed_to_start_title" = "OTA启动失败";
+"ota_game_disk_not_found" = "设备上找不到游戏磁盘。请检查设备并重试。";
 /* Athlete Deletion */
 "delete_athlete" = "删除运动员";
 "delete_athlete_confirm" = "这将删除该运动员及其所有竞赛成绩。此操作无法撤销。";

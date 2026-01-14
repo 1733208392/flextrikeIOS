@@ -145,6 +145,7 @@
 "cqb_swing" = "ピーキング";
 "cqb_front" = "エイミング";
 "cqb_move" = "パッシング";
+"cqb_hostage" = "人質";
 "disguised_enemy" = "偽装の脅威";
 
 /* CQB Drill Summary */
@@ -375,3 +376,70 @@
 "sync_error_title" = "同期エラー";
 "submitted" = "送信済み";
 "local_unsubmitted" = "ローカル/未送信";
+
+/* OTA - Over-The-Air Update */
+"ota_waiting_for_confirm" = "デバイスがOTAモードに入ることを確認中...";
+"ota_device_in_mode" = "デバイスがOTAモードです。ダウンロード準備完了シグナルを待機中...";
+"ota_preparation_timeout" = "デバイスの準備がタイムアウトしました（10分）。デバイスを確認して、もう一度試してください。";
+"ota_success_confirmation" = "デバイスが正常にOTAモードに入りました";
+"ota_waiting_for_ready" = "デバイスがダウンロード準備中です...";
+"ota_device_ready" = "デバイスの準備ができました。アップグレードを開始します...";
+"ota_preparation_failed" = "OTA準備に失敗しました";
+
+/* OTA Update UI - AdminTabView & OTAUpdateView */
+"ota_update_title" = "OTAアップデート";
+"ota_update_description" = "システムアップデートを確認してインストール";
+"ota_version_history" = "バージョン履歴";
+"ota_fetching_history" = "履歴を取得中...";
+"ota_latest_version" = "最新";
+"ota_confirm_title" = "OTAを開始しますか?";
+"ota_confirm_message" = "ターゲットデバイスをバージョン%@にアップデートしますか?保存されていないゲーム進捗は失われます。";
+"ota_cancel_button" = "キャンセル";
+"ota_start_update_button" = "アップデート開始";
+"ota_retry_verification" = "検証を再試行";
+"ota_recovery_backup" = "復旧（バックアップを復元）";
+"ota_done_button" = "完了";
+"ota_target_version" = "ターゲットバージョン:";
+
+/* Manual Device Selection */
+"device_select_title" = "デバイスを選択";
+"device_select_description" = "FlexTargetサービスの利用可能なデバイス";
+"device_scanning" = "デバイスをスキャン中...";
+"device_not_found" = "デバイスが見つかりません";
+"device_not_found_description" = "デバイスの電源がオンになっており、近くにあることを確認してください";
+"device_start_scan" = "スキャンを開始";
+"device_scan_again" = "再度スキャン";
+"device_cancel" = "キャンセル";
+"manual_select_title" = "手動選択";
+"manual_select_description" = "利用可能なデバイスを参照して選択";
+
+/* OTA States and Messages */
+"ota_state_idle" = "アイドル";
+"ota_state_preparing" = "準備中";
+"ota_state_waiting_for_ready" = "待機中";
+"ota_state_downloading" = "ダウンロード中";
+"ota_state_reloading" = "再読み込み中";
+"ota_state_verifying" = "検証中";
+"ota_state_completed" = "完了";
+"ota_state_failed" = "失敗";
+
+"ota_msg_preparing" = "OTAモードの確認をデバイスから待機中...";
+"ota_msg_ready_to_download" = "デバイスはOTAモードです。ダウンロード準備完了信号を待機中...";
+"ota_msg_downloading" = "対象デバイスでアップデートをダウンロード中...";
+"ota_msg_reloading" = "ダウンロード完了。デバイスアプリを再読み込み中...";
+"ota_msg_verifying" = "インストールを検証中...";
+"ota_msg_success" = "アップデート成功！";
+"ota_msg_prep_timeout" = "デバイス準備タイムアウト（10分）。デバイスを確認してもう一度お試しください。";
+"ota_msg_ready_timeout" = "デバイスがOTAモードに入りませんでした。もう一度お試しください。";
+"ota_msg_verification_timeout" = "検証タイムアウト。アップデートが失敗した可能性があります。";
+"ota_msg_no_upgrade_info" = "アップグレード情報が利用できません。";
+"ota_msg_retrying_verification" = "検証を再試行中...";
+"ota_msg_restoring_backup" = "バックアップを復元中...";
+"ota_msg_no_metadata" = "バージョン%@のアップグレードメタデータが見つかりません。";
+"ota_msg_fetch_metadata_failed" = "アップグレードメタデータの取得に失敗しました。";
+"ota_msg_auth_failed" = "OTAの認証データ取得に失敗しました。";
+"ota_msg_no_version_selected" = "OTAバージョンが選択されていません。";
+
+/* OTA Error Alerts */
+"ota_failed_to_start_title" = "OTA開始失敗";
+"ota_game_disk_not_found" = "デバイス上にゲームディスクが見つかりません。デバイスを確認してもう一度お試しください。";

@@ -146,6 +146,7 @@
 "cqb_swing" = "Mirando";
 "cqb_front" = "Apuntando";
 "cqb_move" = "Pasando";
+"cqb_hostage" = "Rehén";
 "disguised_enemy" = "Amenaza Disfrazada";
 
 /* CQB Drill Summary */
@@ -376,3 +377,68 @@
 "sync_error_title" = "Error de Sincronización";
 "submitted" = "Enviado";
 "local_unsubmitted" = "Local/No Enviado";
+
+/* OTA - Over-The-Air Update */
+"ota_waiting_for_confirm" = "Esperando confirmación del dispositivo para entrar en modo OTA...";
+"ota_device_in_mode" = "Dispositivo en modo OTA. Esperando señal de disponibilidad de descarga...";
+"ota_preparation_timeout" = "Tiempo de espera de preparación del dispositivo agotado (10 minutos). Por favor, verifique su dispositivo e intente nuevamente.";
+"ota_success_confirmation" = "El dispositivo ha entrado correctamente en modo OTA";
+"ota_waiting_for_ready" = "El dispositivo se está preparando para descargar...";
+"ota_device_ready" = "Dispositivo listo. Iniciando actualización...";
+"ota_preparation_failed" = "La preparación de OTA falló";
+
+/* OTA Update UI - AdminTabView & OTAUpdateView */
+"ota_update_title" = "Actualización OTA";
+"ota_update_description" = "Buscar e instalar actualizaciones del sistema";
+"ota_version_history" = "Historial de Versiones";
+"ota_fetching_history" = "Obteniendo historial...";"ota_latest_version" = "Última";"ota_confirm_title" = "¿Iniciar OTA?";
+"ota_confirm_message" = "¿Actualizar el dispositivo de destino a la versión %@? Se perderá todo el progreso del juego no guardado.";
+"ota_cancel_button" = "Cancelar";
+"ota_start_update_button" = "Iniciar Actualización";
+"ota_retry_verification" = "Reintentar Verificación";
+"ota_recovery_backup" = "Recuperación (Restaurar Copia de Seguridad)";
+"ota_done_button" = "Finalizado";
+"ota_target_version" = "Versión de Destino:";
+
+/* Manual Device Selection */
+"device_select_title" = "Seleccionar Dispositivo";
+"device_select_description" = "Dispositivos disponibles con servicio FlexTarget";
+"device_scanning" = "Buscando dispositivos...";
+"device_not_found" = "No se encontraron dispositivos";
+"device_not_found_description" = "Asegúrese de que su dispositivo esté encendido y cerca";
+"device_start_scan" = "Iniciar Búsqueda";
+"device_scan_again" = "Buscar de Nuevo";
+"device_cancel" = "Cancelar";
+"manual_select_title" = "Seleccionar Manualmente";
+"manual_select_description" = "Explorar y seleccionar dispositivos disponibles";
+
+/* OTA States and Messages */
+"ota_state_idle" = "Inactivo";
+"ota_state_preparing" = "Preparando";
+"ota_state_waiting_for_ready" = "Esperando";
+"ota_state_downloading" = "Descargando";
+"ota_state_reloading" = "Recargando";
+"ota_state_verifying" = "Verificando";
+"ota_state_completed" = "Completado";
+"ota_state_failed" = "Falló";
+
+"ota_msg_preparing" = "Esperando confirmación del dispositivo para ingresar al modo OTA...";
+"ota_msg_ready_to_download" = "Dispositivo en modo OTA. Esperando señal de descarga lista...";
+"ota_msg_downloading" = "Descargando actualización en dispositivo de destino...";
+"ota_msg_reloading" = "Descarga completada. Recargando aplicación del dispositivo...";
+"ota_msg_verifying" = "Verificando instalación...";
+"ota_msg_success" = "¡Actualización exitosa!";
+"ota_msg_prep_timeout" = "Tiempo de espera de preparación del dispositivo agotado (10 minutos). Por favor verifique su dispositivo e intente de nuevo.";
+"ota_msg_ready_timeout" = "El dispositivo no ingresó al modo OTA. Por favor intente de nuevo.";
+"ota_msg_verification_timeout" = "Tiempo de espera de verificación agotado. Es posible que la actualización haya fallado.";
+"ota_msg_no_upgrade_info" = "Información de actualización no disponible.";
+"ota_msg_retrying_verification" = "Reintentando verificación...";
+"ota_msg_restoring_backup" = "Restaurando copia de seguridad...";
+"ota_msg_no_metadata" = "Metadatos de actualización no encontrados para la versión %@.";
+"ota_msg_fetch_metadata_failed" = "Error al recuperar metadatos de actualización.";
+"ota_msg_auth_failed" = "Error al obtener datos de autenticación para OTA.";
+"ota_msg_no_version_selected" = "Ninguna versión OTA seleccionada.";
+
+/* OTA Error Alerts */
+"ota_failed_to_start_title" = "Error al Iniciar OTA";
+"ota_game_disk_not_found" = "Disco de juego no encontrado en el dispositivo. Por favor verifique el dispositivo e intente de nuevo.";

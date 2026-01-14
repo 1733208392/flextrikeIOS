@@ -137,6 +137,7 @@
 "cqb_swing" = "Peeking";
 "cqb_front" = "Aiming";
 "cqb_move" = "Passing";
+"cqb_hostage" = "Hostage";
 "disguised_enemy" = "Disguised Threat";
 
 /* CQB Drill Summary */
@@ -364,3 +365,70 @@
 
 /* HistoryTabView - Filters */
 "all_drill_setup" = "All Drill Setup";
+
+/* OTA - Over-The-Air Update */
+"ota_waiting_for_confirm" = "Waiting for device to confirm OTA mode...";
+"ota_device_in_mode" = "Device in OTA mode. Waiting for download ready signal...";
+"ota_preparation_timeout" = "Device preparation timeout (10 minutes). Please check your device and try again.";
+"ota_success_confirmation" = "Device has successfully entered OTA mode";
+"ota_waiting_for_ready" = "Device preparing for download...";
+"ota_device_ready" = "Device ready. Starting upgrade...";
+"ota_preparation_failed" = "OTA preparation failed";
+
+/* OTA Update UI - AdminTabView & OTAUpdateView */
+"ota_update_title" = "OTA Update";
+"ota_update_description" = "Check for and install system updates";
+"ota_version_history" = "Version History";
+"ota_fetching_history" = "Fetching history...";
+"ota_latest_version" = "Latest";
+"ota_confirm_title" = "Start OTA?";
+"ota_confirm_message" = "Update target device to version %@? Any unsaved game progress will be lost.";
+"ota_cancel_button" = "Cancel";
+"ota_start_update_button" = "Start Update";
+"ota_retry_verification" = "Retry Verification";
+"ota_recovery_backup" = "Recovery (Restore Backup)";
+"ota_done_button" = "Done";
+"ota_target_version" = "Target Version:";
+
+/* Manual Device Selection */
+"device_select_title" = "Select Device";
+"device_select_description" = "Available devices with FlexTarget service";
+"device_scanning" = "Scanning for devices...";
+"device_not_found" = "No Devices Found";
+"device_not_found_description" = "Make sure your device is powered on and nearby";
+"device_start_scan" = "Start Scan";
+"device_scan_again" = "Scan Again";
+"device_cancel" = "Cancel";
+"manual_select_title" = "Manual Select";
+"manual_select_description" = "Browse and select available devices";
+
+/* OTA States and Messages */
+"ota_state_idle" = "Idle";
+"ota_state_preparing" = "Preparing";
+"ota_state_waiting_for_ready" = "Waiting";
+"ota_state_downloading" = "Downloading";
+"ota_state_reloading" = "Reloading";
+"ota_state_verifying" = "Verifying";
+"ota_state_completed" = "Completed";
+"ota_state_failed" = "Failed";
+
+"ota_msg_preparing" = "Waiting for device to confirm OTA mode...";
+"ota_msg_ready_to_download" = "Device in OTA mode. Waiting for download ready signal...";
+"ota_msg_downloading" = "Downloading update on target device...";
+"ota_msg_reloading" = "Download complete. Reloading device app...";
+"ota_msg_verifying" = "Verifying installation...";
+"ota_msg_success" = "Update successful!";
+"ota_msg_prep_timeout" = "Device preparation timeout (10 minutes). Please check your device and try again.";
+"ota_msg_ready_timeout" = "Device did not enter OTA mode. Please try again.";
+"ota_msg_verification_timeout" = "Verification timed out. Update might have failed.";
+"ota_msg_no_upgrade_info" = "Upgrade information not available.";
+"ota_msg_retrying_verification" = "Retrying verification...";
+"ota_msg_restoring_backup" = "Restoring backup...";
+"ota_msg_no_metadata" = "Upgrade metadata not found for version %@.";
+"ota_msg_fetch_metadata_failed" = "Failed to retrieve upgrade metadata.";
+"ota_msg_auth_failed" = "Failed to obtain auth data for OTA.";
+"ota_msg_no_version_selected" = "No OTA version selected.";
+
+/* OTA Error Alerts */
+"ota_failed_to_start_title" = "OTA Failed to Start";
+"ota_game_disk_not_found" = "Game disk not found on device. Please check the device and try again.";

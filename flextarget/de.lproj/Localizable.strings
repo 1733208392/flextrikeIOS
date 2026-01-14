@@ -167,6 +167,7 @@
 "cqb_swing" = "Spähend";
 "cqb_front" = "Zielend";
 "cqb_move" = "Passieren";
+"cqb_hostage" = "Geisel";
 "disguised_enemy" = "Getarnte Bedrohung";
 
 /* CQB Drill Summary */
@@ -376,3 +377,70 @@
 "sync_error_title" = "Synchronisierungsfehler";
 "submitted" = "Eingereicht";
 "local_unsubmitted" = "Lokal/Nicht Eingereicht";
+
+/* OTA - Over-The-Air Update */
+"ota_waiting_for_confirm" = "Warten auf Bestätigung des Zielgeräts zum Betreten des OTA-Modus...";
+"ota_device_in_mode" = "Ziel im OTA-Modus. Warten auf Download-Bereitschaftssignal...";
+"ota_preparation_timeout" = "Zeitüberschreitung der Gerätevorbereitung (10 Minuten). Bitte überprüfen Sie Ihr Gerät und versuchen Sie es erneut.";
+"ota_success_confirmation" = "Ziel hat den OTA-Modus erfolgreich aktiviert";
+"ota_waiting_for_ready" = "Ziel bereitet sich auf Download vor...";
+"ota_device_ready" = "Ziel bereit. Upgrade wird gestartet...";
+"ota_preparation_failed" = "OTA-Vorbereitung fehlgeschlagen";
+
+/* OTA Update UI - AdminTabView & OTAUpdateView */
+"ota_update_title" = "OTA-Update";
+"ota_update_description" = "Nach Systemaktualisierungen suchen und installieren";
+"ota_version_history" = "Versionsverlauf";
+"ota_fetching_history" = "Verlauf wird abgerufen...";
+"ota_latest_version" = "Neueste";
+"ota_confirm_title" = "OTA starten?";
+"ota_confirm_message" = "Zielgerät auf Version %@ aktualisieren? Alle nicht gespeicherten Spielfortschritte gehen verloren.";
+"ota_cancel_button" = "Abbrechen";
+"ota_start_update_button" = "Update starten";
+"ota_retry_verification" = "Überprüfung wiederholen";
+"ota_recovery_backup" = "Wiederherstellung (Sicherung wiederherstellen)";
+"ota_done_button" = "Fertig";
+"ota_target_version" = "Zielversion:";
+
+/* Manual Device Selection */
+"device_select_title" = "Gerät auswählen";
+"device_select_description" = "Verfügbare Geräte mit FlexTarget-Service";
+"device_scanning" = "Suche nach Geräten...";
+"device_not_found" = "Keine Geräte gefunden";
+"device_not_found_description" = "Stellen Sie sicher, dass Ihr Gerät eingeschaltet und in der Nähe ist";
+"device_start_scan" = "Scan starten";
+"device_scan_again" = "Erneut scannen";
+"device_cancel" = "Abbrechen";
+"manual_select_title" = "Manuell auswählen";
+"manual_select_description" = "Verfügbare Geräte durchsuchen und auswählen";
+
+/* OTA States and Messages */
+"ota_state_idle" = "Bereit";
+"ota_state_preparing" = "Vorbereitung";
+"ota_state_waiting_for_ready" = "Wartet";
+"ota_state_downloading" = "Lädt herunter";
+"ota_state_reloading" = "Wird neu geladen";
+"ota_state_verifying" = "Überprüfung";
+"ota_state_completed" = "Abgeschlossen";
+"ota_state_failed" = "Fehlgeschlagen";
+
+"ota_msg_preparing" = "Warte auf Gerätebestätigung zur Eingabe des OTA-Modus...";
+"ota_msg_ready_to_download" = "Gerät im OTA-Modus. Warte auf Download-Bereitschaftssignal...";
+"ota_msg_downloading" = "Download-Update auf Zielgerät...";
+"ota_msg_reloading" = "Download abgeschlossen. Neustart der Geräte-App...";
+"ota_msg_verifying" = "Installation wird überprüft...";
+"ota_msg_success" = "Update erfolgreich!";
+"ota_msg_prep_timeout" = "Gerätevorbereitungs-Timeout (10 Minuten). Bitte überprüfen Sie Ihr Gerät und versuchen Sie es erneut.";
+"ota_msg_ready_timeout" = "Gerät ist nicht in den OTA-Modus eingetreten. Bitte versuchen Sie es erneut.";
+"ota_msg_verification_timeout" = "Überprüfungs-Timeout. Update könnte fehlgeschlagen sein.";
+"ota_msg_no_upgrade_info" = "Upgrade-Informationen nicht verfügbar.";
+"ota_msg_retrying_verification" = "Überprüfung wird wiederholt...";
+"ota_msg_restoring_backup" = "Sicherung wird wiederhergestellt...";
+"ota_msg_no_metadata" = "Upgrade-Metadaten für Version %@ nicht gefunden.";
+"ota_msg_fetch_metadata_failed" = "Abrufen von Upgrade-Metadaten fehlgeschlagen.";
+"ota_msg_auth_failed" = "Abrufen von Authentifizierungsdaten für OTA fehlgeschlagen.";
+"ota_msg_no_version_selected" = "Keine OTA-Version ausgewählt.";
+
+/* OTA Error Alerts */
+"ota_failed_to_start_title" = "OTA konnte nicht gestartet werden";
+"ota_game_disk_not_found" = "Spieldatenträger auf dem Gerät nicht gefunden. Bitte überprüfen Sie das Gerät und versuchen Sie es erneut.";

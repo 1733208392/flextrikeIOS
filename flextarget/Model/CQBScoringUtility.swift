@@ -15,7 +15,8 @@ class CQBScoringUtility {
     
     /// Non-threat targets that must not be shot at all
     private static let nonThreatTargets = Set([
-        "disguised_enemy_surrender"
+        "disguised_enemy_surrender",
+        "cqb_hostage"
     ])
     
     /// Check if a target is a threat that needs to be destroyed

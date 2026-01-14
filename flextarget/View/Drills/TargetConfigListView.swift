@@ -253,7 +253,8 @@ struct TargetRowView: View {
                 "cqb_swing",
                 "cqb_front",
                 "cqb_move",
-                "disguised_enemy"
+                "disguised_enemy",
+                "cqb_hostage"
             ]
         default:
             return []
@@ -269,6 +270,8 @@ struct TargetRowView: View {
             return ["swing_right"]
         case "cqb_move":
             return ["run_through"]
+        case "cqb_hostage":
+            return ["flash"]
         case "disguised_enemy":
             return ["disguised_enemy_flash"]
         default:
@@ -297,6 +300,8 @@ struct TargetRowView: View {
             return NSLocalizedString("cqb_front", comment: "Aiming action")
         case "cqb_move":
             return NSLocalizedString("cqb_move", comment: "Passing action")
+        case "cqb_hostage":
+            return NSLocalizedString("hostage", comment: "Hostage target")
         case "disguised_enemy":
             return NSLocalizedString("disguised_enemy", comment: "Disguised Threat target")
         default:
@@ -321,7 +326,7 @@ struct TargetRowView: View {
                 cardColumn(title: NSLocalizedString("type", comment: "Type label"), value: localizedTargetTypeName(config.targetType), icon: config.targetType, action: { activeSheet = .type })
 
                 if drillMode == "cqb" {
-                    let isCQBType = ["cqb_swing", "cqb_front", "cqb_move", "disguised_enemy"].contains(config.targetType)
+                    let isCQBType = ["cqb_swing", "cqb_front", "cqb_move", "disguised_enemy", "cqb_hostage"].contains(config.targetType)
                     let allowed = allowedActions(for: config.targetType)
                     
                     // Don't show action for CQB targets or disguised_enemy (device handles actions)
@@ -476,6 +481,8 @@ struct TargetTypePickerView: View {
             return NSLocalizedString("cqb_front", comment: "Aiming action")
         case "cqb_move":
             return NSLocalizedString("cqb_move", comment: "Passing action")
+        case "cqb_hostage":
+            return NSLocalizedString("hostage", comment: "Hostage target")
         case "disguised_enemy":
             return NSLocalizedString("disguised_enemy", comment: "Disguised Threat target")
         default:

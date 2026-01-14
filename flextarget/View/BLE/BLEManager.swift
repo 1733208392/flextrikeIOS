@@ -139,6 +139,9 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
     // Buffer to accumulate split messages until "\r\n" is received
     private var messageBuffer = Data()
     
+    // Serial queue for BLE writes to prevent interleaving and blocking main thread
+    private let writeQueue = DispatchQueue(label: "com.flextarget.ble.write")
+    
     // Make initializer private to enforce singleton usage
     private override init() {
         super.init()
@@ -331,6 +334,23 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
             centralManager.cancelPeripheralConnection(peripheral)
         }
         #endif
+    }
+    
+    // MARK: - Manual Device Selection
+    
+    /// Enable manual device selection mode by clearing auto-connect target.
+    /// Call this before startScan() to allow user manual selection instead of auto-connect.
+    public func enableManualMode() {
+        DispatchQueue.main.async {
+            self.autoConnectTargetName = nil
+        }
+    }
+    
+    /// Explicitly select and connect to a discovered peripheral.
+    /// Convenience method wrapping connectToSelectedPeripheral.
+    /// - Parameter discoveredPeripheral: The peripheral to connect to
+    public func selectPeripheral(_ discoveredPeripheral: DiscoveredPeripheral) {
+        connectToSelectedPeripheral(discoveredPeripheral)
     }
     
     // MARK: - CBCentralManagerDelegate
@@ -536,6 +556,86 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
                         notificationHandled = true
                     }
                     
+                    // Handle prepare_game_disk_ota response - success confirmation
+                    if let type = json["type"] as? String, type == "notice",
+                       let action = json["action"] as? String, action == "prepare_game_disk_ota",
+                       let state = json["state"] as? String, state == "success" {
+                        let failureReasonValue = json["failure_reason"]
+                        let isNullOrNil = failureReasonValue is NSNull || failureReasonValue == nil
+                        if isNullOrNil {
+                            print("Received prepare_game_disk_ota success confirmation: Device entering OTA mode")
+                            NotificationCenter.default.post(name: .bleGameDiskOTAReady, object: nil)
+                            notificationHandled = true
+                        }
+                    }
+                    
+                    // Handle prepare_game_disk_ota response - failure
+                    if !notificationHandled,
+                       let type = json["type"] as? String, type == "notice",
+                       let action = json["action"] as? String, action == "prepare_game_disk_ota",
+                       let state = json["state"] as? String, state == "failure" {
+                        let failureReason = json["failure_reason"] as? String ?? "Unknown error"
+                        let message = json["message"] as? String ?? "Device failed to enter OTA mode"
+                        print("Received prepare_game_disk_ota failure: \(failureReason) - \(message)")
+                        
+                        // Check if it's a game disk not found error
+                        if failureReason.lowercased().contains("game disk not found") || 
+                           message.lowercased().contains("game disk not found") {
+                            NotificationCenter.default.post(name: .bleOTAPreparationFailed, object: nil, userInfo: ["errorReason": "game_disk_not_found"])
+                        } else {
+                            NotificationCenter.default.post(name: .bleErrorOccurred, object: nil, userInfo: ["error": BLEError.unknown("OTA preparation failed: \(failureReason)")])
+                        }
+                        notificationHandled = true
+                    }
+                    
+                    // Handle wrapped "forward" notifications for OTA and UI data
+                    if let type = json["type"] as? String, type == "forward",
+                       let content = json["content"] as? [String: Any] {
+                        
+                        // Check for OTA "ready_to_download" notification (underscore format)
+                        if let notification = content["notification"] as? String, notification == "ready_to_download" {
+                            print("Received OTA ready_to_download notification")
+                            NotificationCenter.default.post(name: .bleReadyToDownload, object: nil)
+                            notificationHandled = true
+                        }
+                        
+                        // Check for OTA "download_complete" notification (underscore format)
+                        if !notificationHandled,
+                           let notification = content["notification"] as? String, notification == "download_complete",
+                           let version = content["version"] as? String {
+                            print("Received OTA download complete (forwarded): \(version)")
+                            self.reloadUI()
+                            NotificationCenter.default.post(name: .bleDownloadComplete, object: nil, userInfo: ["version": version])
+                            notificationHandled = true
+                        }
+                        
+                        // Check for OTA version info directly in content (without type field)
+                        if !notificationHandled,
+                           let version = content["version"] as? String {
+                            print("Received OTA version info (forwarded): \(version)")
+                            NotificationCenter.default.post(name: .bleVersionInfoReceived, object: nil, userInfo: ["version": version])
+                            notificationHandled = true
+                        }
+                    }
+                    
+                    // Handle OTA "download complete" notification (Top-level fallback)
+                    if !notificationHandled,
+                       let notification = json["notification"] as? String, notification == "download_complete",
+                       let version = json["version"] as? String {
+                        print("Received OTA download complete: \(version)")
+                        NotificationCenter.default.post(name: .bleDownloadComplete, object: nil, userInfo: ["version": version])
+                        notificationHandled = true
+                    }
+                    
+                    // Handle OTA version query response (Top-level fallback)
+                    if !notificationHandled,
+                       let type = json["type"] as? String, type == "version",
+                       let version = json["version"] as? String {
+                        print("Received OTA version info: \(version)")
+                        NotificationCenter.default.post(name: .bleVersionInfoReceived, object: nil, userInfo: ["version": version])
+                        notificationHandled = true
+                    }
+                    
                     // Handle incoming netlink device_list response and save globally
                     if let type = json["type"] as? String, type == "netlink",
                        let action = json["action"] as? String, action == "device_list",
@@ -634,8 +734,10 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
                         print("Received binary notification: \(partData as NSData)")
                     }
                     // Optionally post a notification for non-JSON data
-                    NotificationCenter.default.post(name: .bleNetlinkForwardReceived, object: nil, userInfo: ["raw_data": partData])
-                    notificationHandled = true
+                    if !notificationHandled {
+                        NotificationCenter.default.post(name: .bleNetlinkForwardReceived, object: nil, userInfo: ["raw_data": partData])
+                        notificationHandled = true
+                    }
                 }
             }
         }
@@ -715,17 +817,25 @@ extension BLEManager: BLEManagerProtocol {
         //Add debug to print the JSON string
         print("Writing JSON data to BLE: \(commandStr)")
         print("BLE data length: \(data.count)")
-        if data.count <= 100 {
-            peripheral.writeValue(data, for: writeCharacteristic, type: .withResponse)
-        } else {
-            // Split data into chunks of 100 bytes or less
+
+        // User requirement: Force maximum packet size to 100 bytes
+        let packetSize = 100
+        print("Using packet size: \(packetSize)")
+
+        writeQueue.async {
             var startIndex = 0
             while startIndex < data.count {
-                let endIndex = min(startIndex + 100, data.count)
+                let endIndex = min(startIndex + packetSize, data.count)
                 let chunk = data[startIndex..<endIndex]
-                print("Writing chunk of size \(chunk.count)")
+                print("Writing chunk of size \(chunk.count) at index \(startIndex)")
+                
                 peripheral.writeValue(chunk, for: writeCharacteristic, type: .withResponse)
                 startIndex = endIndex
+                
+                if startIndex < data.count {
+                    // Small delay to ensure device can process chunks
+                    Thread.sleep(forTimeInterval: 0.1)
+                }
             }
         }
         #endif
@@ -748,6 +858,48 @@ extension BLEManager: BLEManagerProtocol {
         writeJSON(jsonString)
         #endif
     }
+    
+    func prepareGameDiskOTA() {
+        writeJSON("{\"action\": \"prepare_game_disk_ota\"}")
+    }
+    
+    func startGameUpgrade(address: String, checksum: String, otaVersion: String? = nil) {
+        var contentDict: [String: Any] = [
+            "action": "start_game_upgrade",
+            "address": address,
+            "checksum": checksum
+        ]
+        
+        if let version = otaVersion {
+            contentDict["version"] = version
+        }
+        
+        let json: [String: Any] = [
+            "action": "forward",
+            "content": contentDict
+        ]
+        
+        if let jsonData = try? JSONSerialization.data(withJSONObject: json, options: [.withoutEscapingSlashes]),
+           let jsonString = String(data: jsonData, encoding: .utf8) {
+            writeJSON(jsonString)
+        }
+    }
+    
+    func reloadUI() {
+        writeJSON("{\"action\": \"reload_ui\"}")
+    }
+    
+    func finishGameDiskOTA() {
+        writeJSON("{\"action\": \"finish_game_disk_ota\"}")
+    }
+    
+    func recoveryGameDiskOTA() {
+        writeJSON("{\"action\": \"recovery_game_disk_ota\"}")
+    }
+    
+    func queryVersion() {
+        writeJSON("{\"action\": \"forward\", \"content\": {\"command\": \"query_version\"}}")
+    }
 }
 
 // Add a notification name for BLE state updates
@@ -760,4 +912,9 @@ extension Notification.Name {
     static let bleErrorOccurred = Notification.Name("bleErrorOccurred")
     static let drillExecutionCompleted = Notification.Name("drillExecutionCompleted")
     static let bleAuthDataReceived = Notification.Name("bleAuthDataReceived")
+    static let bleReadyToDownload = Notification.Name("bleReadyToDownload")
+    static let bleDownloadComplete = Notification.Name("bleDownloadComplete")
+    static let bleVersionInfoReceived = Notification.Name("bleVersionInfoReceived")
+    static let bleGameDiskOTAReady = Notification.Name("bleGameDiskOTAReady")
+    static let bleOTAPreparationFailed = Notification.Name("bleOTAPreparationFailed")
 }

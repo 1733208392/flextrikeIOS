@@ -125,7 +125,7 @@ class CompetitionResultAPIService {
         
         let body: [String: Any] = [
             "game_type": gameType,
-            "game_ver": gameVer,
+//            "game_ver": gameVer,
             "device_uuid": deviceUUID,
             "page": page,
             "limit": limit,
@@ -282,7 +282,7 @@ class CompetitionResultAPIService {
             "namespace": namespace,
             "page": page,
             "limit": limit,
-            "game_ver": gameVer
+//            "game_ver": gameVer?
         ]
         
         request.httpBody = try JSONSerialization.data(withJSONObject: body, options: [])
