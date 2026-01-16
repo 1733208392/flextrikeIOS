@@ -35,7 +35,8 @@ fun DrillSummaryView(
     drillSetup: DrillSetupEntity,
     summaries: List<DrillRepeatSummary>,
     onBack: () -> Unit,
-    onViewResult: (DrillRepeatSummary) -> Unit
+    onViewResult: (DrillRepeatSummary) -> Unit,
+    onReplay: (DrillRepeatSummary) -> Unit = {}
 ) {
     println("[DrillSummaryView] Rendering with ${summaries.size} summaries")
     summaries.forEach { summary ->
@@ -111,7 +112,8 @@ fun DrillSummaryView(
                             summaryIndex = index,
                             onDeductScore = { deductScore(summaries, index, originalScores) },
                             onRestoreScore = { restoreScore(summaries, index, originalScores) },
-                            onCardClick = { onViewResult(summary) }
+                            onCardClick = { onViewResult(summary) },
+                            onReplay = { onReplay(summary) }
                         )
                     }
                 }
@@ -162,7 +164,8 @@ private fun SummaryCard(
     summaryIndex: Int,
     onDeductScore: () -> Unit,
     onRestoreScore: () -> Unit,
-    onCardClick: () -> Unit
+    onCardClick: () -> Unit,
+    onReplay: () -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -230,6 +233,8 @@ private fun SummaryCard(
                 PenaltyButton(onClick = onDeductScore)
                 Spacer(modifier = Modifier.width(8.dp))
                 RestoreButton(onClick = onRestoreScore)
+                Spacer(modifier = Modifier.width(8.dp))
+                ReplayButton(onClick = onReplay)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -397,6 +402,39 @@ private fun RestoreButton(onClick: () -> Unit) {
                 imageVector = Icons.Default.Refresh,
                 contentDescription = "Restore",
                 tint = Color.Green,
+                modifier = Modifier
+                    .size(16.dp)
+                    .align(Alignment.Center)
+            )
+        }
+    }
+}
+
+@Composable
+private fun ReplayButton(onClick: () -> Unit) {
+    var isPressed by remember { mutableStateOf(false) }
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.92f else 1.0f,
+        animationSpec = tween(durationMillis = 150),
+        label = "replay_button_scale"
+    )
+
+    IconButton(
+        onClick = onClick,
+        modifier = Modifier
+            .size(40.dp)
+            .scale(scale)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black, CircleShape)
+                .shadow(6.dp, CircleShape, ambientColor = Color.Red.copy(alpha = 0.3f))
+        ) {
+            Icon(
+                imageVector = Icons.Default.PlayArrow,
+                contentDescription = "Replay",
+                tint = Color.Red,
                 modifier = Modifier
                     .size(16.dp)
                     .align(Alignment.Center)

@@ -3,6 +3,7 @@ package com.flextarget.android.data.auth
 import android.util.Log
 import com.flextarget.android.data.local.preferences.AppPreferences
 import com.flextarget.android.data.remote.api.FlexTargetAPI
+import com.flextarget.android.data.remote.api.DeviceRelateRequest
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -90,7 +91,10 @@ class DeviceAuthManager @Inject constructor(
                 Log.d(TAG, "Authenticating device with auth_data")
                 
                 // Exchange auth_data with server for device token
-                val response = userApiService.relateDevice(authDataFromDevice, userToken)
+                val response = userApiService.relateDevice(
+                    DeviceRelateRequest(auth_data = authDataFromDevice),
+                    userToken
+                )
 
                 val data = response.data ?: return@withContext Result.failure(Exception("Invalid login response"))
 

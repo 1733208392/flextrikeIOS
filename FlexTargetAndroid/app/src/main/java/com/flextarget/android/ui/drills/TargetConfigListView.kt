@@ -27,6 +27,7 @@ import org.json.JSONObject
 fun TargetConfigListView(
     bleManager: BLEManager,
     targetConfigs: List<DrillTargetsConfigData>,
+    drillMode: String,
     onAddTarget: () -> Unit,
     onDeleteTarget: (Int) -> Unit,
     onUpdateTargetDevice: (Int, String) -> Unit,
@@ -146,7 +147,7 @@ fun TargetConfigListView(
     // Type picker
     showTypePicker?.let { config ->
         TargetTypePickerDialog(
-            targetTypes = DrillTargetsConfigData.DEFAULT_TARGET_TYPES,
+            targetTypes = DrillTargetsConfigData.getTargetTypesForDrillMode(drillMode),
             selectedType = config.targetType,
             onTypeSelected = { type ->
                 val configIndex = targetConfigs.indexOfFirst { it.id == config.id }

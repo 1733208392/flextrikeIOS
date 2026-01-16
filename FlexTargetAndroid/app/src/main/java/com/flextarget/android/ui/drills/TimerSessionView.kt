@@ -100,6 +100,7 @@ fun TimerSessionView(
     // Audio players
     val standbyPlayer = remember { MediaPlayer.create(context, R.raw.standby) }
     val highBeepPlayer = remember { MediaPlayer.create(context, R.raw.synthetic_shot_timer) }
+    val readyPlayer = remember { MediaPlayer.create(context, R.raw.ready) }
 
     val elapsedTimeText by remember(elapsedDuration) {
         derivedStateOf {
@@ -145,6 +146,14 @@ fun TimerSessionView(
             highBeepPlayer?.start()
         } catch (e: Exception) {
             println("Failed to play audio: ${e.message}")
+        }
+    }
+
+    fun playReadySound() {
+        try {
+            readyPlayer?.start()
+        } catch (e: Exception) {
+            println("Failed to play ready audio: ${e.message}")
         }
     }
 
@@ -315,7 +324,7 @@ fun TimerSessionView(
                                 ShotEntity(
                                     id = UUID.randomUUID(),
                                     data = gson.toJson(shotData),
-                                    timestamp = Date(),
+                                    timestamp = System.currentTimeMillis(),
                                     drillResultId = drillResult.id
                                 )
                             }
@@ -338,7 +347,13 @@ fun TimerSessionView(
                 onDrillFailed()
             },
             onReadinessUpdate = { readyCount, totalCount ->
+                val wasReady = readyTargetsCount == expectedDevices.size && expectedDevices.isNotEmpty()
                 readyTargetsCount = readyCount
+                val isReady = readyCount == totalCount && totalCount > 0
+                
+                if (isReady && !wasReady) {
+                    playReadySound()
+                }
             },
             onReadinessTimeout = { nonResponsiveList ->
                 nonResponsiveTargets = nonResponsiveList

@@ -1,6 +1,8 @@
 package com.flextarget.android.data.local.entity
 
 import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import java.util.Date
 import java.util.UUID
@@ -19,8 +21,23 @@ data class UserEntity(
 
 /**
  * Competition entity for storing competition/game configurations
+ * Migrated from iOS CoreData Competition entity.
  */
-@Entity(tableName = "competitions")
+@Entity(
+    tableName = "competitions",
+    foreignKeys = [
+        ForeignKey(
+            entity = DrillSetupEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["drillSetupId"],
+            onDelete = ForeignKey.SET_NULL
+        )
+    ],
+    indices = [
+        Index(value = ["drillSetupId"]),
+        Index(value = ["date"])
+    ]
+)
 data class CompetitionEntity(
     @PrimaryKey
     val id: UUID = UUID.randomUUID(),
@@ -29,7 +46,9 @@ data class CompetitionEntity(
     val date: Date = Date(),
     val description: String? = null,
     val createdAt: Date = Date(),
-    val updatedAt: Date = Date()
+    val updatedAt: Date = Date(),
+    // Foreign key for drillSetup relationship
+    val drillSetupId: UUID? = null
 )
 
 /**

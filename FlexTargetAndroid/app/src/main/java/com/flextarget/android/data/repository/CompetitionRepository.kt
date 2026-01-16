@@ -8,6 +8,8 @@ import com.flextarget.android.data.local.dao.GamePlayDao
 import com.flextarget.android.data.local.entity.CompetitionEntity
 import com.flextarget.android.data.local.entity.GamePlayEntity
 import com.flextarget.android.data.remote.api.FlexTargetAPI
+import com.flextarget.android.data.remote.api.AddGamePlayRequest
+import com.flextarget.android.data.remote.api.GamePlayRankingRequest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
@@ -157,15 +159,17 @@ class CompetitionRepository @Inject constructor(
             
             // Call API to submit result
             val response = api.addGamePlay(
-                game_type = competitionId.toString(),
-                game_ver = "1.0",
-                player_mobile = null,
-                player_nickname = playerNickname,
-                score = score,
-                detail = detail,
-                play_time = playTime,
-                is_public = isPublic,
-                namespace = "default",
+                AddGamePlayRequest(
+                    game_type = competitionId.toString(),
+                    game_ver = "1.0",
+                    player_mobile = null,
+                    player_nickname = playerNickname,
+                    score = score,
+                    detail = detail,
+                    play_time = playTime,
+                    is_public = isPublic,
+                    namespace = "default"
+                ),
                 authHeader = "Bearer $userToken|$deviceToken"
             )
             
@@ -239,20 +243,22 @@ class CompetitionRepository @Inject constructor(
                 ?: return@withContext Result.failure(IllegalStateException("Not authenticated"))
             
             val response = api.getGamePlayRanking(
-                game_type = competitionId.toString(),
-                game_ver = "1.0",
-                namespace = "default",
-                page = page,
-                limit = limit,
+                GamePlayRankingRequest(
+                    game_type = competitionId.toString(),
+                    game_ver = "1.0",
+                    namespace = "default",
+                    page = page,
+                    limit = limit
+                ),
                 authHeader = "Bearer $userToken"
             )
             
             val rankings = response.data?.rows?.map { row ->
                 RankingData(
                     rank = row.rank,
-                    playerNickname = row.player_nickname,
+                    playerNickname = row.playerNickname,
                     score = row.score,
-                    playTime = row.play_time
+                    playTime = row.playTime
                 )
             } ?: emptyList()
             

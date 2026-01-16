@@ -1,6 +1,8 @@
 package com.flextarget.android.data.remote.api
 
-import retrofit2.http.*
+import retrofit2.http.Body
+import retrofit2.http.POST
+import retrofit2.http.Header
 
 /**
  * Retrofit API interface for FlexTarget backend
@@ -15,19 +17,14 @@ interface FlexTargetAPI {
      * User login with mobile and password
      */
     @POST("/user/login")
-    suspend fun login(
-        @Query("mobile") mobile: String,
-        @Query("password") password: String
-    ): ApiResponse<LoginResponse>
+    suspend fun login(@Body request: LoginRequest): ApiResponse<LoginResponse>
     
     /**
      * POST /user/token/refresh
      * Refresh access token using refresh token
      */
     @POST("/user/token/refresh")
-    suspend fun refreshToken(
-        @Query("refresh_token") refresh_token: String
-    ): ApiResponse<RefreshTokenResponse>
+    suspend fun refreshToken(@Body request: RefreshTokenRequest): ApiResponse<RefreshTokenResponse>
     
     /**
      * POST /user/logout
@@ -46,7 +43,7 @@ interface FlexTargetAPI {
      */
     @POST("/user/edit")
     suspend fun editUser(
-        @Query("username") username: String,
+        @Body request: EditUserRequest,
         @Header("Authorization") authHeader: String
     ): ApiResponse<EditUserResponse>
     
@@ -56,8 +53,7 @@ interface FlexTargetAPI {
      */
     @POST("/user/change-password")
     suspend fun changePassword(
-        @Query("old_password") old_password: String,
-        @Query("new_password") new_password: String,
+        @Body request: ChangePasswordRequest,
         @Header("Authorization") authHeader: String
     ): ApiResponse<EditUserResponse>
     
@@ -69,7 +65,7 @@ interface FlexTargetAPI {
      */
     @POST("/device/relate")
     suspend fun relateDevice(
-        @Query("auth_data") auth_data: String,
+        @Body request: DeviceRelateRequest,
         @Header("Authorization") authHeader: String
     ): ApiResponse<DeviceRelateResponse>
     
@@ -82,15 +78,17 @@ interface FlexTargetAPI {
      */
     @POST("/game/play/add")
     suspend fun addGamePlay(
-        @Query("game_type") game_type: String,
-        @Query("game_ver") game_ver: String = "1.0",
-        @Query("player_mobile") player_mobile: String? = null,
-        @Query("player_nickname") player_nickname: String? = null,
-        @Query("score") score: Int,
-        @Query("detail") detail: String, // JSON string
-        @Query("play_time") play_time: String,
-        @Query("is_public") is_public: Boolean = false,
-        @Query("namespace") namespace: String = "default",
+        @Body request: AddGamePlayRequest,
+        @Header("Authorization") authHeader: String
+    ): ApiResponse<GamePlayResponse>
+    
+    /**
+     * POST /game/play/edit
+     * Edit a game play result
+     */
+    @POST("/game/play/edit")
+    suspend fun editGamePlay(
+        @Body request: Map<String, Any>,
         @Header("Authorization") authHeader: String
     ): ApiResponse<GamePlayResponse>
     
@@ -100,11 +98,7 @@ interface FlexTargetAPI {
      */
     @POST("/game/play/list")
     suspend fun getGamePlayList(
-        @Query("game_type") game_type: String,
-        @Query("device_uuid") device_uuid: String,
-        @Query("page") page: Int = 1,
-        @Query("limit") limit: Int = 20,
-        @Query("namespace") namespace: String = "default",
+        @Body request: GetGamePlayListRequest,
         @Header("Authorization") authHeader: String
     ): ApiResponse<GamePlayListResponse>
     
@@ -114,7 +108,7 @@ interface FlexTargetAPI {
      */
     @POST("/game/play/detail")
     suspend fun getGamePlayDetail(
-        @Query("play_uuid") play_uuid: String,
+        @Body request: Map<String, String>,
         @Header("Authorization") authHeader: String
     ): ApiResponse<GamePlayRow>
     
@@ -124,11 +118,7 @@ interface FlexTargetAPI {
      */
     @POST("/game/play/ranking")
     suspend fun getGamePlayRanking(
-        @Query("game_type") game_type: String,
-        @Query("game_ver") game_ver: String = "1.0",
-        @Query("namespace") namespace: String = "default",
-        @Query("page") page: Int = 1,
-        @Query("limit") limit: Int = 20,
+        @Body request: GamePlayRankingRequest,
         @Header("Authorization") authHeader: String
     ): ApiResponse<GamePlayRankingResponse>
     
@@ -139,18 +129,12 @@ interface FlexTargetAPI {
      * Get latest OTA version for device
      */
     @POST("/ota/game")
-    suspend fun getLatestOTAVersion(
-        @Query("auth_data") auth_data: String
-    ): ApiResponse<OTAVersionResponse>
+    suspend fun getLatestOTAVersion(@Body request: GetOTAVersionRequest): ApiResponse<OTAVersionResponse>
     
     /**
      * POST /ota/game/history
      * Get OTA update history
      */
     @POST("/ota/game/history")
-    suspend fun getOTAHistory(
-        @Query("auth_data") auth_data: String,
-        @Query("page") page: Int = 1,
-        @Query("limit") limit: Int = 10
-    ): ApiResponse<OTAHistoryResponse>
+    suspend fun getOTAHistory(@Body request: GetOTAHistoryRequest): ApiResponse<OTAHistoryResponse>
 }

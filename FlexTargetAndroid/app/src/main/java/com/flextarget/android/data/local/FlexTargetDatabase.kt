@@ -34,7 +34,9 @@ import java.util.UUID
         UserEntity::class,
         CompetitionEntity::class,
         GamePlayEntity::class,
-        DrillHistoryEntity::class
+        DrillHistoryEntity::class,
+        AthleteEntity::class,
+        AppAuthEntity::class
     ],
     version = 3,
     exportSchema = true
@@ -151,17 +153,17 @@ abstract class FlexTargetDatabase : RoomDatabase() {
             val shots = listOf(
                 ShotEntity(
                     drillResultId = resultId,
-                    timestamp = Date(System.currentTimeMillis()),
+                    timestamp = System.currentTimeMillis(),
                     data = """{"target":"popper","content":{"command":"shot","hitArea":"C","hitPosition":{"x":360.0,"y":640.0},"rotationAngle":0.0,"targetType":"popper","timeDiff":0.4,"device":"device_popper"},"type":"shot","action":"hit","device":"device_popper"}"""
                 ),
                 ShotEntity(
                     drillResultId = resultId,
-                    timestamp = Date(System.currentTimeMillis() + 1000),
+                    timestamp = System.currentTimeMillis() + 1000,
                     data = """{"target":"popper","content":{"command":"shot","hitArea":"C","hitPosition":{"x":367.0,"y":649.0},"rotationAngle":0.0,"targetType":"popper","timeDiff":0.55,"device":"device_popper"},"type":"shot","action":"hit","device":"device_popper"}"""
                 ),
                 ShotEntity(
                     drillResultId = resultId,
-                    timestamp = Date(System.currentTimeMillis() + 2000),
+                    timestamp = System.currentTimeMillis() + 2000,
                     data = """{"target":"popper","content":{"command":"shot","hitArea":"B","hitPosition":{"x":374.0,"y":658.0},"rotationAngle":0.0,"targetType":"popper","timeDiff":0.7,"device":"device_popper"},"type":"shot","action":"hit","device":"device_popper"}"""
                 )
             )
@@ -180,12 +182,12 @@ abstract class FlexTargetDatabase : RoomDatabase() {
             val shots2 = listOf(
                 ShotEntity(
                     drillResultId = resultId2,
-                    timestamp = Date(System.currentTimeMillis() - 86400000),
+                    timestamp = System.currentTimeMillis() - 86400000,
                     data = """{"target":"popper","content":{"command":"shot","hitArea":"A","hitPosition":{"x":350.0,"y":630.0},"rotationAngle":0.0,"targetType":"popper","timeDiff":0.3,"device":"device_popper"},"type":"shot","action":"hit","device":"device_popper"}"""
                 ),
                 ShotEntity(
                     drillResultId = resultId2,
-                    timestamp = Date(System.currentTimeMillis() - 86400000 + 800),
+                    timestamp = System.currentTimeMillis() - 86400000 + 800,
                     data = """{"target":"popper","content":{"command":"shot","hitArea":"C","hitPosition":{"x":365.0,"y":645.0},"rotationAngle":0.0,"targetType":"popper","timeDiff":0.5,"device":"device_popper"},"type":"shot","action":"hit","device":"device_popper"}"""
                 )
             )

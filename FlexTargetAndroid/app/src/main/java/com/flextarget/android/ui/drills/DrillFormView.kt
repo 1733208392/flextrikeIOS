@@ -19,6 +19,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.foundation.BorderStroke
 import com.flextarget.android.data.ble.AndroidBLEManager
 import com.flextarget.android.data.ble.BLEManager
 import com.flextarget.android.data.local.FlexTargetDatabase
@@ -61,6 +62,7 @@ fun DrillFormView(
     // Form state
     var drillName by remember { mutableStateOf(existingDrill?.name ?: "") }
     var description by remember { mutableStateOf(existingDrill?.desc ?: "") }
+    var drillMode by remember { mutableStateOf(existingDrill?.mode ?: "ipsc") }
     var repeats by remember { mutableStateOf(existingDrill?.repeats ?: 1) }
     var pause by remember { mutableStateOf(existingDrill?.pause ?: 5) }
     var drillDuration by remember { mutableStateOf(existingDrill?.drillDuration ?: 5.0) }
@@ -175,6 +177,8 @@ fun DrillFormView(
                     onDrillNameChange = { drillName = it },
                     description = description,
                     onDescriptionChange = { description = it },
+                    drillMode = drillMode,
+                    onDrillModeChange = { drillMode = it },
                     repeats = repeats,
                     onRepeatsChange = { repeats = it },
                     pause = pause,
@@ -203,6 +207,7 @@ fun DrillFormView(
                 TargetConfigScreen(
                     bleManager = bleManager,
                     targetConfigs = targets,
+                    drillMode = drillMode,
                     onAddTarget = {
                         val availableDevices = bleManager.networkDevices.filter { device ->
                             targets.none { it.targetName == device.name }
@@ -212,7 +217,7 @@ fun DrillFormView(
                             val newTarget = DrillTargetsConfigData(
                                 seqNo = nextSeqNo,
                                 targetName = availableDevices.first().name,
-                                targetType = "ipsc",
+                                targetType = DrillTargetsConfigData.getDefaultTargetTypeForDrillMode(drillMode),
                                 timeout = 30.0,
                                 countedShots = 5
                             )
@@ -248,6 +253,8 @@ private fun FormScreen(
     onDrillNameChange: (String) -> Unit,
     description: String,
     onDescriptionChange: (String) -> Unit,
+    drillMode: String,
+    onDrillModeChange: (String) -> Unit,
     repeats: Int,
     onRepeatsChange: (Int) -> Unit,
     pause: Int,
@@ -278,6 +285,8 @@ private fun FormScreen(
     var drillSummaries by remember { mutableStateOf<List<DrillRepeatSummary>>(emptyList()) }
     var showDrillResult by remember { mutableStateOf(false) }
     var selectedResultSummary by remember { mutableStateOf<DrillRepeatSummary?>(null) }
+    var showDrillReplay by remember { mutableStateOf(false) }
+    var selectedReplaySummary by remember { mutableStateOf<DrillRepeatSummary?>(null) }
 
     Box(
         modifier = Modifier
@@ -302,6 +311,12 @@ private fun FormScreen(
             DrillDescriptionSection(
                 description = description,
                 onDescriptionChange = onDescriptionChange
+            )
+
+            // Drill Mode Section
+            DrillModeSection(
+                drillMode = drillMode,
+                onDrillModeChange = onDrillModeChange
             )
 
             // Configuration Sections
@@ -334,6 +349,7 @@ private fun FormScreen(
                                 val drill = DrillSetupEntity(
                                     name = drillName,
                                     desc = description,
+                                    mode = drillMode,
                                     delay = delay,
                                     drillDuration = drillDuration,
                                     repeats = repeats,
@@ -379,6 +395,7 @@ private fun FormScreen(
                         val sessionDrill = (existingDrill ?: DrillSetupEntity()).copy(
                             name = drillName,
                             desc = description,
+                            mode = drillMode,
                             delay = delay,
                             drillDuration = drillDuration,
                             repeats = repeats,
@@ -452,6 +469,10 @@ private fun FormScreen(
                 onViewResult = { summary ->
                     selectedResultSummary = summary
                     showDrillResult = true
+                },
+                onReplay = { summary ->
+                    selectedReplaySummary = summary
+                    showDrillReplay = true
                 }
             )
         }
@@ -467,6 +488,17 @@ private fun FormScreen(
                 }
             )
         }
+
+        if (showDrillReplay && selectedReplaySummary != null) {
+            DrillReplayView(
+                drillSetup = timerSessionDrill!!,
+                shots = selectedReplaySummary!!.shots,
+                onBack = {
+                    showDrillReplay = false
+                    selectedReplaySummary = null
+                }
+            )
+        }
     }
 }
 
@@ -474,6 +506,7 @@ private fun FormScreen(
 private fun TargetConfigScreen(
     bleManager: BLEManager,
     targetConfigs: List<DrillTargetsConfigData>,
+    drillMode: String,
     onAddTarget: () -> Unit,
     onDeleteTarget: (Int) -> Unit,
     onUpdateTargetDevice: (Int, String) -> Unit,
@@ -491,6 +524,7 @@ private fun TargetConfigScreen(
         TargetConfigListView(
             bleManager = bleManager,
             targetConfigs = targetConfigs,
+            drillMode = drillMode,
             onAddTarget = onAddTarget,
             onDeleteTarget = onDeleteTarget,
             onUpdateTargetDevice = onUpdateTargetDevice,
@@ -578,6 +612,55 @@ private fun DrillDescriptionSection(
                     cursorColor = Color.Red
                 )
             )
+        }
+    }
+}
+
+@Composable
+private fun DrillModeSection(
+    drillMode: String,
+    onDrillModeChange: (String) -> Unit
+) {
+    val drillModes = listOf("ipsc", "idpa", "cqb")
+    val modeTitles = mapOf(
+        "ipsc" to "IPSC",
+        "idpa" to "IDPA",
+        "cqb" to "CQB"
+    )
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = Color.DarkGray)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = "Drill Mode",
+                style = MaterialTheme.typography.titleMedium,
+                color = Color.White
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                drillModes.forEach { mode ->
+                    val isSelected = drillMode == mode
+                    OutlinedButton(
+                        onClick = { onDrillModeChange(mode) },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = if (isSelected) Color.Red else Color.Transparent,
+                            contentColor = if (isSelected) Color.White else Color.Gray
+                        ),
+                        border = BorderStroke(1.dp, if (isSelected) Color.Red else Color.Gray)
+                    ) {
+                        Text(
+                            text = modeTitles[mode] ?: mode.uppercase(),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
+            }
         }
     }
 }

@@ -183,7 +183,7 @@ class BLERepository @Inject constructor(
 
                 ShotEntity(
                     data = shotData,
-                    timestamp = event.timestamp,
+                    timestamp = event.timestamp.time,
                     drillResultId = drillResultId
                 )
             }

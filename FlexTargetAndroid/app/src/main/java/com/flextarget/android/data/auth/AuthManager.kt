@@ -4,6 +4,8 @@ import android.util.Log
 import com.flextarget.android.data.local.preferences.AppPreferences
 import com.flextarget.android.data.local.preferences.UserTokenData
 import com.flextarget.android.data.remote.api.FlexTargetAPI
+import com.flextarget.android.data.remote.api.LoginRequest
+import com.flextarget.android.data.remote.api.ChangePasswordRequest
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -99,8 +101,10 @@ class AuthManager @Inject constructor(
             try {
                 val encodedPassword = base64EncodePassword(password)
                 val response = userApiService.login(
-                    mobile = mobile,
-                    password = encodedPassword
+                    LoginRequest(
+                        mobile = mobile,
+                        password = encodedPassword
+                    )
                 )
                 val data = response.data ?: return@withContext Result.failure(Exception("Invalid login response"))
                 val user = UserData(
@@ -257,7 +261,13 @@ class AuthManager @Inject constructor(
                 val oldEncoded = base64EncodePassword(oldPassword)
                 val newEncoded = base64EncodePassword(newPassword)
                 
-                userApiService.changePassword(oldEncoded, newEncoded, token)
+                userApiService.changePassword(
+                    ChangePasswordRequest(
+                        old_password = oldEncoded,
+                        new_password = newEncoded
+                    ),
+                    token
+                )
                 
                 Log.d(TAG, "Password changed successfully")
                 Result.success(Unit)

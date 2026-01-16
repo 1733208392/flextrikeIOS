@@ -30,83 +30,25 @@ import com.google.gson.Gson
 
 @Composable
 fun DrillMainPageView(
-    bleManager: BLEManager = BLEManager.shared
+    bleManager: BLEManager = BLEManager.shared,
+    onShowDrillList: () -> Unit = {},
+    onShowConnectView: () -> Unit = {},
+    onShowInfo: () -> Unit = {},
+    onShowQRScanner: () -> Unit = {},
+    onDrillSelected: (List<com.flextarget.android.data.local.entity.DrillResultWithShots>) -> Unit = {}
 ) {
-    var showDrillList by remember { mutableStateOf(false) }
     var showConnectView by remember { mutableStateOf(false) }
     var showInfo by remember { mutableStateOf(false) }
     var showQRScanner by remember { mutableStateOf(false) }
-    var selectedDrillSetup by remember { mutableStateOf<DrillSetupEntity?>(null) }
-    var selectedDrillSummaries by remember { mutableStateOf<List<DrillRepeatSummary>?>(null) }
 
-    if (showDrillList) {
-        DrillListView(
-            bleManager = bleManager,
-            onBack = { showDrillList = false }
-        )
-    } else if (selectedDrillSetup != null && selectedDrillSummaries != null) {
-        // Show drill summary view
-        DrillSummaryView(
-            drillSetup = selectedDrillSetup!!,
-            summaries = selectedDrillSummaries!!,
-            onBack = { 
-                selectedDrillSetup = null
-                selectedDrillSummaries = null
-            },
-            onViewResult = { summary ->
-                // TODO: Navigate to individual result view
-            }
-        )
-    } else {
-        MainContent(
-            bleManager = bleManager,
-            onShowDrillList = { showDrillList = true },
-            onShowConnectView = { showConnectView = true },
-            onShowInfo = { showInfo = true },
-            onShowQRScanner = { showQRScanner = true },
-            onDrillSelected = { results -> 
-                // Convert results to drill setup and summaries
-                val firstResult = results.firstOrNull()
-                if (firstResult != null) {
-                    // Get drill setup (this is a simplified approach - in real app might need repository)
-                    // For now, create a mock drill setup
-                    val mockSetup = DrillSetupEntity(
-                        name = "Recent Drill",
-                        desc = "Recent training session"
-                    )
-                    
-                    // Convert results to summaries
-                    val summaries = results.mapIndexed { index, result ->
-                        val shots = result.shots.mapNotNull { shot ->
-                            shot.data?.let { data ->
-                                try {
-                                    com.google.gson.Gson().fromJson(data, ShotData::class.java)
-                                } catch (e: Exception) {
-                                    null
-                                }
-                            }
-                        }
-                        val totalTime = if (result.drillResult.totalTime > 0) result.drillResult.totalTime else shots.sumOf { it.content.actualTimeDiff }
-                        val fastestShot = shots.minOfOrNull { it.content.actualTimeDiff } ?: 0.0
-                        val totalScore = shots.sumOf { com.flextarget.android.data.model.ScoringUtility.scoreForHitArea(it.content.actualHitArea) }.toDouble()
-                        
-                        DrillRepeatSummary(
-                            repeatIndex = index + 1,
-                            totalTime = totalTime,
-                            numShots = shots.size,
-                            firstShot = shots.firstOrNull()?.content?.actualTimeDiff ?: 0.0,
-                            fastest = fastestShot,
-                            score = totalScore.toInt(),
-                            shots = shots
-                        )
-                    }
-                    
-                    selectedDrillSetup = mockSetup
-                    selectedDrillSummaries = summaries
-                }
-            }
-        )
-    }
+    MainContent(
+        bleManager = bleManager,
+        onShowDrillList = onShowDrillList,
+        onShowConnectView = { showConnectView = true },
+        onShowInfo = { showInfo = true },
+        onShowQRScanner = { showQRScanner = true },
+        onDrillSelected = onDrillSelected
+    )
 
     if (showConnectView) {
         ConnectSmartTargetView(

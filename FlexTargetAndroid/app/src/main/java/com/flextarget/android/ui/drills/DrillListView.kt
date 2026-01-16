@@ -206,6 +206,21 @@ fun DrillListView(
                                             fontSize = 12.sp
                                         )
                                     }
+
+                                    drill.mode?.let { mode ->
+                                        val modeDisplay = when (mode.lowercase()) {
+                                            "ipsc" -> "IPSC"
+                                            "idpa" -> "IDPA"
+                                            "cqb" -> "CQB"
+                                            else -> mode.uppercase()
+                                        }
+                                        Text(
+                                            text = modeDisplay,
+                                            color = Color.Red,
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Medium
+                                        )
+                                    }
                                 }
                             }
 

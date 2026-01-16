@@ -4,6 +4,8 @@ import android.util.Log
 import androidx.work.*
 import com.flextarget.android.data.auth.AuthManager
 import com.flextarget.android.data.remote.api.FlexTargetAPI
+import com.flextarget.android.data.remote.api.GetOTAVersionRequest
+import com.flextarget.android.data.remote.api.GetOTAHistoryRequest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -138,7 +140,7 @@ class OTARepository @Inject constructor(
             
             // Check for available OTA version
             val response = api.getLatestOTAVersion(
-                auth_data = userToken
+                GetOTAVersionRequest(auth_data = userToken)
             )
             
             val versionInfo = response.data?.let { data ->
@@ -308,9 +310,11 @@ class OTARepository @Inject constructor(
                     ?: return@withContext Result.failure(IllegalStateException("Not authenticated"))
                 
                 val response = api.getOTAHistory(
-                    auth_data = userToken,
-                    page = 1,
-                    limit = limit
+                    GetOTAHistoryRequest(
+                        auth_data = userToken,
+                        page = 1,
+                        limit = limit
+                    )
                 )
                 
                 val history = response.data?.rows?.map { item ->

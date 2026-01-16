@@ -66,8 +66,6 @@ data class ChangePasswordRequest(
     val new_password: String  // Base64 encoded
 )
 
-// ============ DEVICE AUTHENTICATION ============
-
 data class DeviceRelateRequest(
     @SerializedName("auth_data")
     val auth_data: String
@@ -88,7 +86,7 @@ data class AddGamePlayRequest(
     @SerializedName("game_type")
     val game_type: String, // Competition UUID
     @SerializedName("game_ver")
-    val game_ver: String = "1.0",
+    val game_ver: String = "1.0.0",
     @SerializedName("player_mobile")
     val player_mobile: String? = null,
     @SerializedName("player_nickname")
@@ -139,14 +137,26 @@ data class GamePlayListResponse(
 data class GamePlayRow(
     @SerializedName("play_uuid")
     val playUUID: String,
-    @SerializedName("player_nickname")
-    val playerNickname: String?,
+    @SerializedName("device_uuid")
+    val deviceUUID: String,
+    @SerializedName("bluetooth_name")
+    val bluetoothName: String?,
+    @SerializedName("game_type")
+    val gameType: String,
+    @SerializedName("game_ver")
+    val gameVer: String,
     @SerializedName("score")
     val score: Int,
+    @SerializedName("detail")
+    val detail: String?, // JSON string
     @SerializedName("play_time")
     val playTime: String,
-    @SerializedName("device_uuid")
-    val deviceUUID: String
+    @SerializedName("player_mobile")
+    val playerMobile: String?,
+    @SerializedName("player_nickname")
+    val playerNickname: String?,
+    @SerializedName("is_public")
+    val isPublic: Boolean
 )
 
 data class GamePlayRankingRequest(
@@ -165,12 +175,26 @@ data class GamePlayRankingRequest(
 data class RankingRow(
     @SerializedName("rank")
     val rank: Int,
-    @SerializedName("player_nickname")
-    val player_nickname: String?,
+    @SerializedName("play_uuid")
+    val playUUID: String,
+    @SerializedName("device_uuid")
+    val deviceUUID: String,
+    @SerializedName("bluetooth_name")
+    val bluetoothName: String?,
+    @SerializedName("game_type")
+    val gameType: String,
+    @SerializedName("game_ver")
+    val gameVer: String,
     @SerializedName("score")
     val score: Int,
     @SerializedName("play_time")
-    val play_time: String
+    val playTime: String,
+    @SerializedName("player_mobile")
+    val playerMobile: String?,
+    @SerializedName("player_nickname")
+    val playerNickname: String?,
+    @SerializedName("is_public")
+    val isPublic: Boolean
 )
 
 data class GamePlayRankingResponse(
@@ -224,7 +248,5 @@ data class OTAVersionRow(
     @SerializedName("version")
     val version: String,
     @SerializedName("checksum")
-    val checksum: String,
-    @SerializedName("release_date")
-    val release_date: String?
+    val checksum: String
 )

@@ -2,6 +2,7 @@ package com.flextarget.android.data.auth
 
 import android.util.Log
 import com.flextarget.android.data.remote.api.FlexTargetAPI
+import com.flextarget.android.data.remote.api.RefreshTokenRequest
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -57,20 +58,14 @@ class TokenRefreshQueue @Inject constructor(
     private suspend fun performRefresh(refreshToken: String) = refreshMutex.withLock {
         try {
             Log.d(TAG, "Performing token refresh")
-            val response = userApiService.refreshToken(refreshToken)
-
-            // Ensure response and its data are non-null before updating tokens
-            val data = response?.data ?: throw IllegalStateException("Empty refresh token response")
-
-            // Update tokens in AuthManager
-            authManager.updateTokens(
-                accessToken = data.accessToken ?: throw IllegalStateException("Missing access token in refresh response"),
-                refreshToken = data.refreshToken ?: refreshToken
+            val response = userApiService.refreshToken(
+                RefreshTokenRequest(refresh_token = refreshToken)
             )
+            
             // Update tokens in AuthManager
             authManager.updateTokens(
-                accessToken = response.data.accessToken,
-                refreshToken = response.data.refreshToken ?: refreshToken
+                accessToken = response.data?.accessToken ?: throw Exception("No access token in response"),
+                refreshToken = response.data?.refreshToken ?: refreshToken
             )
             
             Log.d(TAG, "Token refresh successful")

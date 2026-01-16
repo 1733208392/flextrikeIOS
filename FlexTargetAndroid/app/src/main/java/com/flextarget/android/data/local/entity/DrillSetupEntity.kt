@@ -28,5 +28,7 @@ data class DrillSetupEntity(
     
     val repeats: Int = 1,
     
-    val pause: Int = 5
+    val pause: Int = 5,
+    
+    val mode: String? = null
 )

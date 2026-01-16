@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
 import com.flextarget.android.data.ble.BLEManager
-import com.flextarget.android.ui.drills.DrillMainPageView
+import com.flextarget.android.ui.TabNavigationView
 
 class MainActivity : ComponentActivity() {
 
@@ -51,7 +51,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    DrillMainPageView()
+                    TabNavigationView()
                 }
             }
         }
