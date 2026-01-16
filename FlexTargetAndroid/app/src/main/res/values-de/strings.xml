@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App name -->
+    <string name="app_name">FlexTarget</string>
+    
+    <!-- Login screen -->
+    <string name="login_title">FlexTarget</string>
+    <string name="login_subtitle">Melden Sie sich mit Ihrem Bogenschießziel-Konto an</string>
+    <string name="login_mobile">Mobilnummer</string>
+    <string name="login_password">Passwort</string>
+    <string name="login_button">Anmelden</string>
+    <string name="login_loading">Wird angemeldet...</string>
+    <string name="login_error">Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre Anmeldedaten.</string>
+    <string name="login_hint_mobile">Geben Sie Ihre Mobilnummer ein</string>
+    <string name="login_hint_password">Geben Sie Ihr Passwort ein</string>
+    
+    <!-- Auth state -->
+    <string name="auth_not_authenticated">Nicht authentifiziert</string>
+    <string name="auth_authenticated">Authentifiziert</string>
+    <string name="auth_logout">Abmelden</string>
+    <string name="auth_profile">Profil</string>
+    
+    <!-- Competitions -->
+    <string name="competitions_title">Wettbewerbe</string>
+    <string name="competitions_empty">Keine Wettbewerbe verfügbar</string>
+    <string name="competitions_venue">Veranstaltungsort</string>
+    <string name="competitions_date">Datum</string>
+    <string name="competitions_description">Beschreibung</string>
+    <string name="competitions_leaderboard">Rangliste</string>
+    <string name="competitions_submit_result">Ergebnis einreichen</string>
+    
+    <!-- Drill execution -->
+    <string name="drill_title">Bohrausführung</string>
+    <string name="drill_state_idle">Bereit</string>
+    <string name="drill_state_initialized">Initialisiert</string>
+    <string name="drill_state_waiting_ack">Warte auf Gerätebestätigung</string>
+    <string name="drill_state_executing">Wird ausgeführt</string>
+    <string name="drill_state_finalizing">Wird fertiggestellt</string>
+    <string name="drill_state_complete">Abgeschlossen</string>
+    <string name="drill_state_error">Fehler</string>
+    <string name="drill_current_score">Aktuelle Punktzahl</string>
+    <string name="drill_shots">Schüsse</string>
+    <string name="drill_time">Zeit</string>
+    <string name="drill_average">Durchschnitt</string>
+    <string name="drill_device_connected">Gerät verbunden</string>
+    <string name="drill_device_disconnected">Gerät getrennt</string>
+    <string name="drill_last_shot">Letzter Schuss</string>
+    <string name="drill_start_shooting">Schießen beginnen</string>
+    <string name="drill_stop_finalize">Stopp &amp; Abschluss</string>
+    <string name="drill_complete">Bohrung abschließen</string>
+    <string name="drill_abort">Bohrung abbrechen</string>
+    
+    <!-- OTA Updates -->
+    <string name="ota_title">Systemupdates</string>
+    <string name="ota_check">Nach Updates suchen</string>
+    <string name="ota_checking">Suche nach Updates...</string>
+    <string name="ota_available">Update verfügbar</string>
+    <string name="ota_up_to_date">Auf dem neuesten Stand</string>
+    <string name="ota_download">Update herunterladen</string>
+    <string name="ota_preparing">Download und Vorbereitung...</string>
+    <string name="ota_ready">Installationsbereit</string>
+    <string name="ota_verifying">Integrität wird überprüft...</string>
+    <string name="ota_verify_install">Überprüfen &amp; Installieren</string>
+    <string name="ota_installing">Update wird installiert...</string>
+    <string name="ota_complete">Installation abgeschlossen</string>
+    <string name="ota_version">Version</string>
+    <string name="ota_current_version">Aktuelle Version</string>
+    <string name="ota_latest">Neueste</string>
+    <string name="ota_mandatory">Obligatorisches Update</string>
+    <string name="ota_cancel">Abbrechen</string>
+    <string name="ota_failed">Update fehlgeschlagen</string>
+    
+    <!-- Settings -->
+    <string name="settings_title">Einstellungen</string>
+    <string name="settings_language">Sprache</string>
+    <string name="settings_notifications">Benachrichtigungen</string>
+    <string name="settings_device">Gerät</string>
+    <string name="settings_about">Über</string>
+    <string name="settings_version">Version</string>
+    
+    <!-- Device -->
+    <string name="device_title">Geräteverwaltung</string>
+    <string name="device_connected">Verbunden</string>
+    <string name="device_disconnected">Getrennt</string>
+    <string name="device_connect">Gerät verbinden</string>
+    <string name="device_disconnect">Trennen</string>
+    <string name="device_auth">Geräteauthentifizierung</string>
+    
+    <!-- Errors -->
+    <string name="error_network">Netzwerkfehler</string>
+    <string name="error_auth_failed">Authentifizierung fehlgeschlagen</string>
+    <string name="error_device_not_connected">Gerät nicht verbunden</string>
+    <string name="error_timeout">Anforderungszeitüberschreitung</string>
+    <string name="error_unknown">Unbekannter Fehler aufgetreten</string>
+    
+    <!-- Common -->
+    <string name="back">Zurück</string>
+    <string name="next">Weiter</string>
+    <string name="cancel">Abbrechen</string>
+    <string name="save">Speichern</string>
+    <string name="delete">Löschen</string>
+    <string name="edit">Bearbeiten</string>
+    <string name="close">Schließen</string>
+    <string name="loading">Wird geladen...</string>
+    <string name="retry">Erneut versuchen</string>
+</resources>

@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App name -->
+    <string name="app_name">FlexTarget</string>
+    
+    <!-- Login screen -->
+    <string name="login_title">FlexTarget</string>
+    <string name="login_subtitle">使用您的射箭靶場帳戶登入</string>
+    <string name="login_mobile">手機號碼</string>
+    <string name="login_password">密碼</string>
+    <string name="login_button">登入</string>
+    <string name="login_loading">正在登入...</string>
+    <string name="login_error">登入失敗。請檢查您的認證資訊。</string>
+    <string name="login_hint_mobile">輸入您的手機號碼</string>
+    <string name="login_hint_password">輸入您的密碼</string>
+    
+    <!-- Auth state -->
+    <string name="auth_not_authenticated">未認證</string>
+    <string name="auth_authenticated">已認證</string>
+    <string name="auth_logout">登出</string>
+    <string name="auth_profile">個人資料</string>
+    
+    <!-- Competitions -->
+    <string name="competitions_title">競賽</string>
+    <string name="competitions_empty">沒有可用的競賽</string>
+    <string name="competitions_venue">場地</string>
+    <string name="competitions_date">日期</string>
+    <string name="competitions_description">描述</string>
+    <string name="competitions_leaderboard">排行榜</string>
+    <string name="competitions_submit_result">提交成績</string>
+    
+    <!-- Drill execution -->
+    <string name="drill_title">演練執行</string>
+    <string name="drill_state_idle">就緒</string>
+    <string name="drill_state_initialized">已初始化</string>
+    <string name="drill_state_waiting_ack">等待設備確認</string>
+    <string name="drill_state_executing">執行中</string>
+    <string name="drill_state_finalizing">正在完成</string>
+    <string name="drill_state_complete">完成</string>
+    <string name="drill_state_error">錯誤</string>
+    <string name="drill_current_score">當前分數</string>
+    <string name="drill_shots">射擊</string>
+    <string name="drill_time">時間</string>
+    <string name="drill_average">平均</string>
+    <string name="drill_device_connected">設備已連接</string>
+    <string name="drill_device_disconnected">設備已斷開</string>
+    <string name="drill_last_shot">最後一射</string>
+    <string name="drill_start_shooting">開始射擊</string>
+    <string name="drill_stop_finalize">停止 &amp; 完成</string>
+    <string name="drill_complete">完成演練</string>
+    <string name="drill_abort">中止演練</string>
+    
+    <!-- OTA Updates -->
+    <string name="ota_title">系統更新</string>
+    <string name="ota_check">檢查更新</string>
+    <string name="ota_checking">正在檢查更新...</string>
+    <string name="ota_available">有可用更新</string>
+    <string name="ota_up_to_date">已是最新版本</string>
+    <string name="ota_download">下載更新</string>
+    <string name="ota_preparing">正在下載和準備...</string>
+    <string name="ota_ready">準備安裝</string>
+    <string name="ota_verifying">正在驗證完整性...</string>
+    <string name="ota_verify_install">驗證 &amp; 安裝</string>
+    <string name="ota_installing">正在安裝更新...</string>
+    <string name="ota_complete">安裝完成</string>
+    <string name="ota_version">版本</string>
+    <string name="ota_current_version">當前版本</string>
+    <string name="ota_latest">最新版本</string>
+    <string name="ota_mandatory">強制更新</string>
+    <string name="ota_cancel">取消</string>
+    <string name="ota_failed">更新失敗</string>
+    
+    <!-- Settings -->
+    <string name="settings_title">設定</string>
+    <string name="settings_language">語言</string>
+    <string name="settings_notifications">通知</string>
+    <string name="settings_device">設備</string>
+    <string name="settings_about">關於</string>
+    <string name="settings_version">版本</string>
+    
+    <!-- Device -->
+    <string name="device_title">設備管理</string>
+    <string name="device_connected">已連接</string>
+    <string name="device_disconnected">已斷開</string>
+    <string name="device_connect">連接設備</string>
+    <string name="device_disconnect">斷開</string>
+    <string name="device_auth">設備認證</string>
+    
+    <!-- Errors -->
+    <string name="error_network">網路錯誤</string>
+    <string name="error_auth_failed">認證失敗</string>
+    <string name="error_device_not_connected">設備未連接</string>
+    <string name="error_timeout">請求逾時</string>
+    <string name="error_unknown">發生未知錯誤</string>
+    
+    <!-- Common -->
+    <string name="back">返回</string>
+    <string name="next">下一步</string>
+    <string name="cancel">取消</string>
+    <string name="save">保存</string>
+    <string name="delete">刪除</string>
+    <string name="edit">編輯</string>
+    <string name="close">關閉</string>
+    <string name="loading">載入中...</string>
+    <string name="retry">重試</string>
+</resources>

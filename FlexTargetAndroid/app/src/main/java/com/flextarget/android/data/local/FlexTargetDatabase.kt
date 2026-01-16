@@ -30,9 +30,13 @@ import java.util.UUID
         DrillSetupEntity::class,
         DrillResultEntity::class,
         ShotEntity::class,
-        DrillTargetsConfigEntity::class
+        DrillTargetsConfigEntity::class,
+        UserEntity::class,
+        CompetitionEntity::class,
+        GamePlayEntity::class,
+        DrillHistoryEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
@@ -42,12 +46,16 @@ abstract class FlexTargetDatabase : RoomDatabase() {
     abstract fun drillResultDao(): DrillResultDao
     abstract fun shotDao(): ShotDao
     abstract fun drillTargetsConfigDao(): DrillTargetsConfigDao
+    abstract fun userDao(): UserDao
+    abstract fun competitionDao(): CompetitionDao
+    abstract fun gamePlayDao(): GamePlayDao
+    abstract fun drillHistoryDao(): DrillHistoryDao
     
     companion object {
         @Volatile
         private var INSTANCE: FlexTargetDatabase? = null
         
-        private const val DATABASE_NAME = "flex_target_database_v2"
+        private const val DATABASE_NAME = "flex_target_database_v3"
         
         fun getDatabase(
             context: Context,

@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App name -->
+    <string name="app_name">FlexTarget</string>
+    
+    <!-- Login screen -->
+    <string name="login_title">FlexTarget</string>
+    <string name="login_subtitle">アーチェリーターゲットアカウントでサインインしてください</string>
+    <string name="login_mobile">携帯電話番号</string>
+    <string name="login_password">パスワード</string>
+    <string name="login_button">ログイン</string>
+    <string name="login_loading">サインイン中...</string>
+    <string name="login_error">ログインに失敗しました。認証情報を確認してください。</string>
+    <string name="login_hint_mobile">携帯電話番号を入力してください</string>
+    <string name="login_hint_password">パスワードを入力してください</string>
+    
+    <!-- Auth state -->
+    <string name="auth_not_authenticated">認証されていません</string>
+    <string name="auth_authenticated">認証済み</string>
+    <string name="auth_logout">ログアウト</string>
+    <string name="auth_profile">プロフィール</string>
+    
+    <!-- Competitions -->
+    <string name="competitions_title">競技</string>
+    <string name="competitions_empty">利用可能な競技はありません</string>
+    <string name="competitions_venue">会場</string>
+    <string name="competitions_date">日付</string>
+    <string name="competitions_description">説明</string>
+    <string name="competitions_leaderboard">リーダーボード</string>
+    <string name="competitions_submit_result">結果を提出</string>
+    
+    <!-- Drill execution -->
+    <string name="drill_title">ドリル実行</string>
+    <string name="drill_state_idle">準備完了</string>
+    <string name="drill_state_initialized">初期化済み</string>
+    <string name="drill_state_waiting_ack">デバイスACK待機中</string>
+    <string name="drill_state_executing">実行中</string>
+    <string name="drill_state_finalizing">最終処理中</string>
+    <string name="drill_state_complete">完了</string>
+    <string name="drill_state_error">エラー</string>
+    <string name="drill_current_score">現在のスコア</string>
+    <string name="drill_shots">ショット</string>
+    <string name="drill_time">時間</string>
+    <string name="drill_average">平均</string>
+    <string name="drill_device_connected">デバイス接続</string>
+    <string name="drill_device_disconnected">デバイス切断</string>
+    <string name="drill_last_shot">最後のショット</string>
+    <string name="drill_start_shooting">射撃開始</string>
+    <string name="drill_stop_finalize">停止 &amp; 最終処理</string>
+    <string name="drill_complete">ドリル完了</string>
+    <string name="drill_abort">ドリル中止</string>
+    
+    <!-- OTA Updates -->
+    <string name="ota_title">システムアップデート</string>
+    <string name="ota_check">アップデートを確認</string>
+    <string name="ota_checking">アップデート確認中...</string>
+    <string name="ota_available">アップデート利用可能</string>
+    <string name="ota_up_to_date">最新状態</string>
+    <string name="ota_download">アップデートダウンロード</string>
+    <string name="ota_preparing">ダウンロード中...</string>
+    <string name="ota_ready">インストール準備完了</string>
+    <string name="ota_verifying">整合性確認中...</string>
+    <string name="ota_verify_install">確認 &amp; インストール</string>
+    <string name="ota_installing">アップデートインストール中...</string>
+    <string name="ota_complete">インストール完了</string>
+    <string name="ota_version">バージョン</string>
+    <string name="ota_current_version">現在のバージョン</string>
+    <string name="ota_latest">最新</string>
+    <string name="ota_mandatory">必須アップデート</string>
+    <string name="ota_cancel">キャンセル</string>
+    <string name="ota_failed">アップデート失敗</string>
+    
+    <!-- Settings -->
+    <string name="settings_title">設定</string>
+    <string name="settings_language">言語</string>
+    <string name="settings_notifications">通知</string>
+    <string name="settings_device">デバイス</string>
+    <string name="settings_about">について</string>
+    <string name="settings_version">バージョン</string>
+    
+    <!-- Device -->
+    <string name="device_title">デバイス管理</string>
+    <string name="device_connected">接続済み</string>
+    <string name="device_disconnected">切断</string>
+    <string name="device_connect">デバイス接続</string>
+    <string name="device_disconnect">切断</string>
+    <string name="device_auth">デバイス認証</string>
+    
+    <!-- Errors -->
+    <string name="error_network">ネットワークエラー</string>
+    <string name="error_auth_failed">認証失敗</string>
+    <string name="error_device_not_connected">デバイスが接続されていません</string>
+    <string name="error_timeout">リクエストタイムアウト</string>
+    <string name="error_unknown">不明なエラーが発生しました</string>
+    
+    <!-- Common -->
+    <string name="back">戻る</string>
+    <string name="next">次へ</string>
+    <string name="cancel">キャンセル</string>
+    <string name="save">保存</string>
+    <string name="delete">削除</string>
+    <string name="edit">編集</string>
+    <string name="close">閉じる</string>
+    <string name="loading">読み込み中...</string>
+    <string name="retry">再試行</string>
+</resources>
