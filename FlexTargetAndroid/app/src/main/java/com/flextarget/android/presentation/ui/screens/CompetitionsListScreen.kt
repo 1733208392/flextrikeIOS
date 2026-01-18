@@ -14,7 +14,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.flextarget.android.data.local.entity.CompetitionEntity
 import com.flextarget.android.presentation.viewmodel.CompetitionViewModel
 import java.text.SimpleDateFormat
@@ -29,7 +28,7 @@ import java.util.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CompetitionsListScreen(
-    competitionViewModel: CompetitionViewModel = hiltViewModel(),
+    competitionViewModel: CompetitionViewModel,
     onCompetitionSelected: (UUID) -> Unit = {}
 ) {
     val competitionUiState by competitionViewModel.competitionUiState.collectAsState()
@@ -184,10 +183,10 @@ fun CompetitionCard(
 /**
  * Competitions List Screen Preview
  */
-@androidx.compose.ui.tooling.preview.Preview(showBackground = true)
-@Composable
-fun CompetitionsListScreenPreview() {
-    MaterialTheme {
-        CompetitionsListScreen()
-    }
-}
+// @androidx.compose.ui.tooling.preview.Preview(showBackground = true)
+// @Composable
+// fun CompetitionsListScreenPreview() {
+//     MaterialTheme {
+//         CompetitionsListScreen()
+//     }
+// }

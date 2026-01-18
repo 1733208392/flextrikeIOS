@@ -4,13 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flextarget.android.data.auth.AuthManager
 import com.flextarget.android.data.auth.DeviceAuthManager
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 /**
  * UI state for authentication
@@ -33,8 +31,7 @@ data class AuthUiState(
  * - Track device authentication status
  * - Manage error states
  */
-@HiltViewModel
-class AuthViewModel @Inject constructor(
+class AuthViewModel(
     private val authManager: AuthManager,
     private val deviceAuthManager: DeviceAuthManager
 ) : ViewModel() {

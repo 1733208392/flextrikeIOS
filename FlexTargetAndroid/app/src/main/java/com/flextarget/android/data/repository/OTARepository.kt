@@ -128,19 +128,22 @@ class OTARepository @Inject constructor(
     }
     
     /**
-     * Check for new OTA version
+     * Check for new OTA version using device token
      */
-    suspend fun checkForUpdates(): Result<OTAVersionInfo?> = withContext(Dispatchers.IO) {
+    suspend fun checkForUpdates(deviceToken: String): Result<OTAVersionInfo?> = withContext(Dispatchers.IO) {
         try {
             _currentState.emit(OTAState.CHECKING)
             _otaProgress.emit(OTAProgress(state = OTAState.CHECKING, lastCheck = Date()))
             
-            val userToken = authManager.currentAccessToken
-                ?: return@withContext Result.failure(IllegalStateException("Not authenticated"))
+            if (deviceToken.isEmpty()) {
+                _currentState.emit(OTAState.ERROR)
+                _otaProgress.emit(OTAProgress(state = OTAState.ERROR, error = "Invalid device token", lastCheck = Date()))
+                return@withContext Result.failure(IllegalStateException("Device token is empty"))
+            }
             
-            // Check for available OTA version
+            // Check for available OTA version using device token
             val response = api.getLatestOTAVersion(
-                GetOTAVersionRequest(auth_data = userToken)
+                GetOTAVersionRequest(auth_data = deviceToken)
             )
             
             val versionInfo = response.data?.let { data ->

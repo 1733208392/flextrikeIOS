@@ -17,7 +17,13 @@ import androidx.navigation.compose.rememberNavController
 import com.flextarget.android.data.ble.BLEManager
 import com.flextarget.android.data.local.entity.DrillSetupEntity
 import com.flextarget.android.data.model.DrillRepeatSummary
-import com.flextarget.android.ui.drills.*
+import com.flextarget.android.di.AppContainer
+import com.flextarget.android.ui.competition.CompetitionTabView
+import com.flextarget.android.ui.drills.DrillListView
+import com.flextarget.android.ui.drills.DrillSummaryView
+import com.flextarget.android.ui.drills.DrillMainPageView
+import com.flextarget.android.ui.drills.HistoryTabView
+import com.flextarget.android.ui.admin.AdminTabView
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -130,11 +136,14 @@ fun TabNavigationView(
             }
 
             composable("competition") {
-                CompetitionTabContent()
+                CompetitionTabView(navController = navController)
             }
 
             composable("admin") {
-                AdminTabContent()
+                AdminTabView(
+                    bleManager = bleManager,
+                    authViewModel = AppContainer.authViewModel
+                )
             }
 
             // Drill-related screens
@@ -298,23 +307,6 @@ private fun HistoryTabContent(navController: NavHostController) {
                 selectedDrillSetup = setup
                 selectedSummaries = summaries
             }
-        )
-    }
-}
-
-@Composable
-private fun CompetitionTabContent() {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black),
-        contentAlignment = androidx.compose.ui.Alignment.Center
-    ) {
-        Text(
-            "Competition Tab\nComing Soon",
-            color = Color.White,
-            style = MaterialTheme.typography.headlineMedium,
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center
         )
     }
 }

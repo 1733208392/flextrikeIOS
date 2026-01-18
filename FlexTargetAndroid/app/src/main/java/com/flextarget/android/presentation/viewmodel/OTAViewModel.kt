@@ -6,13 +6,11 @@ import com.flextarget.android.data.repository.OTAHistoryEntry
 import com.flextarget.android.data.repository.OTAProgress
 import com.flextarget.android.data.repository.OTARepository
 import com.flextarget.android.data.repository.OTAState
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 /**
  * UI state for OTA updates
@@ -40,8 +38,7 @@ data class OTAUiState(
  * - Display update progress
  * - Show update history
  */
-@HiltViewModel
-class OTAViewModel @Inject constructor(
+class OTAViewModel(
     private val otaRepository: OTARepository
 ) : ViewModel() {
     
@@ -71,9 +68,9 @@ class OTAViewModel @Inject constructor(
     /**
      * Check for available updates
      */
-    fun checkForUpdates() {
+    fun checkForUpdates(deviceToken: String) {
         viewModelScope.launch {
-            val result = otaRepository.checkForUpdates()
+            val result = otaRepository.checkForUpdates(deviceToken)
             result.onSuccess { versionInfo ->
                 if (versionInfo != null) {
                     // Update available, show to user

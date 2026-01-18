@@ -32,7 +32,7 @@ import javax.inject.Singleton
 class AuthManager @Inject constructor(
     private val preferences: AppPreferences,
     private val userApiService: FlexTargetAPI,
-    private val tokenRefreshQueue: TokenRefreshQueue
+    private var tokenRefreshQueue: TokenRefreshQueue?
 ) {
     private val scope = CoroutineScope(Dispatchers.Main + Job())
     
@@ -64,6 +64,13 @@ class AuthManager @Inject constructor(
                 startTokenRefreshTimer()
             }
         }
+    }
+    
+    /**
+     * Set the token refresh queue (for dependency injection)
+     */
+    fun setTokenRefreshQueue(queue: TokenRefreshQueue) {
+        this.tokenRefreshQueue = queue
     }
     
     /**
@@ -220,7 +227,7 @@ class AuthManager @Inject constructor(
         
         try {
             Log.d(TAG, "Attempting token refresh")
-            tokenRefreshQueue.queueRefresh(refreshToken)
+            tokenRefreshQueue?.queueRefresh(refreshToken)
         } catch (e: Exception) {
             Log.e(TAG, "Token refresh failed, logging out", e)
             // On refresh failure, logout user

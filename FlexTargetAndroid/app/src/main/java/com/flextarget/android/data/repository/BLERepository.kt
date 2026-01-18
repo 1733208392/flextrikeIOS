@@ -1,19 +1,24 @@
 package com.flextarget.android.data.repository
 
 import android.util.Log
+import com.flextarget.android.data.ble.BLEManager
 import com.flextarget.android.data.local.dao.ShotDao
 import com.flextarget.android.data.local.entity.ShotEntity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 import java.util.Date
 import java.util.UUID
+import kotlin.coroutines.resume
 import kotlin.math.sqrt
 
 /**
@@ -70,18 +75,38 @@ class BLERepository @Inject constructor(
      * Called during 2-step device auth process
      */
     suspend fun getDeviceAuthData(): Result<String> = withContext(Dispatchers.IO) {
-        try {
-            // Send BLE command to get auth data from device
-            // Device responds with a unique auth string
-            // This would integrate with actual BLE manager
-            val authData = currentConnection?.sendCommand("GET_AUTH_DATA") 
-                ?: return@withContext Result.failure(IllegalStateException("No BLE connection"))
-            
-            Log.d(TAG, "Retrieved device auth data")
-            Result.success(authData)
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to get device auth data", e)
-            Result.failure(e)
+        if (!BLEManager.shared.isConnected) {
+            return@withContext Result.failure(
+                IllegalStateException("Device not connected")
+            )
+        }
+
+        return@withContext suspendCancellableCoroutine { continuation ->
+            var timeoutJob: Job? = null
+
+            // Register callback to receive auth data response
+            BLEManager.shared.onAuthDataReceived = { authData ->
+                timeoutJob?.cancel()
+                BLEManager.shared.onAuthDataReceived = null
+                Log.d(TAG, "Retrieved device auth data")
+                continuation.resume(Result.success(authData))
+            }
+
+            // Send BLE command to request auth data from device
+            val timestamp = System.currentTimeMillis()
+            val command = """{"action":"get_auth_data","timestamp":$timestamp}"""
+            BLEManager.shared.writeJSON(command)
+            Log.d(TAG, "Sent get_auth_data command to device")
+
+            // Set 10-second timeout guard
+            timeoutJob = CoroutineScope(Dispatchers.Main).launch {
+                delay(10000)
+                BLEManager.shared.onAuthDataReceived = null
+                Log.e(TAG, "Device auth data request timed out")
+                continuation.resume(Result.failure(
+                    Exception("Device did not respond with auth_data within 10 seconds")
+                ))
+            }
         }
     }
     

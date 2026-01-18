@@ -8,6 +8,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.flextarget.android.di.AppContainer
 import com.flextarget.android.presentation.ui.screens.CompetitionsListScreen
 import com.flextarget.android.presentation.ui.screens.DrillExecutionScreen
 import com.flextarget.android.presentation.ui.screens.LoginScreen
@@ -91,6 +92,7 @@ fun FlexTargetNavHost(
         // Login screen
         composable(NavRoutes.LOGIN) {
             LoginScreen(
+                authViewModel = AppContainer.authViewModel,
                 onLoginSuccess = {
                     navigationActions.navigateToCompetitions()
                 }
@@ -100,6 +102,7 @@ fun FlexTargetNavHost(
         // Competitions list screen
         composable(NavRoutes.COMPETITIONS) {
             CompetitionsListScreen(
+                competitionViewModel = AppContainer.competitionViewModel,
                 onCompetitionSelected = { competitionId ->
                     // In real app, would store selected competition and navigate to drill selection
                     // For now, navigate directly to OTA as next feature demo
@@ -118,6 +121,8 @@ fun FlexTargetNavHost(
         ) { backStackEntry ->
             val drillId = backStackEntry.arguments?.getString("drillId")?.let { UUID.fromString(it) }
             DrillExecutionScreen(
+                drillViewModel = AppContainer.drillViewModel,
+                bleViewModel = AppContainer.bleViewModel,
                 drillId = drillId,
                 onExecutionComplete = { score, shotCount ->
                     navigationActions.navigateBack()
@@ -127,7 +132,9 @@ fun FlexTargetNavHost(
         
         // OTA updates screen
         composable(NavRoutes.OTA_UPDATES) {
-            OTAUpdatesScreen()
+            OTAUpdatesScreen(
+                otaViewModel = AppContainer.otaViewModel
+            )
         }
     }
 }

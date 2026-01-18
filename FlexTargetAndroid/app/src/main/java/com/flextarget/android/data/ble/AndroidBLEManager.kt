@@ -47,6 +47,9 @@ class AndroidBLEManager(private val context: Context) {
     // Callback for netlink forward messages (acks, etc.)
     var onNetlinkForwardReceived: ((Map<String, Any>) -> Unit)? = null
 
+    // Callback for auth data response
+    var onAuthDataReceived: ((String) -> Unit)? = null
+
     private var bluetoothGatt: BluetoothGatt? = null
     private var writeCharacteristic: BluetoothGattCharacteristic? = null
     private var notifyCharacteristic: BluetoothGattCharacteristic? = null
@@ -217,6 +220,12 @@ class AndroidBLEManager(private val context: Context) {
             val action = json.optString("action")
 
             when {
+                type == "auth_data" && json.has("content") -> {
+                    // Handle auth data response from device
+                    val authData = json.getString("content")
+                    println("[AndroidBLEManager] Received auth_data: $authData")
+                    this.onAuthDataReceived?.invoke(authData)
+                }
                 type == "netlink" && action == "device_list" -> {
                     val dataArray = json.optJSONArray("data")
                     if (dataArray != null) {

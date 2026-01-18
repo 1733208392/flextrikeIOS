@@ -5,13 +5,11 @@ import androidx.lifecycle.viewModelScope
 import com.flextarget.android.data.repository.BLERepository
 import com.flextarget.android.data.repository.DeviceState
 import com.flextarget.android.data.repository.ShotEvent
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 /**
  * UI state for BLE device
@@ -35,8 +33,7 @@ data class BLEUiState(
  * - Handle device errors
  * - Manage device state transitions
  */
-@HiltViewModel
-class BLEViewModel @Inject constructor(
+class BLEViewModel(
     private val bleRepository: BLERepository
 ) : ViewModel() {
     

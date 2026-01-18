@@ -16,7 +16,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.flextarget.android.data.repository.DrillExecutionState
 import com.flextarget.android.presentation.viewmodel.BLEViewModel
 import com.flextarget.android.presentation.viewmodel.DrillViewModel
@@ -41,8 +40,8 @@ import java.util.UUID
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DrillExecutionScreen(
-    drillViewModel: DrillViewModel = hiltViewModel(),
-    bleViewModel: BLEViewModel = hiltViewModel(),
+    drillViewModel: DrillViewModel,
+    bleViewModel: BLEViewModel,
     drillId: UUID? = null,
     onExecutionComplete: (score: Int, shotCount: Int) -> Unit = { _, _ -> }
 ) {
@@ -393,10 +392,10 @@ fun ActionButtons(
 /**
  * Drill Execution Screen Preview
  */
-@androidx.compose.ui.tooling.preview.Preview(showBackground = true)
-@Composable
-fun DrillExecutionScreenPreview() {
-    MaterialTheme {
-        DrillExecutionScreen()
-    }
-}
+// @androidx.compose.ui.tooling.preview.Preview(showBackground = true)
+// @Composable
+// fun DrillExecutionScreenPreview() {
+//     MaterialTheme {
+//         DrillExecutionScreen()
+//     }
+// }

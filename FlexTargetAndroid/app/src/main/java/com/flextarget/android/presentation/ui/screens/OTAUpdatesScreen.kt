@@ -13,7 +13,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.flextarget.android.data.repository.OTAState
 import com.flextarget.android.presentation.viewmodel.OTAViewModel
 import kotlinx.coroutines.delay
@@ -32,7 +31,7 @@ import kotlinx.coroutines.delay
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OTAUpdatesScreen(
-    otaViewModel: OTAViewModel = hiltViewModel()
+    otaViewModel: OTAViewModel
 ) {
     val otaUiState by otaViewModel.otaUiState.collectAsState()
     
@@ -46,7 +45,11 @@ fun OTAUpdatesScreen(
                 ),
                 actions = {
                     IconButton(
-                        onClick = { otaViewModel.checkForUpdates() },
+                        onClick = { 
+                            // TODO: Get device token from DeviceAuthManager and pass it
+                            // For now, pass empty string as placeholder
+                            otaViewModel.checkForUpdates("")
+                        },
                         enabled = otaUiState.state == OTAState.IDLE
                     ) {
                         Icon(Icons.Filled.Refresh, contentDescription = "Check for updates")
@@ -97,7 +100,11 @@ fun OTAUpdatesScreen(
             // Action buttons
             OTAActionButtons(
                 state = otaUiState.state,
-                onCheckClicked = { otaViewModel.checkForUpdates() },
+                onCheckClicked = { 
+                    // TODO: Get device token from DeviceAuthManager and pass it
+                    // For now, pass empty string as placeholder
+                    otaViewModel.checkForUpdates("")
+                },
                 onPrepareClicked = { otaViewModel.prepareUpdate() },
                 onVerifyClicked = { otaViewModel.verifyUpdate() },
                 onInstallClicked = { otaViewModel.installUpdate() },
@@ -381,10 +388,10 @@ fun OTAActionButtons(
 /**
  * OTA Updates Screen Preview
  */
-@androidx.compose.ui.tooling.preview.Preview(showBackground = true)
-@Composable
-fun OTAUpdatesScreenPreview() {
-    MaterialTheme {
-        OTAUpdatesScreen()
-    }
-}
+// @androidx.compose.ui.tooling.preview.Preview(showBackground = true)
+// @Composable
+// fun OTAUpdatesScreenPreview() {
+//     MaterialTheme {
+//         OTAUpdatesScreen()
+//     }
+// }

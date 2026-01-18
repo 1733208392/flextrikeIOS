@@ -65,7 +65,7 @@ class TokenRefreshQueue @Inject constructor(
             // Update tokens in AuthManager
             authManager.updateTokens(
                 accessToken = response.data?.accessToken ?: throw Exception("No access token in response"),
-                refreshToken = response.data?.refreshToken ?: refreshToken
+                refreshToken = response.data.refreshToken ?: refreshToken
             )
             
             Log.d(TAG, "Token refresh successful")

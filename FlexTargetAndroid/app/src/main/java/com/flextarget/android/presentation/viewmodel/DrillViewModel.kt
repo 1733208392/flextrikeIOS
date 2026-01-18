@@ -6,13 +6,11 @@ import com.flextarget.android.data.local.entity.DrillSetupEntity
 import com.flextarget.android.data.repository.DrillExecutionContext
 import com.flextarget.android.data.repository.DrillExecutionState
 import com.flextarget.android.data.repository.DrillRepository
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 import java.util.UUID
 
 /**
@@ -38,8 +36,7 @@ data class DrillUiState(
  * - Track shot collection and scoring
  * - Display execution progress and results
  */
-@HiltViewModel
-class DrillViewModel @Inject constructor(
+class DrillViewModel(
     private val drillRepository: DrillRepository
 ) : ViewModel() {
     

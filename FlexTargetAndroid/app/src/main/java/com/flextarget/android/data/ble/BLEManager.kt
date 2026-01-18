@@ -45,6 +45,9 @@ class BLEManager private constructor() {
     // Netlink forward message callback
     var onNetlinkForwardReceived: ((Map<String, Any>) -> Unit)? = null
 
+    // Auth data response callback
+    var onAuthDataReceived: ((String) -> Unit)? = null
+
     val connectedPeripheralName: String?
         get() = connectedPeripheral?.name
 
@@ -55,6 +58,9 @@ class BLEManager private constructor() {
             }
             onNetlinkForwardReceived = { message ->
                 this@BLEManager.onNetlinkForwardReceived?.invoke(message)
+            }
+            onAuthDataReceived = { authData ->
+                this@BLEManager.onAuthDataReceived?.invoke(authData)
             }
         }
     }

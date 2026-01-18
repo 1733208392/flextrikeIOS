@@ -1,14 +1,14 @@
 package com.flextarget.android
 
 import android.app.Application
-import dagger.hilt.android.HiltAndroidApp
+import com.flextarget.android.di.AppContainer
 
 /**
- * FlexTarget Application class with Hilt dependency injection setup
+ * FlexTarget Application class
  */
-@HiltAndroidApp
 class FlexTargetApplication : Application() {
     override fun onCreate() {
         super.onCreate()
+        AppContainer.initialize(this)
     }
 }

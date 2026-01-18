@@ -18,7 +18,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.flextarget.android.presentation.viewmodel.AuthViewModel
 
 /**
@@ -29,7 +28,7 @@ import com.flextarget.android.presentation.viewmodel.AuthViewModel
  */
 @Composable
 fun LoginScreen(
-    authViewModel: AuthViewModel = hiltViewModel(),
+    authViewModel: AuthViewModel,
     onLoginSuccess: () -> Unit = {}
 ) {
     val authUiState by authViewModel.authUiState.collectAsState()
@@ -173,10 +172,10 @@ fun LoginScreen(
 /**
  * Login Screen Preview
  */
-@androidx.compose.ui.tooling.preview.Preview(showBackground = true)
-@Composable
-fun LoginScreenPreview() {
-    MaterialTheme {
-        LoginScreen()
-    }
-}
+// @androidx.compose.ui.tooling.preview.Preview(showBackground = true)
+// @Composable
+// fun LoginScreenPreview() {
+//     MaterialTheme {
+//         LoginScreen()
+//     }
+// }

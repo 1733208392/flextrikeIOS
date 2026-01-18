@@ -5,13 +5,11 @@ import androidx.lifecycle.viewModelScope
 import com.flextarget.android.data.local.entity.CompetitionEntity
 import com.flextarget.android.data.repository.CompetitionRepository
 import com.flextarget.android.data.repository.RankingData
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 import java.util.UUID
 
 /**
@@ -34,8 +32,7 @@ data class CompetitionUiState(
  * - Fetch and display leaderboards
  * - Submit drill results as game plays
  */
-@HiltViewModel
-class CompetitionViewModel @Inject constructor(
+class CompetitionViewModel(
     private val competitionRepository: CompetitionRepository
 ) : ViewModel() {
     
