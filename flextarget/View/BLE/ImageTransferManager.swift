@@ -269,11 +269,11 @@ class ImageTransferManager {
             "content": content
         ]
         
-                guard let jsonData = try? JSONSerialization.data(withJSONObject: message, options: [.sortedKeys]),
-                            var jsonString = String(data: jsonData, encoding: .utf8) else {
-                        finishTransfer(success: false, message: NSLocalizedString("failed_encode_chunk", comment: "Failed to encode chunk"))
-                        return
-                }
+        guard let jsonData = try? JSONSerialization.data(withJSONObject: message, options: [.sortedKeys]),
+                    var jsonString = String(data: jsonData, encoding: .utf8) else {
+                finishTransfer(success: false, message: NSLocalizedString("failed_encode_chunk", comment: "Failed to encode chunk"))
+                return
+        }
         
         // Verify base64 string integrity - log it for debugging
         print("   📋 Base64 length: \(base64String.count) chars")

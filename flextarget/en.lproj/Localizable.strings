@@ -432,3 +432,6 @@
 /* OTA Error Alerts */
 "ota_failed_to_start_title" = "OTA Failed to Start";
 "ota_game_disk_not_found" = "Game disk not found on device. Please check the device and try again.";
+/* UserProfileView Validation */
+"username_empty_error" = "Username cannot be empty";
+"username_same_error" = "New username must be different from current one";

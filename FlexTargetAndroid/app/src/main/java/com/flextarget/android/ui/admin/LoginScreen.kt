@@ -1,7 +1,9 @@
 package com.flextarget.android.ui.admin
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -13,6 +15,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -47,6 +51,7 @@ fun LoginScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(Color.Black)
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 24.dp)
             .padding(top = 64.dp),
@@ -56,6 +61,8 @@ fun LoginScreen(
         Text(
             text = "FlexTarget",
             style = MaterialTheme.typography.displaySmall,
+            color = Color.White,
+            fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(bottom = 48.dp)
         )
         
@@ -63,10 +70,17 @@ fun LoginScreen(
         OutlinedTextField(
             value = mobile,
             onValueChange = { mobile = it },
-            label = { Text("Mobile Number") },
+            label = { Text("Mobile Number", color = Color.Gray) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 16.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White,
+                focusedBorderColor = Color.Red,
+                unfocusedBorderColor = Color.Gray,
+                cursorColor = Color.Red
+            ),
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Phone,
                 imeAction = ImeAction.Next
@@ -79,10 +93,17 @@ fun LoginScreen(
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("Password") },
+            label = { Text("Password", color = Color.Gray) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 24.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White,
+                focusedBorderColor = Color.Red,
+                unfocusedBorderColor = Color.Gray,
+                cursorColor = Color.Red
+            ),
             visualTransformation = if (showPassword) {
                 VisualTransformation.None
             } else {
@@ -94,7 +115,8 @@ fun LoginScreen(
                 ) {
                     Icon(
                         imageVector = if (showPassword) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
-                        contentDescription = if (showPassword) "Hide password" else "Show password"
+                        contentDescription = if (showPassword) "Hide password" else "Show password",
+                        tint = Color.Gray
                     )
                 }
             },
@@ -127,11 +149,11 @@ fun LoginScreen(
                     imageVector = Icons.Filled.Error,
                     contentDescription = "Error",
                     modifier = Modifier.size(24.dp),
-                    tint = MaterialTheme.colorScheme.error
+                    tint = Color.Red
                 )
                 Text(
                     text = authUiState.error ?: "Unknown error",
-                    color = MaterialTheme.colorScheme.error,
+                    color = Color.Red,
                     style = MaterialTheme.typography.bodySmall
                 )
             }
@@ -144,18 +166,28 @@ fun LoginScreen(
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(48.dp)
-                .padding(bottom = 16.dp),
+                .height(56.dp)
+                .padding(bottom = 8.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Red,
+                disabledContainerColor = Color.Red.copy(alpha = 0.5f)
+            ),
+            shape = RoundedCornerShape(8.dp),
             enabled = mobile.isNotEmpty() && password.isNotEmpty() && !authUiState.isLoading
         ) {
             if (authUiState.isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(24.dp),
-                    color = MaterialTheme.colorScheme.onPrimary,
+                    color = Color.White,
                     strokeWidth = 2.dp
                 )
             } else {
-                Text("Login", style = MaterialTheme.typography.labelLarge)
+                Text(
+                    "Login",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
         
@@ -164,7 +196,7 @@ fun LoginScreen(
         Text(
             text = "Sign in with your archery target account",
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = Color.Gray
         )
     }
 }

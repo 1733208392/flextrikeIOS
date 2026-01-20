@@ -83,6 +83,10 @@ class DrillFormViewModel(
         } ?: emptyList()
     }
 
+    suspend fun getDrillResultCount(drillSetupId: UUID): Int {
+        return drillSetupRepository.getDrillResultCountBySetupId(drillSetupId)
+    }
+
     class Factory(private val drillSetupRepository: DrillSetupRepository) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {

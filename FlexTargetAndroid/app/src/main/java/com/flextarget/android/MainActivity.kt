@@ -15,6 +15,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
 import com.flextarget.android.data.ble.BLEManager
 import com.flextarget.android.ui.TabNavigationView
+import coil.Coil
+import coil.ImageLoader
+import coil.decode.SvgDecoder
 
 class MainActivity : ComponentActivity() {
 
@@ -45,6 +48,14 @@ class MainActivity : ComponentActivity() {
 
         // Initialize BLE Manager
         BLEManager.shared.initialize(this)
+
+        // Set up Coil with SVG decoder
+        val imageLoader = ImageLoader.Builder(this)
+            .components {
+                add(SvgDecoder.Factory())
+            }
+            .build()
+        Coil.setImageLoader(imageLoader)
 
         setContent {
             MaterialTheme {

@@ -100,8 +100,10 @@ class AndroidBLEManager(private val context: Context) {
     // GATT callback
     private val gattCallback = object : BluetoothGattCallback() {
         override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
+            println("[AndroidBLEManager] onConnectionStateChange - status: $status, newState: $newState")
             when (newState) {
                 BluetoothProfile.STATE_CONNECTED -> {
+                    println("[AndroidBLEManager] Connected to device")
                     BLEManager.shared.error = null
                     bluetoothGatt = gatt
                     // Discover services
@@ -110,6 +112,7 @@ class AndroidBLEManager(private val context: Context) {
                     }
                 }
                 BluetoothProfile.STATE_DISCONNECTED -> {
+                    println("[AndroidBLEManager] Disconnected from device")
                     BLEManager.shared.isConnected = false
                     BLEManager.shared.isReady = false
                     BLEManager.shared.connectedPeripheral = null
@@ -129,13 +132,19 @@ class AndroidBLEManager(private val context: Context) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 val service = gatt.getService(targetServiceUUID)
                 if (service != null) {
+                    println("[AndroidBLEManager] Service discovered, looking for characteristics...")
                     // Discover characteristics
                     if (ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
                         service.characteristics.forEach { characteristic ->
+                            println("[AndroidBLEManager] Found characteristic: ${characteristic.uuid}")
                             when (characteristic.uuid) {
-                                writeCharacteristicUUID -> writeCharacteristic = characteristic
+                                writeCharacteristicUUID -> {
+                                    writeCharacteristic = characteristic
+                                    println("[AndroidBLEManager] Found write characteristic")
+                                }
                                 notifyCharacteristicUUID -> {
                                     notifyCharacteristic = characteristic
+                                    println("[AndroidBLEManager] Found notify characteristic")
                                     // Enable notifications
                                     gatt.setCharacteristicNotification(characteristic, true)
                                     val descriptor = characteristic.getDescriptor(UUID.fromString("00002902-0000-1000-8000-00805f9b34fb"))
@@ -150,6 +159,7 @@ class AndroidBLEManager(private val context: Context) {
                         // Check if ready
                         val ready = writeCharacteristic != null && notifyCharacteristic != null
                         this@AndroidBLEManager.isReady = ready
+                        println("[AndroidBLEManager] Ready: $ready (write: ${writeCharacteristic != null}, notify: ${notifyCharacteristic != null})")
                         if (ready) {
                             this@AndroidBLEManager.isConnected = true
                             BLEManager.shared.isConnected = true
@@ -159,10 +169,12 @@ class AndroidBLEManager(private val context: Context) {
                         }
                     }
                 } else {
+                    println("[AndroidBLEManager] Target service not found")
                     this@AndroidBLEManager.error = "Target service not found"
                     disconnect()
                 }
             } else {
+                println("[AndroidBLEManager] Service discovery failed with status: $status")
                 BLEManager.shared.error = BLEError.Unknown("Service discovery failed: $status")
                 BLEManager.shared.isConnected = false
                 pendingPeripheral = null
@@ -225,6 +237,14 @@ class AndroidBLEManager(private val context: Context) {
                     val authData = json.getString("content")
                     println("[AndroidBLEManager] Received auth_data: $authData")
                     this.onAuthDataReceived?.invoke(authData)
+                }
+                type == "notice" && action == "netlink_query_device_list" && json.optString("state") == "failure" -> {
+                    // Handle netlink not enabled failure
+                    val message = json.optString("message", "Unknown error")
+                    println("[AndroidBLEManager] Received netlink failure notice: $message")
+                    BLEManager.shared.error = BLEError.Unknown(message)
+                    BLEManager.shared.errorMessage = message
+                    BLEManager.shared.showErrorAlert = true
                 }
                 type == "netlink" && action == "device_list" -> {
                     val dataArray = json.optJSONArray("data")
@@ -374,6 +394,7 @@ class AndroidBLEManager(private val context: Context) {
 
     fun write(data: ByteArray, completion: (Boolean) -> Unit) {
         if (!this.isConnected || writeCharacteristic == null) {
+            println("[AndroidBLEManager] Write failed - isConnected: ${this.isConnected}, writeCharacteristic: ${writeCharacteristic != null}, gatt: ${bluetoothGatt != null}")
             completion(false)
             return
         }
@@ -384,6 +405,7 @@ class AndroidBLEManager(private val context: Context) {
             writeCharacteristic?.value = data
             bluetoothGatt?.writeCharacteristic(writeCharacteristic)
         } else {
+            println("[AndroidBLEManager] Missing BLUETOOTH_CONNECT permission")
             completion(false)
         }
     }
@@ -396,6 +418,8 @@ class AndroidBLEManager(private val context: Context) {
             write(data) { success ->
                 if (!success) {
                     println("Failed to write JSON: $jsonString")
+                } else {
+                    println("Successfully wrote JSON: $jsonString")
                 }
             }
         } else {
@@ -413,8 +437,10 @@ class AndroidBLEManager(private val context: Context) {
             if (!success) {
                 println("Failed to write chunk starting at $startIndex")
             } else {
-                // Send next chunk after success
-                writeChunks(data, endIndex)
+                // Add delay before sending next chunk (similar to iOS 0.1s)
+                handler.postDelayed({
+                    writeChunks(data, endIndex)
+                }, 100)
             }
         }
     }

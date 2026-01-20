@@ -14,5 +14,7 @@ data class DrillRepeatSummary(
     val firstShot: Double,
     val fastest: Double,
     var score: Int,
-    val shots: List<ShotData>
+    val shots: List<ShotData>,
+    val cqbResults: List<CQBShotResult>? = null,
+    val cqbPassed: Boolean? = null
 )

@@ -24,7 +24,7 @@ enum DrillFormMode {
 }
 
 struct DrillFormView: View {
-    let bleManager: BLEManager
+    @ObservedObject var bleManager: BLEManager
     let mode: DrillFormMode
     
     @State private var drillName: String = ""
@@ -280,6 +280,9 @@ struct DrillFormView: View {
             Button("OK", role: .cancel) { }
         } message: {
             Text("Changing the Target Config is not allowed. Please create new Drill")
+        }
+        .alert(isPresented: $bleManager.showErrorAlert) {
+            Alert(title: Text("Error"), message: Text(bleManager.errorMessage ?? "Unknown error occurred"), dismissButton: .default(Text("OK")))
         }
         .navigationBarBackButtonHidden(true)
     }

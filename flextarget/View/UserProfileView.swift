@@ -164,6 +164,20 @@ struct UserProfileView: View {
     private func updateProfile() {
         guard let accessToken = authManager.currentUser?.accessToken else { return }
         
+        let trimmedUsername = username.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        if trimmedUsername.isEmpty {
+            errorMessage = NSLocalizedString("username_empty_error", comment: "Username cannot be empty")
+            showError = true
+            return
+        }
+        
+        if trimmedUsername == authManager.currentUser?.username {
+            errorMessage = NSLocalizedString("username_same_error", comment: "New username must be different")
+            showError = true
+            return
+        }
+        
         isLoading = true
         errorMessage = ""
         showError = false

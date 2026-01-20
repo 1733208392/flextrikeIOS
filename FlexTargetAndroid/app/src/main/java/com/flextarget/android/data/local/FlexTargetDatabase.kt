@@ -9,6 +9,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import com.flextarget.android.data.local.converter.Converters
 import com.flextarget.android.data.local.dao.*
 import com.flextarget.android.data.local.entity.*
+import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -71,7 +72,7 @@ abstract class FlexTargetDatabase : RoomDatabase() {
                     FlexTargetDatabase::class.java,
                     DATABASE_NAME
                 )
-                    .addCallback(DatabaseCallback(scope))
+                    .addCallback(DatabaseCallback(context.applicationContext, scope))
                     .fallbackToDestructiveMigration() // For development; remove in production
                     .build()
                 INSTANCE = instance
@@ -83,6 +84,7 @@ abstract class FlexTargetDatabase : RoomDatabase() {
          * Callback to initialize database with seed data if needed.
          */
         private class DatabaseCallback(
+            private val context: Context,
             private val scope: CoroutineScope
         ) : RoomDatabase.Callback() {
             
@@ -90,111 +92,74 @@ abstract class FlexTargetDatabase : RoomDatabase() {
                 super.onCreate(db)
                 INSTANCE?.let { database ->
                     scope.launch {
-                        // Populate database with initial data if needed
-                        // This mirrors the iOS PersistenceController initialization
-                        populateDatabase(database)
+                        // Populate database with initial data from JSON
+                        populateDatabase(database, context)
                     }
                 }
             }
         }
-        
+
         /**
-         * Populate database with initial data.
-         * Can be used for seed data similar to iOS UITestDataSeeder.
+         * Populate database with initial data from assets/drills_config.json
          */
-        private suspend fun populateDatabase(database: FlexTargetDatabase) {
-            // Add initial data if needed
-            // This is where you would add seed data similar to the iOS version
+        private suspend fun populateDatabase(database: FlexTargetDatabase, context: Context) {
             val drillSetupDao = database.drillSetupDao()
             val targetConfigDao = database.drillTargetsConfigDao()
-            val drillResultDao = database.drillResultDao()
-            val shotDao = database.shotDao()
             
-            // Example: Add a sample drill setup (can be removed in production)
-            // Uncomment to add seed data:
-            val sampleDrill = DrillSetupEntity(
-                name = "Sample Drill",
-                desc = "A sample drill for testing",
-                delay = 3.0,
-                drillDuration = 30.0,
-                repeats = 3,
-                pause = 10
-            )
-            val drillId = drillSetupDao.insertDrillSetup(sampleDrill)
-            
-            // Add some sample targets
-            val target1 = DrillTargetsConfigEntity(
-                seqNo = 1,
-                targetName = "Target 1",
-                targetType = "popper",
-                timeout = 5.0,
-                countedShots = 1,
-                drillSetupId = sampleDrill.id
-            )
-            val target2 = DrillTargetsConfigEntity(
-                seqNo = 2,
-                targetName = "Target 2", 
-                targetType = "popper",
-                timeout = 5.0,
-                countedShots = 1,
-                drillSetupId = sampleDrill.id
-            )
-            targetConfigDao.insertTargetConfigs(listOf(target1, target2))
-            
-            // Add sample drill results with shots
-            val drillResult = DrillResultEntity(
-                drillSetupId = sampleDrill.id,
-                date = Date(System.currentTimeMillis()),
-                totalTime = 15.5,
-                sessionId = UUID.randomUUID()
-            )
-            drillResultDao.insertDrillResult(drillResult)
-            val resultId = drillResult.id // Use the entity's UUID, not the returned Long
-            
-            // Add some sample shots
-            val shots = listOf(
-                ShotEntity(
-                    drillResultId = resultId,
-                    timestamp = System.currentTimeMillis(),
-                    data = """{"target":"popper","content":{"command":"shot","hitArea":"C","hitPosition":{"x":360.0,"y":640.0},"rotationAngle":0.0,"targetType":"popper","timeDiff":0.4,"device":"device_popper"},"type":"shot","action":"hit","device":"device_popper"}"""
-                ),
-                ShotEntity(
-                    drillResultId = resultId,
-                    timestamp = System.currentTimeMillis() + 1000,
-                    data = """{"target":"popper","content":{"command":"shot","hitArea":"C","hitPosition":{"x":367.0,"y":649.0},"rotationAngle":0.0,"targetType":"popper","timeDiff":0.55,"device":"device_popper"},"type":"shot","action":"hit","device":"device_popper"}"""
-                ),
-                ShotEntity(
-                    drillResultId = resultId,
-                    timestamp = System.currentTimeMillis() + 2000,
-                    data = """{"target":"popper","content":{"command":"shot","hitArea":"B","hitPosition":{"x":374.0,"y":658.0},"rotationAngle":0.0,"targetType":"popper","timeDiff":0.7,"device":"device_popper"},"type":"shot","action":"hit","device":"device_popper"}"""
-                )
-            )
-            shotDao.insertShots(shots)
-            
-            // Add another drill result for testing multiple sessions
-            val drillResult2 = DrillResultEntity(
-                drillSetupId = sampleDrill.id,
-                date = Date(System.currentTimeMillis() - 86400000), // Yesterday
-                totalTime = 12.3,
-                sessionId = UUID.randomUUID()
-            )
-            drillResultDao.insertDrillResult(drillResult2)
-            val resultId2 = drillResult2.id // Use the entity's UUID, not the returned Long
-            
-            val shots2 = listOf(
-                ShotEntity(
-                    drillResultId = resultId2,
-                    timestamp = System.currentTimeMillis() - 86400000,
-                    data = """{"target":"popper","content":{"command":"shot","hitArea":"A","hitPosition":{"x":350.0,"y":630.0},"rotationAngle":0.0,"targetType":"popper","timeDiff":0.3,"device":"device_popper"},"type":"shot","action":"hit","device":"device_popper"}"""
-                ),
-                ShotEntity(
-                    drillResultId = resultId2,
-                    timestamp = System.currentTimeMillis() - 86400000 + 800,
-                    data = """{"target":"popper","content":{"command":"shot","hitArea":"C","hitPosition":{"x":365.0,"y":645.0},"rotationAngle":0.0,"targetType":"popper","timeDiff":0.5,"device":"device_popper"},"type":"shot","action":"hit","device":"device_popper"}"""
-                )
-            )
-            shotDao.insertShots(shots2)
+            try {
+                val jsonString = context.assets.open("drills_config.json").bufferedReader().use { it.readText() }
+                val gson = Gson()
+                val config = gson.fromJson(jsonString, DrillsConfig::class.java)
+
+                for (drillJson in config.drills) {
+                    val drillSetup = DrillSetupEntity(
+                        name = drillJson.name,
+                        desc = drillJson.desc,
+                        delay = drillJson.delay,
+                        drillDuration = drillJson.drillDuration,
+                        repeats = drillJson.repeats,
+                        pause = drillJson.pause,
+                        mode = drillJson.mode
+                    )
+                    val drillId = drillSetupDao.insertDrillSetup(drillSetup)
+
+                    val targets = drillJson.targets.map { targetJson ->
+                        DrillTargetsConfigEntity(
+                            seqNo = targetJson.seqNo,
+                            targetName = targetJson.targetName,
+                            targetType = targetJson.targetType,
+                            timeout = targetJson.timeout,
+                            countedShots = targetJson.countedShots,
+                            drillSetupId = drillSetup.id
+                        )
+                    }
+                    targetConfigDao.insertTargetConfigs(targets)
+                }
+                println("[FlexTargetDatabase] Successfully seeded ${config.drills.size} drills from JSON")
+            } catch (e: Exception) {
+                println("[FlexTargetDatabase] Error seeding database: ${e.message}")
+                e.printStackTrace()
+            }
         }
+
+    private data class DrillsConfig(val drills: List<DrillJson>)
+    private data class DrillJson(
+        val name: String,
+        val desc: String,
+        val delay: Double,
+        val drillDuration: Double,
+        val repeats: Int,
+        val pause: Int = 0,
+        val mode: String? = null,
+        val targets: List<TargetJson>
+    )
+    private data class TargetJson(
+        val seqNo: Int,
+        val targetName: String,
+        val targetType: String,
+        val timeout: Double,
+        val countedShots: Int
+    )
         
         /**
          * Close database instance. Useful for testing.

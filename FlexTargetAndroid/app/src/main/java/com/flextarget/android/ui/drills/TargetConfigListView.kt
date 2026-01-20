@@ -44,6 +44,13 @@ fun TargetConfigListView(
         queryDeviceList(bleManager)
     }
 
+    // Auto-add targets from device list
+    LaunchedEffect(bleManager.networkDevices, bleManager.lastDeviceListUpdate) {
+        if (bleManager.networkDevices.isNotEmpty()) {
+            addAllAvailableTargets(bleManager.networkDevices, targetConfigs, drillMode, onAddTarget)
+        }
+    }
+
     // val reorderableState = rememberReorderableLazyListState(
     //     onMove = { from, to ->
     //         targetConfigs.apply {
@@ -173,6 +180,21 @@ private fun queryDeviceList(bleManager: BLEManager) {
     println("Query message length: ${jsonString.toByteArray().size}")
     bleManager.writeJSON(jsonString)
     println("Sent netlink_query_device_list command: $jsonString")
+}
+
+private fun addAllAvailableTargets(
+    networkDevices: List<NetworkDevice>,
+    targetConfigs: List<DrillTargetsConfigData>,
+    drillMode: String,
+    onAddTarget: () -> Unit
+) {
+    val currentDeviceNames = targetConfigs.map { it.targetName }.toSet()
+    val availableDevices = networkDevices.filter { !currentDeviceNames.contains(it.name) }
+    
+    // Add each available device as a target
+    availableDevices.forEach { _ ->
+        onAddTarget()
+    }
 }
 
 private fun getAvailableDevices(

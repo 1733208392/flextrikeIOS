@@ -44,17 +44,23 @@ class ImageCropViewModel : ViewModel() {
         _offset.value = newOffset
     }
 
-    /// Enforce minimum scale so the image always fills the provided cropSize
-    /// and clamp offset so the crop rectangle remains covered by the image.
+    /// Enforce minimum scale so the image always fully covers the provided cropSize (guide rectangle)
+    /// and clamp offset so the image borders cannot cross beyond the guide boundaries.
+    /// 
+    /// Constraint Requirements:
+    /// - Left border of image cannot move right past the left edge of the guide
+    /// - Right border of image cannot move left past the right edge of the guide
+    /// - Top border of image cannot move down past the top edge of the guide
+    /// - Bottom border of image cannot move up past the bottom edge of the guide
+    /// 
+    /// In other words: the image must fully cover the guide rectangle at all times.
     fun enforceConstraints(containerSize: Size, cropSize: Size) {
         val bitmap = _selectedImage.value ?: return
 
-        // Ensure the user-visible image (container frame scaled by `scale`) fully
-        // covers the crop rectangle `cropSize`. Adjust `scale` if it's too small
-        // and clamp the `offset` so the crop rect never reveals background.
-
-        // Compute the minimum user scale needed so the displayed image covers the crop area.
-        // displayed size = containerSize * scale, so requiredScale = cropSize / containerSize
+        // Calculate the minimum scale required so the displayed image fully covers the crop rectangle.
+        // The displayed image fills the container (via ContentScale.FillBounds), then is scaled by user scale.
+        // For the image to fully cover cropSize, we need:
+        // displayedSize >= cropSize, where displayedSize = containerSize * scale
         val requiredScaleX = cropSize.width / containerSize.width.coerceAtLeast(0.0001f)
         val requiredScaleY = cropSize.height / containerSize.height.coerceAtLeast(0.0001f)
         val minAllowedScale = kotlin.math.max(1.0f, kotlin.math.max(requiredScaleX, requiredScaleY))
@@ -63,19 +69,28 @@ class ImageCropViewModel : ViewModel() {
             _scale.value = minAllowedScale
         }
 
-        // Compute the displayed image size (points) after applying base fill scale and user scale.
-        // If we have the image, calculate how the image is scaled to fill the container (scaledToFill semantics):
-        //   baseFillScale = max(containerWidth / imageWidth, containerHeight / imageHeight)
-        // Displayed image size = image.size * baseFillScale * userScale
+        // Clamp the offset to enforce guide boundaries.
+        // The offset represents the translation of the image center relative to the container center.
+        // For the image borders not to cross the guide boundaries:
+        // - Image origin (top-left of displayed image) = container_center - image_size/2 + offset
+        // - Guide origin (top-left of guide rect) = container_center - guide_size/2
+        // 
+        // Image left edge >= Guide left edge:  container_center.x - displayed_width/2 + offset.x >= container_center.x - guide_width/2
+        //   => offset.x >= (displayed_width - guide_width) / 2
+        // Image right edge <= Guide right edge:  container_center.x + displayed_width/2 + offset.x <= container_center.x + guide_width/2
+        //   => offset.x <= (guide_width - displayed_width) / 2
+        // 
+        // Similarly for Y: offset.y in [-half_height, half_height]
+
         val baseFill = kotlin.math.max(containerSize.width / bitmap.width.toFloat(),
                           containerSize.height / bitmap.height.toFloat())
 
         val displayedWidth = bitmap.width * baseFill * _scale.value
         val displayedHeight = bitmap.height * baseFill * _scale.value
 
-        // Allowed half-range for the center offset so the crop rect stays fully covered.
-        val allowedHalfX = kotlin.math.max(0f, (displayedWidth - cropSize.width) / 2.0f)
-        val allowedHalfY = kotlin.math.max(0f, (displayedHeight - cropSize.height) / 2.0f)
+        // Allowed offset range to keep image borders within guide bounds
+        val allowedHalfX = (displayedWidth - cropSize.width) / 2.0f
+        val allowedHalfY = (displayedHeight - cropSize.height) / 2.0f
 
         val clampedX = _offset.value.x.coerceIn(-allowedHalfX, allowedHalfX)
         val clampedY = _offset.value.y.coerceIn(-allowedHalfY, allowedHalfY)
@@ -84,6 +99,13 @@ class ImageCropViewModel : ViewModel() {
     }
 
     /// Return a clamped offset for a proposed offset without mutating state.
+    /// Ensures image borders cannot cross guide rectangle boundaries.
+    /// 
+    /// The image must remain fully covering the crop (guide) rectangle:
+    /// - Left border stays >= guide left edge
+    /// - Right border stays <= guide right edge  
+    /// - Top border stays >= guide top edge
+    /// - Bottom border stays <= guide bottom edge
     fun clampedOffset(
         proposed: androidx.compose.ui.geometry.Offset,
         containerSize: Size,
@@ -93,17 +115,15 @@ class ImageCropViewModel : ViewModel() {
         val bitmap = _selectedImage.value ?: return proposed
         val effectiveScale = scaleOverride ?: _scale.value
 
-        // Displayed image size (points) = container frame size * effective scale
-        // Compute displayed image size (points) using image intrinsic size when possible
         val baseFill = kotlin.math.max(containerSize.width / bitmap.width.toFloat(),
                           containerSize.height / bitmap.height.toFloat())
 
         val displayedWidth = bitmap.width * baseFill * effectiveScale
         val displayedHeight = bitmap.height * baseFill * effectiveScale
 
-        // Allowed half-range for the center offset so the crop rect remains fully covered
-        val allowedHalfX = kotlin.math.max(0f, (displayedWidth - cropSize.width) / 2.0f)
-        val allowedHalfY = kotlin.math.max(0f, (displayedHeight - cropSize.height) / 2.0f)
+        // Allowed offset range: image borders cannot cross guide boundaries
+        val allowedHalfX = (displayedWidth - cropSize.width) / 2.0f
+        val allowedHalfY = (displayedHeight - cropSize.height) / 2.0f
 
         val clampedX = proposed.x.coerceIn(-allowedHalfX, allowedHalfX)
         val clampedY = proposed.y.coerceIn(-allowedHalfY, allowedHalfY)

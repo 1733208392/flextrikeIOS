@@ -31,7 +31,9 @@ import kotlinx.coroutines.launch
 @Composable
 fun DrillListView(
     bleManager: BLEManager,
-    onBack: () -> Unit
+    onBack: (() -> Unit)? = null,
+    onShowConnectView: () -> Unit = {},
+    onShowQRScanner: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val viewModel: DrillListViewModel = viewModel(
@@ -64,14 +66,48 @@ fun DrillListView(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("My Drills", color = Color.White) },
+                title = { 
+                    Text(if (onBack != null) "My Drills" else "Drills", color = Color.White)
+                },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            Icons.Default.ArrowBack,
-                            contentDescription = "Back",
-                            tint = Color.Red
-                        )
+                    if (onBack != null) {
+                        IconButton(onClick = onBack) {
+                            Icon(
+                                Icons.Default.ArrowBack,
+                                contentDescription = "Back",
+                                tint = Color.Red
+                            )
+                        }
+                    } else {
+                        // iOS-like connection status pill
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .padding(start = 16.dp)
+                                .background(Color.Gray.copy(alpha = 0.2f), androidx.compose.foundation.shape.RoundedCornerShape(16.dp))
+                                .padding(vertical = 4.dp, horizontal = 12.dp)
+                                .clickable {
+                                    if (bleManager.isConnected) {
+                                        onShowConnectView()
+                                    } else {
+                                        onShowQRScanner()
+                                    }
+                                }
+                        ) {
+                            Text(
+                                text = if (bleManager.isConnected) "Connected" else "Disconnected",
+                                color = Color.Gray,
+                                fontSize = 12.sp
+                            )
+                            if (bleManager.isConnected) {
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = bleManager.connectedPeripheralName ?: "Target",
+                                    color = Color.White,
+                                    fontSize = 12.sp
+                                )
+                            }
+                        }
                     }
                 },
                 actions = {
@@ -326,11 +362,6 @@ fun DrillListView(
             onBack = { showDrillForm = false },
             onDrillSaved = { savedDrill ->
                 // Refresh the list or handle the saved drill
-                showDrillForm = false
-            },
-            onShowHistory = { drill ->
-                selectedDrillForRecord = drill
-                showDrillRecord = true
                 showDrillForm = false
             },
             viewModel = viewModel(

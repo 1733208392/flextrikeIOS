@@ -111,4 +111,9 @@ class DrillSetupRepository(
     suspend fun getDrillSetupCount(): Int {
         return drillSetupDao.getDrillSetupCount()
     }
+
+    // Get drill result count by setup ID
+    suspend fun getDrillResultCountBySetupId(drillSetupId: UUID): Int {
+        return drillSetupDao.getDrillResultCountBySetupId(drillSetupId)
+    }
 }

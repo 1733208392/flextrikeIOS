@@ -93,8 +93,12 @@ class DeviceAuthManager @Inject constructor(
                 // Exchange auth_data with server for device token
                 val response = userApiService.relateDevice(
                     DeviceRelateRequest(auth_data = authDataFromDevice),
-                    userToken
+                    "Bearer $userToken"
                 )
+
+                if (response.code != 0) {
+                    return@withContext Result.failure(Exception(response.msg))
+                }
 
                 val data = response.data ?: return@withContext Result.failure(Exception("Invalid login response"))
 

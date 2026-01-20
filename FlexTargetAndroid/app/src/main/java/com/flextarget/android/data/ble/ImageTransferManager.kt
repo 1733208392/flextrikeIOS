@@ -11,8 +11,8 @@ import java.nio.ByteOrder
 class ImageTransferManager(
     private val bleManager: BLEManager
 ) {
-    private val chunkSize: Int = 200  // Bytes per chunk (safe MTU)
-    private val timeoutInterval: Long = 5000  // 5 seconds
+    private val chunkSize: Int = 100  // Bytes per chunk (safe MTU)
+    private val timeoutInterval: Long = 10000  // 10 seconds
 
     // Transfer state
     private var transferInProgress = false
@@ -57,8 +57,8 @@ class ImageTransferManager(
             return
         }
 
-        // Prepare and start the transfer
-        prepareAndStartTransfer(image, imageName, compressionQuality, progress, completion)
+        // Query device list to get the master device name
+        queryAndResolveDeviceList(image, imageName, compressionQuality, progress, completion)
     }
 
     fun cancelTransfer() {
@@ -70,6 +70,76 @@ class ImageTransferManager(
         transferCompletion = null
         progressHandler = null
         readyObserver = null
+    }
+
+    // MARK: - Device List Query
+
+    /// Query device list and resolve the master device
+    /// Only accepts devices with mode == "master"
+    private fun queryAndResolveDeviceList(
+        image: Bitmap,
+        imageName: String,
+        compressionQuality: Float,
+        progress: ((Int) -> Unit)?,
+        completion: (Boolean, String) -> Unit
+    ) {
+        // First, check if we already have devices and can find master
+        if (resolveMasterDeviceFromCurrentList()) {
+            Log.d("ImageTransfer", "🎯 Master device resolved: $masterDeviceName")
+            prepareAndStartTransfer(image, imageName, compressionQuality, progress, completion)
+            return
+        }
+
+        // If no master found in current list, send query command
+        Log.d("ImageTransfer", "Querying device list to find master device...")
+        
+        val command = mapOf("action" to "netlink_query_device_list")
+        val jsonString = org.json.JSONObject(command).toString()
+        bleManager.writeJSON(jsonString)
+
+        // Wait for device list update with timeout
+        transferJob = CoroutineScope(Dispatchers.Main).launch {
+            var attempts = 0
+            val maxAttempts = 20  // 2 seconds with 100ms checks
+            
+            while (attempts < maxAttempts) {
+                if (resolveMasterDeviceFromCurrentList()) {
+                    Log.d("ImageTransfer", "🎯 Master device found: $masterDeviceName")
+                    prepareAndStartTransfer(image, imageName, compressionQuality, progress, completion)
+                    return@launch
+                }
+                delay(100)
+                attempts++
+            }
+            
+            // Timeout - no master device found
+            Log.e("ImageTransfer", "❌ No master device found after device list query (waited ${maxAttempts * 100}ms)")
+            Log.e("ImageTransfer", "Available devices: ${bleManager.networkDevices.size} (looking for mode='master')")
+            transferInProgress = false
+            completion(false, "No master device available")
+        }
+    }
+
+    /// Resolve master device from current device list
+    /// Only accepts devices with mode == "master"
+    /// Returns true if master device is found and set
+    private fun resolveMasterDeviceFromCurrentList(): Boolean {
+        val devices = bleManager.networkDevices
+        
+        if (devices.isEmpty()) {
+            return false
+        }
+        
+        // Find device with mode == "master" - strict requirement
+        val masterDevice = devices.firstOrNull { it.mode == "master" }
+        
+        return if (masterDevice != null) {
+            masterDeviceName = masterDevice.name
+            true
+        } else {
+            Log.d("ImageTransfer", "⚠️ No master device in list")
+            false
+        }
     }
 
 
@@ -109,12 +179,12 @@ class ImageTransferManager(
     // MARK: - Ready handshake
 
     private fun sendReadyCommandAndAwaitAck(imageName: String, totalSize: Int, totalChunks: Int) {
-        // Build minimal ready message (netlink_forward) — only command
-        val escapedDest = org.json.JSONObject.quote(masterDeviceName)
-        val jsonString = "{\"action\":\"netlink_forward\",\"content\":{\"command\":\"image_transfer_ready\"},\"dest\":$escapedDest}"
-
+        Log.d("ImageTransfer", "🤝 Registering observer for image_transfer_ready ACK...")
+        
         // Register observer for incoming netlink forward messages
         bleManager.onNetlinkForwardReceived = { json ->
+            Log.d("ImageTransfer", "📨 Received netlink message: $json")
+            
             // The ACK may appear at top-level or inside content
             var ackValue: String? = null
             val content = json["content"] as? Map<String, Any>
@@ -124,12 +194,15 @@ class ImageTransferManager(
                 ackValue = json["ack"] as? String
             }
 
+            Log.d("ImageTransfer", "Checking ACK value: $ackValue")
+            
             if (ackValue == "image_transfer_ready") {
+                Log.d("ImageTransfer", "✅ Received image_transfer_ready ACK!")
                 // ACK received — cancel timer & observer and start transfer
                 readyTimer?.cancel()
                 readyTimer = null
-                bleManager.onNetlinkForwardReceived = null
-
+                // Keep observer active until transfer starts - don't clear it here
+                
                 // Small delay to ensure target has finished handshake processing
                 transferJob = CoroutineScope(Dispatchers.Main).launch {
                     delay(200)
@@ -138,7 +211,18 @@ class ImageTransferManager(
             }
         }
 
-        // Send the ready command
+        // Send the ready command - build JSON with sorted keys (alphabetical order)
+        val contentObj = org.json.JSONObject()
+        contentObj.put("command", "image_transfer_ready")
+        
+        val messageObj = org.json.JSONObject()
+        messageObj.put("action", "netlink_forward")
+        messageObj.put("content", contentObj)
+        messageObj.put("dest", masterDeviceName)
+        
+        val jsonString = messageObj.toString()
+        Log.d("ImageTransfer", "📤 Sending image_transfer_ready command to $masterDeviceName...")
+        Log.d("ImageTransfer", "JSON: $jsonString")
         bleManager.writeJSON(jsonString)
 
         // Start guard timer: if no ACK within configured timeout, cancel transfer
@@ -147,34 +231,60 @@ class ImageTransferManager(
             // Remove observer
             bleManager.onNetlinkForwardReceived = null
             readyTimer = null
+            Log.e("ImageTransfer", "❌ Timeout waiting for image_transfer_ready ACK")
             failTransfer("Target not ready to receive image")
         }
     }
 
     private fun sendTransferStart(imageName: String, totalSize: Int, totalChunks: Int) {
-        val escapedImageName = org.json.JSONObject.quote(imageName)
-        val escapedDest = org.json.JSONObject.quote(masterDeviceName)
-        val jsonString = "{\"action\":\"netlink_forward\",\"content\":{\"chunk_size\":$chunkSize,\"command\":\"image_transfer_start\",\"image_name\":$escapedImageName,\"total_chunks\":$totalChunks,\"total_size\":$totalSize},\"dest\":$escapedDest}"
+        // Build JSON with sorted keys (alphabetical order)
+        // Content fields: chunk_size, command, image_name, total_chunks, total_size
+        val contentObj = org.json.JSONObject()
+        contentObj.put("chunk_size", chunkSize)
+        contentObj.put("command", "image_transfer_start")
+        contentObj.put("image_name", imageName)
+        contentObj.put("total_chunks", totalChunks)
+        contentObj.put("total_size", totalSize)
+        
+        val messageObj = org.json.JSONObject()
+        messageObj.put("action", "netlink_forward")
+        messageObj.put("content", contentObj)
+        messageObj.put("dest", masterDeviceName)
+        
+        val jsonString = messageObj.toString()
+        Log.d("ImageTransfer", "📤 Sending image_transfer_start command...")
+        Log.d("ImageTransfer", "JSON: $jsonString")
         bleManager.writeJSON(jsonString)
 
         // Wait for acknowledgment then start sending chunks
         transferJob = CoroutineScope(Dispatchers.Main).launch {
+            Log.d("ImageTransfer", "⏳ Waiting 500ms before starting chunk transfer...")
             delay(500)
+            Log.d("ImageTransfer", "🚀 Starting chunk transmission (${currentChunks.size} chunks)...")
             sendNextChunk()
         }
     }
 
     private fun sendNextChunk() {
-        if (!transferInProgress) return
+        Log.d("ImageTransfer", "sendNextChunk() called: transferInProgress=$transferInProgress, currentChunkIndex=$currentChunkIndex, totalChunks=${currentChunks.size}")
+        
+        if (!transferInProgress) {
+            Log.e("ImageTransfer", "❌ Transfer not in progress, aborting sendNextChunk()")
+            return
+        }
 
         if (currentChunkIndex >= currentChunks.size) {
+            Log.d("ImageTransfer", "✅ All chunks sent, sending transfer complete command...")
             // All chunks sent, send end command
             sendTransferEnd()
             return
         }
 
         val chunk = currentChunks[currentChunkIndex]
+        Log.d("ImageTransfer", "📨 Sending chunk $currentChunkIndex/${currentChunks.size} (${chunk.size} bytes)...")
+        
         if (!sendChunk(chunk, currentChunkIndex)) {
+            Log.e("ImageTransfer", "❌ Failed to send chunk $currentChunkIndex")
             CoroutineScope(Dispatchers.Main).launch {
                 failTransfer("Failed to send chunk $currentChunkIndex")
             }
@@ -183,13 +293,14 @@ class ImageTransferManager(
 
         // Update progress
         val progress = ((currentChunkIndex + 1).toFloat() / currentChunks.size * 100).toInt()
+        Log.d("ImageTransfer", "📊 Transfer progress: $progress% (${currentChunkIndex + 1}/${currentChunks.size})")
         progressHandler?.invoke(progress)
 
         currentChunkIndex++
 
         // Send next chunk after a small delay
         transferJob = CoroutineScope(Dispatchers.Main).launch {
-            delay(200)  // Increased delay to match iOS (was 50ms)
+            delay(500)  // Increased delay to match iOS (was 50ms)
             sendNextChunk()
         }
     }
@@ -226,34 +337,51 @@ class ImageTransferManager(
         return chunks
     }
 
-    private fun sendCommand(command: ByteArray): Boolean {
-        // This would need to be implemented based on your BLE protocol
-        // For now, return true as placeholder
-        Log.d("ImageTransfer", "Sending command: ${command.joinToString(", ") { "0x%02x".format(it) }}")
-        return true
-    }
-
     private fun sendChunk(chunk: ByteArray, index: Int): Boolean {
-        Log.d("ImageTransfer", "Chunk $index: ${chunk.size} bytes, first 10 bytes: ${chunk.take(10).joinToString(", ") { "0x%02x".format(it) }}")
+        Log.d("ImageTransfer", "📦 Encoding chunk $index: ${chunk.size} bytes...")
         
         val base64String = android.util.Base64.encodeToString(chunk, android.util.Base64.NO_WRAP)
-        val escapedBase64 = org.json.JSONObject.quote(base64String)
-        val escapedDest = org.json.JSONObject.quote(masterDeviceName)
-
-        val jsonString = "{\"action\":\"netlink_forward\",\"content\":{\"command\":\"image_chunk\",\"chunk_index\":$index,\"data\":$escapedBase64},\"dest\":$escapedDest}"
-        Log.d("ImageTransfer", "Sending chunk JSON: $jsonString")
+        
+        // Build JSON with sorted keys (matching iOS .sortedKeys behavior)
+        // iOS outputs: chunk_index, command, data (alphabetical order)
+        val content = org.json.JSONObject()
+        content.put("chunk_index", index)  // First alphabetically
+        content.put("command", "image_chunk")  // Second alphabetically
+        content.put("data", base64String)  // Third alphabetically
+        
+        val message = org.json.JSONObject()
+        message.put("action", "netlink_forward")
+        message.put("content", content)
+        message.put("dest", masterDeviceName)
+        
+        val jsonString = message.toString()
+        Log.d("ImageTransfer", "📤 Writing chunk $index to BLE (base64: ${base64String.length} chars)...")
+        Log.d("ImageTransfer", "JSON: $jsonString")
         bleManager.writeJSON(jsonString)
 
-        Log.d("ImageTransfer", "Sent chunk $index/${currentChunks.size} (${base64String.length} chars base64)")
+        Log.d("ImageTransfer", "✓ Chunk $index sent successfully")
         return true
     }
 
     private fun sendTransferEnd() {
-        val escapedDest = org.json.JSONObject.quote(masterDeviceName)
-        val jsonString = "{\"action\":\"netlink_forward\",\"content\":{\"command\":\"image_transfer_complete\",\"status\":\"success\"},\"dest\":$escapedDest}"
+        // Build JSON with sorted keys (alphabetical order)
+        // Content fields: command, status
+        val contentObj = org.json.JSONObject()
+        contentObj.put("command", "image_transfer_complete")
+        contentObj.put("status", "success")
+        
+        val messageObj = org.json.JSONObject()
+        messageObj.put("action", "netlink_forward")
+        messageObj.put("content", contentObj)
+        messageObj.put("dest", masterDeviceName)
+        
+        val jsonString = messageObj.toString()
+        Log.d("ImageTransfer", "📋 Sending image_transfer_complete command...")
+        Log.d("ImageTransfer", "JSON: $jsonString")
         bleManager.writeJSON(jsonString)
 
         // Success
+        Log.d("ImageTransfer", "🎉 Image transferred successfully!")
         transferCompletion?.invoke(true, "Image transferred successfully")
         transferInProgress = false
     }

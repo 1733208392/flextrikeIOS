@@ -135,6 +135,7 @@ fun AdminTabView(
             }
             showUserProfile.value -> {
                 UserProfileView(
+                    authViewModel = authViewModel,
                     onBack = {
                         showUserProfile.value = false
                         showMainMenu.value = true

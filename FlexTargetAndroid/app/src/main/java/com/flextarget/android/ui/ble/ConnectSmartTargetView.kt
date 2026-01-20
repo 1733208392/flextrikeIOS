@@ -2,29 +2,25 @@ package com.flextarget.android.ui.ble
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.graphics.Color
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.animation.core.*
-import com.flextarget.android.R
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
 import com.flextarget.android.data.ble.BLEManager
 import com.flextarget.android.data.ble.DiscoveredPeripheral
-import com.flextarget.android.ui.imagecrop.ImageCropView
+import com.flextarget.android.ui.imagecrop.ImageCropViewV2
 import kotlinx.coroutines.delay
 
 @Composable
@@ -38,29 +34,10 @@ fun ConnectSmartTargetView(
     var statusText by remember { mutableStateOf("CONNECTING") }
     var showReconnect by remember { mutableStateOf(false) }
     var showProgress by remember { mutableStateOf(false) }
-    var showFirmwareAlert by remember { mutableStateOf(false) }
     var selectedPeripheral by remember { mutableStateOf<DiscoveredPeripheral?>(null) }
     var activeTargetName by remember { mutableStateOf<String?>(null) }
     var showImageCrop by remember { mutableStateOf(false) }
-
-    // Animation states for sensor icons
-    val infiniteTransition = rememberInfiniteTransition()
-    val scaleAnimation = infiniteTransition.animateFloat(
-        initialValue = 0.9f,
-        targetValue = 1.1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(600, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
-        )
-    )
-    val opacityAnimation = infiniteTransition.animateFloat(
-        initialValue = 0.6f,
-        targetValue = 1.0f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(600, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
-        )
-    )
+    var showBLETestTool by remember { mutableStateOf(false) }
 
     fun goToMain() {
         onConnected?.invoke() ?: onDismiss()
@@ -164,115 +141,31 @@ fun ConnectSmartTargetView(
             .fillMaxSize()
             .background(Color.Black)
     ) {
+        val configuration = LocalConfiguration.current
+        val iconHeight = configuration.screenHeightDp.dp / 3
+
         Column(
-            
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            // Visual Target Frame (matching iOS design)
-            Box(
+            // Visual Target Frame (using SVG icon)
+            AsyncImage(
+                model = "file:///android_asset/smart-target-icon.svg",
+                contentDescription = "Smart Target Icon",
                 modifier = Modifier
-                    .fillMaxWidth(0.4f)
-                    .aspectRatio(1f)
-                    .padding(top = 60.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                // Target frame border
-                androidx.compose.foundation.Canvas(
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    drawRect(
-                        color = Color.White,
-                        style = androidx.compose.ui.graphics.drawscope.Stroke(width = 10f)
-                    )
-                }
+                    .height(iconHeight)
+                    .padding(top = 20.dp),
+                contentScale = ContentScale.Fit
+            )
 
-                // Center dot
-                Box(
-                    modifier = Modifier
-                        .size(12.dp)
-                        .background(Color.Red, CircleShape)
-                        .align(Alignment.TopStart)
-                        .offset(100.dp, 100.dp)
-                )
-
-                // Sensor icons at corners (matching iOS positioning)
-                val sensorSize = 24.dp
-                val sensorOffset = 4.dp
-
-                // Bottom-left sensor (positioned outside the frame)
-                Box(
-                    modifier = Modifier
-                        .size(sensorSize)
-                        .scale(if (!bleManager.isConnected) scaleAnimation.value else 0.9f)
-                        .rotate(-45f)
-                        .align(Alignment.BottomStart)
-                        .offset(x = -sensorOffset, y = sensorOffset)
-                ) {
-                    Text(
-                        text = "📡",
-                        
-                        
-                        color = Color.White.copy(alpha = if (!bleManager.isConnected) opacityAnimation.value else 0.6f)
-                    )
-                }
-
-                // Bottom-right sensor
-                Box(
-                    modifier = Modifier
-                        .size(sensorSize)
-                        .scale(if (!bleManager.isConnected) scaleAnimation.value else 0.9f)
-                        .rotate(-135f)
-                        .align(Alignment.BottomEnd)
-                        .offset(x = sensorOffset, y = sensorOffset)
-                ) {
-                    Text(
-                        text = "📡",
-                        
-                        
-                        color = Color.White.copy(alpha = if (!bleManager.isConnected) opacityAnimation.value else 0.6f)
-                    )
-                }
-
-                // Top-right sensor
-                Box(
-                    modifier = Modifier
-                        .size(sensorSize)
-                        .scale(if (!bleManager.isConnected) scaleAnimation.value else 0.9f)
-                        .rotate(135f)
-                        .align(Alignment.TopEnd)
-                        .offset(x = sensorOffset, y = -sensorOffset)
-                ) {
-                    Text(
-                        text = "📡",
-                        
-                        
-                        color = Color.White.copy(alpha = if (!bleManager.isConnected) opacityAnimation.value else 0.6f)
-                    )
-                }
-
-                // Top-left sensor
-                Box(
-                    modifier = Modifier
-                        .size(sensorSize)
-                        .scale(if (!bleManager.isConnected) scaleAnimation.value else 0.9f)
-                        .rotate(45f)
-                        .align(Alignment.TopStart)
-                        .offset(x = -sensorOffset, y = -sensorOffset)
-                ) {
-                    Text(
-                        text = "📡",
-                        
-                        
-                        color = Color.White.copy(alpha = if (!bleManager.isConnected) opacityAnimation.value else 0.6f)
-                    )
-                }
-            }
-
-            // Status and Controls
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 120.dp),
+                    .padding(top = 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
@@ -319,9 +212,10 @@ fun ConnectSmartTargetView(
 
                 // Connected state buttons
                 if (isAlreadyConnected) {
-                    Row(
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterHorizontally)
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         Button(
                             onClick = {
@@ -329,7 +223,7 @@ fun ConnectSmartTargetView(
                                 onDismiss()
                             },
                             modifier = Modifier
-                                .weight(1f)
+                                .fillMaxWidth(0.75f)
                                 .height(44.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
                             shape = RoundedCornerShape(8.dp)
@@ -337,44 +231,48 @@ fun ConnectSmartTargetView(
                             Text(
                                 text = "Disconnect",
                                 color = Color.White,
-                                fontSize = 16.sp
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Medium
                             )
                         }
 
+                        // Image Transfer button
                         Button(
-                            onClick = { showFirmwareAlert = true },
+                            onClick = {
+                                showImageCrop = true
+                            },
                             modifier = Modifier
-                                .weight(1f)
+                                .fillMaxWidth(0.75f)
                                 .height(44.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.Blue),
                             shape = RoundedCornerShape(8.dp)
                         ) {
                             Text(
-                                text = "Firmware",
+                                text = "My Target",
                                 color = Color.White,
-                                fontSize = 16.sp
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Medium
                             )
                         }
-                    }
 
-                    // Image Transfer button
-                    Button(
-                        onClick = {
-                            showImageCrop = true
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth(0.75f)
-                            .height(44.dp)
-                            .padding(top = 4.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Blue),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Text(
-                            text = "My Target",
-                            color = Color.White,
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Medium
-                        )
+                        // BLE Test Tool button
+                        Button(
+                            onClick = {
+                                showBLETestTool = true
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth(0.75f)
+                                .height(44.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF, 0x99, 0x00)),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text(
+                                text = "BLE Test Tool",
+                                color = Color.White,
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
                     }
                 }
             }
@@ -396,31 +294,6 @@ fun ConnectSmartTargetView(
             )
         }
 
-        // Firmware upgrade alert
-        if (showFirmwareAlert) {
-            AlertDialog(
-                onDismissRequest = { showFirmwareAlert = false },
-                title = { Text("Firmware Upgrade") },
-                text = { Text("Are you sure you want to upgrade the firmware?") },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            showFirmwareAlert = false
-                            // TODO: Implement firmware upgrade
-                            goToMain()
-                        }
-                    ) {
-                        Text("OK")
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showFirmwareAlert = false }) {
-                        Text("Cancel")
-                    }
-                }
-            )
-        }
-
         // Error alert
         bleManager.error?.let { error ->
             AlertDialog(
@@ -437,9 +310,15 @@ fun ConnectSmartTargetView(
 
         // Image Crop View
         if (showImageCrop) {
-            ImageCropView(
-                onDismiss = { showImageCrop = false },
-                bleManager = bleManager
+            ImageCropViewV2(
+                onDismiss = { showImageCrop = false }
+            )
+        }
+
+        // BLE Test Tool View
+        if (showBLETestTool) {
+            BLETestToolView(
+                onDismiss = { showBLETestTool = false }
             )
         }
     }

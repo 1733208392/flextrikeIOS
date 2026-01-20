@@ -683,6 +683,21 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
                         notificationHandled = true
                     }
                     
+                    // Handle notice for netlink not enabled failure
+                    if let type = json["type"] as? String, type == "notice",
+                       let action = json["action"] as? String, action == "netlink_query_device_list",
+                       let state = json["state"] as? String, state == "failure",
+                       let message = json["message"] as? String {
+                        print("Received netlink not enabled failure notice: \(json)")
+                        DispatchQueue.main.async {
+                            self.error = .unknown(message)
+                            self.errorMessage = message
+                            self.showErrorAlert = true
+                        }
+                        NotificationCenter.default.post(name: .bleErrorOccurred, object: nil, userInfo: ["error": BLEError.unknown(message)])
+                        notificationHandled = true
+                    }
+                    
                     // Post general netlink forward messages (e.g. device ACKs with content "ready")
                     if let type = json["type"] as? String, type == "netlink",
                        let action = json["action"] as? String, action == "forward" {

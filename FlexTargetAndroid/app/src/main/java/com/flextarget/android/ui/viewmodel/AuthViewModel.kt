@@ -4,10 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flextarget.android.data.auth.AuthManager
 import com.flextarget.android.data.auth.DeviceAuthManager
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 /**
@@ -19,7 +16,8 @@ data class AuthUiState(
     val userName: String? = null,
     val userMobile: String? = null,
     val isDeviceAuthenticated: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val message: String? = null
 )
 
 /**
@@ -36,18 +34,28 @@ class AuthViewModel(
     private val deviceAuthManager: DeviceAuthManager
 ) : ViewModel() {
     
+    private val _loading = MutableStateFlow(false)
+    private val _error = MutableStateFlow<String?>(null)
+    private val _message = MutableStateFlow<String?>(null)
+
     /**
      * Current authentication UI state
      */
     val authUiState: StateFlow<AuthUiState> = combine(
         authManager.currentUser,
-        deviceAuthManager.isDeviceAuthenticated
-    ) { user, isDeviceAuth ->
+        deviceAuthManager.isDeviceAuthenticated,
+        _loading,
+        _error,
+        _message
+    ) { user, isDeviceAuth, loading, error, message ->
         AuthUiState(
             isAuthenticated = user != null,
             userName = user?.username,
             userMobile = user?.mobile,
-            isDeviceAuthenticated = isDeviceAuth
+            isDeviceAuthenticated = isDeviceAuth,
+            isLoading = loading,
+            error = error,
+            message = message
         )
     }
         .stateIn(
@@ -61,9 +69,12 @@ class AuthViewModel(
      */
     fun login(mobile: String, password: String) {
         viewModelScope.launch {
+            _loading.value = true
+            _error.value = null
             val result = authManager.login(mobile, password)
+            _loading.value = false
             result.onFailure {
-                // Error would be emitted via error flow
+                _error.value = it.message ?: "Login failed"
             }
         }
     }
@@ -73,7 +84,9 @@ class AuthViewModel(
      */
     fun logout() {
         viewModelScope.launch {
+            _loading.value = true
             authManager.logout()
+            _loading.value = false
         }
     }
     
@@ -81,6 +94,64 @@ class AuthViewModel(
      * Check if user is authenticated
      */
     fun isAuthenticated(): Boolean = authManager.isAuthenticated
+    
+    /**
+     * Update user profile
+     */
+    fun updateProfile(username: String) {
+        viewModelScope.launch {
+            _loading.value = true
+            _error.value = null
+            _message.value = null
+            val result = authManager.editProfile(username)
+            _loading.value = false
+            result.onSuccess {
+                _message.value = "Profile updated successfully"
+            }.onFailure {
+                _error.value = it.message ?: "Failed to update profile"
+            }
+        }
+    }
+    
+    /**
+     * Change user password
+     */
+    fun changePassword(oldPassword: String, newPassword: String) {
+        viewModelScope.launch {
+            _loading.value = true
+            _error.value = null
+            _message.value = null
+            val result = authManager.changePassword(oldPassword, newPassword)
+            _loading.value = false
+            result.onSuccess {
+                _message.value = "Password changed successfully"
+            }.onFailure {
+                _error.value = it.message ?: "Failed to change password"
+            }
+        }
+    }
+
+    /**
+     * Clear messages and errors
+     */
+    fun clearStatus() {
+        _error.value = null
+        _message.value = null
+    }
+
+    /**
+     * Set a message to show to the user
+     */
+    fun setShowMessage(message: String) {
+        _message.value = message
+    }
+
+    /**
+     * Set an error to show to the user
+     */
+    fun setShowError(error: String) {
+        _error.value = error
+    }
     
     /**
      * Get current access token

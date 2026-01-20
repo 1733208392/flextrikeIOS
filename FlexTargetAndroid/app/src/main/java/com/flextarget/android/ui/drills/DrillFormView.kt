@@ -53,7 +53,6 @@ fun DrillFormView(
     existingDrill: DrillSetupEntity? = null,
     onBack: () -> Unit,
     onDrillSaved: (DrillSetupEntity) -> Unit = {},
-    onShowHistory: (DrillSetupEntity) -> Unit = {},
     viewModel: DrillFormViewModel
 ) {
     val coroutineScope = rememberCoroutineScope()
@@ -65,19 +64,33 @@ fun DrillFormView(
     var drillMode by remember { mutableStateOf(existingDrill?.mode ?: "ipsc") }
     var repeats by remember { mutableStateOf(existingDrill?.repeats ?: 1) }
     var pause by remember { mutableStateOf(existingDrill?.pause ?: 5) }
-    var drillDuration by remember { mutableStateOf(existingDrill?.drillDuration ?: 5.0) }
-    var delay by remember { mutableStateOf(existingDrill?.delay ?: 3.0) }
     var targets by remember { mutableStateOf<List<DrillTargetsConfigData>>(emptyList()) }
     var isTargetListReceived by remember { mutableStateOf(false) }
     var currentScreen by remember { mutableStateOf(DrillFormScreen.FORM) }
+    var showEditDisabledAlert by remember { mutableStateOf(false) }
+    var drillResultCount by remember { mutableStateOf(0) }
 
     var isSaving by remember { mutableStateOf(false) }
 
-    val isFormValid = drillName.isNotBlank() && bleManager.isConnected
+    // Check if editing is disabled (drill has results or is linked to a competition)
+    val isEditingDisabled = existingDrill != null && drillResultCount > 0
+
+    val isFormValid = drillName.isNotBlank() && bleManager.isConnected && !isEditingDisabled
 
     // Query device list on appear
     LaunchedEffect(Unit) {
         queryDeviceList(bleManager)
+    }
+
+    // Load drill result count if editing existing drill
+    existingDrill?.id?.let { drillId ->
+        LaunchedEffect(drillId) {
+            try {
+                drillResultCount = viewModel.getDrillResultCount(drillId)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 
     // Observe device list updates
@@ -97,6 +110,40 @@ fun DrillFormView(
                 e.printStackTrace()
             }
         }
+    }
+
+    // Observe error alerts
+    if (bleManager.showErrorAlert && bleManager.errorMessage != null) {
+        AlertDialog(
+            onDismissRequest = { bleManager.showErrorAlert = false },
+            title = { Text("Error") },
+            text = { Text(bleManager.errorMessage ?: "Unknown error occurred") },
+            confirmButton = {
+                Button(
+                    onClick = { bleManager.showErrorAlert = false },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                ) {
+                    Text("OK")
+                }
+            }
+        )
+    }
+
+    // Alert for editing disabled drills
+    if (showEditDisabledAlert) {
+        AlertDialog(
+            onDismissRequest = { showEditDisabledAlert = false },
+            title = { Text("Training Records Available") },
+            text = { Text("Changing the configuration is not allowed. Please create a new Drill") },
+            confirmButton = {
+                Button(
+                    onClick = { showEditDisabledAlert = false },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                ) {
+                    Text("OK")
+                }
+            }
+        )
     }
 
     Scaffold(
@@ -126,18 +173,7 @@ fun DrillFormView(
                     }
                 },
                 actions = {
-                    if (currentScreen == DrillFormScreen.FORM && existingDrill != null) {
-                        // History button for existing drills
-                        IconButton(onClick = {
-                            existingDrill?.let { onShowHistory(it) }
-                        }) {
-                            Icon(
-                                Icons.Default.Settings,
-                                contentDescription = "Drill History",
-                                tint = Color.Red
-                            )
-                        }
-                    } else if (currentScreen == DrillFormScreen.TARGET_CONFIG) {
+                    if (currentScreen == DrillFormScreen.TARGET_CONFIG) {
                         val maxTargets = bleManager.networkDevices.size
                         val canAddMore = targets.size < maxTargets
                         IconButton(
@@ -183,14 +219,10 @@ fun DrillFormView(
                     onRepeatsChange = { repeats = it },
                     pause = pause,
                     onPauseChange = { pause = it },
-                    drillDuration = drillDuration,
-                    onDrillDurationChange = { drillDuration = it },
-                    delay = delay,
-                    onDelayChange = { delay = it },
                     targets = targets,
                     isTargetListReceived = isTargetListReceived,
                     bleManager = bleManager,
-                    onNavigateToTargetConfig = { currentScreen = DrillFormScreen.TARGET_CONFIG },
+                    onNavigateToTargetConfig = { if (!isEditingDisabled) currentScreen = DrillFormScreen.TARGET_CONFIG else showEditDisabledAlert = true },
                     isSaving = isSaving,
                     isFormValid = isFormValid,
                     mode = mode,
@@ -200,7 +232,8 @@ fun DrillFormView(
                     viewModel = viewModel,
                     coroutineScope = coroutineScope,
                     paddingValues = paddingValues,
-                    androidBleManager = androidBleManager
+                    androidBleManager = androidBleManager,
+                    isEditingDisabled = isEditingDisabled
                 )
             }
             DrillFormScreen.TARGET_CONFIG -> {
@@ -259,10 +292,6 @@ private fun FormScreen(
     onRepeatsChange: (Int) -> Unit,
     pause: Int,
     onPauseChange: (Int) -> Unit,
-    drillDuration: Double,
-    onDrillDurationChange: (Double) -> Unit,
-    delay: Double,
-    onDelayChange: (Double) -> Unit,
     targets: List<DrillTargetsConfigData>,
     isTargetListReceived: Boolean,
     bleManager: BLEManager,
@@ -276,7 +305,8 @@ private fun FormScreen(
     viewModel: DrillFormViewModel,
     coroutineScope: CoroutineScope,
     paddingValues: PaddingValues,
-    androidBleManager: AndroidBLEManager?
+    androidBleManager: AndroidBLEManager?,
+    isEditingDisabled: Boolean = false
 ) {
     var showTimerSession by remember { mutableStateOf(false) }
     var timerSessionDrill by remember { mutableStateOf<DrillSetupEntity?>(null) }
@@ -301,6 +331,27 @@ private fun FormScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            // Warning label if editing is disabled
+            if (isEditingDisabled) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Default.Settings,
+                        contentDescription = "Lock",
+                        tint = Color(0xFFFFA500),
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Text(
+                        "Editing is disabled because this drill has results or is linked to a competition.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFFFFA500)
+                    )
+                }
+            }
+
             // Drill Name Section
             DrillNameSection(
                 drillName = drillName,
@@ -324,11 +375,7 @@ private fun FormScreen(
                 repeats = repeats,
                 onRepeatsChange = onRepeatsChange,
                 pause = pause,
-                onPauseChange = onPauseChange,
-                drillDuration = drillDuration,
-                onDrillDurationChange = onDrillDurationChange,
-                delay = delay,
-                onDelayChange = onDelayChange
+                onPauseChange = onPauseChange
             )
 
             // Targets Section
@@ -350,8 +397,7 @@ private fun FormScreen(
                                     name = drillName,
                                     desc = description,
                                     mode = drillMode,
-                                    delay = delay,
-                                    drillDuration = drillDuration,
+                                    drillDuration = 5.0,
                                     repeats = repeats,
                                     pause = pause
                                 )
@@ -362,8 +408,7 @@ private fun FormScreen(
                                     existingDrill?.let { viewModel.updateDrillWithTargets(it.copy(
                                         name = drillName,
                                         desc = description,
-                                        delay = delay,
-                                        drillDuration = drillDuration,
+                                        drillDuration = 5.0,
                                         repeats = repeats,
                                         pause = pause
                                     ), targets) } ?: drill
@@ -396,8 +441,7 @@ private fun FormScreen(
                             name = drillName,
                             desc = description,
                             mode = drillMode,
-                            delay = delay,
-                            drillDuration = drillDuration,
+                            drillDuration = 5.0,
                             repeats = repeats,
                             pause = pause
                         )
@@ -418,10 +462,10 @@ private fun FormScreen(
                         timerSessionTargets = sessionTargets
                         showTimerSession = true
                     },
-                    enabled = isFormValid && mode == DrillFormMode.EDIT && androidBleManager != null,
+                    enabled = bleManager.isConnected && androidBleManager != null,
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isFormValid && mode == DrillFormMode.EDIT && androidBleManager != null) Color.Green else Color.Gray
+                        containerColor = if (bleManager.isConnected && androidBleManager != null) Color.Green else Color.Gray
                     )
                 ) {
                     Text("Start Drill", color = Color.White)
@@ -670,11 +714,7 @@ private fun DrillConfigurationSection(
     repeats: Int,
     onRepeatsChange: (Int) -> Unit,
     pause: Int,
-    onPauseChange: (Int) -> Unit,
-    drillDuration: Double,
-    onDrillDurationChange: (Double) -> Unit,
-    delay: Double,
-    onDelayChange: (Double) -> Unit
+    onPauseChange: (Int) -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -722,24 +762,6 @@ private fun DrillConfigurationSection(
                         Text("+", color = Color.Red, fontSize = 20.sp)
                     }
                 }
-            }
-
-            // Drill Duration
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("Duration (seconds):", color = Color.White, modifier = Modifier.weight(1f))
-                Text("%.1f".format(drillDuration), color = Color.White)
-            }
-
-            // Delay
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("Delay (seconds):", color = Color.White, modifier = Modifier.weight(1f))
-                Text("%.1f".format(delay), color = Color.White)
             }
         }
     }

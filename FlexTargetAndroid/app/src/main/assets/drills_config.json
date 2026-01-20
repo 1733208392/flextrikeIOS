@@ -1,0 +1,49 @@
+{
+  "drills": [
+    {
+      "name": "Bill Drill",
+      "desc": "6 shots on one target as fast as possible",
+      "delay": 3.0,
+      "drillDuration": 15.0,
+      "repeats": 1,
+      "pause": 5,
+      "mode": "IPSC",
+      "targets": [
+        {
+          "seqNo": 1,
+          "targetName": "Target 1",
+          "targetType": "ipsc",
+          "timeout": 15.0,
+          "countedShots": 6
+        }
+      ]
+    },
+    {
+      "name": "Steel Challenge",
+      "desc": "Single shot on multiple steel targets",
+      "delay": 3.0,
+      "drillDuration": 10.0,
+      "repeats": 3,
+      "pause": 5,
+      "mode": "IPSC",
+      "targets": [
+        { "seqNo": 1, "targetName": "Target 1", "targetType": "popper", "timeout": 5.0, "countedShots": 1 },
+        { "seqNo": 2, "targetName": "Target 2", "targetType": "popper", "timeout": 5.0, "countedShots": 1 },
+        { "seqNo": 3, "targetName": "Target 3", "targetType": "popper", "timeout": 5.0, "countedShots": 1 }
+      ]
+    },
+    {
+      "name": "Sample Drill",
+      "desc": "Standard test drill with mixed targets",
+      "delay": 1.0,
+      "drillDuration": 30.0,
+      "repeats": 1,
+      "mode": "IPSC",
+      "targets": [
+        { "seqNo": 1, "targetName": "device_hostage", "targetType": "hostage", "timeout": 10.0, "countedShots": 5 },
+        { "seqNo": 2, "targetName": "device_ipsc", "targetType": "ipsc", "timeout": 10.0, "countedShots": 5 },
+        { "seqNo": 3, "targetName": "device_rotation", "targetType": "rotation", "timeout": 10.0, "countedShots": 5 }
+      ]
+    }
+  ]
+}

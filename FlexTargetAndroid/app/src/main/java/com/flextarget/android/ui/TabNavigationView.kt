@@ -21,7 +21,6 @@ import com.flextarget.android.di.AppContainer
 import com.flextarget.android.ui.competition.CompetitionTabView
 import com.flextarget.android.ui.drills.DrillListView
 import com.flextarget.android.ui.drills.DrillSummaryView
-import com.flextarget.android.ui.drills.DrillMainPageView
 import com.flextarget.android.ui.drills.HistoryTabView
 import com.flextarget.android.ui.admin.AdminTabView
 
@@ -194,78 +193,15 @@ private fun DrillsTabContent(
     bleManager: BLEManager,
     navController: NavHostController
 ) {
-    var showDrillList by remember { mutableStateOf(false) }
     var showConnectView by remember { mutableStateOf(false) }
-    var showInfo by remember { mutableStateOf(false) }
     var showQRScanner by remember { mutableStateOf(false) }
-    var selectedDrillSetup by remember { mutableStateOf<DrillSetupEntity?>(null) }
-    var selectedDrillSummaries by remember { mutableStateOf<List<DrillRepeatSummary>?>(null) }
 
-    if (showDrillList) {
-        DrillListView(
-            bleManager = bleManager,
-            onBack = { showDrillList = false }
-        )
-    } else if (selectedDrillSetup != null && selectedDrillSummaries != null) {
-        DrillSummaryView(
-            drillSetup = selectedDrillSetup!!,
-            summaries = selectedDrillSummaries!!,
-            onBack = {
-                selectedDrillSetup = null
-                selectedDrillSummaries = null
-            },
-            onViewResult = { summary ->
-                // TODO: Navigate to individual result view
-            }
-        )
-    } else {
-        DrillMainPageView(
-            bleManager = bleManager,
-            onShowDrillList = { showDrillList = true },
-            onShowConnectView = { showConnectView = true },
-            onShowInfo = { showInfo = true },
-            onShowQRScanner = { showQRScanner = true },
-            onDrillSelected = { results ->
-                // Convert results to drill setup and summaries
-                val firstResult = results.firstOrNull()
-                if (firstResult != null) {
-                    // For now, create a mock drill setup
-                    val mockSetup = DrillSetupEntity(
-                        name = "Recent Drill",
-                        desc = "Recent training session"
-                    )
-
-                    // Convert results to summaries
-                    val summaries = results.mapIndexed { index, result ->
-                        val shots = result.shots.mapNotNull { shot ->
-                            shot.data?.let { data ->
-                                try {
-                                    com.google.gson.Gson().fromJson(data, com.flextarget.android.data.model.ShotData::class.java)
-                                } catch (e: Exception) {
-                                    null
-                                }
-                            }
-                        }
-                        val totalTime = if (result.drillResult.totalTime > 0) result.drillResult.totalTime else shots.sumOf { it.content.actualTimeDiff }
-                        val fastestShot = shots.minOfOrNull { it.content.actualTimeDiff } ?: 0.0
-
-                        DrillRepeatSummary(
-                            repeatIndex = index + 1,
-                            totalTime = totalTime,
-                            numShots = shots.size,
-                            firstShot = shots.firstOrNull()?.content?.actualTimeDiff ?: 0.0,
-                            fastest = fastestShot,
-                            score = 0,
-                            shots = shots
-                        )
-                    }
-
-                    selectedDrillSetup = mockSetup
-                    selectedDrillSummaries = summaries
-                }
-            }
-        )
-    }
+    DrillListView(
+        bleManager = bleManager,
+        onBack = null,
+        onShowConnectView = { showConnectView = true },
+        onShowQRScanner = { showQRScanner = true }
+    )
 
     // Handle other views
     if (showConnectView) {
@@ -286,11 +222,6 @@ private fun DrillsTabContent(
             },
             onDismiss = { showQRScanner = false }
         )
-    }
-
-    if (showInfo) {
-        // TODO: Implement info view
-        showInfo = false
     }
 }
 
@@ -317,23 +248,6 @@ private fun HistoryTabContent(navController: NavHostController) {
                 selectedDrillSetup = setup
                 selectedSummaries = summaries
             }
-        )
-    }
-}
-
-@Composable
-private fun AdminTabContent() {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black),
-        contentAlignment = androidx.compose.ui.Alignment.Center
-    ) {
-        Text(
-            "Admin Tab\nComing Soon",
-            color = Color.White,
-            style = MaterialTheme.typography.headlineMedium,
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center
         )
     }
 }

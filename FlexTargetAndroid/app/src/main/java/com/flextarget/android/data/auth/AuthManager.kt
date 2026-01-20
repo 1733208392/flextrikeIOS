@@ -113,6 +113,11 @@ class AuthManager @Inject constructor(
                         password = encodedPassword
                     )
                 )
+
+                if (response.code != 0) {
+                    return@withContext Result.failure(Exception(response.msg))
+                }
+
                 val data = response.data ?: return@withContext Result.failure(Exception("Invalid login response"))
                 val user = UserData(
                     userUUID = response.data.userUUID,
@@ -153,7 +158,7 @@ class AuthManager @Inject constructor(
             val token = _currentUser.value?.accessToken
             if (token != null) {
                 try {
-                    userApiService.logout(token)
+                    userApiService.logout("Bearer $token")
                 } catch (e: Exception) {
                     // Even if logout API fails, clear local state
                     Log.w(TAG, "Logout API call failed, but clearing local state", e)
@@ -240,6 +245,20 @@ class AuthManager @Inject constructor(
      */
     suspend fun editProfile(username: String): Result<Unit> = withContext(Dispatchers.IO) {
         try {
+            val token = _currentUser.value?.accessToken ?: return@withContext Result.failure(
+                IllegalStateException("Not authenticated")
+            )
+            
+            // Call remote API
+            val response = userApiService.editUser(
+                com.flextarget.android.data.remote.api.EditUserRequest(username = username),
+                "Bearer $token"
+            )
+
+            if (response.code != 0) {
+                return@withContext Result.failure(Exception(response.msg))
+            }
+
             // Update local state
             _currentUser.value?.let { currentUser ->
                 val updatedUser = currentUser.copy(username = username)
@@ -268,13 +287,17 @@ class AuthManager @Inject constructor(
                 val oldEncoded = base64EncodePassword(oldPassword)
                 val newEncoded = base64EncodePassword(newPassword)
                 
-                userApiService.changePassword(
+                val response = userApiService.changePassword(
                     ChangePasswordRequest(
                         old_password = oldEncoded,
                         new_password = newEncoded
                     ),
-                    token
+                    "Bearer $token"
                 )
+
+                if (response.code != 0) {
+                    return@withContext Result.failure(Exception(response.msg))
+                }
                 
                 Log.d(TAG, "Password changed successfully")
                 Result.success(Unit)
