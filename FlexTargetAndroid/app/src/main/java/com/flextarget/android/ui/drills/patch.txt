@@ -1,0 +1,24 @@
+--- a/TimerSessionView.kt
++++ b/TimerSessionView.kt
+@@ -493,21 +493,7 @@ fun TimerSessionView(
+     Box(
+         modifier = Modifier
+             .fillMaxSize()
+             .background(Color.Black)
+     ) {
+-        // Back button
+-        IconButton(
+-            onClick = { handleBackButtonTap() },
+-            modifier = Modifier
+-                .align(Alignment.TopStart)
+-                .padding(16.dp)
+-        ) {
+-            Icon(
+-                imageVector = Icons.Default.ArrowBack,
+-                contentDescription = "Back",
+-                tint = Color.Red
+-            )
+-        }
+         // Elapsed time at top
+         Column(
+             modifier = Modifier.align(Alignment.TopCenter).padding(top = 40.dp),

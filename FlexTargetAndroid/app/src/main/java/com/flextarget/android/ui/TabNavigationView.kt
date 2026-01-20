@@ -17,12 +17,16 @@ import androidx.navigation.compose.rememberNavController
 import com.flextarget.android.data.ble.BLEManager
 import com.flextarget.android.data.local.entity.DrillSetupEntity
 import com.flextarget.android.data.model.DrillRepeatSummary
+import com.flextarget.android.data.repository.DrillResultRepository
+import com.flextarget.android.data.repository.DrillSetupRepository
 import com.flextarget.android.di.AppContainer
 import com.flextarget.android.ui.competition.CompetitionTabView
 import com.flextarget.android.ui.drills.DrillListView
 import com.flextarget.android.ui.drills.DrillSummaryView
+import com.flextarget.android.ui.drills.DrillResultView
 import com.flextarget.android.ui.drills.HistoryTabView
 import com.flextarget.android.ui.admin.AdminTabView
+import androidx.compose.ui.platform.LocalContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -227,10 +231,43 @@ private fun DrillsTabContent(
 
 @Composable
 private fun HistoryTabContent(navController: NavHostController) {
+    val context = LocalContext.current
+    val drillSetupRepository = remember { DrillSetupRepository.getInstance(context) }
+    
     var selectedDrillSetup by remember { mutableStateOf<DrillSetupEntity?>(null) }
     var selectedSummaries by remember { mutableStateOf<List<DrillRepeatSummary>?>(null) }
+    var selectedResultSummary by remember { mutableStateOf<DrillRepeatSummary?>(null) }
+    var drillTargets by remember { mutableStateOf(emptyList<com.flextarget.android.data.model.DrillTargetsConfigData>()) }
+    var showDrillResult by remember { mutableStateOf(false) }
 
-    if (selectedDrillSetup != null && selectedSummaries != null) {
+    // Fetch targets when drill setup changes
+    LaunchedEffect(selectedDrillSetup) {
+        selectedDrillSetup?.let { setup ->
+            val setupWithTargets = drillSetupRepository.getDrillSetupWithTargets(setup.id)
+            drillTargets = setupWithTargets?.targets?.map { targetEntity ->
+                com.flextarget.android.data.model.DrillTargetsConfigData(
+                    id = targetEntity.id,
+                    seqNo = targetEntity.seqNo,
+                    targetName = targetEntity.targetName ?: "",
+                    targetType = targetEntity.targetType ?: "ipsc",
+                    timeout = targetEntity.timeout,
+                    countedShots = targetEntity.countedShots
+                )
+            } ?: emptyList()
+        }
+    }
+
+    if (showDrillResult && selectedDrillSetup != null && selectedResultSummary != null) {
+        DrillResultView(
+            drillSetup = selectedDrillSetup!!,
+            targets = drillTargets,
+            repeatSummary = selectedResultSummary,
+            onBack = {
+                showDrillResult = false
+                selectedResultSummary = null
+            }
+        )
+    } else if (selectedDrillSetup != null && selectedSummaries != null) {
         DrillSummaryView(
             drillSetup = selectedDrillSetup!!,
             summaries = selectedSummaries!!,
@@ -239,7 +276,8 @@ private fun HistoryTabContent(navController: NavHostController) {
                 selectedSummaries = null
             },
             onViewResult = { summary ->
-                // TODO: Navigate to individual result view
+                selectedResultSummary = summary
+                showDrillResult = true
             }
         )
     } else {

@@ -95,21 +95,6 @@ fun TargetConfigListView(
                 }
             }
 
-            // Add Button
-            Button(
-                onClick = {
-                    if (canAddMore) {
-                        onAddTarget()
-                    } else {
-                        showMaxTargetsAlert = true
-                    }
-                },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
-            ) {
-                Text("Add Target", color = Color.White)
-            }
-
             // Save Button
             Button(
                 onClick = onDone,

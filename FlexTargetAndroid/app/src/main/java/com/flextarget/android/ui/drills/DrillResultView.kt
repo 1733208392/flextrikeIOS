@@ -6,6 +6,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.Canvas
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -143,6 +146,22 @@ fun DrillResultView(
 }
 
 /**
+ * Maps target types to their corresponding image asset filenames.
+ */
+private fun getTargetImageAssetName(targetType: String): String {
+    return when (targetType.lowercase()) {
+        "ipsc" -> "ipsc.live.target.png"
+        "hostage" -> "hostage.live.target.png"
+        "popper" -> "popper.live.target.png"
+        "paddle" -> "paddle.live.target.png"
+        "special_1" -> "ipsc.special.1.live.target.png"
+        "special_2" -> "ipsc.special.2.live.target.png"
+        "rotation" -> "drills_back.jpg"
+        else -> "ipsc.live.target.png" // Default to IPSC
+    }
+}
+
+/**
  * Displays targets with bullet holes positioned according to shot coordinates.
  * Ported from iOS TargetDisplayView.
  */
@@ -158,32 +177,30 @@ private fun TargetDisplayView(
     frameHeight: androidx.compose.ui.unit.Dp,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
     val currentTarget = targets.getOrNull(selectedTargetIndex)
-    val targetIcon = currentTarget?.targetType ?: "hostage"
+    val targetType = currentTarget?.targetType ?: "ipsc"
+    val imageAssetName = getTargetImageAssetName(targetType)
 
     Box(modifier = modifier) {
-        // Target background
+        // Target background with image
         Box(
             modifier = Modifier
                 .size(frameWidth, frameHeight)
                 .clip(RoundedCornerShape(8.dp))
-                .background(Color.Gray.copy(alpha = 0.3f))
-                .border(12.dp, Color.White, RoundedCornerShape(8.dp))
+                .background(Color.Black)
+                .border(2.dp, Color.White, RoundedCornerShape(8.dp))
         ) {
-            // Target image (placeholder for now)
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.DarkGray.copy(alpha = 0.5f))
-            ) {
-                Text(
-                    text = targetIcon.uppercase(),
-                    color = Color.White,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.align(Alignment.Center)
-                )
-            }
+            // Load and display target image from assets
+            AsyncImage(
+                model = ImageRequest.Builder(context)
+                    .data("file:///android_asset/$imageAssetName")
+                    .crossfade(true)
+                    .build(),
+                contentDescription = "Target image",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
 
             // Target name overlay
             currentTarget?.targetName?.let { name ->
@@ -200,7 +217,7 @@ private fun TargetDisplayView(
                 )
             }
 
-            // Bullet holes
+            // Bullet holes overlay
             Canvas(modifier = Modifier.fillMaxSize()) {
                 val canvasWidth = size.width
                 val canvasHeight = size.height
@@ -213,7 +230,7 @@ private fun TargetDisplayView(
 
                     val matchesTarget = when {
                         targetName != null && shotDevice == targetName -> true
-                        targetIcon == shotTargetType -> true
+                        targetType == shotTargetType -> true
                         else -> false
                     }
 
@@ -259,7 +276,7 @@ private fun TargetDisplayView(
             }
 
             // Special handling for rotation targets
-            if (targetIcon.lowercase() == "rotation") {
+            if (targetType.lowercase() == "rotation") {
                 RotationOverlay(
                     shots = shots,
                     selectedShotIndex = selectedShotIndex,

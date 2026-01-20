@@ -293,7 +293,7 @@ private fun FilterDropdown(
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.outlinedButtonColors(
                 contentColor = Color.Red,
-                containerColor = Color.DarkGray.copy(alpha = 0.2f)
+                containerColor = Color.Black
             ),
             border = ButtonDefaults.outlinedButtonBorder,
         ) {
@@ -318,14 +318,16 @@ private fun FilterDropdown(
 
         DropdownMenu(
             expanded = expanded,
-            onDismissRequest = { expanded = false }
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.background(Color.Black)
         ) {
             DropdownMenuItem(
                 text = { Text(label, color = Color.White) },
                 onClick = {
                     onValueSelected(null)
                     expanded = false
-                }
+                },
+                modifier = Modifier.background(Color.Black)
             )
             Divider()
             options.forEach { option ->
@@ -334,7 +336,8 @@ private fun FilterDropdown(
                     onClick = {
                         onValueSelected(option)
                         expanded = false
-                    }
+                    },
+                    modifier = Modifier.background(Color.Black)
                 )
             }
         }

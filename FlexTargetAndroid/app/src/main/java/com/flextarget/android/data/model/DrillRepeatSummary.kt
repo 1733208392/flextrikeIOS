@@ -16,5 +16,6 @@ data class DrillRepeatSummary(
     var score: Int,
     val shots: List<ShotData>,
     val cqbResults: List<CQBShotResult>? = null,
-    val cqbPassed: Boolean? = null
+    val cqbPassed: Boolean? = null,
+    var adjustedHitZones: Map<String, Int>? = null
 )

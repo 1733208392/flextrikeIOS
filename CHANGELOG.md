@@ -36,23 +36,23 @@ User Profile Functional Test Issues
     1.3 令牌使用方法在HTTP请求头中使用 authorization 头数据进行认证，数据的组成格式为：当调用仅需要“用户认证”的接口时，数据格式为：例如访问令牌的值为 f19adb535e1347289be4bccd59da02ac ，则该头的完整内容为：当调用同时需要“用户认证”和“设备认证”的接口时，数据格式：例如设备令牌的值为 87e09758aa624513b8d9ce5658727e66 ，则该头的完整内容为：Authorization: Bearer 令牌数据Authorization: Bearer 访问令牌Authorization: Bearer f19adb535e1347289be4bccd59da02acAuthorization: Bearer 访问令牌|设备令牌Authorization: Bearer f19adb535e1347289be4bccd59da02ac|87e09758aa624513b8d9ce5658727e66
 5. Parameter Validation: Kai is too short??  Waiting for JD's confirmation.
 
-- Tap Change Password Button is not responsive, no result prompt
+## Tap Change Password Button is not responsive, no result prompt
 1. Fixed.
 - Logout Button is partially seen
 1. fixed
 
-- Login
+## Login
 1. The View's theme is different, please make it consistent with other view - dark and red tint
 1. Fixed.
 
-- BLE Connection
+## BLE Connection
 1. manual connection / disconnect - passed
 2. scan to connect - passed
 3. Remove the firmware update button
 4. Replace the Target Frame Drew by code with the smart-target-icon.svg under the asset folder for Android 
 5. ConnectSmartTargetView UI improvements.
 
-- Custom Target
+## Custom Target
 1. Image Crop Guide - UI improvement
 Please refactory this feature with following design
 1) UI Design:
@@ -69,8 +69,7 @@ Please refactory this feature with following design
 - The transfer uses base64 and truncked packets
 
 AI PLAN REVIEW
-## Plan: Refactor Android Image Crop Guide UI & Logic
-
+### Plan: Refactor Android Image Crop Guide UI & Logic
 **Refactor the Android Image Crop Guide feature to implement the redesigned UI layout with full-width preview, repositioned controls, SVG-based guide and border rendering, and stricter boundary constraints on image movement.**
 
 ### Steps
@@ -108,7 +107,6 @@ AI PLAN REVIEW
    - Ensure JPEG compression (0.2 quality) and 720×1280 output sizing is maintained
 
 ### Further Considerations
-
 1. **UI Layout Dimensions**: Should the "confirm and transfer" button occupy the full width below preview or be part of a controls row with other actions? Any specific height/padding preferences? full width with 20dp paadings
 
 2. **SVG Asset Loading**: Are both SVG assets available in the drawable resources, or do they need to be added/converted from the iOS assets folder? Yes, no need to convert from ios folder
@@ -174,15 +172,44 @@ Faults:
 4. Crop the image per the boundaries of the custom-target-guide when tap the "confirm the transfer" button below.
 
 5. Kick off the image transfer when cropped.
-- 2026-01-19 20:10:59.844 32381-32381 ImageTransfer
-{"action":"netlink_forward","content":{"command":"image_chunk","chunk_index":0,"data":"\/9j\/4AAQSkZJRgABAQAAAQABAAD\/4gIYSUNDX1BST0ZJTEUAAQEAAAIIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAAGRyWFlaAAABVAAAABRnWFlaAAA="},"dest":"01"}
-
-{"action":"netlink_forward","content":{"chunk_index":20,"command":"image_chunk","data":"HY1EVI7U0S2Q7R6Cl8tD\/DT9vfFKABVCuM8tc8rSmNe3FPA7U7aABSsO5GFwc0oQDOe9SYBox60rDuVFAV\/JkPB5Bp7R4BBJyKlZA6kHqOR9aWE+ZkP99etFguVzGDjkigxt\/eqzhcHNJtAz3p2C5X2Pn71NKSdjVkgelJhe9FhXK2Jc9uKTEvIwKs7TSFWFIdyuTLn7oozJ3XNTFSe1Js4piuQ7pOPl6UFnwRt61KUo2UWC5Dl8Y20c9McGpSpHNJt7UWC5Eww="},"dest":"01"}
-
-{"action":"netlink_forward","content":{"chunk_index":20,"command":"image_chunk","data":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="},"dest":"01"}
-
-
-adb -s adb-28201JEGR0S884-05PCRi._adb-tls-connect._tcp shell input text '{action:netlink_forward,dest:01,content:{action:netlink_query_device_list}}'
-
 
 2026-01-20 11:50:20.147 25623-25633 System.out              com.flextarget.android               I  [AndroidBLEManager] Received BLE message: {"type":"notice","action":"unknown","state":"failure","message":"decode data action error! (expected `,` or `}` at line 1 column 203)\n    {\"action\":\"netlink_forward\",\"content\":{\"chunk_index\":0,\"command\":\"image_chunk\",\"data\":\"\\/9j\\/4AAQSkZJRgABAQAAAQABAAD\\/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAA{\"action\":\"netlink_forward\",\"content\":{\"chunk_index\":1,\"command\":\"image_chunk\",\"data\":\"AAAAAAABAAD21gABAAAAANMtAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACWRlc2MAAADwAAAAJHJYW{\"action\":\"netlink_forward\",\"content\":{\"chunk_index\":2,\"command\":\"image_chunk\",\"data\":\"ASgAAAAUYlhZWgAAATwAAAAUd3RwdAAAAVAAAAAUclRSQwAAAWQAAAAoZ1RSQwAAAWQAAAAoYlRSQwAAAWQAAAAoY3BydAAAAYwAAAA8bWx1YwAAA{\"action\":\"netlink_forward\",\"content\":{\"chunk_index\":3,\"command\":\"image_chunk\",\"data\":\"AAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9{\"action\":\"netlink_forward\",\"content\":{\"chunk_index\":4,\"command\":\"image_chunk\",\"data\":\"AAAABAAAAAJmZgAA8qcAAA1ZAAAT0AAAClsAAAAAAAAAAG1sdWMAAAAAAAAAAQAAAAxlblVTAAAAIAAAABwARwBvAG8AZwBsAGUAIABJAG4AYwAuA{\"action\":\"netlink_forward\",\"content\":{\"chunk_index\":5,\"command\":\"image_chunk\",\"data\":\"HB4jHhkoIyEjLSsoMDxkQTw3Nzx7WF1JZJGAmZaPgIyKoLTmw6Cq2q2KjMj\\/y9ru9f\\/\\/\\/5vB\\/\\/\\/\\/+v\\/m\\/f\\/4\\/9sAQwErLS08NTx2Q{\"action\":\"netlink_forward\",\"content\":{\"chunk_index\":6,\"command\":\"image_chunk\",\"data\":\"+Pj4+Pj4+Pj4+Pj4+Pj4+Pj4+Pj4+Pj4+Pj4+Pj4+Pj\\/wAARCAUAAtADASIAAhEBAxEB\\/8QAFQABAQAAAAAAAAAAAAAAAAAAAAX\\/xAAUEAEAAA{\"action\":\"netlink_forward\",\"content\":{\"chunk_index\":7,\"command\":\"image_chunk\",\"data\":\"AQEAAAAAAAAAAAAAAAAAAAAA\\/8QAFBEBAAAAAAAAAAAAAAAAAAAAAP\\/aAAwDAQACEQMRAD8AsgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA{\"action\":\"netlink_forward\",\"content\":{\"chunk_index\":8,\"command\":\"image_chunk\",\"data\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA{\"action\":\"netlink_forward\",\"content\":{\"chunk_index\":9,\"command\":\"image_chunk\",\"data\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA{\"action\":\"netlink_forward\",\"content\":{\"chunk_index\":10,\"command\":\"image_chunk\",\"data\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA{\"action\":\"netlink_forward\",\"content\":{\"chunk_index\":11,\"command\":\"image_chunk\",\"data\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA{\"action\":\"netlink_forward\",\"content\":{\"chunk_index\":12,\"command\":\"image_chunk\",\"data\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA{\"action\":\"netlink_forward\",\"content\":{\"chunk_index\":13,\"command\":\"image_chunk\",\"data\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA{\"action\":\"netlink_forward\",\"content\":{\"chunk_index\":14,\"command\":\"image_chunk\",\"data\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA{\"action\":\"netlink_forward\",\"content\":{\"chunk_index\":15,\"command\":\"image_chunk\",\"data\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA{\"action\":\"netlink_forward\",\"content\":{\"chunk_index\":16,\"command\":\"image_chunk\",\"data\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA{\"action\":\"netlink_forward\",\"content\":{\"chunk_index\":17,\"command\":\"image_chunk\",\"data\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+
+This Bug is due to lack of delay between the image trunks.
+
+## 3.3 Drill Management & Execution
+1. Add a Drill - Target Type Icons
+1.1 hostage - (FlexTargetAndroid/app/src/main/assets/hostage.svg)
+ipsc - (FlexTargetAndroid/app/src/main/assets/ipsc.svg) 
+special_1 - (FlexTargetAndroid/app/src/main/assets/ipsc-black-1.svg)
+special_2 - (FlexTargetAndroid/app/src/main/assets/ipsc-black-2.svg)
+paddle - (FlexTargetAndroid/app/src/main/assets/ipsc-paddle.svg)
+popper - (FlexTargetAndroid/app/src/main/assets/ipsc-popper.svg)
+rotation - (FexTargetAndroid/app/src/main/assets/rotation.svg)
+1.2 Start Drill Condition
+When all the non option fields are filled and the target list contain a valid target configuration.
+When tap the start drill, auto save the drillsetup. 
+2. Drill Execution
+2.1 Double back buttons: The navigation flow is drilllistview -> drilleditform -> timersessionview 
+2.2 Drill Summary View: 
+- Double Back Buttons' Issue
+- Change the horizontal layout to vertial layout
+- Please review the drillexecutionmanager and drillsummaryview implementation on iOS as it has major enhancement recently, please see the gaps between android and iOS and come up with the plan to fill the gaps.
+Plan: Bridge Android DrillExecutionManager and DrillSummaryView Gaps
+Port recent iOS enhancements to Android for feature parity, focusing on CQB support, hit zone editing, competition submission, detailed metrics, and navigation. This ensures consistent user experience across platforms, leveraging iOS's advanced UI/UX and logic.
+
+Steps
+- Implement edit sheet for hit zones in DrillSummaryView.kt, enabling adjustments to A, C, D, N, M, PE.
+
+Add CQB mode support to DrillSummaryView.kt, creating CQBDrillSummaryView equivalent.
+
+Integrate competition submission in DrillSummaryView.kt, adding API calls and validation like iOS.
+Enhance metrics display in DrillSummaryView.kt with factor calculation and hit zone breakdowns.
+Add navigation links in DrillSummaryView.kt to detailed result/replay views.
+Further Considerations
+Adapt SwiftUI features to Compose, ensuring UI consistency.
+Verify scoring logic alignment between DrillExecutionManager.kt and iOS.
+Add localization and robust error handling for polish.
+
+
+2.3 Drill Replay View

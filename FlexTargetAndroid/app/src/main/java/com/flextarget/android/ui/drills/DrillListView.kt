@@ -51,6 +51,10 @@ fun DrillListView(
     var showDrillRecord by remember { mutableStateOf(false) }
     var selectedDrillForRecord by remember { mutableStateOf<DrillSetupEntity?>(null) }
 
+    val showTopBar by remember(showDrillForm, showDrillRecord) {
+        derivedStateOf { !showDrillForm && !showDrillRecord }
+    }
+
     val drillSetups by viewModel.drillSetups.collectAsState(initial = emptyList())
 
     val filteredDrills = remember(drillSetups, searchQuery) {
@@ -65,78 +69,81 @@ fun DrillListView(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { 
-                    Text(if (onBack != null) "My Drills" else "Drills", color = Color.White)
-                },
-                navigationIcon = {
-                    if (onBack != null) {
-                        IconButton(onClick = onBack) {
-                            Icon(
-                                Icons.Default.ArrowBack,
-                                contentDescription = "Back",
-                                tint = Color.Red
-                            )
-                        }
-                    } else {
-                        // iOS-like connection status pill
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .padding(start = 16.dp)
-                                .background(Color.Gray.copy(alpha = 0.2f), androidx.compose.foundation.shape.RoundedCornerShape(16.dp))
-                                .padding(vertical = 4.dp, horizontal = 12.dp)
-                                .clickable {
-                                    if (bleManager.isConnected) {
-                                        onShowConnectView()
-                                    } else {
-                                        onShowQRScanner()
+            // Only show TopAppBar when DrillForm or DrillRecord is not visible
+            if (showTopBar) {
+                TopAppBar(
+                    title = {
+                        Text(if (onBack != null) "My Drills" else "Drills", color = Color.White)
+                    },
+                    navigationIcon = {
+                        if (onBack != null) {
+                            IconButton(onClick = onBack) {
+                                Icon(
+                                    Icons.Default.ArrowBack,
+                                    contentDescription = "Back",
+                                    tint = Color.Red
+                                )
+                            }
+                        } else {
+                            // iOS-like connection status pill
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .padding(start = 16.dp)
+                                    .background(Color.Gray.copy(alpha = 0.2f), androidx.compose.foundation.shape.RoundedCornerShape(16.dp))
+                                    .padding(vertical = 4.dp, horizontal = 12.dp)
+                                    .clickable {
+                                        if (bleManager.isConnected) {
+                                            onShowConnectView()
+                                        } else {
+                                            onShowQRScanner()
+                                        }
                                     }
-                                }
-                        ) {
-                            Text(
-                                text = if (bleManager.isConnected) "Connected" else "Disconnected",
-                                color = Color.Gray,
-                                fontSize = 12.sp
-                            )
-                            if (bleManager.isConnected) {
-                                Spacer(modifier = Modifier.width(8.dp))
+                            ) {
                                 Text(
-                                    text = bleManager.connectedPeripheralName ?: "Target",
-                                    color = Color.White,
+                                    text = if (bleManager.isConnected) "Connected" else "Disconnected",
+                                    color = Color.Gray,
                                     fontSize = 12.sp
+                                )
+                                if (bleManager.isConnected) {
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = bleManager.connectedPeripheralName ?: "Target",
+                                        color = Color.White,
+                                        fontSize = 12.sp
+                                    )
+                                }
+                            }
+                        }
+                    },
+                    actions = {
+                        if (bleManager.isConnected) {
+                            IconButton(onClick = {
+                                drillFormMode = DrillFormMode.ADD
+                                selectedDrill = null
+                                showDrillForm = true
+                            }) {
+                                Icon(
+                                    Icons.Default.Add,
+                                    contentDescription = "Add Drill",
+                                    tint = Color.Red
+                                )
+                            }
+                        } else {
+                            IconButton(onClick = { showConnectionAlert = true }) {
+                                Icon(
+                                    Icons.Default.Add,
+                                    contentDescription = "Add Drill (Disabled)",
+                                    tint = Color.Gray
                                 )
                             }
                         }
-                    }
-                },
-                actions = {
-                    if (bleManager.isConnected) {
-                        IconButton(onClick = {
-                            drillFormMode = DrillFormMode.ADD
-                            selectedDrill = null
-                            showDrillForm = true
-                        }) {
-                            Icon(
-                                Icons.Default.Add,
-                                contentDescription = "Add Drill",
-                                tint = Color.Red
-                            )
-                        }
-                    } else {
-                        IconButton(onClick = { showConnectionAlert = true }) {
-                            Icon(
-                                Icons.Default.Add,
-                                contentDescription = "Add Drill (Disabled)",
-                                tint = Color.Gray
-                            )
-                        }
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Black
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Black
+                    )
                 )
-            )
+            }
         }
     ) { paddingValues ->
         Box(

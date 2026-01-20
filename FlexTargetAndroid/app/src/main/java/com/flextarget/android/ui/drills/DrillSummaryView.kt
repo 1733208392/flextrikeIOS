@@ -3,6 +3,7 @@ package com.flextarget.android.ui.drills
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -25,8 +26,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import com.flextarget.android.data.local.entity.DrillSetupEntity
 import com.flextarget.android.data.model.DrillRepeatSummary
+import com.flextarget.android.data.model.ScoringUtility
 import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -55,48 +58,51 @@ fun DrillSummaryView(
         }
     }
 
+    var showEditDialog by remember { mutableStateOf(false) }
+    var editingSummary by remember { mutableStateOf<DrillRepeatSummary?>(null) }
+
     val drillName = drillSetup.name ?: "Untitled Drill"
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Drill Results Summary",
-                        color = Color.White,
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .background(Color.Black, CircleShape)
-                                .shadow(8.dp, CircleShape, ambientColor = Color.Red.copy(alpha = 0.3f))
-                        ) {
-                            Icon(
-                                Icons.Default.ArrowBack,
-                                contentDescription = "Back",
-                                tint = Color.Red,
-                                modifier = Modifier.align(Alignment.Center)
-                            )
-                        }
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Black.copy(alpha = 0.95f)
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black)
+    ) {
+        TopAppBar(
+            title = {
+                Text(
+                    text = "Drill Results Summary",
+                    color = Color.White,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.SemiBold
                 )
+            },
+            navigationIcon = {
+                IconButton(onClick = onBack) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .background(Color.Black, CircleShape)
+                            .shadow(8.dp, CircleShape, ambientColor = Color.Red.copy(alpha = 0.3f))
+                    ) {
+                        Icon(
+                            Icons.Default.ArrowBack,
+                            contentDescription = "Back",
+                            tint = Color.Red,
+                            modifier = Modifier.align(Alignment.Center)
+                        )
+                    }
+                }
+            },
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = Color.Black.copy(alpha = 0.95f)
             )
-        },
-        containerColor = Color.Black
-    ) { paddingValues ->
+        )
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black)
-                .padding(paddingValues)
+                .weight(1f)
         ) {
             if (summaries.isEmpty()) {
                 EmptyStateView()
@@ -110,12 +116,16 @@ fun DrillSummaryView(
                         SummaryCard(
                             title = "Repeat ${summary.repeatIndex}",
                             subtitle = "Factor: ${String.format("%.2f", calculateFactor(summary.score, summary.totalTime))}",
-                            metrics = getMetricsForSummary(summary),
+                            metrics = getMetricsForSummary(summary, drillSetup),
                             summaryIndex = index,
                             onDeductScore = { deductScore(summaries, index, originalScores) },
                             onRestoreScore = { restoreScore(summaries, index, originalScores) },
                             onCardClick = { onViewResult(summary) },
-                            onReplay = { onReplay(summary) }
+                            onReplay = { onReplay(summary) },
+                            onEditHitZones = {
+                                editingSummary = summary
+                                showEditDialog = true
+                            }
                         )
                     }
                 }
@@ -154,6 +164,24 @@ fun DrillSummaryView(
             }
         }
     }
+
+    // Edit Dialog
+    if (showEditDialog && editingSummary != null) {
+        SummaryEditDialog(
+            summary = editingSummary!!,
+            drillSetup = drillSetup,
+            onSave = { updatedZones ->
+                editingSummary?.adjustedHitZones = updatedZones
+                editingSummary?.score = ScoringUtility.calculateScoreFromAdjustedHitZones(updatedZones, null)
+                showEditDialog = false
+                editingSummary = null
+            },
+            onCancel = {
+                showEditDialog = false
+                editingSummary = null
+            }
+        )
+    }
 }
 
 @Composable
@@ -190,6 +218,151 @@ private fun EmptyStateView() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SummaryEditDialog(
+    summary: DrillRepeatSummary,
+    drillSetup: DrillSetupEntity,
+    onSave: (Map<String, Int>) -> Unit,
+    onCancel: () -> Unit
+) {
+    val effectiveCounts = ScoringUtility.calculateEffectiveCounts(summary.shots, null)
+    val initialCounts = summary.adjustedHitZones ?: effectiveCounts
+
+    var aCount by remember { mutableStateOf(initialCounts["A"] ?: 0) }
+    var cCount by remember { mutableStateOf(initialCounts["C"] ?: 0) }
+    var dCount by remember { mutableStateOf(initialCounts["D"] ?: 0) }
+    var nCount by remember { mutableStateOf(initialCounts["N"] ?: 0) }
+    var mCount by remember { mutableStateOf(initialCounts["M"] ?: 0) }
+    var peCount by remember { mutableStateOf(initialCounts["PE"] ?: 0) }
+
+    Dialog(onDismissRequest = onCancel) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.Black)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Edit Hit Zone Counts",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Zone editors
+                ZoneEditor("A Zone", aCount) { aCount = it }
+                ZoneEditor("C Zone", cCount) { cCount = it }
+                ZoneEditor("D Zone", dCount) { dCount = it }
+                ZoneEditor("No-Shoot (N)", nCount) { nCount = it }
+                ZoneEditor("Miss (M)", mCount) { mCount = it }
+                ZoneEditor("Penalty (PE)", peCount) { peCount = it }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = onCancel,
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = Color.White
+                        )
+                    ) {
+                        Text("Cancel")
+                    }
+                    Button(
+                        onClick = {
+                            val updatedZones = mapOf(
+                                "A" to aCount,
+                                "C" to cCount,
+                                "D" to dCount,
+                                "N" to nCount,
+                                "M" to mCount,
+                                "PE" to peCount
+                            )
+                            onSave(updatedZones)
+                        },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.Red
+                        )
+                    ) {
+                        Text("Save")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ZoneEditor(
+    label: String,
+    value: Int,
+    onValueChange: (Int) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = label,
+            color = Color.White,
+            style = MaterialTheme.typography.bodyLarge
+        )
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            IconButton(
+                onClick = { if (value > 0) onValueChange(value - 1) },
+                modifier = Modifier.size(32.dp)
+            ) {
+                Icon(
+                    Icons.Default.Remove,
+                    contentDescription = "Decrease",
+                    tint = Color.Red
+                )
+            }
+
+            Text(
+                text = value.toString(),
+                color = Color.White,
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.width(32.dp),
+                textAlign = TextAlign.Center
+            )
+
+            IconButton(
+                onClick = { onValueChange(value + 1) },
+                modifier = Modifier.size(32.dp)
+            ) {
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = "Increase",
+                    tint = Color.Red
+                )
+            }
+        }
+    }
+}
+
 @Composable
 private fun SummaryCard(
     title: String,
@@ -199,7 +372,8 @@ private fun SummaryCard(
     onDeductScore: () -> Unit,
     onRestoreScore: () -> Unit,
     onCardClick: () -> Unit,
-    onReplay: () -> Unit
+    onReplay: () -> Unit,
+    onEditHitZones: () -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -225,12 +399,14 @@ private fun SummaryCard(
             // Header with title and buttons
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                // Icon and title
+                // Left side: Icon and title
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.weight(1f)
                 ) {
                     Box(
                         modifier = Modifier
@@ -261,14 +437,15 @@ private fun SummaryCard(
                     }
                 }
 
-                Spacer(modifier = Modifier.weight(1f))
-
-                // Action buttons
-                PenaltyButton(onClick = onDeductScore)
-                Spacer(modifier = Modifier.width(8.dp))
-                RestoreButton(onClick = onRestoreScore)
-                Spacer(modifier = Modifier.width(8.dp))
-                ReplayButton(onClick = onReplay)
+                // Right side: Action buttons
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    PenaltyButton(onClick = onDeductScore)
+                    RestoreButton(onClick = onRestoreScore)
+                    ReplayButton(onClick = onReplay)
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -281,17 +458,32 @@ private fun SummaryCard(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Metrics grid
+            // Metrics grid (6 columns - excluding Hit Zones)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                metrics.forEach { metric ->
+                metrics.filter { !it.label.contains("Hit") }.forEachIndexed { index, metric ->
                     MetricView(
                         metric = metric,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        onClick = if (metric.isClickable) {
+                            // First metric (Total Time) navigates to DrillResultView
+                            if (index == 0) onCardClick else onEditHitZones
+                        } else null
                     )
                 }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Hit Zones badges row
+            val hitZonesMetric = metrics.find { it.label.contains("Hit") }
+            if (hitZonesMetric != null) {
+                HitZonesBadgesRow(
+                    metric = hitZonesMetric,
+                    onClick = onEditHitZones
+                )
             }
         }
     }
@@ -300,7 +492,8 @@ private fun SummaryCard(
 @Composable
 private fun MetricView(
     metric: SummaryMetric,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null
 ) {
     // Extract numeric value for animation, but display the full formatted string
     val numericValue = metric.value
@@ -325,6 +518,7 @@ private fun MetricView(
                     )
                 )
             )
+            .then(if (metric.isClickable) Modifier.clickable(onClick = onClick ?: {}) else Modifier)
             .padding(vertical = 14.dp, horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -376,6 +570,94 @@ private fun MetricView(
                 textAlign = TextAlign.Center
             )
         }
+    }
+}
+
+@Composable
+private fun HitZonesBadgesRow(
+    metric: SummaryMetric,
+    onClick: () -> Unit
+) {
+    val zoneLetters = listOf("A", "C", "D", "N", "M", "PE")
+    val zoneColors = mapOf(
+        "A" to Color(0xFFFF4444),
+        "C" to Color(0xFFFF8800),
+        "D" to Color(0xFFFFBB33),
+        "N" to Color(0xFFCC0000),
+        "M" to Color(0xFFFF5588),
+        "PE" to Color(0xFFFF9900)
+    )
+
+    // Parse hit zones from metric value
+    val countMap = mutableMapOf<String, Int>()
+    metric.value.split(" ").forEach { part ->
+        if (part.contains(":")) {
+            val (zone, count) = part.split(":")
+            countMap[zone] = count.toIntOrNull() ?: 0
+        }
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        zoneLetters.forEach { zone ->
+            HitZoneBadge(
+                zone = zone,
+                count = countMap[zone] ?: 0,
+                color = zoneColors[zone] ?: Color.Gray,
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
+@Composable
+private fun HitZoneBadge(
+    zone: String,
+    count: Int,
+    color: Color,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        Color(0xFF2A1A1A),
+                        Color(0xFF3A0A0A)
+                    )
+                )
+            )
+            .border(2.dp, color, RoundedCornerShape(12.dp))
+            .padding(vertical = 12.dp, horizontal = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Box(
+            modifier = Modifier
+                .size(28.dp)
+                .background(color, CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = zone,
+                color = Color.White,
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.labelMedium
+            )
+        }
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(
+            text = count.toString(),
+            color = Color.White,
+            fontWeight = FontWeight.SemiBold,
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center
+        )
     }
 }
 
@@ -478,13 +760,21 @@ private fun ReplayButton(onClick: () -> Unit) {
 }
 
 // Helper functions
-private fun getMetricsForSummary(summary: DrillRepeatSummary): List<SummaryMetric> {
+private fun getMetricsForSummary(summary: DrillRepeatSummary, drillSetup: DrillSetupEntity): List<SummaryMetric> {
     println("[DrillSummaryView] getMetricsForSummary - summary.totalTime: ${summary.totalTime}, summary.firstShot: ${summary.firstShot}, summary.fastest: ${summary.fastest}")
+
+    // Calculate effective counts
+    val effectiveCounts = ScoringUtility.calculateEffectiveCounts(summary.shots, null)
+    val adjustedCounts = summary.adjustedHitZones ?: effectiveCounts
+
+    val hitZonesText = "A:${adjustedCounts["A"] ?: 0} C:${adjustedCounts["C"] ?: 0} D:${adjustedCounts["D"] ?: 0} M:${adjustedCounts["M"] ?: 0} N:${adjustedCounts["N"] ?: 0} PE:${adjustedCounts["PE"] ?: 0}"
+
     return listOf(
         SummaryMetric(
             icon = Icons.Default.Info,
             label = "Total Time",
-            value = formatTime(summary.totalTime)
+            value = formatTime(summary.totalTime),
+            isClickable = true
         ),
         SummaryMetric(
             icon = Icons.Default.Info,
@@ -505,6 +795,17 @@ private fun getMetricsForSummary(summary: DrillRepeatSummary): List<SummaryMetri
             icon = Icons.Default.Info,
             label = "Score",
             value = "${summary.score}"
+        ),
+        SummaryMetric(
+            icon = Icons.Default.Info,
+            label = "Factor",
+            value = String.format("%.3f", calculateFactor(summary.score, summary.totalTime))
+        ),
+        SummaryMetric(
+            icon = Icons.Default.Info,
+            label = "Hit Zones",
+            value = hitZonesText,
+            isClickable = true
         )
     )
 }
@@ -548,5 +849,6 @@ private data class SummaryMetric(
     val icon: androidx.compose.ui.graphics.vector.ImageVector,
     val label: String,
     val value: String,
-    val footnote: String? = null
+    val footnote: String? = null,
+    val isClickable: Boolean = false
 )

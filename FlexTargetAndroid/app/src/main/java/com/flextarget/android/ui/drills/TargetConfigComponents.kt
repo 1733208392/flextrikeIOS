@@ -15,9 +15,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.flextarget.android.data.ble.DiscoveredPeripheral
 import com.flextarget.android.data.ble.NetworkDevice
 import com.flextarget.android.data.model.DrillTargetsConfigData
+
+private fun getIconForTargetType(type: String): String {
+    return when (type) {
+        "hostage" -> "hostage.svg"
+        "ipsc" -> "ipsc.svg"
+        "special_1" -> "ipsc-black-1.svg"
+        "special_2" -> "ipsc-black-2.svg"
+        "paddle" -> "ipsc-paddle.svg"
+        "popper" -> "ipsc-popper.svg"
+        "rotation" -> "rotation.svg"
+        else -> "ipsc.svg" // default icon
+    }
+}
 
 @Composable
 fun TargetConfigRow(
@@ -41,14 +55,6 @@ fun TargetConfigRow(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Sequence number
-            Text(
-                text = config.seqNo.toString(),
-                color = Color.White,
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.width(32.dp)
-            )
-
             // Drag handle
             Icon(
                 Icons.Default.Menu,
@@ -108,11 +114,10 @@ fun TargetConfigRow(
                         .padding(horizontal = 12.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Target type icon (placeholder - would need actual icons)
-                    Icon(
-                        Icons.Default.CheckCircle,
+                    // Target type icon
+                    AsyncImage(
+                        model = "file:///android_asset/${getIconForTargetType(config.targetType)}",
                         contentDescription = config.targetType,
-                        tint = Color.White,
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
@@ -209,11 +214,10 @@ fun TargetTypePickerDialog(
                             .padding(vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Target type icon (placeholder)
-                        Icon(
-                            Icons.Default.CheckCircle,
+                        // Target type icon
+                        AsyncImage(
+                            model = "file:///android_asset/${getIconForTargetType(type)}",
                             contentDescription = type,
-                            tint = Color.White,
                             modifier = Modifier.size(24.dp)
                         )
                         Spacer(modifier = Modifier.width(12.dp))

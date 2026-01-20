@@ -146,9 +146,19 @@ fun DrillFormView(
         )
     }
 
+    // State for showing TimerSessionView - used to hide toolbar
+    var showTimerSession by remember { mutableStateOf(false) }
+    var showDrillSummary by remember { mutableStateOf(false) }
+
+    val showTopBar by remember(showTimerSession, showDrillSummary) {
+        derivedStateOf { !showTimerSession && !showDrillSummary }
+    }
+
     Scaffold(
         topBar = {
-            TopAppBar(
+            // Only show TopAppBar when TimerSessionView or DrillSummaryView is not visible
+            if (showTopBar) {
+                TopAppBar(
                 title = {
                     Text(
                         text = when (currentScreen) {
@@ -203,7 +213,8 @@ fun DrillFormView(
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Black
                 )
-            )
+                )
+            }
         }
     ) { paddingValues ->
         when (currentScreen) {
@@ -233,7 +244,11 @@ fun DrillFormView(
                     coroutineScope = coroutineScope,
                     paddingValues = paddingValues,
                     androidBleManager = androidBleManager,
-                    isEditingDisabled = isEditingDisabled
+                    isEditingDisabled = isEditingDisabled,
+                    showTimerSession = showTimerSession,
+                    onShowTimerSessionChange = { showTimerSession = it },
+                    showDrillSummary = showDrillSummary,
+                    onShowDrillSummaryChange = { showDrillSummary = it }
                 )
             }
             DrillFormScreen.TARGET_CONFIG -> {
@@ -306,12 +321,14 @@ private fun FormScreen(
     coroutineScope: CoroutineScope,
     paddingValues: PaddingValues,
     androidBleManager: AndroidBLEManager?,
-    isEditingDisabled: Boolean = false
+    isEditingDisabled: Boolean = false,
+    showTimerSession: Boolean = false,
+    onShowTimerSessionChange: (Boolean) -> Unit = {},
+    showDrillSummary: Boolean = false,
+    onShowDrillSummaryChange: (Boolean) -> Unit = {}
 ) {
-    var showTimerSession by remember { mutableStateOf(false) }
     var timerSessionDrill by remember { mutableStateOf<DrillSetupEntity?>(null) }
     var timerSessionTargets by remember { mutableStateOf<List<DrillTargetsConfigEntity>>(emptyList()) }
-    var showDrillSummary by remember { mutableStateOf(false) }
     var drillSummaries by remember { mutableStateOf<List<DrillRepeatSummary>>(emptyList()) }
     var showDrillResult by remember { mutableStateOf(false) }
     var selectedResultSummary by remember { mutableStateOf<DrillRepeatSummary?>(null) }
@@ -460,7 +477,7 @@ private fun FormScreen(
 
                         timerSessionDrill = sessionDrill
                         timerSessionTargets = sessionTargets
-                        showTimerSession = true
+                        onShowTimerSessionChange(true)
                     },
                     enabled = bleManager.isConnected && androidBleManager != null,
                     modifier = Modifier.weight(1f),
@@ -491,14 +508,14 @@ private fun FormScreen(
                         println("[DrillFormView] Summary ${summary.repeatIndex}: ${summary.numShots} shots, score: ${summary.score}, time: ${summary.totalTime}")
                     }
                     drillSummaries = summaries
-                    showTimerSession = false
-                    showDrillSummary = true
+                    onShowTimerSessionChange(false)
+                    onShowDrillSummaryChange(true)
                 },
                 onDrillFailed = {
-                    showTimerSession = false
+                    onShowTimerSessionChange(false)
                 },
                 onBack = {
-                    showTimerSession = false
+                    onShowTimerSessionChange(false)
                 }
             )
         }
@@ -508,7 +525,7 @@ private fun FormScreen(
                 drillSetup = timerSessionDrill!!,
                 summaries = drillSummaries,
                 onBack = {
-                    showDrillSummary = false
+                    onShowDrillSummaryChange(false)
                 },
                 onViewResult = { summary ->
                     selectedResultSummary = summary
