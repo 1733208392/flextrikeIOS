@@ -18,6 +18,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.layout.ContentScale
 import coil.compose.AsyncImage
+import androidx.compose.ui.res.stringResource
+import com.flextarget.android.R
 import com.flextarget.android.data.ble.BLEManager
 import com.flextarget.android.data.ble.DiscoveredPeripheral
 import com.flextarget.android.ui.imagecrop.ImageCropViewV2
@@ -31,7 +33,7 @@ fun ConnectSmartTargetView(
     isAlreadyConnected: Boolean = false,
     onConnected: (() -> Unit)? = null
 ) {
-    var statusText by remember { mutableStateOf("CONNECTING") }
+    var statusTextKey by remember { mutableStateOf("connecting") }
     var showReconnect by remember { mutableStateOf(false) }
     var showProgress by remember { mutableStateOf(false) }
     var selectedPeripheral by remember { mutableStateOf<DiscoveredPeripheral?>(null) }
@@ -39,12 +41,28 @@ fun ConnectSmartTargetView(
     var showImageCrop by remember { mutableStateOf(false) }
     var showBLETestTool by remember { mutableStateOf(false) }
 
+    @Composable
+    fun getStatusText(): String {
+        return when (statusTextKey) {
+            "connecting" -> stringResource(R.string.connecting)
+            "trying_to_connect" -> stringResource(R.string.trying_to_connect)
+            "target_connected" -> stringResource(R.string.target_connected)
+            "scanning_for" -> "${stringResource(R.string.scanning_for)} $activeTargetName"
+            "ready_to_scan" -> stringResource(R.string.ready_to_scan)
+            "connected" -> stringResource(R.string.device_connected)
+            "target_not_found" -> stringResource(R.string.target_not_found)
+            "no_targets_found" -> stringResource(R.string.no_targets_found)
+            "bluetooth_service_not_found" -> stringResource(R.string.bluetooth_service_not_found)
+            else -> stringResource(R.string.connecting)
+        }
+    }
+
     fun goToMain() {
         onConnected?.invoke() ?: onDismiss()
     }
 
     fun handleReconnect() {
-        statusText = "Trying to connect..."
+        statusTextKey = "trying_to_connect"
         showReconnect = false
         selectedPeripheral = null
         bleManager.startScan()
@@ -53,7 +71,7 @@ fun ConnectSmartTargetView(
 
     fun connectToSelectedPeripheral(peripheral: DiscoveredPeripheral) {
         selectedPeripheral = peripheral
-        statusText = "Trying to connect..."
+        statusTextKey = "trying_to_connect"
         showProgress = true
 
         bleManager.connectToSelectedPeripheral(peripheral)
@@ -62,19 +80,19 @@ fun ConnectSmartTargetView(
     // Handle initial state
     LaunchedEffect(Unit) {
         if (isAlreadyConnected) {
-            statusText = "Target Connected"
+            statusTextKey = "target_connected"
         } else {
             // If a target peripheral name was passed in, begin scanning
             if (targetPeripheralName != null) {
                 activeTargetName = targetPeripheralName
-                statusText = "Trying to connect..."
+                statusTextKey = "trying_to_connect"
                 showReconnect = false
                 selectedPeripheral = null
                 bleManager.startScan()
                 showProgress = true
-                statusText = "Scanning for $targetPeripheralName"
+                statusTextKey = "scanning_for"
             } else {
-                statusText = "Ready to scan"
+                statusTextKey = "ready_to_scan"
                 showProgress = false
             }
         }
@@ -87,7 +105,7 @@ fun ConnectSmartTargetView(
         if (bleManager.isConnected && !hasHandledInitialConnection) {
             hasHandledInitialConnection = true
             if (!isAlreadyConnected) {
-                statusText = "Connected"
+                statusTextKey = "connected"
                 showReconnect = false
                 showProgress = false
                 goToMain()
@@ -109,13 +127,13 @@ fun ConnectSmartTargetView(
                     } else {
                         // Target not found
                         bleManager.stopScan()
-                        statusText = "Target not found"
+                        statusTextKey = "target_not_found"
                         showReconnect = true
                         showProgress = false
                     }
                 } else if (bleManager.discoveredPeripherals.isEmpty()) {
                     bleManager.stopScan()
-                    statusText = "No targets found"
+                    statusTextKey = "no_targets_found"
                     showReconnect = true
                     showProgress = false
                 }
@@ -129,7 +147,7 @@ fun ConnectSmartTargetView(
             delay(10000)
             if (!bleManager.isConnected && selectedPeripheral == peripheral) {
                 bleManager.disconnect()
-                statusText = "Bluetooth service not found"
+                statusTextKey = "bluetooth_service_not_found"
                 showReconnect = true
                 showProgress = false
             }
@@ -175,7 +193,7 @@ fun ConnectSmartTargetView(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = statusText,
+                        text = getStatusText(),
                         color = Color.White,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium,
@@ -202,7 +220,7 @@ fun ConnectSmartTargetView(
                         shape = RoundedCornerShape(8.dp)
                     ) {
                         Text(
-                            text = "Reconnect",
+                            text = stringResource(R.string.reconnect),
                             color = Color.White,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Medium
@@ -229,7 +247,7 @@ fun ConnectSmartTargetView(
                             shape = RoundedCornerShape(8.dp)
                         ) {
                             Text(
-                                text = "Disconnect",
+                                text = stringResource(R.string.device_disconnect),
                                 color = Color.White,
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Medium
@@ -248,7 +266,7 @@ fun ConnectSmartTargetView(
                             shape = RoundedCornerShape(8.dp)
                         ) {
                             Text(
-                                text = "My Target",
+                                text = stringResource(R.string.my_target),
                                 color = Color.White,
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Medium
@@ -267,7 +285,7 @@ fun ConnectSmartTargetView(
                             shape = RoundedCornerShape(8.dp)
                         ) {
                             Text(
-                                text = "BLE Test Tool",
+                                text = stringResource(R.string.ble_test_tool),
                                 color = Color.White,
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Medium
@@ -298,11 +316,11 @@ fun ConnectSmartTargetView(
         bleManager.error?.let { error ->
             AlertDialog(
                 onDismissRequest = { /* Handle dismiss */ },
-                title = { Text("Error") },
-                text = { Text(error.message ?: "Unknown error occurred") },
+                title = { Text(stringResource(R.string.error_title)) },
+                text = { Text(error.message ?: stringResource(R.string.error_unknown)) },
                 confirmButton = {
                     TextButton(onClick = { /* Handle OK */ }) {
-                        Text("OK")
+                        Text(stringResource(R.string.ok))
                     }
                 }
             )

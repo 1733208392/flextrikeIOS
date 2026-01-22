@@ -28,6 +28,8 @@ import com.flextarget.android.ui.drills.DrillSummaryView
 import com.flextarget.android.data.ble.AndroidBLEManager
 import com.flextarget.android.data.model.DrillRepeatSummary
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import com.flextarget.android.R
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
@@ -114,7 +116,7 @@ fun CompetitionDetailView(
                 .background(Color.Black)
         ) {
         TopAppBar(
-            title = { Text("Details") },
+            title = { Text(stringResource(R.string.details)) },
             navigationIcon = {
                 IconButton(onClick = onBack) {
                     Icon(Icons.Default.ArrowBack, contentDescription = "Back")
@@ -184,7 +186,7 @@ fun CompetitionDetailView(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.Error, contentDescription = null, tint = Color.Yellow, modifier = Modifier.size(18.dp))
                         Text(
-                            text = "No linked drill found",
+                            text = stringResource(R.string.no_linked_drill_found),
                             color = Color.Yellow,
                             style = MaterialTheme.typography.bodyLarge,
                             modifier = Modifier.padding(start = 8.dp)
@@ -196,7 +198,7 @@ fun CompetitionDetailView(
 
         // Shooter selection card
         Text(
-            text = "Active Shooter",
+            text = stringResource(R.string.active_shooter),
             color = Color.White,
             style = MaterialTheme.typography.titleSmall,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
@@ -222,7 +224,7 @@ fun CompetitionDetailView(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.Person, contentDescription = null, tint = Color.Red)
                     Text(
-                        text = uiState.selectedAthlete?.name ?: "Select Shooter",
+                        text = uiState.selectedAthlete?.name ?: stringResource(R.string.select_shooter),
                         color = if (uiState.selectedAthlete != null) Color.White else Color.Gray,
                         style = MaterialTheme.typography.bodyLarge,
                         modifier = Modifier.padding(start = 12.dp)
@@ -259,7 +261,7 @@ fun CompetitionDetailView(
             enabled = linkedDrill != null && androidBleManager?.isConnected == true
         ) {
             Text(
-                text = if (uiState.selectedAthlete == null) "SELECT SHOOTER TO START" else "START COMPETITION DRILL",
+                text = if (uiState.selectedAthlete == null) stringResource(R.string.select_shooter_to_start) else stringResource(R.string.start_competition_drill),
                 fontWeight = FontWeight.Bold
             )
         }
@@ -294,7 +296,7 @@ fun AthletePickerDialog(
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    text = "Select Athlete",
+                    text = stringResource(R.string.select_athlete),
                     color = Color.White,
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(bottom = 16.dp)
@@ -302,7 +304,7 @@ fun AthletePickerDialog(
 
                 if (athletes.isEmpty()) {
                     Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
-                        Text("No athletes found. Add some in Shooter management.", color = Color.Gray, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                        Text(stringResource(R.string.no_athletes_found), color = Color.Gray, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                     }
                 } else {
                     LazyColumn(modifier = Modifier.weight(1f)) {
@@ -340,7 +342,7 @@ fun AthletePickerDialog(
                     onClick = onDismiss,
                     modifier = Modifier.align(Alignment.End)
                 ) {
-                    Text("Cancel", color = Color.Red)
+                    Text(stringResource(R.string.cancel), color = Color.Red)
                 }
             }
         }

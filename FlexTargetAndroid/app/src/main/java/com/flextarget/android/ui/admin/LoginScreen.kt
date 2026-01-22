@@ -23,6 +23,8 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.flextarget.android.ui.viewmodel.AuthViewModel
+import androidx.compose.ui.res.stringResource
+import com.flextarget.android.R
 
 /**
  * Login Screen
@@ -59,7 +61,7 @@ fun LoginScreen(
     ) {
         // App title
         Text(
-            text = "FlexTarget",
+            text = stringResource(R.string.app_name),
             style = MaterialTheme.typography.displaySmall,
             color = Color.White,
             fontWeight = FontWeight.Bold,
@@ -70,7 +72,7 @@ fun LoginScreen(
         OutlinedTextField(
             value = mobile,
             onValueChange = { mobile = it },
-            label = { Text("Mobile Number", color = Color.Gray) },
+            label = { Text(stringResource(R.string.login_mobile), color = Color.Gray) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 16.dp),
@@ -93,7 +95,7 @@ fun LoginScreen(
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("Password", color = Color.Gray) },
+            label = { Text(stringResource(R.string.login_password), color = Color.Gray) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 24.dp),
@@ -183,7 +185,7 @@ fun LoginScreen(
                 )
             } else {
                 Text(
-                    "Login",
+                    stringResource(R.string.login_button),
                     style = MaterialTheme.typography.labelLarge,
                     color = Color.White,
                     fontWeight = FontWeight.Bold
@@ -194,7 +196,7 @@ fun LoginScreen(
         // Additional info
         Spacer(modifier = Modifier.height(32.dp))
         Text(
-            text = "Sign in with your archery target account",
+            text = stringResource(R.string.login_subtitle),
             style = MaterialTheme.typography.bodySmall,
             color = Color.Gray
         )

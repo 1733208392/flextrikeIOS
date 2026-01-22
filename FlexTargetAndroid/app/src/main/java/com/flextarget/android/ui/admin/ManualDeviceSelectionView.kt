@@ -18,6 +18,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import com.flextarget.android.R
 import com.flextarget.android.data.ble.BLEManager
 
 @Composable
@@ -37,7 +39,7 @@ fun ManualDeviceSelectionView(
             .background(Color.Black)
     ) {
         TopAppBar(
-            title = { Text("Available Devices", color = Color.White) },
+            title = { Text(stringResource(R.string.available_devices), color = Color.White) },
             navigationIcon = {
                 IconButton(onClick = {
                     bleManager.stopScan()
@@ -86,7 +88,7 @@ fun ManualDeviceSelectionView(
                         modifier = Modifier.size(64.dp)
                     )
                     Text(
-                        if (bleManager.isScanning) "Scanning..." else "No devices found",
+                        if (bleManager.isScanning) stringResource(R.string.scanning) else stringResource(R.string.no_devices_found),
                         color = Color.Gray,
                         style = MaterialTheme.typography.bodyLarge
                     )
@@ -95,7 +97,7 @@ fun ManualDeviceSelectionView(
                         colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
                         shape = RoundedCornerShape(8.dp)
                     ) {
-                        Text("Scan Again", color = Color.White)
+                        Text(stringResource(R.string.scan_again), color = Color.White)
                     }
                 }
             }

@@ -10,9 +10,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.flextarget.android.R
 import com.flextarget.android.data.model.ScoringUtility
 import com.flextarget.android.data.repository.DrillResultRepository
 import com.flextarget.android.data.repository.DrillSetupRepository
@@ -76,7 +78,7 @@ fun RecentTrainingView(
             isLoading = false
             
         } catch (e: Exception) {
-            errorMessage = e.localizedMessage ?: "Failed to load recent drills"
+            errorMessage = e.localizedMessage ?: context.getString(R.string.failed_to_load_recent_drills)
             isLoading = false
         }
     }
@@ -103,7 +105,7 @@ fun RecentTrainingView(
                     CircularProgressIndicator(color = Color.White)
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Loading recent drills...",
+                        text = stringResource(R.string.loading_recent_drills),
                         color = Color.White,
                         fontSize = 14.sp
                     )
@@ -116,13 +118,13 @@ fun RecentTrainingView(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Warning,
-                        contentDescription = "Error",
+                        contentDescription = stringResource(R.string.error),
                         tint = Color.Red,
                         modifier = Modifier.size(48.dp)
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = errorMessage ?: "Error",
+                        text = errorMessage ?: stringResource(R.string.error),
                         color = Color.White,
                         fontSize = 14.sp,
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center

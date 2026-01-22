@@ -27,7 +27,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.window.Dialog
+import com.flextarget.android.R
 import com.flextarget.android.data.local.entity.DrillSetupEntity
 import com.flextarget.android.data.model.DrillRepeatSummary
 import com.flextarget.android.data.model.ScoringUtility
@@ -73,7 +76,7 @@ fun DrillSummaryView(
         TopAppBar(
             title = {
                 Text(
-                    text = "Drill Results Summary",
+                    text = stringResource(R.string.drill_results_summary),
                     color = Color.White,
                     fontSize = 22.sp,
                     fontWeight = FontWeight.SemiBold
@@ -174,7 +177,7 @@ fun DrillSummaryView(
                         Icon(Icons.Default.Upload, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            "SUBMIT COMPETITION RESULT",
+                            stringResource(R.string.submit_competition_result),
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp,
                             letterSpacing = 1.sp
@@ -221,7 +224,7 @@ private fun EmptyStateView() {
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "No Results Available",
+            text = stringResource(R.string.no_results_available),
             style = MaterialTheme.typography.headlineSmall,
             color = Color.White,
             fontWeight = FontWeight.Medium
@@ -230,7 +233,7 @@ private fun EmptyStateView() {
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Complete a drill to see your results here",
+            text = stringResource(R.string.complete_drill_message),
             style = MaterialTheme.typography.bodyMedium,
             color = Color.Gray,
             textAlign = TextAlign.Center
@@ -271,7 +274,7 @@ private fun SummaryEditDialog(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "Edit Hit Zone Counts",
+                    text = stringResource(R.string.edit_hit_zone_counts),
                     style = MaterialTheme.typography.headlineSmall,
                     color = Color.White,
                     fontWeight = FontWeight.Bold
@@ -280,12 +283,12 @@ private fun SummaryEditDialog(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 // Zone editors
-                ZoneEditor("A Zone", aCount) { aCount = it }
-                ZoneEditor("C Zone", cCount) { cCount = it }
-                ZoneEditor("D Zone", dCount) { dCount = it }
-                ZoneEditor("No-Shoot (N)", nCount) { nCount = it }
-                ZoneEditor("Miss (M)", mCount) { mCount = it }
-                ZoneEditor("Penalty (PE)", peCount) { peCount = it }
+                ZoneEditor(stringResource(R.string.a_zone), aCount) { aCount = it }
+                ZoneEditor(stringResource(R.string.c_zone), cCount) { cCount = it }
+                ZoneEditor(stringResource(R.string.d_zone), dCount) { dCount = it }
+                ZoneEditor(stringResource(R.string.no_shoot_zone), nCount) { nCount = it }
+                ZoneEditor(stringResource(R.string.miss_zone), mCount) { mCount = it }
+                ZoneEditor(stringResource(R.string.penalty_zone), peCount) { peCount = it }
 
                 Spacer(modifier = Modifier.height(24.dp))
 
@@ -300,7 +303,7 @@ private fun SummaryEditDialog(
                             contentColor = Color.White
                         )
                     ) {
-                        Text("Cancel")
+                        Text(stringResource(R.string.cancel))
                     }
                     Button(
                         onClick = {
@@ -319,7 +322,7 @@ private fun SummaryEditDialog(
                             containerColor = Color.Red
                         )
                     ) {
-                        Text("Save")
+                        Text(stringResource(R.string.save))
                     }
                 }
             }
@@ -722,7 +725,7 @@ private fun PenaltyButton(onClick: () -> Unit) {
                 .shadow(6.dp, CircleShape, ambientColor = Color(0xFFFFA500).copy(alpha = 0.3f))
         ) {
             Text(
-                text = "PE",
+                text = stringResource(R.string.pe_abbrev),
                 color = Color(0xFFFFA500), // Orange
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
@@ -808,7 +811,7 @@ private fun PlayReplayButton(
         )
         Spacer(modifier = Modifier.width(8.dp))
         Text(
-            "REPLAY DRILL",
+            stringResource(R.string.replay_drill),
             fontWeight = FontWeight.SemiBold,
             fontSize = 14.sp
         )

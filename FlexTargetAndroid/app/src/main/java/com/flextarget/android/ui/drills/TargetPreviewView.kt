@@ -13,8 +13,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.flextarget.android.R
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
@@ -25,7 +27,6 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.foundation.shape.RoundedCornerShape
 import android.graphics.BitmapFactory
 import com.flextarget.android.data.model.ShotData
-import com.flextarget.android.R
 
 /**
  * Preview display showing the target image with bullet hole overlays
@@ -57,7 +58,7 @@ fun TargetPreviewView(
                     .background(Color.Black),
                 contentAlignment = Alignment.Center
             ) {
-                Text("No shots to display", color = Color.Gray)
+                Text(stringResource(R.string.no_shots_to_display), color = Color.Gray)
             }
             return@Box
         }

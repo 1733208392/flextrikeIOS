@@ -14,6 +14,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import com.flextarget.android.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -86,6 +88,11 @@ fun HistoryTabView(
     val uniqueDrillTypes by viewModel.uniqueDrillTypes.collectAsState()
     val uniqueDrillNames by viewModel.uniqueDrillNames.collectAsState()
 
+    // Localized strings for date range options
+    val allTimeString = stringResource(R.string.all_time)
+    val pastWeekString = stringResource(R.string.past_week)
+    val pastMonthString = stringResource(R.string.past_month)
+
     // Apply filters
     val filteredGroupedResults = remember(groupedResults, selectedDrillType, selectedDrillName, selectedDateRange) {
         groupedResults.mapValues { (_, sessions) ->
@@ -116,7 +123,7 @@ fun HistoryTabView(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("History", color = Color.White) },
+                title = { Text(stringResource(R.string.history_title), color = Color.White) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Black
                 )
@@ -136,7 +143,7 @@ fun HistoryTabView(
             ) {
                 // Drill Type Filter
                 FilterDropdown(
-                    label = "All Modes",
+                    label = stringResource(R.string.all_modes),
                     selectedValue = selectedDrillType,
                     options = uniqueDrillTypes,
                     onValueSelected = { selectedDrillType = it }
@@ -146,11 +153,11 @@ fun HistoryTabView(
                 FilterDropdown(
                     label = dateRangeLabel(selectedDateRange),
                     selectedValue = null,
-                    options = listOf("All Time", "Past Week", "Past Month"),
+                    options = listOf(allTimeString, pastWeekString, pastMonthString),
                     onValueSelected = { selection ->
                         selectedDateRange = when (selection) {
-                            "Past Week" -> DateRange.WEEK
-                            "Past Month" -> DateRange.MONTH
+                            pastWeekString -> DateRange.WEEK
+                            pastMonthString -> DateRange.MONTH
                             else -> DateRange.ALL
                         }
                     }
@@ -158,7 +165,7 @@ fun HistoryTabView(
 
                 // Drill Name Filter
                 FilterDropdown(
-                    label = "All Drill Setups",
+                    label = stringResource(R.string.all_drill_setups),
                     selectedValue = selectedDrillName,
                     options = uniqueDrillNames,
                     onValueSelected = { selectedDrillName = it }
@@ -184,12 +191,12 @@ fun HistoryTabView(
                             modifier = Modifier.size(48.dp)
                         )
                         Text(
-                            "No results found",
+                            stringResource(R.string.no_results_found),
                             color = Color.White,
                             style = MaterialTheme.typography.bodySmall
                         )
                         Text(
-                            "Complete some drills to see your history",
+                            stringResource(R.string.complete_drills_history),
                             color = Color.Gray,
                             style = MaterialTheme.typography.bodySmall
                         )
@@ -240,7 +247,7 @@ fun HistoryTabView(
                                             style = MaterialTheme.typography.bodyLarge
                                         )
                                         Text(
-                                            "${session.repeatCount} repeats",
+                                            "${session.repeatCount} ${stringResource(R.string.repeats_label)}",
                                             color = Color.Gray,
                                             style = MaterialTheme.typography.bodyMedium
                                         )
@@ -388,7 +395,7 @@ private fun DrillSummaryCard(
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    "${summary.numShots} shots",
+                    "${summary.numShots} ${stringResource(R.string.shots_label)}",
                     color = Color.Gray,
                     style = MaterialTheme.typography.bodySmall
                 )
@@ -397,10 +404,11 @@ private fun DrillSummaryCard(
     }
 }
 
+@Composable
 private fun dateRangeLabel(dateRange: DateRange): String {
     return when (dateRange) {
-        DateRange.ALL -> "All Time"
-        DateRange.WEEK -> "Past Week"
-        DateRange.MONTH -> "Past Month"
+        DateRange.ALL -> stringResource(R.string.all_time)
+        DateRange.WEEK -> stringResource(R.string.past_week)
+        DateRange.MONTH -> stringResource(R.string.past_month)
     }
 }

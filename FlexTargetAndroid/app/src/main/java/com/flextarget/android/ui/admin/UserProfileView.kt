@@ -25,6 +25,8 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.flextarget.android.ui.viewmodel.AuthViewModel
+import androidx.compose.ui.res.stringResource
+import com.flextarget.android.R
 
 @Composable
 fun UserProfileView(
@@ -67,7 +69,7 @@ fun UserProfileView(
                 .background(Color.Black)
         ) {
             TopAppBar(
-                title = { Text("User Profile", color = Color.White) },
+                title = { Text(stringResource(R.string.user_profile), color = Color.White) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.Red)
@@ -93,7 +95,7 @@ fun UserProfileView(
                     onClick = { selectedTab.value = 0 },
                     text = {
                         Text(
-                            "Edit Profile",
+                            stringResource(R.string.update_profile),
                             color = if (selectedTab.value == 0) Color.Red else Color.Gray
                         )
                     }
@@ -103,7 +105,7 @@ fun UserProfileView(
                     onClick = { selectedTab.value = 1 },
                     text = {
                         Text(
-                            "Change Password",
+                            stringResource(R.string.change_password),
                             color = if (selectedTab.value == 1) Color.Red else Color.Gray
                         )
                     }
@@ -121,7 +123,7 @@ fun UserProfileView(
                     // Edit Profile Tab
                     item {
                         Text(
-                            "Edit Profile",
+                            stringResource(R.string.update_profile),
                             color = Color.White,
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Bold,
@@ -133,7 +135,7 @@ fun UserProfileView(
                         OutlinedTextField(
                             value = username.value,
                             onValueChange = { username.value = it },
-                            label = { Text("Username", color = Color.Gray) },
+                            label = { Text(stringResource(R.string.username), color = Color.Gray) },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .background(
@@ -175,14 +177,14 @@ fun UserProfileView(
                             ),
                             shape = RoundedCornerShape(8.dp)
                         ) {
-                            Text("Update Profile", color = Color.White, fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.update_profile), color = Color.White, fontWeight = FontWeight.Bold)
                         }
                     }
                 } else {
                     // Change Password Tab
                     item {
                         Text(
-                            "Change Password",
+                            stringResource(R.string.change_password),
                             color = Color.White,
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Bold,
@@ -247,7 +249,7 @@ fun UserProfileView(
                             ),
                             shape = RoundedCornerShape(8.dp)
                         ) {
-                            Text("Change Password", color = Color.White, fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.change_password), color = Color.White, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -267,7 +269,7 @@ fun UserProfileView(
                 ),
                 shape = RoundedCornerShape(8.dp)
             ) {
-                Text("Logout", color = Color.White, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.logout), color = Color.White, fontWeight = FontWeight.Bold)
             }
         }
 
@@ -294,8 +296,8 @@ fun UserProfileView(
     if (showLogoutConfirm.value) {
         AlertDialog(
             onDismissRequest = { showLogoutConfirm.value = false },
-            title = { Text("Logout", color = Color.White) },
-            text = { Text("Are you sure you want to logout?", color = Color.White) },
+            title = { Text(stringResource(R.string.logout), color = Color.White) },
+            text = { Text(stringResource(R.string.logout_confirm), color = Color.White) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -305,7 +307,7 @@ fun UserProfileView(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
                 ) {
-                    Text("Logout", color = Color.White)
+                    Text(stringResource(R.string.logout), color = Color.White)
                 }
             },
             dismissButton = {
@@ -313,7 +315,7 @@ fun UserProfileView(
                     onClick = { showLogoutConfirm.value = false },
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
                 ) {
-                    Text("Cancel", color = Color.White)
+                    Text(stringResource(R.string.cancel), color = Color.White)
                 }
             },
             containerColor = Color.Black,

@@ -27,7 +27,9 @@ import com.flextarget.android.ui.drills.DrillReplayView
 import com.flextarget.android.ui.drills.DrillResultView
 import com.flextarget.android.ui.drills.HistoryTabView
 import com.flextarget.android.ui.admin.AdminTabView
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalContext
+import com.flextarget.android.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,7 +48,7 @@ fun TabNavigationView(
 
                 NavigationBarItem(
                     icon = { Icon(Icons.Default.SportsBaseball, contentDescription = "Drills") },
-                    label = { Text("Drills") },
+                    label = { Text(stringResource(R.string.tab_drills)) },
                     selected = currentRoute == "drills",
                     onClick = {
                         navController.navigate("drills") {
@@ -65,7 +67,7 @@ fun TabNavigationView(
 
                 NavigationBarItem(
                     icon = { Icon(Icons.Default.History, contentDescription = "History") },
-                    label = { Text("History") },
+                    label = { Text(stringResource(R.string.tab_history)) },
                     selected = currentRoute == "history",
                     onClick = {
                         navController.navigate("history") {
@@ -84,7 +86,7 @@ fun TabNavigationView(
 
                 NavigationBarItem(
                     icon = { Icon(Icons.Default.EmojiEvents, contentDescription = "Competition") },
-                    label = { Text("Competition") },
+                    label = { Text(stringResource(R.string.tab_competition)) },
                     selected = currentRoute == "competition",
                     onClick = {
                         navController.navigate("competition") {
@@ -103,7 +105,7 @@ fun TabNavigationView(
 
                 NavigationBarItem(
                     icon = { Icon(Icons.Default.AdminPanelSettings, contentDescription = "Admin") },
-                    label = { Text("Admin") },
+                    label = { Text(stringResource(R.string.tab_admin)) },
                     selected = currentRoute == "admin",
                     onClick = {
                         navController.navigate("admin") {

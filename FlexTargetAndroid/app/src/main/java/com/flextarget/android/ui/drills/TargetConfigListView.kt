@@ -11,6 +11,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import com.flextarget.android.R
 import androidx.compose.ui.unit.dp
 import com.flextarget.android.data.ble.BLEManager
 import com.flextarget.android.data.ble.DiscoveredPeripheral
@@ -110,11 +112,11 @@ fun TargetConfigListView(
     if (showMaxTargetsAlert) {
         AlertDialog(
             onDismissRequest = { showMaxTargetsAlert = false },
-            title = { Text("Maximum Targets Reached") },
-            text = { Text("You can only configure up to ${maxTargets} targets (${targetConfigs.size}/${maxTargets})") },
+            title = { Text(stringResource(R.string.maximum_targets_reached)) },
+            text = { Text(stringResource(R.string.max_targets_message, maxTargets, targetConfigs.size)) },
             confirmButton = {
                 TextButton(onClick = { showMaxTargetsAlert = false }) {
-                    Text("OK")
+                    Text(stringResource(R.string.ok))
                 }
             }
         )

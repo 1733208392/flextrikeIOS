@@ -17,7 +17,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import com.flextarget.android.R
 import com.flextarget.android.data.local.entity.DrillResultEntity
 import com.flextarget.android.data.local.entity.ShotEntity
 import com.flextarget.android.data.repository.DrillResultRepository
@@ -25,8 +26,8 @@ import com.google.gson.Gson
 import kotlinx.coroutines.launch
 import java.util.Date
 import java.util.UUID
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.flextarget.android.R
 import java.util.*
 import java.util.Timer
 import java.util.TimerTask
@@ -659,8 +660,8 @@ fun TimerSessionView(
         if (showEndDrillAlert) {
             AlertDialog(
                 onDismissRequest = { showEndDrillAlert = false },
-                title = { Text("End drill") },
-                text = { Text("Drill in progress") },
+                title = { Text(stringResource(R.string.end_drill)) },
+                text = { Text(stringResource(R.string.drill_in_progress)) },
                 confirmButton = {
                     TextButton(
                         onClick = {
@@ -668,12 +669,12 @@ fun TimerSessionView(
                             endDrillEarly()
                         }
                     ) {
-                        Text("Confirm", color = Color.Red)
+                        Text(stringResource(R.string.confirm), color = Color.Red)
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { showEndDrillAlert = false }) {
-                        Text("Cancel")
+                        Text(stringResource(R.string.cancel))
                     }
                 }
             )

@@ -21,6 +21,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.flextarget.android.data.local.entity.AthleteEntity
 import com.flextarget.android.ui.viewmodel.CompetitionViewModel
+import androidx.compose.ui.res.stringResource
+import com.flextarget.android.R
 
 @Composable
 fun AthletesManagementView(
@@ -38,7 +40,7 @@ fun AthletesManagementView(
     ) {
         // Top Bar
         TopAppBar(
-            title = { Text("Shooters") },
+            title = { Text(stringResource(R.string.shooters)) },
             navigationIcon = {
                 IconButton(onClick = onBack) {
                     Icon(Icons.Default.ArrowBack, contentDescription = "Back")
@@ -75,7 +77,7 @@ fun AthletesManagementView(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Text(
-                            text = "New Athlete",
+                            text = stringResource(R.string.new_athlete),
                             color = Color.White,
                             style = MaterialTheme.typography.titleSmall
                         )
@@ -100,7 +102,7 @@ fun AthletesManagementView(
                                 TextField(
                                     value = newAthleteNameInput.value,
                                     onValueChange = { newAthleteNameInput.value = it },
-                                    placeholder = { Text("Name", color = Color.Gray) },
+                                    placeholder = { Text(stringResource(R.string.name), color = Color.Gray) },
                                     colors = TextFieldDefaults.colors(
                                         unfocusedContainerColor = Color.Transparent,
                                         focusedContainerColor = Color.Transparent,
@@ -112,7 +114,7 @@ fun AthletesManagementView(
                                 TextField(
                                     value = newAthleteClubInput.value,
                                     onValueChange = { newAthleteClubInput.value = it },
-                                    placeholder = { Text("Club (Optional)", color = Color.Gray) },
+                                    placeholder = { Text(stringResource(R.string.club_optional), color = Color.Gray) },
                                     colors = TextFieldDefaults.colors(
                                         unfocusedContainerColor = Color.Transparent,
                                         focusedContainerColor = Color.Transparent,
@@ -139,7 +141,7 @@ fun AthletesManagementView(
                             colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
                             enabled = newAthleteNameInput.value.isNotEmpty()
                         ) {
-                            Text("Add Athlete")
+                            Text(stringResource(R.string.add_athlete))
                         }
                     }
                 }
@@ -194,7 +196,7 @@ fun AthleteRow(
                     .weight(1f)
             ) {
                 Text(
-                    text = athlete.name ?: "Unknown",
+                    text = athlete.name ?: stringResource(R.string.unknown),
                     color = Color.White,
                     style = MaterialTheme.typography.bodyLarge
                 )

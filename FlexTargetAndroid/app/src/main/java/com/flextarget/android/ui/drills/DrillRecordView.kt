@@ -17,6 +17,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
+import com.flextarget.android.R
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -98,7 +100,7 @@ fun DrillRecordView(
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("Drill History", color = Color.White) },
+                    title = { Text(stringResource(R.string.drill_history), color = Color.White) },
                     navigationIcon = {
                         IconButton(onClick = onBack) {
                             Icon(

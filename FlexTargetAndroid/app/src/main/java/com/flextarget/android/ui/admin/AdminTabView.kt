@@ -19,6 +19,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.filled.Smartphone
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.ui.res.stringResource
+import com.flextarget.android.R
 import com.flextarget.android.data.ble.BLEManager
 import com.flextarget.android.ui.viewmodel.AuthViewModel
 import com.flextarget.android.ui.viewmodel.OTAViewModel
@@ -167,7 +169,7 @@ private fun AdminMainMenuView(
             .background(Color.Black)
     ) {
         TopAppBar(
-            title = { Text("Admin", color = Color.White) },
+            title = { Text(stringResource(R.string.admin), color = Color.White) },
             colors = TopAppBarDefaults.topAppBarColors(
                 containerColor = Color.Black,
                 titleContentColor = Color.White
@@ -184,11 +186,11 @@ private fun AdminMainMenuView(
             item {
                 AdminMenuButton(
                     icon = Icons.Default.Smartphone,
-                    title = "Device Management",
+                    title = stringResource(R.string.device_management),
                     description = if (isDeviceConnected) 
-                        "Device is connected" 
+                        stringResource(R.string.device_connected_desc) 
                     else 
-                        "Connect to a device",
+                        stringResource(R.string.connect_to_device_desc),
                     isActive = isDeviceConnected,
                     onClick = onDeviceManagementClick
                 )
@@ -198,8 +200,8 @@ private fun AdminMainMenuView(
             item {
                 AdminMenuButton(
                     icon = Icons.Default.Person,
-                    title = "User Profile",
-                    description = "Manage user profile",
+                    title = stringResource(R.string.user_profile),
+                    description = stringResource(R.string.manage_user_profile),
                     isActive = false,
                     onClick = onUserProfileClick
                 )
@@ -295,7 +297,7 @@ private fun DeviceManagementView(
             .background(Color.Black)
     ) {
         TopAppBar(
-            title = { Text("Device Management", color = Color.White) },
+            title = { Text(stringResource(R.string.device_management), color = Color.White) },
             navigationIcon = {
                 IconButton(onClick = onBack) {
                     Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.Red)
@@ -318,8 +320,8 @@ private fun DeviceManagementView(
                 item {
                     DeviceMenuOption(
                         icon = Icons.Default.Smartphone,
-                        title = "Connected Device",
-                        subtitle = "Manage connection",
+                        title = stringResource(R.string.connected_device),
+                        subtitle = stringResource(R.string.manage_connection),
                         onClick = onConnectedDeviceClick
                     )
                 }
@@ -327,8 +329,8 @@ private fun DeviceManagementView(
                 item {
                     DeviceMenuOption(
                         icon = Icons.Default.Info,
-                        title = "OTA Update",
-                        subtitle = "Check for and install system updates",
+                        title = stringResource(R.string.ota_update),
+                        subtitle = stringResource(R.string.check_install_updates),
                         onClick = onOTAUpdateClick
                     )
                 }
@@ -337,8 +339,8 @@ private fun DeviceManagementView(
                 item {
                     DeviceMenuOption(
                         icon = Icons.Default.Smartphone,
-                        title = "Manual Select",
-                        subtitle = "Browse and select available devices",
+                        title = stringResource(R.string.manual_select),
+                        subtitle = stringResource(R.string.browse_select_devices),
                         onClick = onManualSelectClick
                     )
                 }
@@ -346,8 +348,8 @@ private fun DeviceManagementView(
                 item {
                     DeviceMenuOption(
                         icon = Icons.Default.Info,
-                        title = "Scan QR Code",
-                        subtitle = "Scan device QR code",
+                        title = stringResource(R.string.scan_qr_code),
+                        subtitle = stringResource(R.string.scan_device_qr),
                         onClick = onQRScanClick
                     )
                 }

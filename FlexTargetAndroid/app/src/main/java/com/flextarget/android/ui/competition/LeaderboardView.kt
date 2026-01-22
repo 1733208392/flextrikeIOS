@@ -22,6 +22,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import com.flextarget.android.data.local.entity.CompetitionEntity
 import com.flextarget.android.ui.viewmodel.CompetitionViewModel
+import androidx.compose.ui.res.stringResource
+import com.flextarget.android.R
 
 // Placeholder data class for Ranking
 data class RankingRow(
@@ -49,7 +51,7 @@ fun LeaderboardView(
     ) {
         // Top Bar
         TopAppBar(
-            title = { Text("Leaderboard") },
+            title = { Text(stringResource(R.string.competitions_leaderboard)) },
             navigationIcon = {
                 IconButton(onClick = onBack) {
                     Icon(Icons.Default.ArrowBack, contentDescription = "Back")
@@ -83,7 +85,7 @@ fun LeaderboardView(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "No competitions available",
+                    text = stringResource(R.string.no_competitions_available),
                     color = Color.Gray,
                     style = MaterialTheme.typography.bodyLarge
                 )
@@ -99,7 +101,7 @@ fun LeaderboardView(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "Select a competition to view rankings",
+                        text = stringResource(R.string.select_competition_to_view_rankings),
                         color = Color.Gray,
                         style = MaterialTheme.typography.bodyLarge
                     )
@@ -120,7 +122,7 @@ fun LeaderboardView(
                             modifier = Modifier.size(48.dp)
                         )
                         Text(
-                            text = "Loading ranking...",
+                            text = stringResource(R.string.loading_ranking),
                             color = Color.Gray,
                             style = MaterialTheme.typography.bodyMedium
                         )
@@ -145,7 +147,7 @@ fun LeaderboardView(
                             modifier = Modifier.size(48.dp)
                         )
                         Text(
-                            text = "Error loading ranking",
+                            text = stringResource(R.string.error_loading_ranking),
                             color = Color.White,
                             style = MaterialTheme.typography.bodyLarge,
                             textAlign = TextAlign.Center
@@ -166,7 +168,7 @@ fun LeaderboardView(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "No ranking data available",
+                        text = stringResource(R.string.no_ranking_data_available),
                         color = Color.Gray,
                         style = MaterialTheme.typography.bodyLarge
                     )
@@ -224,7 +226,7 @@ private fun CompetitionDropdown(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = selectedCompetition?.name ?: "Choose competition",
+                    text = selectedCompetition?.name ?: stringResource(R.string.choose_competition),
                     color = Color.Red,
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.weight(1f)
@@ -306,7 +308,7 @@ private fun RankingListItem(ranking: RankingRow) {
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Text(
-                    text = "${ranking.shotCount} shots",
+                    text = "${ranking.shotCount} ${stringResource(R.string.shots)}",
                     color = Color.Gray,
                     style = MaterialTheme.typography.labelSmall
                 )

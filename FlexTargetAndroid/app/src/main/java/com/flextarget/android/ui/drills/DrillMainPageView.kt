@@ -17,6 +17,8 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
+import com.flextarget.android.R
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.flextarget.android.data.ble.BLEManager
@@ -62,11 +64,11 @@ fun DrillMainPageView(
         // Placeholder for InformationPage
         AlertDialog(
             onDismissRequest = { showInfo = false },
-            title = { Text("Information") },
-            text = { Text("Information page - TODO") },
+            title = { Text(stringResource(R.string.information)) },
+            text = { Text(stringResource(R.string.information_page_placeholder)) },
             confirmButton = {
                 TextButton(onClick = { showInfo = false }) {
-                    Text("OK")
+                    Text(stringResource(R.string.ok))
                 }
             }
         )

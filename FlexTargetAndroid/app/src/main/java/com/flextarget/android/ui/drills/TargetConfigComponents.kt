@@ -14,6 +14,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import com.flextarget.android.R
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.flextarget.android.data.ble.DiscoveredPeripheral
@@ -156,7 +158,7 @@ fun DevicePickerDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Select Device") },
+        title = { Text(stringResource(R.string.select_device)) },
         text = {
             Column {
                 availableDevices.forEach { device ->
@@ -185,7 +187,7 @@ fun DevicePickerDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(R.string.cancel))
             }
         },
         containerColor = Color.Black,
@@ -203,7 +205,7 @@ fun TargetTypePickerDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Select Target Type") },
+        title = { Text(stringResource(R.string.select_target_type)) },
         text = {
             Column {
                 targetTypes.forEach { type ->
@@ -239,7 +241,7 @@ fun TargetTypePickerDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(R.string.cancel))
             }
         },
         containerColor = Color.Black,

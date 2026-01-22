@@ -28,6 +28,8 @@ import com.flextarget.android.ui.viewmodel.CompetitionViewModel
 import com.flextarget.android.ui.viewmodel.DrillViewModel
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.compose.ui.res.stringResource
+import com.flextarget.android.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,7 +56,7 @@ fun CompetitionListView(
     ) {
         // Top Bar
         TopAppBar(
-            title = { Text("Competitions") },
+            title = { Text(stringResource(R.string.competitions)) },
             navigationIcon = {
                 IconButton(onClick = onBack) {
                     Icon(Icons.Default.ArrowBack, contentDescription = "Back")
@@ -91,7 +93,7 @@ fun CompetitionListView(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "No competitions yet",
+                    text = stringResource(R.string.no_competitions_yet),
                     color = Color.Gray,
                     style = MaterialTheme.typography.bodyLarge
                 )
@@ -218,7 +220,7 @@ private fun SearchBar(
         value = value,
         onValueChange = onValueChange,
         modifier = modifier,
-        placeholder = { Text("Search competitions...", color = Color.Gray) },
+        placeholder = { Text(stringResource(R.string.search_competitions), color = Color.Gray) },
         leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray) },
         colors = OutlinedTextFieldDefaults.colors(
             focusedTextColor = Color.White,
@@ -245,19 +247,19 @@ fun AddCompetitionDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("New Competition", color = Color.White) },
+        title = { Text(stringResource(R.string.new_competition), color = Color.White) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 TextField(
                     value = name.value,
                     onValueChange = { name.value = it },
-                    label = { Text("Competition Name") },
+                    label = { Text(stringResource(R.string.competition_name)) },
                     modifier = Modifier.fillMaxWidth()
                 )
                 TextField(
                     value = venue.value,
                     onValueChange = { venue.value = it },
-                    label = { Text("Venue (Optional)") },
+                    label = { Text(stringResource(R.string.venue_optional)) },
                     modifier = Modifier.fillMaxWidth()
                 )
                 
@@ -275,7 +277,7 @@ fun AddCompetitionDialog(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = selectedDrill.value?.name ?: "Select Drill-Setup",
+                            text = selectedDrill.value?.name ?: stringResource(R.string.select_drill_setup),
                             color = if (selectedDrill.value != null) Color.White else Color.Gray
                         )
                         Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = Color.Red)
@@ -283,7 +285,7 @@ fun AddCompetitionDialog(
                 }
 
                 Text(
-                    text = "Date: ${SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(date.value)}",
+                    text = stringResource(R.string.date_label) + SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(date.value),
                     color = Color.Gray,
                     modifier = Modifier.padding(top = 8.dp)
                 )
@@ -295,12 +297,12 @@ fun AddCompetitionDialog(
                 enabled = name.value.isNotEmpty() && selectedDrill.value != null,
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
             ) {
-                Text("Create")
+                Text(stringResource(R.string.create))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel", color = Color.Red)
+                Text(stringResource(R.string.cancel), color = Color.Red)
             }
         },
         containerColor = Color.DarkGray
@@ -334,7 +336,7 @@ fun DrillPickerDialog(
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    text = "Select Drill Setup",
+                    text = stringResource(R.string.select_drill_setup),
                     color = Color.White,
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(bottom = 16.dp)
@@ -350,7 +352,7 @@ fun DrillPickerDialog(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = drill.name ?: "Untitled",
+                                text = drill.name ?: stringResource(R.string.untitled),
                                 color = Color.White,
                                 modifier = Modifier.padding(start = 12.dp)
                             )
@@ -366,7 +368,7 @@ fun DrillPickerDialog(
                     onClick = onDismiss,
                     modifier = Modifier.align(Alignment.End)
                 ) {
-                    Text("Cancel", color = Color.Red)
+                    Text(stringResource(R.string.cancel), color = Color.Red)
                 }
             }
         }

@@ -26,6 +26,8 @@ import com.flextarget.android.data.repository.DrillSetupRepository
 import com.flextarget.android.ui.viewmodel.DrillFormViewModel
 import com.flextarget.android.ui.viewmodel.DrillListViewModel
 import kotlinx.coroutines.launch
+import androidx.compose.ui.res.stringResource
+import com.flextarget.android.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,14 +75,14 @@ fun DrillListView(
             if (showTopBar) {
                 TopAppBar(
                     title = {
-                        Text(if (onBack != null) "My Drills" else "Drills", color = Color.White)
+                        Text(if (onBack != null) stringResource(R.string.my_drills) else stringResource(R.string.drills), color = Color.White)
                     },
                     navigationIcon = {
                         if (onBack != null) {
                             IconButton(onClick = onBack) {
                                 Icon(
                                     Icons.Default.ArrowBack,
-                                    contentDescription = "Back",
+                                    contentDescription = stringResource(R.string.back),
                                     tint = Color.Red
                                 )
                             }
@@ -101,7 +103,7 @@ fun DrillListView(
                                     }
                             ) {
                                 Text(
-                                    text = if (bleManager.isConnected) "Connected" else "Disconnected",
+                                    text = if (bleManager.isConnected) stringResource(R.string.device_connected) else stringResource(R.string.device_disconnected),
                                     color = Color.Gray,
                                     fontSize = 12.sp
                                 )
@@ -157,7 +159,7 @@ fun DrillListView(
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
-                    placeholder = { Text("Search drills", color = Color.Gray) },
+                    placeholder = { Text(stringResource(R.string.search_drills), color = Color.Gray) },
                     leadingIcon = {
                         Icon(Icons.Default.Search, contentDescription = "Search", tint = Color.Gray)
                     },
@@ -206,7 +208,7 @@ fun DrillListView(
                             // Drill info
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = drillWithTargetsItem.drillSetup.name ?: "Untitled",
+                                    text = drillWithTargetsItem.drillSetup.name ?: stringResource(R.string.untitled),
                                     color = Color.White,
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold
@@ -282,7 +284,7 @@ fun DrillListView(
                                     onDismissRequest = { showMenu = false }
                                 ) {
                                     DropdownMenuItem(
-                                        text = { Text("Copy") },
+                                        text = { Text(stringResource(R.string.copy)) },
                                         onClick = {
                                             coroutineScope.launch {
                                                 viewModel.copyDrill(drillWithTargetsItem.drillSetup)
@@ -294,7 +296,7 @@ fun DrillListView(
                                         }
                                     )
                                     DropdownMenuItem(
-                                        text = { Text("Delete", color = Color.Red) },
+                                        text = { Text(stringResource(R.string.delete), color = Color.Red) },
                                         onClick = {
                                             showDeleteDialog = drillWithTargetsItem.drillSetup
                                             showMenu = false
@@ -323,8 +325,8 @@ fun DrillListView(
     showDeleteDialog?.let { drill ->
         AlertDialog(
             onDismissRequest = { showDeleteDialog = null },
-            title = { Text("Delete Drill") },
-            text = { Text("Are you sure you want to delete \"${drill.name ?: "Untitled"}\"?") },
+            title = { Text(stringResource(R.string.delete_drill)) },
+            text = { Text(stringResource(R.string.are_you_sure_delete, drill.name ?: stringResource(R.string.untitled))) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -335,12 +337,12 @@ fun DrillListView(
                     },
                     colors = ButtonDefaults.textButtonColors(contentColor = Color.Red)
                 ) {
-                    Text("Delete")
+                    Text(stringResource(R.string.delete))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = null }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )
@@ -350,11 +352,11 @@ fun DrillListView(
     if (showConnectionAlert) {
         AlertDialog(
             onDismissRequest = { showConnectionAlert = false },
-            title = { Text("Connection Required") },
-            text = { Text("You must be connected to a target to create new drills.") },
+            title = { Text(stringResource(R.string.connection_required)) },
+            text = { Text(stringResource(R.string.connection_required_message)) },
             confirmButton = {
                 TextButton(onClick = { showConnectionAlert = false }) {
-                    Text("OK")
+                    Text(stringResource(R.string.ok))
                 }
             }
         )
