@@ -113,6 +113,7 @@ struct DrillListView: View {
         NavigationLink(destination: EditDrillView(drillSetup: drill, bleManager: bleManager)) {
             drillRowContent(for: drill)
         }
+        .contentShape(Rectangle())
         .listRowBackground(Color.clear)
         .contextMenu {
             Button(action: { copyDrill(drill) }) {
@@ -148,6 +149,7 @@ struct DrillListView: View {
             Image(systemName: "chevron.right")
                 .foregroundColor(.gray)
         }
+        .contentShape(Rectangle())
         .padding(.vertical, 8)
     }
     
