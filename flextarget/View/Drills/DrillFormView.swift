@@ -137,7 +137,7 @@ struct DrillFormView: View {
                                 )
                                 .sheet(isPresented: $showVideoPlayer) {
                                     if let url = demoVideoURL {
-                                        VideoPlayerView(url: url, isPresented: $showVideoPlayer)
+                                        VideoPlayerView(url: url)
                                     }
                                 }
                             }
