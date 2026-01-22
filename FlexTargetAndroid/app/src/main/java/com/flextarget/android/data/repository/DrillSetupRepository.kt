@@ -1,5 +1,7 @@
 package com.flextarget.android.data.repository
 
+import android.content.Context
+import com.flextarget.android.data.local.FlexTargetDatabase
 import com.flextarget.android.data.local.dao.*
 import com.flextarget.android.data.local.entity.*
 import kotlinx.coroutines.flow.Flow
@@ -15,6 +17,23 @@ class DrillSetupRepository(
     private val drillSetupDao: DrillSetupDao,
     private val targetConfigDao: DrillTargetsConfigDao
 ) {
+    
+    companion object {
+        @Volatile
+        private var INSTANCE: DrillSetupRepository? = null
+        
+        fun getInstance(context: Context): DrillSetupRepository {
+            return INSTANCE ?: synchronized(this) {
+                val database = FlexTargetDatabase.getDatabase(context)
+                val instance = DrillSetupRepository(
+                    database.drillSetupDao(),
+                    database.drillTargetsConfigDao()
+                )
+                INSTANCE = instance
+                instance
+            }
+        }
+    }
     
     // Observe all drill setups
     val allDrillSetups: Flow<List<DrillSetupEntity>> = drillSetupDao.getAllDrillSetups()
@@ -78,13 +97,23 @@ class DrillSetupRepository(
         drillSetupDao.deleteDrillSetup(drillSetup)
     }
     
-    // Delete drill setup by ID
-    suspend fun deleteDrillSetupById(id: UUID) {
-        drillSetupDao.deleteDrillSetupById(id)
+    // Delete target configs by drill setup ID
+    suspend fun deleteTargetConfigsByDrillSetupId(drillSetupId: UUID) {
+        targetConfigDao.deleteTargetConfigsByDrillSetupId(drillSetupId)
+    }
+    
+    // Insert target configs
+    suspend fun insertTargetConfigs(targets: List<DrillTargetsConfigEntity>) {
+        targetConfigDao.insertTargetConfigs(targets)
     }
     
     // Get count
     suspend fun getDrillSetupCount(): Int {
         return drillSetupDao.getDrillSetupCount()
+    }
+
+    // Get drill result count by setup ID
+    suspend fun getDrillResultCountBySetupId(drillSetupId: UUID): Int {
+        return drillSetupDao.getDrillResultCountBySetupId(drillSetupId)
     }
 }

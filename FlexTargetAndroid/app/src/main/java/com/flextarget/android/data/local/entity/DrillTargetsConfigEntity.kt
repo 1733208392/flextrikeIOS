@@ -42,5 +42,11 @@ data class DrillTargetsConfigEntity(
     
     val countedShots: Int = 0,
     
-    val drillSetupId: UUID? = null
+    val drillSetupId: UUID? = null,
+    
+    val action: String? = null,
+    
+    val duration: Double = 0.0,
+    
+    val targetVariant: String? = null
 )

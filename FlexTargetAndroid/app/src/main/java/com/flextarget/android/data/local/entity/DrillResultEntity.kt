@@ -23,13 +23,27 @@ import java.util.UUID
             parentColumns = ["id"],
             childColumns = ["drillSetupId"],
             onDelete = ForeignKey.SET_NULL
+        ),
+        ForeignKey(
+            entity = AthleteEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["athleteId"],
+            onDelete = ForeignKey.SET_NULL
+        ),
+        ForeignKey(
+            entity = CompetitionEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["competitionId"],
+            onDelete = ForeignKey.SET_NULL
         )
     ],
     indices = [
         Index(value = ["drillSetupId"]),
         Index(value = ["drillId"]),
         Index(value = ["sessionId"]),
-        Index(value = ["date"])
+        Index(value = ["date"]),
+        Index(value = ["athleteId"]),
+        Index(value = ["competitionId"])
     ]
 )
 data class DrillResultEntity(
@@ -44,5 +58,23 @@ data class DrillResultEntity(
     
     val totalTime: Double = 0.0,
     
-    val drillSetupId: UUID? = null
+    val drillSetupId: UUID? = null,
+    
+    // Additional fields from iOS CoreData DrillResult
+    val adjustedHitZones: String? = null,
+    
+    val cqbPassed: Boolean? = null,
+    
+    val cqbResults: String? = null,
+    
+    val serverDeviceId: String? = null,
+    
+    val serverPlayId: String? = null,
+    
+    val submittedAt: Date? = null,
+    
+    // Foreign keys for relationships
+    val athleteId: UUID? = null,
+    
+    val competitionId: UUID? = null
 )

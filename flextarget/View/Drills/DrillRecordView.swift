@@ -20,7 +20,9 @@ struct DrillRecordView: View {
 
     private func convertShots(_ shots: NSSet?) -> [ShotData] {
         guard let shots = shots as? Set<Shot> else { return [] }
-        return shots.compactMap { shot in
+        // Sort by timestamp (absolute time_diff in ms) to preserve order
+        let sortedShots = shots.sorted { $0.timestamp < $1.timestamp }
+        return sortedShots.compactMap { shot in
             guard let data = shot.data, let jsonData = data.data(using: .utf8) else { return nil }
             do {
                 return try JSONDecoder().decode(ShotData.self, from: jsonData)
@@ -79,16 +81,29 @@ struct DrillRecordView: View {
         return result.sorted { ($0.sessions.first?.firstResult.date ?? Date()) > ($1.sessions.first?.firstResult.date ?? Date()) }
     }
 
-    private func createDrillRepeatSummary(from result: DrillResult) -> DrillRepeatSummary {
-        let shots = convertShots(result.shots)
+    private func createDrillRepeatSummary(from result: DrillResult, index: Int) -> DrillRepeatSummary {
+        let shots = result.decodedShots
+        var adjustedHitZones: [String: Int]? = nil
+        if let adjustedData = result.adjustedHitZones?.data(using: .utf8) {
+            do {
+                adjustedHitZones = try JSONDecoder().decode([String: Int].self, from: adjustedData)
+            } catch {
+                print("createDrillRepeatSummary: Failed to decode adjustedHitZones: \(error)")
+            }
+        } else {
+            print("createDrillRepeatSummary: adjustedHitZones string is nil or empty for result \(result.id ?? UUID())")
+        }
         return DrillRepeatSummary(
-            repeatIndex: 1,
+            id: result.id ?? UUID(),
+            repeatIndex: index + 1,
             totalTime: result.effectiveTotalTime,
             numShots: shots.count,
             firstShot: shots.first?.content.timeDiff ?? 0,
             fastest: result.fastestShot,
             score: Int(result.totalScore),
-            shots: shots
+            shots: shots,
+            drillResultId: result.id,
+            adjustedHitZones: adjustedHitZones
         )
     }
 
@@ -106,7 +121,9 @@ struct DrillRecordView: View {
                         ForEach(group.sessions, id: \.firstResult.objectID) { session in
                             NavigationLink(destination: DrillSummaryView(
                                 drillSetup: session.firstResult.drillSetup!,
-                                summaries: session.allResults.map { createDrillRepeatSummary(from: $0) }
+                                summaries: session.allResults.enumerated().map { index, result in
+                                    createDrillRepeatSummary(from: result, index: index)
+                                }
                             )) {
                                 DrillRecordRowView(
                                     model: DrillRecordRowView.Model(

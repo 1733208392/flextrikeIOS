@@ -63,4 +63,7 @@ interface DrillSetupDao {
     
     @Query("SELECT COUNT(*) FROM drill_setup")
     suspend fun getDrillSetupCount(): Int
+
+    @Query("SELECT COUNT(*) FROM drill_result WHERE drillSetupId = :drillSetupId")
+    suspend fun getDrillResultCountBySetupId(drillSetupId: UUID): Int
 }

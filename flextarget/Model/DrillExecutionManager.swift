@@ -25,6 +25,7 @@ class DrillExecutionManager {
     private var endCommandTime: Date?
     private var shotObserver: NSObjectProtocol?
     private let firstShotMockValue: TimeInterval = 1.0
+    private let gracePeriodDuration: TimeInterval = 5.0
     private var deviceDelayTimes: [String: String] = [:]
     private var globalDelayTime: String?
     private var firstTargetName: String?
@@ -114,7 +115,7 @@ class DrillExecutionManager {
         // Start grace period to collect in-flight shots before finalizing
         // Keep shot observer active during this period
         gracePeriodTimer?.invalidate()
-        gracePeriodTimer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: false) { [weak self] _ in
+        gracePeriodTimer = Timer.scheduledTimer(withTimeInterval: self.gracePeriodDuration, repeats: false) { [weak self] _ in
             self?.completeManualStopRepeat()
         }
     }
@@ -148,18 +149,28 @@ class DrillExecutionManager {
         
         for (index, target) in sortedTargets.enumerated() {
             do {
-                let delayValue = randomDelay > 0 ? randomDelay : drillSetup.delay
-                let roundedDelay = Double(String(format: "%.2f", delayValue)) ?? delayValue
-                let content: [String: Any] = [
-                    "command": "ready",
-                    "delay": roundedDelay,
-                    "targetType": target.targetType ?? "",
-                    "timeout": 300,
-                    "countedShots": target.countedShots,
-                    "repeat": currentRepeat,
-                    "isFirst": index == 0,
-                    "isLast": index == sortedTargets.count - 1
-                ]
+                let content: [String: Any]
+                if target.targetType == "disguised_enemy" {
+                    content = [
+                        "command": "ready",
+                        "mode": "cqb",
+                        "targetType": "disguised_enemy"
+                    ]
+                } else {
+                    let delayValue = randomDelay > 0 ? randomDelay : drillSetup.delay
+                    let roundedDelay = Double(String(format: "%.2f", delayValue)) ?? delayValue
+                    content = [
+                        "command": "ready",
+                        "delay": roundedDelay,
+                        "targetType": target.targetType ?? "",
+                        "timeout": 1200,
+                        "countedShots": target.countedShots,
+                        "repeat": currentRepeat,
+                        "isFirst": index == 0,
+                        "isLast": index == sortedTargets.count - 1,
+                        "mode": drillSetup.mode ?? "ipsc"
+                    ]
+                }
                 let message: [String: Any] = [
                     "action": "netlink_forward",
                     "dest": target.targetName ?? "",
@@ -169,6 +180,24 @@ class DrillExecutionManager {
                 let messageString = String(data: messageData, encoding: .utf8)!
                 print("Sending ready message for target \(target.targetName ?? ""), length: \(messageData.count)")
                 bleManager.writeJSON(messageString)
+                
+                // Send animation_config if CQB mode and action is set
+                if drillSetup.mode == "cqb", let action = target.action, !action.isEmpty {
+                    let animationContent: [String: Any] = [
+                        "command": "animation_config",
+                        "action": action,
+                        "duration": target.duration
+                    ]
+                    let animationMessage: [String: Any] = [
+                        "action": "netlink_forward",
+                        "dest": target.targetName ?? "",
+                        "content": animationContent
+                    ]
+                    let animationData = try JSONSerialization.data(withJSONObject: animationMessage, options: [])
+                    let animationString = String(data: animationData, encoding: .utf8)!
+                    print("Sending animation_config for target \(target.targetName ?? "")")
+                    bleManager.writeJSON(animationString)
+                }
                 
                 #if targetEnvironment(simulator)
                 // In simulator, mock some shot received notifications after sending ready command
@@ -356,7 +385,34 @@ class DrillExecutionManager {
         prepareForRepeatStart()
         startCommandTime = Date()  // Record when start command is sent
 
-        var content: [String: Any] = ["command": "start"]
+        // Handle 'disguised_enemy' targets separately
+        let targets = drillSetup.targets as? Set<DrillTargetsConfig> ?? []
+        for target in targets where target.targetType == "disguised_enemy" {
+            let content: [String: Any] = [
+                "command": "start",
+                "mode": "cqb",
+                "targetType": "disguised_enemy",
+                "timeout": target.timeout,
+                "delay": drillSetup.delay,
+                "repeat": currentRepeat
+            ]
+            let message: [String: Any] = [
+                "action": "netlink_forward",
+                "dest": target.targetName ?? "",
+                "content": content
+            ]
+            do {
+                let data = try JSONSerialization.data(withJSONObject: message, options: [])
+                if let jsonString = String(data: data, encoding: .utf8) {
+                    print("Sending start command to disguised_enemy \(target.targetName ?? ""): \(jsonString)")
+                    bleManager.writeJSON(jsonString)
+                }
+            } catch {
+                print("Failed to serialize start command for disguised_enemy: \(error)")
+            }
+        }
+
+        var content: [String: Any] = ["command": "start", "repeat": currentRepeat]
         if let delayTime = globalDelayTime {
             content["delay_time"] = delayTime
         }
@@ -468,12 +524,14 @@ class DrillExecutionManager {
     }
 
     private func finalizeRepeat(repeatIndex: Int) {
-        guard let startTime = currentRepeatStartTime else {
+        guard currentRepeatStartTime != nil else {
             print("[DrillExecutionManager] No start time for repeat \(repeatIndex), skipping summary")
             return
         }
 
-        let sortedShots = currentRepeatShots.sorted { $0.receivedAt < $1.receivedAt }
+        // Sort shots by time_diff from the shot data message (not by receivedAt timestamp)
+        // time_diff = timing of shot on target device - timing when repeat starts
+        let sortedShots = currentRepeatShots.sorted { $0.shot.content.timeDiff < $1.shot.content.timeDiff }
         
         print("[DrillExecutionManager] finalizeRepeat(\(repeatIndex)) - currentRepeatShots count: \(currentRepeatShots.count), sorted: \(sortedShots.count)")
         
@@ -491,48 +549,36 @@ class DrillExecutionManager {
         
         print("[DrillExecutionManager] ✅ finalizeRepeat(\(repeatIndex)) - found \(sortedShots.count) shots")
 
-        // Calculate total time: from BEEP to last shot
+        // Calculate total time: use time_diff of last shot (original value from shot data)
         var totalTime: TimeInterval = 0.0
-        let timerDelay: TimeInterval = self.randomDelay > 0 ? self.randomDelay : TimeInterval(drillSetup.delay)
         
-        if let startTime = beepTime, let lastShotTime = sortedShots.last?.receivedAt {
-            totalTime = max(0.0, lastShotTime.timeIntervalSince(startTime))
-            print("Total time calculation - beep: \(startTime), last shot: \(lastShotTime), total: \(totalTime)")
+        if let lastShotTimeDiff = sortedShots.last?.shot.content.timeDiff {
+            totalTime = lastShotTimeDiff
+            print("Total time calculation - using last shot time_diff: \(totalTime)")
         } else {
-            print("Warning: No beepTime or shots received for repeat \(repeatIndex), using fallback calculation")
+            print("Warning: No shots with time_diff for repeat \(repeatIndex), using fallback calculation")
             // Fallback to old method if drill_duration available
             if let duration = drillDuration {
+                let timerDelay: TimeInterval = self.randomDelay > 0 ? self.randomDelay : TimeInterval(drillSetup.delay)
                 totalTime = max(0.0, duration - timerDelay)
                 print("Fallback total time - drill_duration: \(duration), delay_time: \(timerDelay), total: \(totalTime)")
             } else {
-                // Last resort: use shot-based calculation
-                var timeSumPerTarget: [String: TimeInterval] = [:]
-                for shot in sortedShots {
-                    let device = shot.shot.device ?? shot.shot.target ?? "unknown"
-                    let currentSum = timeSumPerTarget[device] ?? 0.0
-                    timeSumPerTarget[device] = currentSum + shot.shot.content.timeDiff
-                }
-                totalTime = timeSumPerTarget.values.max() ?? 0.0
+                totalTime = 0.0
+                print("No valid time calculation available for repeat \(repeatIndex), setting total time to 0.0")
             }
         }
 
-        // Recalculate timeDiff: first shot relative to beepTime, rest relative to previous shot's timestamp
+        // Use original time_diff from shot data message
+        // time_diff is already: timing of shot on target device - timing when repeat starts
+        // 1st shot keeps original time_diff, subsequent shots show difference from previous shot
         let adjustedShots = sortedShots.enumerated().map { (index, event) -> ShotData in
             let newTimeDiff: TimeInterval
-            if let beepTime = beepTime {
-                if index == 0 {
-                    newTimeDiff = event.receivedAt.timeIntervalSince(beepTime)
-                } else {
-                    let previousReceivedAt = sortedShots[index - 1].receivedAt
-                    newTimeDiff = event.receivedAt.timeIntervalSince(previousReceivedAt)
-                }
+            if index == 0 {
+                // First shot keeps original time_diff
+                newTimeDiff = event.shot.content.timeDiff
             } else {
-                // Fallback to old adjustment
-                if event.shot.device != firstTargetName {
-                    newTimeDiff = max(0, event.shot.content.timeDiff - timerDelay)
-                } else {
-                    newTimeDiff = event.shot.content.timeDiff
-                }
+                // Subsequent shots: current shot's time_diff - previous shot's time_diff
+                newTimeDiff = event.shot.content.timeDiff - sortedShots[index - 1].shot.content.timeDiff
             }
             let adjustedContent = Content(
                 command: event.shot.content.command,
@@ -557,50 +603,28 @@ class DrillExecutionManager {
         let fastest = adjustedShots.map { $0.content.timeDiff }.min() ?? 0.0
         let firstShot = adjustedShots.first?.content.timeDiff ?? 0.0
         
-        // Group shots by target/device and keep only the best 2 per target
-        // Exception: shots in no-shoot zones (whitezone, blackzone) always count as they deduct score
-        var shotsByTarget: [String: [ShotData]] = [:]
-        for shot in adjustedShots {
-            let device = shot.device ?? shot.target ?? "unknown"
-            if shotsByTarget[device] == nil {
-                shotsByTarget[device] = []
-            }
-            shotsByTarget[device]?.append(shot)
-        }
+        // Calculate total score using centralized ScoringUtility
+        let totalScore = Int(ScoringUtility.calculateTotalScore(shots: adjustedShots, drillSetup: drillSetup))
         
-        // Keep best 2 shots per target, but always include no-shoot zone hits
-        var bestShotsPerTarget: [ShotData] = []
-        for (_, shots) in shotsByTarget {
-            let noShootZoneShots = shots.filter { shot in
-                let trimmed = shot.content.hitArea.trimmingCharacters(in: .whitespaces).lowercased()
-                return trimmed == "whitezone" || trimmed == "blackzone"
-            }
+        // Calculate CQB validation if this is a CQB drill
+        var cqbResults: [CQBShotResult]? = nil
+        var cqbPassed: Bool? = nil
+        
+        if drillSetup.mode?.lowercased() == "cqb" {
+            // Get all target devices from the drill setup
+            let targetDevices = (drillSetup.targets?.allObjects as? [DrillTargetsConfig])?.compactMap { config -> String? in
+                guard let targetName = config.targetName, !targetName.isEmpty else { return nil }
+                return targetName
+            } ?? ([] as [String])
             
-            let otherShots = shots.filter { shot in
-                let trimmed = shot.content.hitArea.trimmingCharacters(in: .whitespaces).lowercased()
-                return trimmed != "whitezone" && trimmed != "blackzone"
-            }
+            let cqbDrillResult = CQBScoringUtility.generateCQBDrillResult(
+                shots: adjustedShots,
+                drillDuration: totalTime,
+                targetDevices: targetDevices
+            )
             
-            // Sort other shots by score (descending) and keep best 2
-            let sortedOtherShots = otherShots.sorted {
-                scoreForHitArea($0.content.hitArea) > scoreForHitArea($1.content.hitArea)
-            }
-            let bestOtherShots = Array(sortedOtherShots.prefix(2))
-            
-            // Always include no-shoot zone shots plus best 2 other shots
-            bestShotsPerTarget.append(contentsOf: noShootZoneShots)
-            bestShotsPerTarget.append(contentsOf: bestOtherShots)
-        }
-        
-        var totalScore = bestShotsPerTarget.reduce(0) { $0 + scoreForHitArea($1.content.hitArea) }
-        
-        // Auto re-evaluate score: deduct 10 points for each missed target
-        let missedTargetCount = calculateMissedTargets(shots: adjustedShots)
-        let missedTargetPenalty = missedTargetCount * 10
-        totalScore -= missedTargetPenalty
-        
-        if missedTargetCount > 0 {
-            print("Repeat \(repeatIndex): \(missedTargetCount) target(s) missed, penalty: -\(missedTargetPenalty) points")
+            cqbResults = cqbDrillResult.shotResults
+            cqbPassed = cqbDrillResult.drilPassed
         }
         
         let summary = DrillRepeatSummary(
@@ -610,7 +634,11 @@ class DrillExecutionManager {
             firstShot: firstShot,
             fastest: fastest,
             score: totalScore,
-            shots: adjustedShots
+            shots: adjustedShots,
+            drillResultId: nil,
+            adjustedHitZones: nil,
+            cqbResults: cqbResults,
+            cqbPassed: cqbPassed
         )
 
         if repeatIndex - 1 < repeatSummaries.count {
@@ -676,6 +704,13 @@ class DrillExecutionManager {
                 print("[DrillExecutionManager] Shot has no repeat number, accepting for current repeat \(currentRepeat)")
             }
             
+            // Check for duplicate shots (same device, same content)
+            let isDuplicate = currentRepeatShots.contains { $0.shot == shot }
+            if isDuplicate {
+                print("[DrillExecutionManager] Ignoring duplicate shot from device \(shot.device ?? "unknown") at time \(shot.content.timeDiff)")
+                return
+            }
+            
             let event = ShotEvent(shot: shot, receivedAt: Date())
             currentRepeatShots.append(event)
             
@@ -686,43 +721,12 @@ class DrillExecutionManager {
         }
     }
 
-    private func scoreForHitArea(_ hitArea: String) -> Int {
-        let trimmed = hitArea.trimmingCharacters(in: .whitespaces).lowercased()
-        
-        switch trimmed {
-        case "azone":
-            return 5
-        case "czone":
-            return 3
-        case "dzone":
-            return 2
-        case "miss":
-            return 0
-        case "whitezone":
-            return -10
-        case "blackzone":
-            return -10
-        case "circlearea": // Paddle
-            return 5
-        case "popperzone": // Popper
-            return 5
-        default:
-            return 0
-        }
-    }
+
     
     /// Calculate the number of missed targets in a drill repeat
     /// A target is considered missed if no shots were received from it
     private func calculateMissedTargets(shots: [ShotData]) -> Int {
-        guard let targetsSet = drillSetup.targets as? Set<DrillTargetsConfig> else {
-            return 0
-        }
-        
-        let expectedTargets = Set(targetsSet.map { $0.targetName ?? "" }.filter { !$0.isEmpty })
-        let shotsDevices = Set(shots.compactMap { $0.device ?? $0.target })
-        
-        let missedTargets = expectedTargets.subtracting(shotsDevices)
-        return missedTargets.count
+        return ScoringUtility.calculateMissedTargets(shots: shots, drillSetup: drillSetup)
     }
 
     private struct ShotEvent {

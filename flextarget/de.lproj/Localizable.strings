@@ -4,11 +4,27 @@
 "target_connected" = "Ziel verbunden";
 "target_disconnected" = "Ziel nicht verbunden";
 "drills" = "Übungen";
+"athletes" = "Athleten";
 "ipsc_questionaries" = "IPSC Fragebögen";
 "idpa_questionaries" = "IDPA Fragebögen";
 
+/* AthletesManagementView */
+"athletes_title" = "Athleten";
+"new_athlete" = "Neuer Athlet";
+"athlete_name" = "Name";
+"athlete_club" = "Verein";
+"select_avatar" = "Avatar auswählen";
+"add_athlete" = "Athlet hinzufügen";
+"athletes_empty" = "Noch keine Athleten";
+
+/* Leaderboard */
+"leaderboard_title" = "Rangliste";
+"submit_to_leaderboard_button" = "An Rangliste senden";
+"select_athlete_title" = "Athlet auswählen";
+
 /* DrillFormView */
 "drill_setup" = "Übung-Setup";
+"drill_mode" = "Übungsmodus";
 
 /* DrillListView */
 "my_drills" = "Meine Übungen";
@@ -20,11 +36,13 @@
 "delete_drill_message" = "Sind Sie sicher, dass Sie %@ löschen möchten?";
 "connection_required" = "Verbindung erforderlich";
 "connection_required_message" = "Bitte verbinden Sie sich mit dem Zielgerät, bevor Sie Übungen hinzufügen.";
+"connect_target_first" = "Bitte verbinden Sie sich zuerst mit Ihrem Zielgerät.";
 "ok" = "OK";
 "untitled" = "Unbenannt";
 "copy" = "Kopieren";
 "targets" = "Ziele";
 "targets_count" = "%d Ziele";
+"performed" = "Ausgeführt";
 "delay_seconds" = "Verzögerung: %ds";
 
 /* BLE/ConnectSmartTargetView */
@@ -75,8 +93,7 @@
 "fastest_label" = "Schnellster";
 "first_shot_label" = "Erster Schuss";
 "score_label" = "Punktzahl";
-"factor_label" = "Faktor";
-
+"factor_label" = "Faktor";\"submit_result\" = \"Ergebnis einreichen\";
 /* SubViews */
 "history_record" = "Verlauf";
 "delay_seconds_label" = "Verzögerung(s)";
@@ -139,6 +156,28 @@
 
 /* Duration Configuration */
 "select_duration" = "Dauer auswählen";
+"select_action" = "Aktion auswählen";
+"action" = "Aktion";
+"duration" = "Dauer";
+"duration_value_format" = "%.1fs";
+"duration_continuous" = "Kontinuierlich";
+"duration_seconds_format" = "%.1fs";
+
+/* CQB Target Types */
+"cqb_swing" = "Spähend";
+"cqb_front" = "Zielend";
+"cqb_move" = "Passieren";
+"cqb_hostage" = "Geisel";
+"disguised_enemy" = "Getarnte Bedrohung";
+
+/* CQB Drill Summary */
+"cqb_total_shots" = "Gesamtschüsse";
+"cqb_duration" = "Dauer";
+"cqb_passed" = "BESTANDEN";
+"cqb_failed" = "NICHT BESTANDEN";
+"cqb_threat" = "BEDROHUNG";
+"cqb_non_threat" = "KEINE BEDROHUNG";
+"cqb_shots_format" = "Schüsse: %d/%d";
 
 /* Drill Execution - Back Navigation */
 "continue_button" = "Fortfahren";
@@ -177,6 +216,9 @@
 "failed_encode_chunk" = "Fehler beim Kodieren des Chunks";
 "failed_encode_complete_command" = "Fehler beim Kodieren des Abschlussbefehls";
 "image_transferred_success" = "Bild erfolgreich übertragen";
+
+/* HistoryTabView - Filters */
+"all_drill_setup" = "Alle Trainingseinstellungen";
 "transfer_cancelled" = "Übertragung abgebrochen";
 "transfer" = "Übertragen";
 "ensure_target_ready" = "Stellen Sie sicher, dass das Ziel bereit ist";
@@ -191,3 +233,214 @@
 "processing_shots" = "Schüsse verarbeiten";
 "pause_between_repeats" = "Pause zwischen Wiederholungen";
 "repeat_of_total" = "Wiederholung %d von %d";
+
+"hit_area_azone" = "Alpha";
+"hit_area_czone" = "Charlie";
+"hit_area_dzone" = "Delta";
+"hit_area_miss" = "Fehlschuss";
+"hit_area_barrel_miss" = "Deckung";
+"hit_area_circlearea" = "Umgeworfen";
+"hit_area_standarea" = "Umgeworfen";
+"hit_area_popperzone" = "Umgeworfen";
+"hit_area_blackzone" = "Schwarze Zone";
+"hit_area_blackzoneleft" = "Schwarze Zone links";
+"hit_area_blackzoneright" = "Schwarze Zone rechts";
+"hit_area_whitezone" = "Weiße Zone";
+"hit_area_blackzone" = "Schwarze Zone";
+"hit_area_blackzoneleft" = "Schwarze Zone links";
+
+/* SummaryEditSheet */
+"edit_hit_zone_counts_title" = "Trefferzonenanzahlen bearbeiten";
+"a_zone_label" = "A-Zone";
+"c_zone_label" = "C-Zone";
+"d_zone_label" = "D-Zone";
+"no_shoot_label" = "Nicht schießen";
+"miss_label" = "Daneben";
+"penalty_label" = "Strafe";
+"cancel_button" = "Abbrechen";
+"save_button" = "Speichern";
+
+/* History Tab */
+"all_modes" = "Alle Modi";
+"all_time" = "Gesamte Zeit";
+"past_week" = "Letzte Woche";
+"past_month" = "Letzter Monat";
+"custom_date" = "Benutzerdefiniertes Datum";
+"no_results" = "Keine Ergebnisse";
+"no_results_hint" = "Führen Sie Übungen durch, um den Verlauf zu sehen";
+"unknown_date" = "Unbekanntes Datum";
+
+/* Tab Navigation */
+"history" = "Verlauf";
+"admin" = "Admin";
+"competition" = "Wettbewerb";
+
+/* Competition */
+"competition_login" = "Wettbewerb Login";
+"username" = "Benutzername";
+"password" = "Passwort";
+"login" = "Login";
+"login_hint" = "Jeder Benutzername und jedes Passwort funktioniert zum Testen.";
+"search_competition" = "Suche nach Name oder Ort";
+"all" = "Alle";
+"this_month" = "Diesen Monat";
+"last_3_months" = "Letzte 3 Monate";
+"competitions" = "Wettbewerbe";
+"view_competitions" = "Wettbewerbe anzeigen";
+"shooters" = "Schützen";
+"manage_shooters" = "Schützen verwalten";
+"leaderboard" = "Bestenliste";
+"view_leaderboard" = "Bestenliste anzeigen";
+"untitled_competition" = "Unbenannter Wettbewerb";
+"competition_info" = "Wettbewerbsinformationen";
+"competition_name" = "Wettbewerbsname";
+"venue" = "Ort";
+"date" = "Datum";
+"change" = "Ändern";
+"select_drill" = "Übung auswählen";
+"create_competition" = "Wettbewerb erstellen";
+"add_competition" = "Wettbewerb hinzufügen";
+"cancel" = "Abbrechen";
+"competition_details" = "Wettbewerbsdetails";
+"results" = "Ergebnisse";
+"no_results_yet" = "Noch keine Ergebnisse";
+"start_competition_drill" = "Wettbewerbsübung starten";
+"unknown_athlete" = "Unbekannter Athlet";
+"competition_mode" = "WETTBEWERBSMODUS";
+"drill_editing_disabled_hint" = "Die Bearbeitung ist deaktiviert, da diese Übung Ergebnisse hat oder mit einem Wettbewerb verknüpft ist.";
+
+/* AdminTabView - Admin Menü */
+"device_management" = "Geräteverwaltung";
+"device_connected" = "Gerät verbunden";
+"connect_device" = "Mit einem Gerät verbinden";
+"disconnect" = "Trennen";
+"login" = "Anmelden";
+"user_login" = "Benutzeranmeldung";
+"information" = "Informationen";
+"app_info" = "App-Informationen";
+"connected_device" = "Verbundenes Gerät";
+"manage_connection" = "Verbindung verwalten";
+"scan_qr_code" = "QR-Code scannen";
+"scan_device_qr" = "Geräte-QR-Code scannen";
+
+/* Rangliste - Einreichungsfehler */
+"error_title" = "Fehler";
+"duplicate_submission_title" = "Doppelte Einreichung";
+"duplicate_submission_message" = "Diese Übung wurde für diesen Athleten bereits an die Rangliste gesendet.";
+"missing_drill_result_id_message" = "Drill-Ergebnis-ID fehlt";
+"no_drill_result_found_message" = "Kein Drill-Ergebnis gefunden";
+"hit_area_circlearea" = "Umgeworfen";
+"hit_area_standarea" = "Umgeworfen";
+"hit_area_popperzone" = "Umgeworfen";
+
+/* User Management */
+"logout" = "Abmelden";
+"logout_confirm" = "Sind Sie sicher, dass Sie sich abmelden möchten?";
+"user_logout" = "Benutzer abmelden";
+"user_login" = "Benutzeranmeldung";
+"mobile_number" = "Handynummer";
+"password" = "Passwort";
+"login" = "Anmelden";
+"login_title" = "Anmelden";
+"manage_profile" = "Benutzerprofil verwalten";
+
+/* Competition Submission */
+"error_title" = "Fehler";
+"no_competition_error" = "Kein Wettbewerb mit diesem Ergebnis verknüpft";
+"invalid_competition_id_error" = "Ungültige Wettbewerbs-ID";
+"device_disconnected_title" = "Gerät getrennt";
+"connect_device_before_submit" = "Bitte verbinden Sie das Gerät vor dem Senden";
+"device_auth_required_title" = "Geräteauthentifizierung erforderlich";
+"device_token_unavailable" = "Authentifizierungstoken des Geräts nicht verfügbar. Bitte stellen Sie sicher, dass das Gerät korrekt verbunden ist";
+"not_authenticated_title" = "Nicht authentifiziert";
+"login_before_submit" = "Bitte melden Sie sich an, bevor Sie Ergebnisse einreichen";
+"success_title" = "Erfolg";
+"submit_success_message" = "Wettbewerbsergebnis erfolgreich eingereicht";
+"submit_failed_title" = "Senden fehlgeschlagen";
+"alert_title" = "Benachrichtigung";
+"ok_button" = "OK";
+
+/* User Profile */
+"user_profile" = "Benutzerprofil";
+"profile" = "Profil";
+"edit_profile" = "Profil bearbeiten";
+"change_password" = "Passwort ändern";
+"update_profile" = "Profil aktualisieren";
+"current_password" = "Aktuelles Passwort";
+"new_password" = "Neues Passwort";
+"confirm_password" = "Neues Passwort bestätigen";
+"profile_updated_success" = "Profil erfolgreich aktualisiert";
+"username" = "Benutzername";
+
+/* Competition Results Sync */
+"sync_results" = "Ergebnisse Synchronisieren";
+"sync_error_title" = "Synchronisierungsfehler";
+"submitted" = "Eingereicht";
+"local_unsubmitted" = "Lokal/Nicht Eingereicht";
+
+/* OTA - Over-The-Air Update */
+"ota_waiting_for_confirm" = "Warten auf Bestätigung des Zielgeräts zum Betreten des OTA-Modus...";
+"ota_device_in_mode" = "Ziel im OTA-Modus. Warten auf Download-Bereitschaftssignal...";
+"ota_preparation_timeout" = "Zeitüberschreitung der Gerätevorbereitung (10 Minuten). Bitte überprüfen Sie Ihr Gerät und versuchen Sie es erneut.";
+"ota_success_confirmation" = "Ziel hat den OTA-Modus erfolgreich aktiviert";
+"ota_waiting_for_ready" = "Ziel bereitet sich auf Download vor...";
+"ota_device_ready" = "Ziel bereit. Upgrade wird gestartet...";
+"ota_preparation_failed" = "OTA-Vorbereitung fehlgeschlagen";
+
+/* OTA Update UI - AdminTabView & OTAUpdateView */
+"ota_update_title" = "OTA-Update";
+"ota_update_description" = "Nach Systemaktualisierungen suchen und installieren";
+"ota_version_history" = "Versionsverlauf";
+"ota_fetching_history" = "Verlauf wird abgerufen...";
+"ota_latest_version" = "Neueste";
+"ota_confirm_title" = "OTA starten?";
+"ota_confirm_message" = "Zielgerät auf Version %@ aktualisieren? Alle nicht gespeicherten Spielfortschritte gehen verloren.";
+"ota_cancel_button" = "Abbrechen";
+"ota_start_update_button" = "Update starten";
+"ota_retry_verification" = "Überprüfung wiederholen";
+"ota_recovery_backup" = "Wiederherstellung (Sicherung wiederherstellen)";
+"ota_done_button" = "Fertig";
+"ota_target_version" = "Zielversion:";
+
+/* Manual Device Selection */
+"device_select_title" = "Gerät auswählen";
+"device_select_description" = "Verfügbare Geräte mit FlexTarget-Service";
+"device_scanning" = "Suche nach Geräten...";
+"device_not_found" = "Keine Geräte gefunden";
+"device_not_found_description" = "Stellen Sie sicher, dass Ihr Gerät eingeschaltet und in der Nähe ist";
+"device_start_scan" = "Scan starten";
+"device_scan_again" = "Erneut scannen";
+"device_cancel" = "Abbrechen";
+"manual_select_title" = "Manuell auswählen";
+"manual_select_description" = "Verfügbare Geräte durchsuchen und auswählen";
+
+/* OTA States and Messages */
+"ota_state_idle" = "Bereit";
+"ota_state_preparing" = "Vorbereitung";
+"ota_state_waiting_for_ready" = "Wartet";
+"ota_state_downloading" = "Lädt herunter";
+"ota_state_reloading" = "Wird neu geladen";
+"ota_state_verifying" = "Überprüfung";
+"ota_state_completed" = "Abgeschlossen";
+"ota_state_failed" = "Fehlgeschlagen";
+
+"ota_msg_preparing" = "Warte auf Gerätebestätigung zur Eingabe des OTA-Modus...";
+"ota_msg_ready_to_download" = "Gerät im OTA-Modus. Warte auf Download-Bereitschaftssignal...";
+"ota_msg_downloading" = "Download-Update auf Zielgerät...";
+"ota_msg_reloading" = "Download abgeschlossen. Neustart der Geräte-App...";
+"ota_msg_verifying" = "Installation wird überprüft...";
+"ota_msg_success" = "Update erfolgreich!";
+"ota_msg_prep_timeout" = "Gerätevorbereitungs-Timeout (10 Minuten). Bitte überprüfen Sie Ihr Gerät und versuchen Sie es erneut.";
+"ota_msg_ready_timeout" = "Gerät ist nicht in den OTA-Modus eingetreten. Bitte versuchen Sie es erneut.";
+"ota_msg_verification_timeout" = "Überprüfungs-Timeout. Update könnte fehlgeschlagen sein.";
+"ota_msg_no_upgrade_info" = "Upgrade-Informationen nicht verfügbar.";
+"ota_msg_retrying_verification" = "Überprüfung wird wiederholt...";
+"ota_msg_restoring_backup" = "Sicherung wird wiederhergestellt...";
+"ota_msg_no_metadata" = "Upgrade-Metadaten für Version %@ nicht gefunden.";
+"ota_msg_fetch_metadata_failed" = "Abrufen von Upgrade-Metadaten fehlgeschlagen.";
+"ota_msg_auth_failed" = "Abrufen von Authentifizierungsdaten für OTA fehlgeschlagen.";
+"ota_msg_no_version_selected" = "Keine OTA-Version ausgewählt.";
+
+/* OTA Error Alerts */
+"ota_failed_to_start_title" = "OTA konnte nicht gestartet werden";
+"ota_game_disk_not_found" = "Spieldatenträger auf dem Gerät nicht gefunden. Bitte überprüfen Sie das Gerät und versuchen Sie es erneut.";

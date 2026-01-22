@@ -1,5 +1,6 @@
 import AVFoundation
 import SwiftUI
+import UIKit
 
 enum TimerState {
     case idle
@@ -13,8 +14,19 @@ struct TimerSessionView: View {
 
     let drillSetup: DrillSetup
     let bleManager: BLEManager
+    let competition: Competition?
+    let athlete: Athlete?
     let onDrillComplete: ([DrillRepeatSummary]) -> Void
     let onDrillFailed: () -> Void
+    
+    init(drillSetup: DrillSetup, bleManager: BLEManager, competition: Competition? = nil, athlete: Athlete? = nil, onDrillComplete: @escaping ([DrillRepeatSummary]) -> Void, onDrillFailed: @escaping () -> Void) {
+        self.drillSetup = drillSetup
+        self.bleManager = bleManager
+        self.competition = competition
+        self.athlete = athlete
+        self.onDrillComplete = onDrillComplete
+        self.onDrillFailed = onDrillFailed
+    }
 
     @State private var timerState: TimerState = .idle
     @State private var delayTarget: Date?
@@ -27,7 +39,7 @@ struct TimerSessionView: View {
     @State private var showEndDrillAlert: Bool = false
     @State private var gracePeriodActive: Bool = false
     @State private var gracePeriodRemaining: TimeInterval = 0
-    private let gracePeriodDuration: TimeInterval = 3.0
+    private let gracePeriodDuration: TimeInterval = 5.0
     
     // Drill execution properties
     @State private var executionManager: DrillExecutionManager?
@@ -50,6 +62,26 @@ struct TimerSessionView: View {
     var body: some View {
         ZStack {
             VStack(spacing: 40) {
+                if competition != nil {
+                    VStack(spacing: 4) {
+                        Text(NSLocalizedString("competition_mode", comment: "Competition Mode indicator"))
+                            .font(.caption)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 4)
+                            .background(Color.red)
+                            .cornerRadius(4)
+                        
+                        if let athleteName = athlete?.name {
+                            Text(athleteName)
+                                .font(.caption2)
+                                .foregroundColor(.gray)
+                        }
+                    }
+                    .padding(.top, 10)
+                }
+                
                 Spacer()
 
                 VStack(spacing: 12) {
@@ -125,11 +157,11 @@ struct TimerSessionView: View {
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
                     .frame(width: 200, height: 200)
-                    .foregroundColor(.white)
-                    .background(buttonColor)
+                    .foregroundColor(buttonTextColor)
+                    .background(buttonBackgroundColor)
                     .clipShape(Circle())
                     .shadow(color: Color.black.opacity(0.25), radius: 10, x: 0, y: 10)
-                    .disabled(timerState == .standby || (timerState == .idle && readyTargetsCount < expectedDevices.count && expectedDevices.count > 0))
+                    .disabled(timerState == .standby || isWaitingForTargetReadiness)
                 }
 
                 Spacer()
@@ -174,7 +206,7 @@ struct TimerSessionView: View {
                                 .foregroundColor(.orange)
                         } else {
                             Text("\(readyTargetsCount)/\(expectedDevices.count) \(NSLocalizedString("targets_ready", comment: "Targets ready"))")
-                                .font(.subheadline)
+                                .font(.title3)
                                 .foregroundColor(readyTargetsCount == expectedDevices.count && expectedDevices.count > 0 ? .green : .white)
                         }
                     }
@@ -203,6 +235,8 @@ struct TimerSessionView: View {
             stopUpdateTimer()
             readinessManager?.stopExecution()
             readinessManager = nil
+            // Re-enable idle timer when leaving the view
+            UIApplication.shared.isIdleTimerDisabled = false
         }
         .onReceive(NotificationCenter.default.publisher(for: .bleNetlinkForwardReceived)) { notification in
             executionManager?.handleNetlinkForward(notification)
@@ -229,7 +263,19 @@ struct TimerSessionView: View {
         }
     }
 
-    private var buttonColor: Color {
+    private var isWaitingForTargetReadiness: Bool {
+        timerState == .idle && expectedDevices.count > 0 && readyTargetsCount < expectedDevices.count
+    }
+
+    private var buttonTextColor: Color {
+        isWaitingForTargetReadiness ? .black : .white
+    }
+
+    private var buttonBackgroundColor: Color {
+        if isWaitingForTargetReadiness {
+            return Color.gray
+        }
+
         switch timerState {
         case .idle:
             return Color.red
@@ -267,6 +313,8 @@ struct TimerSessionView: View {
                 // This callback is ONLY called when completeDrill() is explicitly called by UI
                 // It provides all summaries for all completed repeats
                 DispatchQueue.main.async {
+                    // Re-enable idle timer when drill completes
+                    UIApplication.shared.isIdleTimerDisabled = false
                     // All repeats completed - call the parent's callback to trigger navigation and save
                     self.onDrillComplete(summaries)
                     // NOTE: Do NOT dismiss here - let parent view handle navigation
@@ -274,12 +322,20 @@ struct TimerSessionView: View {
             },
             onFailure: {
                 DispatchQueue.main.async {
+                    // Re-enable idle timer on drill failure
+                    UIApplication.shared.isIdleTimerDisabled = false
                     self.onDrillFailed()
                 }
             },
             onReadinessUpdate: { readyCount, totalCount in
                 DispatchQueue.main.async {
+                    let wasReady = self.readyTargetsCount == self.expectedDevices.count && self.expectedDevices.count > 0
                     self.readyTargetsCount = readyCount
+                    let isReady = readyCount == totalCount && totalCount > 0
+                    
+                    if isReady && !wasReady {
+                        self.playReadySound()
+                    }
                 }
             },
             onReadinessTimeout: { nonResponsiveList in
@@ -400,6 +456,8 @@ struct TimerSessionView: View {
         playHighBeep()
         executionManager?.setBeepTime(timestamp)
         executionManager?.startExecution()
+        // Disable idle timer to prevent screen lock during drill
+        UIApplication.shared.isIdleTimerDisabled = true
     }
 
     private func buttonTapped() {
@@ -506,6 +564,20 @@ struct TimerSessionView: View {
             audioPlayer?.play()
         } catch {
             print("Failed to play standby audio: \(error)")
+        }
+    }
+
+    private func playReadySound() {
+        guard let url = Bundle.main.url(forResource: "ready", withExtension: "mp3") else {
+            print("Ready audio file not found")
+            return
+        }
+        
+        do {
+            audioPlayer = try AVAudioPlayer(contentsOf: url)
+            audioPlayer?.play()
+        } catch {
+            print("Failed to play ready audio: \(error)")
         }
     }
 }

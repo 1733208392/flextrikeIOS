@@ -9,9 +9,12 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import com.flextarget.android.data.local.converter.Converters
 import com.flextarget.android.data.local.dao.*
 import com.flextarget.android.data.local.entity.*
+import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.util.Date
+import java.util.UUID
 
 /**
  * Room database for FlexTarget application.
@@ -28,9 +31,15 @@ import kotlinx.coroutines.launch
         DrillSetupEntity::class,
         DrillResultEntity::class,
         ShotEntity::class,
-        DrillTargetsConfigEntity::class
+        DrillTargetsConfigEntity::class,
+        UserEntity::class,
+        CompetitionEntity::class,
+        GamePlayEntity::class,
+        DrillHistoryEntity::class,
+        AthleteEntity::class,
+        AppAuthEntity::class
     ],
-    version = 1,
+    version = 4,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
@@ -40,12 +49,18 @@ abstract class FlexTargetDatabase : RoomDatabase() {
     abstract fun drillResultDao(): DrillResultDao
     abstract fun shotDao(): ShotDao
     abstract fun drillTargetsConfigDao(): DrillTargetsConfigDao
+    abstract fun userDao(): UserDao
+    abstract fun competitionDao(): CompetitionDao
+    abstract fun gamePlayDao(): GamePlayDao
+    abstract fun drillHistoryDao(): DrillHistoryDao
+    abstract fun athleteDao(): AthleteDao
+    abstract fun appAuthDao(): AppAuthDao
     
     companion object {
         @Volatile
         private var INSTANCE: FlexTargetDatabase? = null
         
-        private const val DATABASE_NAME = "flex_target_database"
+        private const val DATABASE_NAME = "flex_target_database_v3"
         
         fun getDatabase(
             context: Context,
@@ -57,7 +72,7 @@ abstract class FlexTargetDatabase : RoomDatabase() {
                     FlexTargetDatabase::class.java,
                     DATABASE_NAME
                 )
-                    .addCallback(DatabaseCallback(scope))
+                    .addCallback(DatabaseCallback(context.applicationContext, scope))
                     .fallbackToDestructiveMigration() // For development; remove in production
                     .build()
                 INSTANCE = instance
@@ -69,6 +84,7 @@ abstract class FlexTargetDatabase : RoomDatabase() {
          * Callback to initialize database with seed data if needed.
          */
         private class DatabaseCallback(
+            private val context: Context,
             private val scope: CoroutineScope
         ) : RoomDatabase.Callback() {
             
@@ -76,38 +92,74 @@ abstract class FlexTargetDatabase : RoomDatabase() {
                 super.onCreate(db)
                 INSTANCE?.let { database ->
                     scope.launch {
-                        // Populate database with initial data if needed
-                        // This mirrors the iOS PersistenceController initialization
-                        populateDatabase(database)
+                        // Populate database with initial data from JSON
+                        populateDatabase(database, context)
                     }
                 }
             }
         }
-        
+
         /**
-         * Populate database with initial data.
-         * Can be used for seed data similar to iOS UITestDataSeeder.
+         * Populate database with initial data from assets/drills_config.json
          */
-        private suspend fun populateDatabase(database: FlexTargetDatabase) {
-            // Add initial data if needed
-            // This is where you would add seed data similar to the iOS version
+        private suspend fun populateDatabase(database: FlexTargetDatabase, context: Context) {
             val drillSetupDao = database.drillSetupDao()
             val targetConfigDao = database.drillTargetsConfigDao()
             
-            // Example: Add a sample drill setup (can be removed in production)
-            // Uncomment to add seed data:
-            /*
-            val sampleDrill = DrillSetupEntity(
-                name = "Sample Drill",
-                desc = "A sample drill for testing",
-                delay = 3.0,
-                drillDuration = 30.0,
-                repeats = 3,
-                pause = 10
-            )
-            drillSetupDao.insertDrillSetup(sampleDrill)
-            */
+            try {
+                val jsonString = context.assets.open("drills_config.json").bufferedReader().use { it.readText() }
+                val gson = Gson()
+                val config = gson.fromJson(jsonString, DrillsConfig::class.java)
+
+                for (drillJson in config.drills) {
+                    val drillSetup = DrillSetupEntity(
+                        name = drillJson.name,
+                        desc = drillJson.desc,
+                        delay = drillJson.delay,
+                        drillDuration = drillJson.drillDuration,
+                        repeats = drillJson.repeats,
+                        pause = drillJson.pause,
+                        mode = drillJson.mode
+                    )
+                    val drillId = drillSetupDao.insertDrillSetup(drillSetup)
+
+                    val targets = drillJson.targets.map { targetJson ->
+                        DrillTargetsConfigEntity(
+                            seqNo = targetJson.seqNo,
+                            targetName = targetJson.targetName,
+                            targetType = targetJson.targetType,
+                            timeout = targetJson.timeout,
+                            countedShots = targetJson.countedShots,
+                            drillSetupId = drillSetup.id
+                        )
+                    }
+                    targetConfigDao.insertTargetConfigs(targets)
+                }
+                println("[FlexTargetDatabase] Successfully seeded ${config.drills.size} drills from JSON")
+            } catch (e: Exception) {
+                println("[FlexTargetDatabase] Error seeding database: ${e.message}")
+                e.printStackTrace()
+            }
         }
+
+    private data class DrillsConfig(val drills: List<DrillJson>)
+    private data class DrillJson(
+        val name: String,
+        val desc: String,
+        val delay: Double,
+        val drillDuration: Double,
+        val repeats: Int,
+        val pause: Int = 0,
+        val mode: String? = null,
+        val targets: List<TargetJson>
+    )
+    private data class TargetJson(
+        val seqNo: Int,
+        val targetName: String,
+        val targetType: String,
+        val timeout: Double,
+        val countedShots: Int
+    )
         
         /**
          * Close database instance. Useful for testing.

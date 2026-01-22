@@ -4,7 +4,6 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import java.util.Date
 import java.util.UUID
 
 /**
@@ -35,7 +34,7 @@ data class ShotEntity(
     
     val data: String? = null,
     
-    val timestamp: Date? = null,
+    val timestamp: Long = 0L,
     
     val drillResultId: UUID? = null
 )

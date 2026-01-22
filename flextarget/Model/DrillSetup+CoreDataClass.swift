@@ -19,10 +19,29 @@ extension DrillSetup {
     @NSManaged public var thumbnailURL: URL?
     @NSManaged public var delay: Double
     @NSManaged public var drillDuration: Double
-    @NSManaged public var repeats: Int
-    @NSManaged public var pause: Int
+    @NSManaged public var mode: String?
+    @NSManaged public var repeats: Int32
+    @NSManaged public var pause: Int32
     @NSManaged public var targets: NSSet?
     @NSManaged public var results: NSSet?
+    @NSManaged public var competitions: NSSet?
+
+}
+
+// MARK: Generated accessors for competitions
+extension DrillSetup {
+
+    @objc(addCompetitionsObject:)
+    @NSManaged public func addToCompetitions(_ value: Competition)
+
+    @objc(removeCompetitionsObject:)
+    @NSManaged public func removeFromCompetitions(_ value: Competition)
+
+    @objc(addCompetitions:)
+    @NSManaged public func addToCompetitions(_ values: NSSet)
+
+    @objc(removeCompetitions:)
+    @NSManaged public func removeFromCompetitions(_ values: NSSet)
 
 }
 

@@ -1,5 +1,7 @@
 package com.flextarget.android.data.repository
 
+import android.content.Context
+import com.flextarget.android.data.local.FlexTargetDatabase
 import com.flextarget.android.data.local.dao.DrillResultDao
 import com.flextarget.android.data.local.dao.ShotDao
 import com.flextarget.android.data.local.entity.DrillResultEntity
@@ -18,6 +20,23 @@ class DrillResultRepository(
     private val drillResultDao: DrillResultDao,
     private val shotDao: ShotDao
 ) {
+    
+    companion object {
+        @Volatile
+        private var INSTANCE: DrillResultRepository? = null
+        
+        fun getInstance(context: Context): DrillResultRepository {
+            return INSTANCE ?: synchronized(this) {
+                val database = FlexTargetDatabase.getDatabase(context)
+                val instance = DrillResultRepository(
+                    database.drillResultDao(),
+                    database.shotDao()
+                )
+                INSTANCE = instance
+                instance
+            }
+        }
+    }
     
     // Observe all drill results
     val allDrillResults: Flow<List<DrillResultEntity>> = drillResultDao.getAllDrillResults()

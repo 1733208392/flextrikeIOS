@@ -8,6 +8,7 @@ struct DrillNameSectionView: View {
     @Binding var drillName: String
     @State private var isEditingName = false
     @FocusState private var isDrillNameFocused: Bool
+    var disabled: Bool = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -28,17 +29,20 @@ struct DrillNameSectionView: View {
                     .padding(.vertical, 4)
                     .background(Color.clear)
                     .submitLabel(.done)
+                    .disabled(disabled)
                     .disableAutocorrection(true)
                     .textInputAutocapitalization(.words)
                     
                     if !isEditingName {
                         Text(drillName.isEmpty ? "Drill Name" : drillName)
-                            .foregroundColor(.white)
+                            .foregroundColor(disabled ? .gray : .white)
                             .font(.title3)
                             .padding(.vertical, 4)
                             .onTapGesture {
-                                isEditingName = true
-                                isDrillNameFocused = true
+                                if !disabled {
+                                    isEditingName = true
+                                    isDrillNameFocused = true
+                                }
                             }
                     }
                 }
@@ -46,6 +50,9 @@ struct DrillNameSectionView: View {
                 Spacer()
                 
                 Button(action: {
+                    if disabled {
+                        return // Do nothing if disabled
+                    }
                     if isEditingName {
                         drillName = "" // Clear the text when xmark is tapped
                         isEditingName = false
@@ -56,8 +63,9 @@ struct DrillNameSectionView: View {
                     }
                 }) {
                     Image(systemName: isEditingName ? "xmark" : "pencil")
-                        .foregroundColor(.red)
+                        .foregroundColor(disabled ? .gray : .red)
                 }
+                .disabled(disabled)
             }
             
             Rectangle()

@@ -12,6 +12,7 @@ import UIKit
 
 struct DrillRepeatsPauseConfView: View {
     @Binding var drillDuration: Double
+    var disabled: Bool = false
 
     // Duration options from 5 to 30 seconds in 1-second increments
     private let durationOptions: [Double] = Array(stride(from: 5, through: 30, by: 1))
@@ -38,7 +39,9 @@ struct DrillRepeatsPauseConfView: View {
 
             // Button to open picker sheet
             Button(action: {
-                showDurationPicker = true
+                if !disabled {
+                    showDurationPicker = true
+                }
             }) {
                 HStack {
                     Text("\(Int(drillDuration))")
@@ -54,6 +57,7 @@ struct DrillRepeatsPauseConfView: View {
                 .cornerRadius(6)
             }
             .buttonStyle(.plain)
+            .disabled(disabled)
         }
         .padding()
         .background(Color.gray.opacity(0.2))

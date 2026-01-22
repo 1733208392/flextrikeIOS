@@ -13,7 +13,7 @@ extension Shot {
     }
 
     @NSManaged public var data: String?
-    @NSManaged public var timestamp: Date?
+    @NSManaged public var timestamp: Int64
     @NSManaged public var drillResult: DrillResult?
 
 }
