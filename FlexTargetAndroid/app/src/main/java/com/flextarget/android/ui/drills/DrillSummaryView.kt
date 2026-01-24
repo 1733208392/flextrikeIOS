@@ -67,6 +67,7 @@ fun DrillSummaryView(
     var editingSummary by remember { mutableStateOf<DrillRepeatSummary?>(null) }
 
     val drillName = drillSetup.name ?: "Untitled Drill"
+    val isCQBMode = drillSetup.mode?.lowercase() == "cqb"
 
     Column(
         modifier = Modifier
@@ -111,6 +112,8 @@ fun DrillSummaryView(
         ) {
             if (summaries.isEmpty()) {
                 EmptyStateView()
+            } else if (isCQBMode) {
+                CQBDrillSummaryView(summaries = summaries)
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),

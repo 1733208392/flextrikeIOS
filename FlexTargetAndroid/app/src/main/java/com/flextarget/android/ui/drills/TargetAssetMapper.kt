@@ -14,12 +14,12 @@ object TargetAssetMapper {
             "special_1" -> "ipsc.special.1.live.target.png"
             "special_2" -> "ipsc.special.2.live.target.png"
             "rotation" -> "rotation.live.target.png"
-            "cqb_front" -> "cqb_front.live.target.png"
-            "cqb_hostage" -> "cqb_hostage.live.target.png"
-            "cqb_move" -> "cqb_move.live.target.png"
-            "cqb_swing" -> "cqb_swing.live.target.png"
-            "idpa" -> "idpa.live.target.png"
-            "disguised_enemy" -> "disguised_enemy.live.target.png"
+            "cqb_front" -> "cqb_front_live_target.png"
+            "cqb_hostage" -> "cqb_hostage_live_target.png"
+            "cqb_move" -> "cqb_move_live_target.png"
+            "cqb_swing" -> "cqb_swing_live_target.png"
+            "idpa" -> "idpa_live_target.png"
+            "disguised_enemy" -> "disguised_enemy_live_target.png"
             else -> "ipsc.live.target.png" // Default fallback
         }
     }

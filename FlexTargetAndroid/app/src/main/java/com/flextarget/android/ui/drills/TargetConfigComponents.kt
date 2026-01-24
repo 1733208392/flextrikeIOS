@@ -31,6 +31,10 @@ private fun getIconForTargetType(type: String): String {
         "paddle" -> "ipsc-paddle.svg"
         "popper" -> "ipsc-popper.svg"
         "rotation" -> "rotation.svg"
+        "cqb_front" -> "cqb_front.svg"
+        "cqb_hostage" -> "cqb_hostoage.svg"
+        "cqb_swing" -> "cqb_swing.svg"
+        "disguised_enemy" -> "disguise_enemy.svg"
         else -> "ipsc.svg" // default icon
     }
 }

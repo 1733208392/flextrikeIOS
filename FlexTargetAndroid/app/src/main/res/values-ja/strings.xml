@@ -285,6 +285,20 @@
     <string name="ipsc">IPSC</string>
     <string name="idpa">IDPA</string>
     <string name="cqb">CQB</string>
+    <!-- CQB Target Types -->
+    <string name="cqb_swing">覗く</string>
+    <string name="cqb_front">狙う</string>
+    <string name="cqb_move">通過</string>
+    <string name="cqb_hostage">人質</string>
+    <string name="disguised_enemy">変装した敵</string>
+    <!-- CQB Drill Summary -->
+    <string name="cqb_total_shots">総射撃数</string>
+    <string name="cqb_duration">期間</string>
+    <string name="cqb_passed">合格</string>
+    <string name="cqb_failed">不合格</string>
+    <string name="cqb_threat">脅威</string>
+    <string name="cqb_non_threat">非脅威</string>
+    <string name="cqb_shots_format">射撃: %1$d/%2$d</string>
     <string name="configuration">設定</string>
     <string name="saving">保存中...</string>
     <string name="save_drill">ドリルを保存</string>

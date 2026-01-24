@@ -187,6 +187,18 @@ class AndroidBLEManager(private val context: Context) {
             // Process received data (similar to iOS implementation)
             messageBuffer.addAll(data.toList())
 
+            // First, try to process if the buffer contains a complete JSON message
+            val currentString = String(messageBuffer.toByteArray(), Charsets.UTF_8)
+            try {
+                JSONObject(currentString)
+                // If parsing succeeds, it's a complete JSON message
+                processMessage(currentString)
+                messageBuffer.clear()
+                return
+            } catch (e: Exception) {
+                // Not a complete JSON, check for separators
+            }
+
             // Look for message separators (\r\r or \r\n)
             val separator1 = listOf(0x0D.toByte(), 0x0D.toByte()) // \r\r
             val separator2 = listOf(0x0D.toByte(), 0x0A.toByte()) // \r\n
@@ -201,7 +213,7 @@ class AndroidBLEManager(private val context: Context) {
                 messageBuffer.clear()
                 messageBuffer.addAll(remaining)
 
-                val message = String(completeBytes)
+                val message = String(completeBytes, Charsets.UTF_8)
                 processMessage(message)
             }
         }

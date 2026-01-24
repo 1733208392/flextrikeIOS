@@ -75,7 +75,7 @@ fun DrillFormView(
     var repeats by remember { mutableStateOf(existingDrill?.repeats ?: 1) }
     var pause by remember { mutableStateOf(existingDrill?.pause ?: 5) }
     var targets by remember { mutableStateOf<List<DrillTargetsConfigData>>(emptyList()) }
-    var isTargetListReceived by remember { mutableStateOf(false) }
+    val isTargetListReceivedDerived by derivedStateOf { bleManager.networkDevices.isNotEmpty() }
     var currentScreen by remember { mutableStateOf(DrillFormScreen.FORM) }
     var showEditDisabledAlert by remember { mutableStateOf(false) }
     var drillResultCount by remember { mutableStateOf(0) }
@@ -103,12 +103,7 @@ fun DrillFormView(
         }
     }
 
-    // Observe device list updates
-    LaunchedEffect(bleManager.networkDevices, bleManager.lastDeviceListUpdate) {
-        if (bleManager.networkDevices.isNotEmpty()) {
-            isTargetListReceived = true
-        }
-    }
+    // Observe device list updates - now handled by derivedStateOf
 
     // Load targets for existing drill
     existingDrill?.id?.let { drillId ->
@@ -360,7 +355,7 @@ fun DrillFormView(
                         pause = pause,
                         onPauseChange = { pause = it },
                         targets = targets,
-                        isTargetListReceived = isTargetListReceived,
+                        isTargetListReceived = isTargetListReceivedDerived,
                         bleManager = bleManager,
                         onNavigateToTargetConfig = { if (!isEditingDisabled) currentScreen = DrillFormScreen.TARGET_CONFIG else showEditDisabledAlert = true },
                         isSaving = isSaving,

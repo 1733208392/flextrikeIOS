@@ -286,6 +286,20 @@
     <string name="ipsc">IPSC</string>
     <string name="idpa">IDPA</string>
     <string name="cqb">CQB</string>
+    <!-- CQB Target Types -->
+    <string name="cqb_swing">窥视</string>
+    <string name="cqb_front">瞄准</string>
+    <string name="cqb_move">经过</string>
+    <string name="cqb_hostage">人质</string>
+    <string name="disguised_enemy">伪装敌人</string>
+    <!-- CQB Drill Summary -->
+    <string name="cqb_total_shots">总射击数</string>
+    <string name="cqb_duration">持续时间</string>
+    <string name="cqb_passed">通过</string>
+    <string name="cqb_failed">失败</string>
+    <string name="cqb_threat">威胁</string>
+    <string name="cqb_non_threat">非威胁</string>
+    <string name="cqb_shots_format">射击: %1$d/%2$d</string>
     <string name="configuration">配置</string>
     <string name="saving">保存中...</string>
     <string name="save_drill">保存演练</string>

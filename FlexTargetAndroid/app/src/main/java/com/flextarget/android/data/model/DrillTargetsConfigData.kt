@@ -52,15 +52,8 @@ data class DrillTargetsConfigData(
                 "cqb" -> listOf(
                     "cqb_front",
                     "cqb_hostage",
-                    "cqb_move",
-                    "cqb_swing",
-                    "hostage",
-                    "paddle",
-                    "popper",
-                    "rotation",
-                    "special_1",
-                    "special_2",
-                    "testTarget"
+                    "disguised_enemy",
+                    "cqb_swing"
                 )
                 else -> DEFAULT_TARGET_TYPES
             }

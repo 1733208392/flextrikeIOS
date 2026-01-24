@@ -285,6 +285,20 @@
     <string name="ipsc">IPSC</string>
     <string name="idpa">IDPA</string>
     <string name="cqb">CQB</string>
+    <!-- CQB Target Types -->
+    <string name="cqb_swing">Spähen</string>
+    <string name="cqb_front">Zielen</string>
+    <string name="cqb_move">Vorbeigehen</string>
+    <string name="cqb_hostage">Geisel</string>
+    <string name="disguised_enemy">Verkleideter Feind</string>
+    <!-- CQB Drill Summary -->
+    <string name="cqb_total_shots">Gesamtschüsse</string>
+    <string name="cqb_duration">Dauer</string>
+    <string name="cqb_passed">BESTANDEN</string>
+    <string name="cqb_failed">GESCHEITERT</string>
+    <string name="cqb_threat">BEDROHUNG</string>
+    <string name="cqb_non_threat">KEINE BEDROHUNG</string>
+    <string name="cqb_shots_format">Schüsse: %1$d/%2$d</string>
     <string name="configuration">Konfiguration</string>
     <string name="saving">Speichere...</string>
     <string name="save_drill">Bohrung speichern</string>
