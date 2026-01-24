@@ -103,7 +103,7 @@ fun TargetConfigListView(
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
             ) {
-                Text("Save", color = Color.White)
+                Text(stringResource(R.string.save), color = Color.White)
             }
         }
     }

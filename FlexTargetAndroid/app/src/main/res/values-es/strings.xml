@@ -118,6 +118,10 @@
     <string name="retry">Reintentar</string>
     <string name="confirm">Confirmar</string>
     <string name="delete">Eliminar</string>
+    <string name="device">Dispositivo</string>
+    <string name="select_device">Seleccionar Dispositivo</string>
+    <string name="type">Tipo</string>
+    <string name="select_type">Seleccionar Tipo</string>
     <string name="edit">Editar</string>
     <string name="close">Cerrar</string>
     <string name="loading">Cargando...</string>
@@ -190,7 +194,6 @@
     <string name="browse_select_devices">Buscar y seleccionar dispositivos disponibles</string>
     <string name="scan_qr_code">Escanear código QR</string>
     <string name="scan_device_qr">Escanear código QR del dispositivo</string>
-    <string name="select_device">Seleccionar dispositivo</string>
     <string name="select_target_type">Seleccionar tipo de objetivo</string>
     <string name="available_devices">Dispositivos disponibles</string>
     <string name="scan_again">Escanear de nuevo</string>

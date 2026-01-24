@@ -92,7 +92,7 @@ fun TargetConfigRow(
             // Device selection
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "Device",
+                    text = stringResource(R.string.device),
                     color = Color.Gray,
                     style = MaterialTheme.typography.bodySmall
                 )
@@ -105,7 +105,7 @@ fun TargetConfigRow(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = if (config.targetName.isEmpty()) "Select Device" else config.targetName,
+                        text = if (config.targetName.isEmpty()) stringResource(R.string.select_device) else config.targetName,
                         color = if (config.targetName.isEmpty()) Color.Gray else Color.Red,
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.weight(1f)
@@ -128,7 +128,7 @@ fun TargetConfigRow(
             // Target type selection
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "Type",
+                    text = stringResource(R.string.type),
                     color = Color.Gray,
                     style = MaterialTheme.typography.bodySmall
                 )
@@ -148,7 +148,7 @@ fun TargetConfigRow(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = config.targetType,
+                        text = getDisplayNameForTargetType(config.targetType),
                         color = Color.White,
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.weight(1f)

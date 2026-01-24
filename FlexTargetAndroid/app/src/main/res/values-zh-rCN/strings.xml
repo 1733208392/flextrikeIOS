@@ -118,6 +118,10 @@
     <string name="retry">重试</string>
     <string name="confirm">确认</string>
     <string name="delete">删除</string>
+    <string name="device">设备</string>
+    <string name="select_device">选择设备</string>
+    <string name="type">类型</string>
+    <string name="select_type">选择类型</string>
     <string name="edit">编辑</string>
     <string name="close">关闭</string>
     <string name="loading">加载中...</string>
@@ -190,7 +194,7 @@
     <string name="browse_select_devices">浏览并选择可用设备</string>
     <string name="scan_qr_code">扫描二维码</string>
     <string name="scan_device_qr">扫描设备二维码</string>
-    <string name="select_device">选择设备</string>
+
     <string name="select_target_type">选择目标类型</string>
     <string name="available_devices">可用设备</string>
     <string name="scan_again">重新扫描</string>
