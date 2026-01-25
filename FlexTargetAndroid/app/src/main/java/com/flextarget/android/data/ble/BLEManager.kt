@@ -52,6 +52,10 @@ class BLEManager private constructor() {
         get() = connectedPeripheral?.name
 
     fun initialize(context: Context) {
+        // Don't reinitialize if already connected
+        if (androidBLEManager != null && isConnected) {
+            return
+        }
         androidBLEManager = AndroidBLEManager(context).apply {
             onShotReceived = { shotData ->
                 this@BLEManager.onShotReceived?.invoke(shotData)

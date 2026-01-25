@@ -160,19 +160,28 @@ class DrillExecutionManager(
         val sortedTargets = targets.sortedBy { it.seqNo }
 
         for ((index, target) in sortedTargets.withIndex()) {
-            val delayValue = 0.0  // Always 0 for ready command, matching iOS
-            val roundedDelay = String.format("%.2f", delayValue).toDouble()
+            val content = if (target.targetType == "disguised_enemy") {
+                mapOf(
+                    "command" to "ready",
+                    "mode" to "cqb",
+                    "targetType" to "disguised_enemy"
+                )
+            } else {
+                val delayValue = 0.0  // Always 0 for ready command, matching iOS
+                val roundedDelay = String.format("%.2f", delayValue).toDouble()
 
-            val content = mapOf(
-                "command" to "ready",
-                "delay" to roundedDelay,
-                "targetType" to (target.targetType ?: ""),
-                "timeout" to 300,
-                "countedShots" to target.countedShots,
-                "repeat" to currentRepeat,
-                "isFirst" to (index == 0),
-                "isLast" to (index == sortedTargets.size - 1)
-            )
+                mapOf(
+                    "command" to "ready",
+                    "delay" to roundedDelay,
+                    "targetType" to (target.targetType ?: ""),
+                    "timeout" to 1200,
+                    "countedShots" to target.countedShots,
+                    "repeat" to currentRepeat,
+                    "isFirst" to (index == 0),
+                    "isLast" to (index == sortedTargets.size - 1),
+                    "mode" to (drillSetup.mode ?: "ipsc")
+                )
+            }
 
             val message = mapOf(
                 "action" to "netlink_forward",
@@ -508,9 +517,20 @@ class DrillExecutionManager(
         }
 
         val firstShot = adjustedShots.firstOrNull()?.content?.timeDiff ?: 0.0
-        val fastest = adjustedShots.map { it.content.timeDiff }.minOrNull() ?: 0.0
+        val fastest = (adjustedShots.map { it.content.timeDiff }.minOrNull() ?: 0.0).coerceAtLeast(0.0)
 
-        println("[DrillExecutionManager] Hardware times - totalTime: $totalTime, firstShot: $firstShot, fastest: $fastest")
+        // Log original timing data and adjusted timing data
+        println("[DrillExecutionManager] ========== TIMING DEBUG ==========")
+        println("[DrillExecutionManager] Original hardware timeDiff values (from shot data):")
+        sortedShots.forEachIndexed { index, event ->
+            println("[DrillExecutionManager]   Shot ${index + 1}: originalTimeDiff = ${event.shot.content.actualTimeDiff}s")
+        }
+        println("[DrillExecutionManager] Adjusted timeDiff values (split times):")
+        adjustedShots.forEachIndexed { index, shot ->
+            println("[DrillExecutionManager]   Shot ${index + 1}: adjustedTimeDiff = ${shot.content.timeDiff}s")
+        }
+        println("[DrillExecutionManager] Summary metrics - totalTime: $totalTime, firstShot: $firstShot, fastest: $fastest")
+        println("[DrillExecutionManager] ==================================")
 
         val numShots = adjustedShots.size
 

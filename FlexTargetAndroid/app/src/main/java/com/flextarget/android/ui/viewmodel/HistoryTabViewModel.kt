@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.flextarget.android.data.local.entity.DrillSetupEntity
 import com.flextarget.android.data.model.DrillRepeatSummary
 import com.flextarget.android.data.model.ShotData
+import com.flextarget.android.data.model.ScoringUtility
 import com.flextarget.android.data.repository.DrillResultRepository
 import com.flextarget.android.data.repository.DrillSetupRepository
 import com.flextarget.android.ui.drills.DrillSession
@@ -61,9 +62,13 @@ class HistoryTabViewModel(
                     val firstResult = results.firstOrNull() ?: return@mapNotNull null
                     val setup = drillSetupRepository.getDrillSetupById(firstResult.drillResult.drillSetupId ?: return@mapNotNull null)
                         ?: return@mapNotNull null
+                    
+                    // Load drill setup with targets for score calculation
+                    val setupWithTargets = drillSetupRepository.getDrillSetupWithTargets(setup.id)
+                    val targets = setupWithTargets?.targets ?: emptyList()
 
                     val summaries = results.mapNotNull { result ->
-                        convertToSummary(result)
+                        convertToSummary(result, targets)
                     }.sortedBy { it.repeatIndex }
 
                     if (summaries.isEmpty()) return@mapNotNull null
@@ -104,7 +109,10 @@ class HistoryTabViewModel(
         }
     }
 
-    private fun convertToSummary(result: com.flextarget.android.data.local.entity.DrillResultWithShots): DrillRepeatSummary? {
+    private fun convertToSummary(
+        result: com.flextarget.android.data.local.entity.DrillResultWithShots,
+        targets: List<com.flextarget.android.data.local.entity.DrillTargetsConfigEntity> = emptyList()
+    ): DrillRepeatSummary? {
         try {
             val shots = result.shots.mapNotNull { shot ->
                 shot.data?.let { data ->
@@ -126,6 +134,9 @@ class HistoryTabViewModel(
 
             val fastestShot = shots.minOfOrNull { it.content.actualTimeDiff } ?: 0.0
             val firstShot = shots.firstOrNull()?.content?.actualTimeDiff ?: 0.0
+            
+            // Calculate score using ScoringUtility
+            val totalScore = ScoringUtility.calculateTotalScore(shots, targets).toInt()
 
             return DrillRepeatSummary(
                 repeatIndex = 1, // Will be set by caller
@@ -133,7 +144,7 @@ class HistoryTabViewModel(
                 numShots = shots.size,
                 firstShot = firstShot,
                 fastest = fastestShot,
-                score = 0, // Score calculation can be added later
+                score = totalScore,
                 shots = shots
             )
         } catch (e: Exception) {

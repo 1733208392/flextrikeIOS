@@ -236,22 +236,6 @@ fun DrillListView(
                                         )
                                     }
 
-                                    if (drill.pause > 0) {
-                                        Text(
-                                            text = "Pause: ${drill.pause}s",
-                                            color = Color.Gray,
-                                            fontSize = 12.sp
-                                        )
-                                    }
-
-                                    if (drill.delay > 0) {
-                                        Text(
-                                            text = "Delay: ${drill.delay.toInt()}s",
-                                            color = Color.Gray,
-                                            fontSize = 12.sp
-                                        )
-                                    }
-
                                     drill.mode?.let { mode ->
                                         val modeDisplay = when (mode.lowercase()) {
                                             "ipsc" -> "IPSC"

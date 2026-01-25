@@ -141,6 +141,12 @@ class OTARepository @Inject constructor(
                 return@withContext Result.failure(IllegalStateException("Device token is empty"))
             }
             
+            if (authManager.currentAccessToken == null) {
+                _currentState.emit(OTAState.ERROR)
+                _otaProgress.emit(OTAProgress(state = OTAState.ERROR, error = "Not authenticated", lastCheck = Date()))
+                return@withContext Result.failure(IllegalStateException("Not authenticated"))
+            }
+            
             // Check for available OTA version using device token
             val response = api.getLatestOTAVersion(
                 GetOTAVersionRequest(auth_data = deviceToken)

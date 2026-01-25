@@ -47,11 +47,6 @@ fun DrillSummaryView(
     isCompetitionDrill: Boolean = false,
     onCompetitionSubmit: () -> Unit = {}
 ) {
-    println("[DrillSummaryView] Rendering with ${summaries.size} summaries, onReplay callback is null: ${onReplay == null}, onReplay is empty: ${onReplay == {}}")
-    println("[DrillSummaryView] onReplay callback: $onReplay")
-    summaries.forEach { summary ->
-        println("[DrillSummaryView] Summary ${summary.repeatIndex}: totalTime=${summary.totalTime}, firstShot=${summary.firstShot}, fastest=${summary.fastest}, numShots=${summary.numShots}, score: ${summary.score}")
-    }
     val originalScores = remember { mutableStateMapOf<UUID, Int>() }
 
     // Initialize original scores on first composition
@@ -139,17 +134,11 @@ fun DrillSummaryView(
                             // Play button below the card
                             PlayReplayButton(
                                 onReplay = { 
-                                    println("[DrillSummaryView] Play button callback lambda executing - summary ${summary.repeatIndex} has ${summary.shots.size} shots")
-                                    println("[DrillSummaryView] About to call onReplay with summary... onReplay=$onReplay")
-                                    println("[DrillSummaryView] onReplay.toString() = ${onReplay.toString()}")
                                     try {
                                         onReplay(summary)
-                                        println("[DrillSummaryView] onReplay call completed successfully")
                                     } catch (e: Exception) {
-                                        println("[DrillSummaryView] Exception calling onReplay: ${e.message}")
                                         e.printStackTrace()
                                     }
-                                    println("[DrillSummaryView] onReplay returned")
                                 }
                             )
                         }
@@ -563,11 +552,12 @@ private fun MetricView(
                     )
                 )
             )
-            .then(if (metric.isClickable) Modifier.clickable(onClick = onClick ?: {}) else Modifier)
-            .padding(vertical = 14.dp, horizontal = 12.dp),
+            .then(if (metric.isClickable) Modifier.clickable(onClick = onClick ?: {}) else Modifier),
+//            .padding(vertical = 20.dp, horizontal = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterVertically)
     ) {
+
         // Icon and label
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -589,17 +579,19 @@ private fun MetricView(
         }
 
         // Value - animate the numeric part but display with proper formatting
+        val displayText = if (metric.value.contains(" s")) {
+            // For time values, animate the number but keep the "s" unit
+            String.format("%.1f s", animatedValue)
+        } else if (metric.value.contains(".")) {
+            // For other decimal values, animate them
+            String.format("%.1f", animatedValue)
+        } else {
+            // For integer values, display as-is
+            metric.value
+        }
+        
         Text(
-            text = if (metric.value.contains(" s")) {
-                // For time values, animate the number but keep the "s" unit
-                String.format("%.1f s", animatedValue)
-            } else if (metric.value.contains(".")) {
-                // For other decimal values, animate them
-                String.format("%.1f", animatedValue)
-            } else {
-                // For integer values, display as-is
-                metric.value
-            },
+            text = displayText,
             style = MaterialTheme.typography.titleMedium,
             color = Color.White,
             fontWeight = FontWeight.Medium,
@@ -775,7 +767,6 @@ private fun RestoreButton(onClick: () -> Unit) {
 private fun PlayReplayButton(
     onReplay: () -> Unit
 ) {
-    println("[PlayReplayButton] Initialized with onReplay callback: $onReplay")
     var isPressed by remember { mutableStateOf(false) }
     val scale by animateFloatAsState(
         targetValue = if (isPressed) 0.95f else 1.0f,
@@ -790,11 +781,8 @@ private fun PlayReplayButton(
 
     Button(
         onClick = {
-            println("[PlayReplayButton] Button physically clicked on screen!")
             isPressed = false
-            println("[PlayReplayButton] About to invoke onReplay lambda...")
             onReplay()
-            println("[PlayReplayButton] onReplay lambda completed")
         },
         modifier = Modifier
             .fillMaxWidth()
@@ -823,15 +811,13 @@ private fun PlayReplayButton(
 
 // Helper functions
 private fun getMetricsForSummary(summary: DrillRepeatSummary, drillSetup: DrillSetupEntity): List<SummaryMetric> {
-    println("[DrillSummaryView] getMetricsForSummary - summary.totalTime: ${summary.totalTime}, summary.firstShot: ${summary.firstShot}, summary.fastest: ${summary.fastest}")
-
     // Calculate effective counts
     val effectiveCounts = ScoringUtility.calculateEffectiveCounts(summary.shots, null)
     val adjustedCounts = summary.adjustedHitZones ?: effectiveCounts
 
     val hitZonesText = "A:${adjustedCounts["A"] ?: 0} C:${adjustedCounts["C"] ?: 0} D:${adjustedCounts["D"] ?: 0} M:${adjustedCounts["M"] ?: 0} N:${adjustedCounts["N"] ?: 0} PE:${adjustedCounts["PE"] ?: 0}"
 
-    return listOf(
+    val metrics = listOf(
         SummaryMetric(
             icon = Icons.Outlined.Schedule,
             label = "Total Time",
@@ -870,6 +856,8 @@ private fun getMetricsForSummary(summary: DrillRepeatSummary, drillSetup: DrillS
             isClickable = true
         )
     )
+
+    return metrics
 }
 
 private fun formatTime(time: Double): String {

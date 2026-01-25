@@ -211,7 +211,7 @@ class CompetitionRepositoryTest {
 
         val mockResponse = mockk<ApiResponse<GamePlayResponse>>()
         every { mockResponse.data?.playUUID } returns playUuid
-        coEvery { mockApi.addGamePlay(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns mockResponse
+        coEvery { mockApi.addGamePlay(any(), any()) } returns mockResponse
 
         coEvery { mockGamePlayDao.insertGamePlay(any()) } returns 1L
 
@@ -229,7 +229,7 @@ class CompetitionRepositoryTest {
         assertThat(result.isSuccess).isTrue()
         assertThat(result.getOrNull()).isEqualTo(playUuid)
 
-        coVerify { mockApi.addGamePlay(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) }
+        coVerify { mockApi.addGamePlay(any(), any()) }
         coVerify { mockGamePlayDao.insertGamePlay(any()) }
     }
 
@@ -345,13 +345,13 @@ class CompetitionRepositoryTest {
 
         val mockRow = mockk<RankingRow>()
         every { mockRow.rank } returns 1
-        every { mockRow.player_nickname } returns "TopPlayer"
+        every { mockRow.playerNickname } returns "TopPlayer"
         every { mockRow.score } returns 100
-        every { mockRow.play_time } returns "2024-01-15 10:30:00"
+        every { mockRow.playTime } returns "2024-01-15 10:30:00"
 
         val mockResponse = mockk<ApiResponse<List<RankingRow>>>()
         every { mockResponse.data } returns listOf(mockRow)
-        coEvery { mockApi.getGamePlayRanking(any(), any(), any(), any(), any(), any()) } returns mockResponse
+        coEvery { mockApi.getGamePlayRanking(any(), any()) } returns mockResponse
 
         // When
         val result = competitionRepository.getCompetitionRanking(competitionId)
@@ -365,7 +365,7 @@ class CompetitionRepositoryTest {
         assertThat(rankings?.get(0)?.score).isEqualTo(100)
         assertThat(rankings?.get(0)?.playTime).isEqualTo("2024-01-15 10:30:00")
 
-        coVerify { mockApi.getGamePlayRanking(any(), any(), any(), any(), any(), any()) }
+        coVerify { mockApi.getGamePlayRanking(any(), any()) }
     }
 
     @Test

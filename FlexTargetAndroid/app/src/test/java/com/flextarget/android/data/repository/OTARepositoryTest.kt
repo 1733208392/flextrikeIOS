@@ -58,7 +58,7 @@ class OTARepositoryTest {
         every { mockAuthManager.currentAccessToken } returns null
 
         // When
-        val result = otaRepository.checkForUpdates()
+        val result = otaRepository.checkForUpdates("test-device-token")
 
         // Then
         assertThat(result.isFailure).isTrue()
@@ -81,7 +81,7 @@ class OTARepositoryTest {
         coEvery { mockApi.getLatestOTAVersion(any()) } returns mockResponse
 
         // When
-        val result = otaRepository.checkForUpdates()
+        val result = otaRepository.checkForUpdates("test-device-token")
 
         // Then
         assertThat(result.isSuccess).isTrue()
@@ -107,7 +107,7 @@ class OTARepositoryTest {
         coEvery { mockApi.getLatestOTAVersion(any()) } returns mockResponse
 
         // When
-        val result = otaRepository.checkForUpdates()
+        val result = otaRepository.checkForUpdates("test-device-token")
 
         // Then
         assertThat(result.isSuccess).isTrue()
@@ -226,7 +226,7 @@ class OTARepositoryTest {
 
         val mockResponse = mockk<ApiResponse<OTAHistoryResponse>>()
         every { mockResponse.data?.rows } returns listOf(mockRow)
-        coEvery { mockApi.getOTAHistory(any(), any(), any()) } returns mockResponse
+        coEvery { mockApi.getOTAHistory(any()) } returns mockResponse
 
         // When
         val result = otaRepository.getUpdateHistory()
@@ -237,7 +237,7 @@ class OTARepositoryTest {
         assertThat(history).hasSize(1)
         assertThat(history?.get(0)?.version).isEqualTo("2.0.0")
 
-        coVerify { mockApi.getOTAHistory(any(), any(), any()) }
+        coVerify { mockApi.getOTAHistory(any()) }
     }
 
     @Test

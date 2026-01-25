@@ -23,6 +23,8 @@ import com.flextarget.android.data.local.entity.DrillResultEntity
 import com.flextarget.android.data.local.entity.ShotEntity
 import com.flextarget.android.data.repository.DrillResultRepository
 import com.google.gson.Gson
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.util.Date
 import java.util.UUID
@@ -307,8 +309,9 @@ fun TimerSessionView(
                 accumulatedSummaries = summaries
                 println("[TimerSessionView] Using ${summaries.size} summaries from onComplete parameter")
 
-                // Save drill results to database
-                coroutineScope.launch {
+                // Save drill results to database using GlobalScope to prevent cancellation
+                // when the composable is disposed during navigation
+                GlobalScope.launch(Dispatchers.IO) {
                     try {
                         val sessionId = UUID.randomUUID()
                         val gson = Gson()

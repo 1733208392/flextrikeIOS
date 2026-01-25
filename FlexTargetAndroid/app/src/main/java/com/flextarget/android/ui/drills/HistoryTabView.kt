@@ -172,8 +172,6 @@ fun HistoryTabView(
                 )
             }
 
-            Divider(color = Color.Red.copy(alpha = 0.3f))
-
             // Results List
             if (filteredGroupedResults.isEmpty()) {
                 Box(
