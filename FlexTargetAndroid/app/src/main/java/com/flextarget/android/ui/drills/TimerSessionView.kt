@@ -216,14 +216,42 @@ fun TimerSessionView(
                         }
 
                         if (gracePeriodActive) {
-                            val oldRemaining = gracePeriodRemaining
                             gracePeriodRemaining = maxOf(0.0, gracePeriodRemaining - 0.05)
                             if (gracePeriodRemaining <= 0) {
-                                println("[TimerSessionView] Grace period ended, waiting for finalize")
+                                println("[TimerSessionView] Grace period ended, collecting summary and checking for more repeats")
                                 gracePeriodActive = false
 
-                                // Wait for finalizeRepeat to complete and notify us
-                                // completeDrill() will be called by the callback
+                                // Collect the summary from the just-completed repeat
+                                executionManager?.summaries?.let { summaries ->
+                                    val completedSummary = summaries.getOrNull(currentRepeat - 1)
+                                    if (completedSummary != null) {
+                                        accumulatedSummaries = accumulatedSummaries + listOf(completedSummary)
+                                        println("[TimerSessionView] Collected repeat ${completedSummary.repeatIndex} summary, total collected: ${accumulatedSummaries.size}")
+                                    }
+                                }
+
+                                // Check if drill was ended early or all repeats are complete
+                                if (drillEndedEarly || currentRepeat >= totalRepeats) {
+                                    // Drill completed (either manually ended or all repeats done) - finalize drill
+                                    stopUpdateTimer()
+                                    executionManager?.completeDrill()
+                                } else if (currentRepeat < totalRepeats) {
+                                    // More repeats to go - start pause and prepare next repeat
+                                    isPauseActive = true
+                                    pauseRemaining = drillSetup.pause.toDouble()
+
+                                    // Increment repeat for next drill
+                                    currentRepeat++
+
+                                    // Reset readiness state
+                                    readyTargetsCount = 0
+                                    nonResponsiveTargets = emptyList()
+                                    readinessTimeoutOccurred = false
+
+                                    // Set the next repeat in the manager and perform readiness check
+                                    executionManager?.setCurrentRepeat(currentRepeat)
+                                    executionManager?.performReadinessCheck()
+                                }
                             }
                         }
 
@@ -388,7 +416,7 @@ fun TimerSessionView(
                 accumulatedSummaries = collected
                 println("[TimerSessionView] Collected ${collected.size} summaries after finalize")
             }
-            executionManager?.completeDrill()
+            // Do not call completeDrill() here - let grace period logic decide
         }
         println("[TimerSessionView] performReadinessCheck called")
 

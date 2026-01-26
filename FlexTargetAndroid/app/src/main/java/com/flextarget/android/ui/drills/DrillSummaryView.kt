@@ -110,9 +110,10 @@ fun DrillSummaryView(
             } else if (isCQBMode) {
                 CQBDrillSummaryView(summaries = summaries)
             } else {
+                val bottomPadding = if (isCompetitionDrill) 120.dp else 24.dp
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(vertical = 24.dp, horizontal = 16.dp),
+                    contentPadding = PaddingValues(top = 24.dp, bottom = bottomPadding, start = 16.dp, end = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     itemsIndexed(summaries) { index, summary ->

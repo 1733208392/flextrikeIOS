@@ -263,10 +263,11 @@ fun HistoryTabView(
                                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                                         verticalArrangement = Arrangement.spacedBy(8.dp)
                                     ) {
-                                        session.results.forEach { summary ->
+                                        session.results.forEachIndexed { index, summary ->
                                             DrillSummaryCard(
                                                 drillSetup = session.setup,
                                                 summary = summary,
+                                                repeatNumber = index + 1,
                                                 onClick = {
                                                     onNavigateToSummary(session.setup, listOf(summary))
                                                 },
@@ -356,6 +357,7 @@ private fun FilterDropdown(
 private fun DrillSummaryCard(
     drillSetup: DrillSetupEntity,
     summary: DrillRepeatSummary,
+    repeatNumber: Int,
     onClick: () -> Unit,
     onDelete: () -> Unit
 ) {
@@ -376,14 +378,9 @@ private fun DrillSummaryCard(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    drillSetup.name ?: "Untitled",
+                    "Repeat No. $repeatNumber",
                     color = Color.White,
                     style = MaterialTheme.typography.bodyLarge
-                )
-                Text(
-                    drillSetup.mode?.uppercase() ?: "N/A",
-                    color = Color.Red,
-                    style = MaterialTheme.typography.bodyMedium
                 )
             }
             Column(
