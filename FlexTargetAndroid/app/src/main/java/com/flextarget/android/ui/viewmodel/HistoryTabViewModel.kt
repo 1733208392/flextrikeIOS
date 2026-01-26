@@ -68,7 +68,7 @@ class HistoryTabViewModel(
                     val targets = setupWithTargets?.targets ?: emptyList()
 
                     val summaries = results.mapNotNull { result ->
-                        convertToSummary(result, targets)
+                        convertToSummary(result, targets, result.drillResult.id)
                     }.sortedBy { it.repeatIndex }
 
                     if (summaries.isEmpty()) return@mapNotNull null
@@ -111,7 +111,8 @@ class HistoryTabViewModel(
 
     private fun convertToSummary(
         result: com.flextarget.android.data.local.entity.DrillResultWithShots,
-        targets: List<com.flextarget.android.data.local.entity.DrillTargetsConfigEntity> = emptyList()
+        targets: List<com.flextarget.android.data.local.entity.DrillTargetsConfigEntity> = emptyList(),
+        drillResultId: UUID
     ): DrillRepeatSummary? {
         try {
             val shots = result.shots.mapNotNull { shot ->
@@ -145,11 +146,23 @@ class HistoryTabViewModel(
                 firstShot = firstShot,
                 fastest = fastestShot,
                 score = totalScore,
-                shots = shots
+                shots = shots,
+                drillResultId = drillResultId
             )
         } catch (e: Exception) {
             e.printStackTrace()
             return null
+        }
+    }
+
+    fun deleteDrillResult(drillResultId: UUID) {
+        viewModelScope.launch {
+            try {
+                drillResultRepository.deleteDrillResultById(drillResultId)
+                loadData() // Refresh the data
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 

@@ -306,7 +306,7 @@ struct HistoryTabView: View {
                                                         NavigationLink(destination: DrillSummaryView(drillSetup: session.setup, summaries: createSummaries(from: result) ?? [])
                                                             .environment(\.managedObjectContext, persistenceController.container.viewContext)) {
                                                             if let summaries = createSummaries(from: result) {
-                                                                DrillSummaryCard(drillSetup: session.setup, summaries: summaries)
+                                                                DrillSummaryCard(drillSetup: session.setup, summaries: summaries, onDelete: { deleteResult(result) })
                                                             }
                                                         }
                                                     }
@@ -325,6 +325,11 @@ struct HistoryTabView: View {
             .navigationTitle(NSLocalizedString("history", comment: "History tab title"))
             .navigationBarTitleDisplayMode(.inline)
         }
+    }
+    
+    private func deleteResult(_ result: DrillResult) {
+        managedObjectContext.delete(result)
+        try? managedObjectContext.save()
     }
     
     private func createSummaries(from result: DrillResult) -> [DrillRepeatSummary]? {
@@ -423,6 +428,7 @@ struct HistoryTabView: View {
 struct DrillSummaryCard: View {
     let drillSetup: DrillSetup
     let summaries: [DrillRepeatSummary]
+    let onDelete: () -> Void
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -444,6 +450,11 @@ struct DrillSummaryCard: View {
                         .font(.caption)
                         .foregroundColor(.gray)
                 }
+                Button(action: onDelete) {
+                    Image(systemName: "trash")
+                        .foregroundColor(.red)
+                }
+                .padding(.leading, 8)
             }
             .padding(12)
             .background(Color.gray.opacity(0.15))

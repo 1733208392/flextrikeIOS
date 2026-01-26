@@ -33,16 +33,16 @@ struct DeviceListResponse: Codable {
     let data: [NetworkDevice]
 }
 
-struct DiscoveredPeripheral: Identifiable, Hashable {
-    let id: UUID
+public struct DiscoveredPeripheral: Identifiable, Hashable {
+    public let id: UUID
     let name: String
     let peripheral: CBPeripheral
     
-    func hash(into hasher: inout Hasher) {
+    public func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }
     
-    static func == (lhs: DiscoveredPeripheral, rhs: DiscoveredPeripheral) -> Bool {
+    public static func == (lhs: DiscoveredPeripheral, rhs: DiscoveredPeripheral) -> Bool {
         lhs.id == rhs.id
     }
 }
@@ -74,9 +74,7 @@ protocol BLEManagerProtocol {
 
 // Backwards-compatibility: some views reference an older protocol name `ConnectSmartTargetBLEProtocol`.
 // Provide a typealias so both names refer to the same protocol and avoid compilation errors.
-typealias ConnectSmartTargetBLEProtocol = BLEManagerProtocol
-
-class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeripheralDelegate {
+public class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeripheralDelegate {
     // Shared singleton instance for app-wide use
     static let shared = BLEManager()
 
@@ -356,7 +354,7 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
     // MARK: - CBCentralManagerDelegate
     
     #if !targetEnvironment(simulator)
-    func centralManagerDidUpdateState(_ central: CBCentralManager) {
+    public func centralManagerDidUpdateState(_ central: CBCentralManager) {
         switch central.state {
         case .poweredOn:
             // Auto-start pending scan if requested earlier
@@ -374,7 +372,7 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
         }
     }
     
-    func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
+    public func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
         let name = peripheral.name ?? (advertisementData[CBAdvertisementDataLocalNameKey] as? String) ?? "Unknown"
         print("Discovered peripheral: \(name), RSSI: \(RSSI)")
         var matchesTargetService = false
@@ -407,7 +405,7 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
         }
     }
     
-    func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
+    public func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         error = nil
         if let found = discoveredPeripherals.first(where: { $0.id == peripheral.identifier }) {
             connectedPeripheral = found
@@ -417,13 +415,13 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
         peripheral.discoverServices([targetServiceUUID])
     }
     
-    func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
+    public func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
         isConnected = false
         connectedPeripheral = nil
         self.error = .connectionFailed(error?.localizedDescription ?? "Unknown")
     }
     
-    func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
+    public func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
         isConnected = false
         isReady = false
         connectedPeripheral = nil
@@ -434,15 +432,15 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
     }
     #else
     // Simulator stubs for required protocol methods
-    func centralManagerDidUpdateState(_ central: CBCentralManager) {}
-    func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {}
-    func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {}
-    func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {}
-    func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {}
+    public func centralManagerDidUpdateState(_ central: CBCentralManager) {}
+    public func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {}
+    public func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {}
+    public func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {}
+    public func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {}
     #endif
     
     #if !targetEnvironment(simulator)
-    func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
+    public func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
         if let error = error {
             print("Service discovery failed: \(error.localizedDescription)")
             return
@@ -459,7 +457,7 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
         }
     }
     
-    func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
+    public func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
         if let error = error {
             print("Characteristic discovery failed: \(error.localizedDescription)")
             return
@@ -493,7 +491,7 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
         }
     }
     
-    func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
+    public func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
         _ = characteristic.value
         
         if let error = error {
@@ -759,7 +757,7 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
     }
     
     // In BLEManager, implement the delegate to handle write response
-    func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
+    public func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
         if let completion = writeCompletion {
             writeCompletion = nil
             if let error = error {
@@ -772,7 +770,7 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
         }
     }
     
-    func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {
+    public func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {
         if let error = error {
             print("Failed to enable notifications for \(characteristic.uuid): \(error.localizedDescription)")
             // Optionally, set isConnected to false or handle reconnection
@@ -782,11 +780,11 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
     }
     #else
     // Simulator stubs for required protocol methods
-    func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {}
-    func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {}
-    func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {}
-    func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {}
-    func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {}
+    public func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {}
+    public func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {}
+    public func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {}
+    public func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {}
+    public func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {}
     #endif
 }
 

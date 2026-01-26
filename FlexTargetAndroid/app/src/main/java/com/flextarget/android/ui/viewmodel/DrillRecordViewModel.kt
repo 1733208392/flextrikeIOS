@@ -83,7 +83,8 @@ class DrillRecordViewModel(
             firstShot = shots.firstOrNull()?.content?.timeDiff ?: 0.0,
             fastest = calculateFastestShot(shots),
             score = calculateScore(shots),
-            shots = shots
+            shots = shots,
+            drillResultId = resultWithShots.drillResult.id
         )
     }
 

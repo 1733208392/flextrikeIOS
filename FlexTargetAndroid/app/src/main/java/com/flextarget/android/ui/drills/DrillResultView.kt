@@ -514,7 +514,8 @@ fun DrillResultViewPreview() {
         firstShot = 1.25,
         fastest = 0.85,
         score = 15,
-        shots = mockShots
+        shots = mockShots,
+        drillResultId = null
     )
 
     DrillResultView(

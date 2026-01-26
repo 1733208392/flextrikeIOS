@@ -269,6 +269,9 @@ fun HistoryTabView(
                                                 summary = summary,
                                                 onClick = {
                                                     onNavigateToSummary(session.setup, listOf(summary))
+                                                },
+                                                onDelete = {
+                                                    summary.drillResultId?.let { viewModel.deleteDrillResult(it) }
                                                 }
                                             )
                                         }
@@ -353,7 +356,8 @@ private fun FilterDropdown(
 private fun DrillSummaryCard(
     drillSetup: DrillSetupEntity,
     summary: DrillRepeatSummary,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onDelete: () -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -397,6 +401,9 @@ private fun DrillSummaryCard(
                     color = Color.Gray,
                     style = MaterialTheme.typography.bodySmall
                 )
+            }
+            IconButton(onClick = onDelete) {
+                Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Red)
             }
         }
     }

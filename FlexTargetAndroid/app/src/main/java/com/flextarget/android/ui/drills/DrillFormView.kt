@@ -94,7 +94,7 @@ fun DrillFormView(
 
     // Load drill result count if editing existing drill
     existingDrill?.id?.let { drillId ->
-        LaunchedEffect(drillId) {
+        LaunchedEffect(Unit) {
             try {
                 drillResultCount = viewModel.getDrillResultCount(drillId)
             } catch (e: Exception) {
@@ -107,7 +107,7 @@ fun DrillFormView(
 
     // Load targets for existing drill
     existingDrill?.id?.let { drillId ->
-        LaunchedEffect(drillId) {
+        LaunchedEffect(Unit) {
             try {
                 val loadedTargets = viewModel.getTargetsForDrill(drillId)
                 targets = loadedTargets
@@ -577,29 +577,40 @@ private fun FormScreen(
                 // Start drill session
                 Button(
                     onClick = {
-                        val sessionDrill = (existingDrill ?: DrillSetupEntity()).copy(
-                            name = drillName,
-                            desc = description,
-                            mode = drillMode,
-                            drillDuration = 5.0,
-                            repeats = repeats,
-                            pause = pause
-                        )
-
-                        val sessionTargets = targets.map { target ->
-                            DrillTargetsConfigEntity(
-                                id = target.id,
-                                seqNo = target.seqNo,
-                                targetName = target.targetName.takeIf { it.isNotBlank() },
-                                targetType = target.targetType,
-                                timeout = target.timeout,
-                                countedShots = target.countedShots,
-                                drillSetupId = sessionDrill.id
+                        coroutineScope.launch {
+                            val sessionDrill = (existingDrill ?: DrillSetupEntity()).copy(
+                                name = drillName,
+                                desc = description,
+                                mode = drillMode,
+                                drillDuration = 5.0,
+                                repeats = repeats,
+                                pause = pause
                             )
-                        }
 
-                        println("[FormScreen] Starting drill - calling onStartDrill callback")
-                        onStartDrill(sessionDrill, sessionTargets)
+                            val sessionTargets = targets.map { target ->
+                                DrillTargetsConfigEntity(
+                                    id = target.id,
+                                    seqNo = target.seqNo,
+                                    targetName = target.targetName.takeIf { it.isNotBlank() },
+                                    targetType = target.targetType,
+                                    timeout = target.timeout,
+                                    countedShots = target.countedShots,
+                                    drillSetupId = sessionDrill.id
+                                )
+                            }
+
+                            // Auto-save if new drill
+                            if (existingDrill == null) {
+                                try {
+                                    viewModel.saveNewDrillWithTargets(sessionDrill, targets)
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
+                            }
+
+                            println("[FormScreen] Starting drill - calling onStartDrill callback")
+                            onStartDrill(sessionDrill, sessionTargets)
+                        }
                     },
                     enabled = bleManager.isConnected && androidBleManager != null,
                     modifier = Modifier.weight(1f),
