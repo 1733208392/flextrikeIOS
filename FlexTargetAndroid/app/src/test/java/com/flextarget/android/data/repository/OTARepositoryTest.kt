@@ -152,7 +152,7 @@ class OTARepositoryTest {
         assertThat(result.isSuccess).isTrue()
 
         // Verify final state
-        assertThat(otaRepository.currentState.first()).isEqualTo(OTAState.READY)
+        assertThat(otaRepository.currentState.first()).isEqualTo(OTAState.WAITING_FOR_READY_TO_DOWNLOAD)
     }
 
     @Test
@@ -190,17 +190,7 @@ class OTARepositoryTest {
         assertThat(result.getOrNull()).isTrue()
     }
 
-    @Test
-    fun `installUpdate successfully installs update`() = runTest {
-        // When
-        val result = otaRepository.installUpdate()
 
-        // Then
-        assertThat(result.isSuccess).isTrue()
-
-        // Verify final state
-        assertThat(otaRepository.currentState.first()).isEqualTo(OTAState.COMPLETE)
-    }
 
     @Test
     fun `getUpdateHistory returns failure when not authenticated`() = runTest {

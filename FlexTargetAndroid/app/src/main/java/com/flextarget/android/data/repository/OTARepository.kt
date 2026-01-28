@@ -291,33 +291,7 @@ class OTARepository @Inject constructor(
         }
     }
     
-    /**
-     * Install OTA update
-     */
-    suspend fun installUpdate(): Result<Unit> = withContext(Dispatchers.IO) {
-        try {
-            _currentState.emit(OTAState.COMPLETED)
-            _otaProgress.emit(OTAProgress(state = OTAState.COMPLETED))
-            
-            // In real implementation, would trigger actual update installation
-            Log.d(TAG, "Installing update")
-            
-            _currentState.emit(OTAState.COMPLETED)
-            _otaProgress.emit(
-                OTAProgress(
-                    state = OTAState.COMPLETED,
-                    progress = 100
-                )
-            )
-            Log.d(TAG, "Update installation complete")
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to install update", e)
-            _currentState.emit(OTAState.ERROR)
-            _otaProgress.emit(OTAProgress(state = OTAState.ERROR, error = e.message))
-            Result.failure(e)
-        }
-    }
+
     
     /**
      * Get OTA update history
@@ -403,11 +377,23 @@ class OTARepository @Inject constructor(
         BLEManager.shared.onReadyToDownload = {
             Log.d(TAG, "Received onReadyToDownload callback")
             coroutineScope.launch {
-                _currentState.emit(OTAState.DOWNLOADING)
-                _otaProgress.emit(OTAProgress(state = OTAState.DOWNLOADING))
-                
-                // Start the actual download/install process
-                installUpdate()
+                val updateInfo = currentUpdateInfo
+                if (updateInfo != null) {
+                    _currentState.emit(OTAState.DOWNLOADING)
+                    _otaProgress.emit(OTAProgress(state = OTAState.DOWNLOADING, version = updateInfo.version))
+                    
+                    // Send start_game_upgrade command to device
+                    Log.d(TAG, "Sending start_game_upgrade command: address=${updateInfo.fileUrl}, checksum=${updateInfo.checksum}, version=${updateInfo.version}")
+                    BLEManager.shared.androidManager?.startGameUpgrade(
+                        address = updateInfo.fileUrl,
+                        checksum = updateInfo.checksum,
+                        otaVersion = updateInfo.version
+                    )
+                } else {
+                    Log.e(TAG, "No update info available when ready to download")
+                    _currentState.emit(OTAState.ERROR)
+                    _otaProgress.emit(OTAProgress(state = OTAState.ERROR, error = "No update information available"))
+                }
             }
         }
         
@@ -418,8 +404,19 @@ class OTARepository @Inject constructor(
                 _currentState.emit(OTAState.RELOADING)
                 _otaProgress.emit(OTAProgress(state = OTAState.RELOADING, version = version))
                 
-                // Simulate device reload delay
+                // Send reload_ui command to device
+                Log.d(TAG, "Sending reload_ui command to device")
+                BLEManager.shared.androidManager?.reloadUI()
+                
+                // Wait for reload_ui to be processed
                 kotlinx.coroutines.delay(2000)
+                
+                // Send finish_game_disk_ota to exit OTA mode
+                Log.d(TAG, "Sending finish_game_disk_ota command to exit OTA mode")
+                BLEManager.shared.androidManager?.finishGameDiskOTA()
+                
+                // Wait for finish_game_disk_ota to be processed
+                kotlinx.coroutines.delay(1000)
                 
                 _currentState.emit(OTAState.VERIFYING)
                 _otaProgress.emit(OTAProgress(state = OTAState.VERIFYING, version = version))
@@ -438,9 +435,6 @@ class OTARepository @Inject constructor(
                     Log.d(TAG, "Version verification successful: $version")
                     _currentState.emit(OTAState.COMPLETED)
                     _otaProgress.emit(OTAProgress(state = OTAState.COMPLETED, version = version))
-                    
-                    // Send finish command
-                    BLEManager.shared.androidManager?.finishGameDiskOTA()
                 } else {
                     Log.e(TAG, "Version verification failed. Expected: $expectedVersion, Got: $version")
                     _currentState.emit(OTAState.ERROR)

@@ -131,7 +131,8 @@ enum class OTAState {
   {"action": "reload_ui"}
   ```
 - **UI Component**: `ReloadingCard`
-- **State Change**: `RELOADING` → `VERIFYING` (after 2 seconds)
+- **Process**: Wait 1 second, then send `{"action": "finish_game_disk_ota"}` to exit OTA mode, wait another 1 second
+- **State Change**: `RELOADING` → `VERIFYING` (after 2 seconds total)
 
 #### 4.3 Version Verification
 - **BLE Command**:
@@ -153,10 +154,6 @@ enum class OTAState {
 ### Phase 5: Completion
 
 #### 5.1 Success Finalization
-- **BLE Command**:
-  ```json
-  {"action": "finish_game_disk_ota"}
-  ```
 - **UI Component**: `CompletedCard`
 - **Process**: Updates local version tracking, clears temporary state
 
@@ -277,14 +274,14 @@ Responses use the `"type"` field:
 - Basic OTA flow state machine
 - Network API integration
 - Background update checking
+- BLE callback connections and command sending
+- Device version querying implementation
 
 ### ⚠️ Partially Implemented
-- BLE callback connections (callbacks exist but may need wiring)
 - Timeout handling (structure exists, needs refinement)
 
 ### ❌ Missing Features
 - Actual firmware file download logic
-- Device version querying implementation
 - Complete timeout and retry mechanisms
 - Error recovery flows
 

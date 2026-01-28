@@ -117,17 +117,7 @@ class OTAViewModel(
         }
     }
     
-    /**
-     * Install verified update
-     */
-    fun installUpdate() {
-        viewModelScope.launch {
-            val result = otaRepository.installUpdate()
-            result.onFailure {
-                // Handle error
-            }
-        }
-    }
+
     
     /**
      * Cancel ongoing update
