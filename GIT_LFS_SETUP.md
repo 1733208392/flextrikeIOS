@@ -2,7 +2,12 @@
 
 ## Overview
 
-This repository is configured to use Git Large File Storage (Git LFS) to handle files larger than 100MB. GitHub has a hard limit of 100MB for regular files, and files exceeding this limit will be rejected during push operations. Git LFS allows us to version control large files by storing them outside of the main Git repository.
+This repository is configured to use Git Large File Storage (Git LFS) to handle large binary files. GitHub has a hard limit of 100MB for regular files, and files exceeding this limit will be rejected during push operations. Git LFS allows us to version control large files by storing them outside of the main Git repository.
+
+This configuration tracks all binary file types commonly used in iOS and Android development, even if they are typically smaller than 100MB. This approach:
+- **Prevents future issues**: Binary files can grow over time (e.g., adding more assets, longer videos)
+- **Simplifies workflow**: No need to remember which specific files need LFS
+- **Optimizes repository**: Binary files don't compress well in Git, so LFS improves clone/fetch performance
 
 ## What is Git LFS?
 
@@ -136,9 +141,12 @@ If you have large files already committed without LFS:
 # Migrate existing files to LFS
 git lfs migrate import --include="*.apk,*.ipa" --everything
 
-# Force push to update remote
-git push --force
+# Force push to update remote (WARNING: rewrites history)
+# Use --force-with-lease for safety
+git push --force-with-lease
 ```
+
+**⚠️ Important**: This rewrites Git history and requires all collaborators to re-clone the repository or reset their local branches. Coordinate with your team before doing this migration.
 
 ### Large File Rejected During Push
 
@@ -162,8 +170,8 @@ find . -type f -size +50M ! -path './.git/*'
 
 1. **Always install Git LFS** before cloning the repository
 2. **Commit .gitattributes changes** immediately after tracking new file types
-3. **Avoid committing** build artifacts that can be regenerated
-4. **Use .gitignore** for files that should never be versioned
+3. **Build artifacts**: While this repo tracks build artifacts (*.ipa, *.apk, etc.) with LFS, only commit them when necessary (e.g., release builds for distribution). Add intermediate/debug builds to .gitignore
+4. **Use .gitignore** for files that should never be versioned (temporary builds, dependencies, IDE files)
 5. **Run `git lfs pull`** after switching branches if you're missing files
 
 ## Resources
