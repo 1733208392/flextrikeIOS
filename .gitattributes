@@ -8,7 +8,6 @@
 *.mp3 filter=lfs diff=lfs merge=lfs -text
 *.mp4 filter=lfs diff=lfs merge=lfs -text
 *.wav filter=lfs diff=lfs merge=lfs -text
-*.framework binary
 # Text files - force LF
 *.swift text eol=lf
 *.kt text eol=lf
@@ -28,3 +27,38 @@
 *.avi filter=lfs diff=lfs merge=lfs -text
 *.ogg filter=lfs diff=lfs merge=lfs -text
 *.woff filter=lfs diff=lfs merge=lfs -text
+# Archive files
+*.zip filter=lfs diff=lfs merge=lfs -text
+*.tar filter=lfs diff=lfs merge=lfs -text
+*.tar.gz filter=lfs diff=lfs merge=lfs -text
+*.tgz filter=lfs diff=lfs merge=lfs -text
+*.gz filter=lfs diff=lfs merge=lfs -text
+*.bz2 filter=lfs diff=lfs merge=lfs -text
+*.7z filter=lfs diff=lfs merge=lfs -text
+*.rar filter=lfs diff=lfs merge=lfs -text
+# iOS specific files
+*.ipa filter=lfs diff=lfs merge=lfs -text
+*.xcarchive filter=lfs diff=lfs merge=lfs -text
+*.dSYM filter=lfs diff=lfs merge=lfs -text
+*.framework filter=lfs diff=lfs merge=lfs -text
+*.xcframework filter=lfs diff=lfs merge=lfs -text
+# Android specific files
+*.apk filter=lfs diff=lfs merge=lfs -text
+*.aab filter=lfs diff=lfs merge=lfs -text
+*.aar filter=lfs diff=lfs merge=lfs -text
+# Binary libraries
+*.a filter=lfs diff=lfs merge=lfs -text
+*.so filter=lfs diff=lfs merge=lfs -text
+*.dylib filter=lfs diff=lfs merge=lfs -text
+*.dll filter=lfs diff=lfs merge=lfs -text
+# Package files
+*.dmg filter=lfs diff=lfs merge=lfs -text
+*.pkg filter=lfs diff=lfs merge=lfs -text
+*.deb filter=lfs diff=lfs merge=lfs -text
+*.rpm filter=lfs diff=lfs merge=lfs -text
+# Database files
+*.db filter=lfs diff=lfs merge=lfs -text
+*.sqlite filter=lfs diff=lfs merge=lfs -text
+*.sqlite3 filter=lfs diff=lfs merge=lfs -text
+# PDF files (can be large)
+*.pdf filter=lfs diff=lfs merge=lfs -text
