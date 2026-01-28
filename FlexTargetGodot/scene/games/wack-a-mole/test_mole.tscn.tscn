@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://bct5mouy11jel"]
+
+[ext_resource type="PackedScene" uid="uid://bw71nta7ndmqs" path="res://scene/games/wack-a-mole/mole.tscn" id="1_mtmfg"]
+
+[node name="TestMole_tscn" type="Node2D"]
+
+[node name="Mole" parent="." instance=ExtResource("1_mtmfg")]
+position = Vector2(393, 652)

@@ -1,0 +1,86 @@
+[gd_scene load_steps=8 format=3 uid="uid://113obd774o70"]
+
+[ext_resource type="PackedScene" uid="uid://cx4ygwpmsuiyn" path="res://scene/drills_network/drill_network_ui.tscn" id="2_1dbv7"]
+[ext_resource type="Texture2D" uid="uid://gpyjow0hb5mh" path="res://asset/drills_back.jpg" id="2_6482l"]
+[ext_resource type="Script" uid="uid://bq6ni24vtgdh" path="res://scene/drills_network/drills_network.gd" id="2_abc123"]
+[ext_resource type="PackedScene" uid="uid://dko04tcrpugrp" path="res://scene/drills_network/drill_network_complete_overlay.tscn" id="4_da2b7"]
+[ext_resource type="Script" uid="uid://bm8y60bv6nltv" path="res://scene/drills_network/drill_network_complete_overlay.gd" id="5_0a8g6"]
+[ext_resource type="FontFile" uid="uid://bwcp7rt88uq1h" path="res://font/Inter/static/Inter_28pt-Black.ttf" id="6_aakvq"]
+[ext_resource type="Script" uid="uid://bg4woh0hd0pho" path="res://script/TargetAnimationLibrary.gd" id="7_r3y4i"]
+
+[node name="drills_network" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("2_abc123")
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="BackgroundImage" type="TextureRect" parent="."]
+z_index = -4
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_6482l")
+stretch_mode = 6
+
+[node name="DrillUI" parent="." instance=ExtResource("2_1dbv7")]
+z_index = 5
+layout_mode = 1
+
+[node name="DrillNetworkCompleteOverlay" parent="." instance=ExtResource("4_da2b7")]
+visible = false
+z_index = 10
+layout_mode = 1
+script = ExtResource("5_0a8g6")
+
+[node name="DeviceNameLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -150.0
+offset_top = -60.0
+offset_right = 150.0
+offset_bottom = -60.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 0.541176, 0, 1)
+theme_override_fonts/font = ExtResource("6_aakvq")
+theme_override_font_sizes/font_size = 32
+text = "Device Name"
+horizontal_alignment = 1
+
+[node name="QRCodeTextureRect" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -200.0
+offset_right = 200.0
+offset_bottom = 200.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TargetAnimationLibrary" type="Node" parent="."]
+script = ExtResource("7_r3y4i")

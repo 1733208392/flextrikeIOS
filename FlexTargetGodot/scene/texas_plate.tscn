@@ -1,0 +1,18 @@
+[gd_scene load_steps=4 format=3 uid="uid://bylxctpsoyiwc"]
+
+[ext_resource type="Script" uid="uid://dcjp8eiyyr8ly" path="res://script/texas_plate.gd" id="1_plate"]
+[ext_resource type="Texture2D" uid="uid://db5ffyqt2m82j" path="res://asset/plate.png" id="2_duxvn"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_plate"]
+radius = 64.12488
+
+[node name="Plate" type="Node2D"]
+script = ExtResource("1_plate")
+
+[node name="Plate" type="Sprite2D" parent="."]
+texture = ExtResource("2_duxvn")
+
+[node name="PlateArea2D" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PlateArea2D"]
+shape = SubResource("CircleShape2D_plate")

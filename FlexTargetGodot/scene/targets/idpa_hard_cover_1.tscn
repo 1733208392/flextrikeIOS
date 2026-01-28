@@ -1,0 +1,86 @@
+[gd_scene load_steps=7 format=3 uid="uid://dbk3n2lpxt0uo"]
+
+[ext_resource type="Script" uid="uid://difdlst3ngq5o" path="res://script/idpa_hard_cover_1.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://dsiy2tf7e6lwx" path="res://asset/idpa-black-1.png" id="2_o8tro"]
+
+[sub_resource type="Animation" id="Animation_1"]
+resource_name = "disappear"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.0666667, 0.133333, 0.2, 0.266667, 0.333333, 0.4, 0.466667, 0.533333, 0.6, 0.666667, 0.733333, 0.8, 0.866667, 0.933333, 1),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 0,
+"values": [0.0, 0.174533, -0.174533, 0.139626, -0.139626, 0.10472, -0.10472, 0.0698132, -0.0698132, 0.0349066, -0.0349066, 0.0174533, -0.0174533, 0.00872665, -0.00872665, 0.0]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:modulate")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath(".:scale")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(1, 1), Vector2(0.8, 0.8)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_1"]
+_data = {
+&"disappear": SubResource("Animation_1")
+}
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_6k1a5"]
+radius = 122.14745
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_1s2sk"]
+radius = 59.093147
+
+[node name="IDPA-Black-1" type="Area2D"]
+collision_layer = 7
+collision_mask = 0
+script = ExtResource("1_script")
+drill_active = true
+
+[node name="TargetSprite" type="Sprite2D" parent="."]
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("2_o8tro")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary_1")
+}
+
+[node name="body-1" type="CollisionPolygon2D" parent="."]
+polygon = PackedVector2Array(-89, -454, -87, -273, -174, -182, -178, 117, -86, 267, 163, -197, 90, -275, 89, -457)
+
+[node name="hard-cover" type="CollisionPolygon2D" parent="."]
+polygon = PackedVector2Array(207, -268, -188, 454, 191, 454, 269, 304, 272, -179)
+
+[node name="heart-0" type="CollisionShape2D" parent="."]
+position = Vector2(-5, -65)
+shape = SubResource("CircleShape2D_6k1a5")
+
+[node name="head-0" type="CollisionShape2D" parent="."]
+position = Vector2(0, -355)
+shape = SubResource("CircleShape2D_1s2sk")
+
+[node name="other-3" type="CollisionPolygon2D" parent="."]
+polygon = PackedVector2Array(-206, -276, 203, -274, -186, 451, -270, 295, -268, -178)

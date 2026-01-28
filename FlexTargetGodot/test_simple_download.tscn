@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://dfcnmvnch4mk5"]
+
+[ext_resource type="Script" path="res://test_simple_download.gd" id="1_a0nzh"]
+
+[node name="TestSimpleDownload" type="Node"]
+script = ExtResource("1_a0nzh")

@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=3 uid="uid://bofhp3yw3sbeo"]
+
+[ext_resource type="Shader" uid="uid://clsjg4n1imejk" path="res://games/shoot-painter/shader/splat.gdshader" id="1"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_3rjm1"]
+shader = ExtResource("1")
+shader_parameter/splat_color = Vector4(1, 0.2, 0.2, 1)
+shader_parameter/seed = 0.0
+shader_parameter/edge_rough = 1.0
+shader_parameter/noise_scale = 6.0
+shader_parameter/droplets = 5
+
+[node name="Splat" type="Node2D"]
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+material = SubResource("ShaderMaterial_3rjm1")

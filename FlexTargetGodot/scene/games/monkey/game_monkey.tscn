@@ -1,0 +1,136 @@
+[gd_scene load_steps=13 format=3 uid="uid://b7ptio4d6kqh4"]
+
+[ext_resource type="Script" uid="uid://clk687odfmnw" path="res://script/games/game_monkey.gd" id="1_cqg8j"]
+[ext_resource type="Texture2D" uid="uid://dsmp0g7fmay4t" path="res://asset/games/fruitblast-background.png" id="1_mnm2d"]
+[ext_resource type="PackedScene" uid="uid://iutkhax33s2e" path="res://scene/games/monkey/vine_horizontal.tscn" id="2_5qubs"]
+[ext_resource type="PackedScene" uid="uid://cjv0rr75domcd" path="res://scene/games/monkey/vine_left.tscn" id="2_nbvh4"]
+[ext_resource type="Texture2D" uid="uid://d4imqxr41c7mh" path="res://asset/games/woodlog.png" id="3_ftrqu"]
+[ext_resource type="PackedScene" uid="uid://28k7ayds2psb" path="res://scene/games/monkey/vine_right.tscn" id="4_cotjv"]
+[ext_resource type="PackedScene" uid="uid://cojbyh3nmp67k" path="res://scene/games/monkey/player1.tscn" id="4_kaqtb"]
+[ext_resource type="PackedScene" uid="uid://csf1xvhgjc0d5" path="res://scene/games/monkey/player2.tscn" id="5_nbvh4"]
+[ext_resource type="PackedScene" uid="uid://dqo443goubdgu" path="res://scene/games/monkey/monkey.tscn" id="8_6gbdr"]
+[ext_resource type="FontFile" uid="uid://d2eub6rd80tjp" path="res://asset/games/soupofjustice.ttf" id="10_ycl44"]
+[ext_resource type="PackedScene" uid="uid://dxhw3r7t4daxm" path="res://scene/games/monkey/game_over_overlay.tscn" id="11_5o0eu"]
+[ext_resource type="PackedScene" uid="uid://bcfxuxp4tc752" path="res://scene/games/monkey/monkey_settings.tscn" id="11_qg3xo"]
+
+[node name="GameMonkey" type="Node2D"]
+script = ExtResource("1_cqg8j")
+
+[node name="background" type="Sprite2D" parent="."]
+position = Vector2(360, 640)
+texture = ExtResource("1_mnm2d")
+
+[node name="TimerLabel" type="Label" parent="."]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = 300.0
+offset_top = 135.0
+offset_right = 400.0
+offset_bottom = 180.0
+grow_horizontal = 2
+theme_override_fonts/font = ExtResource("10_ycl44")
+theme_override_font_sizes/font_size = 48
+text = "00:00"
+horizontal_alignment = 1
+
+[node name="VineRight" parent="." instance=ExtResource("4_cotjv")]
+position = Vector2(529, 55)
+
+[node name="VineLeft" parent="." instance=ExtResource("2_nbvh4")]
+position = Vector2(158, 61)
+
+[node name="VineHorizon" parent="." instance=ExtResource("2_5qubs")]
+position = Vector2(157, -27)
+
+[node name="Log_Left" type="Sprite2D" parent="."]
+modulate = Color(1, 1, 1, 0.6666667)
+position = Vector2(164, 61)
+scale = Vector2(2, 2)
+texture = ExtResource("3_ftrqu")
+
+[node name="Log_Right" type="Sprite2D" parent="."]
+modulate = Color(1, 1, 1, 0.6666667)
+position = Vector2(545, 59)
+scale = Vector2(2, 2)
+texture = ExtResource("3_ftrqu")
+
+[node name="Jiong" parent="." instance=ExtResource("4_kaqtb")]
+position = Vector2(158, 1100)
+
+[node name="xuyang" parent="." instance=ExtResource("5_nbvh4")]
+position = Vector2(560, 1100)
+
+[node name="Monkey" parent="." instance=ExtResource("8_6gbdr")]
+position = Vector2(349, 82)
+
+[node name="CountdownOverlay" type="CanvasLayer" parent="."]
+layer = 100
+visible = false
+
+[node name="Background" type="ColorRect" parent="CountdownOverlay"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.7)
+
+[node name="CountdownLabel" type="Label" parent="CountdownOverlay"]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -100.0
+offset_top = 200.0
+offset_right = 100.0
+offset_bottom = 400.0
+grow_horizontal = 2
+theme_override_fonts/font = ExtResource("10_ycl44")
+theme_override_font_sizes/font_size = 200
+text = "5"
+horizontal_alignment = 1
+vertical_alignment = 1
+text_overrun_behavior = 3
+
+[node name="GameOverOverlay" parent="." instance=ExtResource("11_5o0eu")]
+visible = false
+
+[node name="PauseOverlay" type="CanvasLayer" parent="."]
+visible = false
+
+[node name="Background" type="ColorRect" parent="PauseOverlay"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.7)
+
+[node name="Control" type="Control" parent="PauseOverlay"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PlayButton" type="Button" parent="PauseOverlay/Control"]
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -50.0
+offset_top = -25.0
+offset_right = 50.0
+offset_bottom = 25.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("10_ycl44")
+theme_override_font_sizes/font_size = 32
+text = "Play"
+
+[node name="Setting" parent="." instance=ExtResource("11_qg3xo")]
+anchors_preset = -1
+offset_right = 720.0
+offset_bottom = 1280.0

@@ -1,0 +1,139 @@
+[gd_scene load_steps=12 format=3 uid="uid://bs3r5ti17wret"]
+
+[ext_resource type="Script" uid="uid://cfaja7ny78ro" path="res://script/idpa_rotation.gd" id="1_r1ujw"]
+[ext_resource type="PackedScene" uid="uid://b6gm7b6lv1klv" path="res://scene/targets/idpa.tscn" id="2_osvbt"]
+[ext_resource type="Texture2D" uid="uid://d0m34j6rbnble" path="res://asset/logo-barrel.png" id="3_ylvkk"]
+[ext_resource type="PackedScene" uid="uid://hi8aom0rumjj" path="res://scene/paddle.tscn" id="4_b7okr"]
+[ext_resource type="Script" uid="uid://dukv4x4iox6xu" path="res://script/paddle_ipsc_rotation.gd" id="5_htkn5"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_6qps3"]
+size = Vector2(398.18182, 639.0908)
+
+[sub_resource type="Animation" id="Animation_504v5"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("IDPA:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [0.0]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("IDPA:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(0, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_r1ujw"]
+resource_name = "disappear"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("./IDPA:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0)]
+}
+
+[sub_resource type="Animation" id="RotateAnimation"]
+resource_name = "rotate_left_right"
+length = 2.0
+step = 1.0
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("IDPA:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1, 2),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [0.0, 0.6981317, 0.0]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("IDPA:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 1, 2),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(0, 0), Vector2(150, 50), Vector2(0, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_6qps3"]
+resource_name = "Popup"
+length = 2.0
+step = 1.0
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("IDPA:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1, 2),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(0, 0), Vector2(0, -200), Vector2(0, 0)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary"]
+_data = {
+&"RESET": SubResource("Animation_504v5"),
+&"disappear": SubResource("Animation_r1ujw"),
+&"right": SubResource("RotateAnimation"),
+&"up": SubResource("Animation_6qps3")
+}
+
+[node name="IPDPAMiniRotate" type="Node2D"]
+script = ExtResource("1_r1ujw")
+
+[node name="IDPA" parent="." instance=ExtResource("2_osvbt")]
+scale = Vector2(0.7, 0.7)
+script = null
+
+[node name="BarrelWall" type="Area2D" parent="."]
+position = Vector2(0, -27)
+collision_layer = 8
+collision_mask = 0
+
+[node name="Sprite2D" type="Sprite2D" parent="BarrelWall"]
+position = Vector2(-0.9999995, 38)
+scale = Vector2(1.0190476, 1)
+texture = ExtResource("3_ylvkk")
+
+[node name="Cover" type="CollisionShape2D" parent="BarrelWall"]
+position = Vector2(-4, 33)
+shape = SubResource("RectangleShape2D_6qps3")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary")
+}
+
+[node name="Paddle" type="Node2D" parent="."]
+position = Vector2(400, 0)
+
+[node name="Paddle" parent="Paddle" instance=ExtResource("4_b7okr")]
+scale = Vector2(0.4, 0.4)
+script = ExtResource("5_htkn5")

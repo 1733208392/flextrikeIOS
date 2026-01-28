@@ -1,0 +1,12 @@
+[gd_scene load_steps=3 format=3 uid="uid://dturr8so8g8cw"]
+
+[ext_resource type="Script" uid="uid://dfwjsfjveg7ay" path="res://script/custom_button.gd" id="1"]
+[ext_resource type="Theme" uid="uid://b1xuwasqtx311" path="res://theme/custom_button_theme.tres" id="2"]
+
+[node name="CustomButton" type="Button"]
+custom_minimum_size = Vector2(128, 48)
+theme = ExtResource("2")
+text = "bttn_txt"
+script = ExtResource("1")
+
+[connection signal="pressed" from="." to="." method="_on_pressed"]

@@ -1,0 +1,61 @@
+[gd_scene load_steps=10 format=3 uid="uid://d376nuesjyhe2"]
+
+[ext_resource type="Texture2D" uid="uid://bgj1a80sbxasj" path="res://asset/dueling-tree.png" id="1_s3ab1"]
+[ext_resource type="Script" uid="uid://helmmdlhy82" path="res://script/test_dueling_tree.gd" id="2_testgd"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_38t43"]
+atlas = ExtResource("1_s3ab1")
+region = Rect2(0, 0, 128, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_v6qpf"]
+atlas = ExtResource("1_s3ab1")
+region = Rect2(128, 0, 128, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_gb8km"]
+atlas = ExtResource("1_s3ab1")
+region = Rect2(256, 0, 128, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_uh0b6"]
+atlas = ExtResource("1_s3ab1")
+region = Rect2(384, 0, 128, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_s0ar0"]
+atlas = ExtResource("1_s3ab1")
+region = Rect2(512, 0, 128, 128)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_s0ar0"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_38t43")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_v6qpf")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_gb8km")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_uh0b6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_s0ar0")
+}],
+"loop": false,
+"name": &"default",
+"speed": 20.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_38t43"]
+radius = 60.0
+
+[node name="Node2D" type="Node2D"]
+script = ExtResource("2_testgd")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_s0ar0")
+
+[node name="Area2D" type="Area2D" parent="AnimatedSprite2D"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AnimatedSprite2D/Area2D"]
+shape = SubResource("CircleShape2D_38t43")

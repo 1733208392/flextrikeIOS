@@ -1,0 +1,49 @@
+[gd_scene load_steps=5 format=3 uid="uid://dunndq3e043lq"]
+
+[ext_resource type="Texture2D" uid="uid://xwlbbbi42pqq" path="res://asset/games/wack-a-mole/Background/Background_2.png" id="2_xiawl"]
+[ext_resource type="PackedScene" uid="uid://b7xxmkj4ycdi3" path="res://scene/games/wack-a-mole/top_bar_mole.tscn" id="3_bj317"]
+[ext_resource type="Script" uid="uid://dkf58chmrv7d" path="res://script/games/game_mole.gd" id="game_mole"]
+[ext_resource type="PackedScene" uid="uid://bw71nta7ndmqs" path="res://scene/games/wack-a-mole/mole.tscn" id="mole"]
+
+[node name="GameMole" type="Node2D"]
+script = ExtResource("game_mole")
+
+[node name="TextureRect" type="TextureRect" parent="."]
+custom_minimum_size = Vector2(720, 1280)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 720.0
+offset_bottom = 1280.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_xiawl")
+expand_mode = 4
+
+[node name="TopBarMole" parent="." instance=ExtResource("3_bj317")]
+
+[node name="Mole0" parent="." instance=ExtResource("mole")]
+
+[node name="Mole1" parent="." instance=ExtResource("mole")]
+
+[node name="Mole2" parent="." instance=ExtResource("mole")]
+
+[node name="Mole3" parent="." instance=ExtResource("mole")]
+
+[node name="Mole4" parent="." instance=ExtResource("mole")]
+
+[node name="Mole5" parent="." instance=ExtResource("mole")]
+
+[node name="Mole6" parent="." instance=ExtResource("mole")]
+
+[node name="Mole7" parent="." instance=ExtResource("mole")]
+
+[node name="Mole8" parent="." instance=ExtResource("mole")]
+
+[node name="Mole9" parent="." instance=ExtResource("mole")]
+
+[node name="Mole10" parent="." instance=ExtResource("mole")]
+
+[node name="Mole11" parent="." instance=ExtResource("mole")]
+
+[node name="PopTimer" type="Timer" parent="."]

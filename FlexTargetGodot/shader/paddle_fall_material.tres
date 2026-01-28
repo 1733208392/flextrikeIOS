@@ -1,0 +1,13 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://clvihc3cf0hk2"]
+
+[ext_resource type="Shader" uid="uid://28mbhtdcowi1" path="res://shader/paddle_fall.gdshader" id="1_paddle_shader"]
+
+[resource]
+shader = ExtResource("1_paddle_shader")
+shader_parameter/fall_progress = 0.0
+shader_parameter/rotation_angle = 0.0
+shader_parameter/motion_blur_intensity = 0.04
+shader_parameter/motion_direction = Vector2(0, 1)
+shader_parameter/perspective_strength = 1.5
+shader_parameter/depth_fade = 0.9
+shader_parameter/shadow_intensity = 0.5

@@ -1,0 +1,50 @@
+[gd_scene load_steps=5 format=3 uid="uid://dvqfglgeqcxw5"]
+
+[ext_resource type="Texture2D" uid="uid://cq53nonwrrc11" path="res://asset/games/wack-a-mole/GUI/clock.png" id="1_emfhu"]
+[ext_resource type="Script" uid="uid://b14pc0jqfik6j" path="res://script/games/progress_bar_rounded.gd" id="2_script"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_emfhu"]
+bg_color = Color(0.41960785, 0.05882353, 0.078431375, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 15
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_r6lpp"]
+bg_color = Color(0.9843137, 0, 0.08627451, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 15
+
+[node name="MoleProgressBar" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+custom_minimum_size = Vector2(720, 0)
+layout_mode = 1
+offset_right = 336.0
+offset_bottom = 32.0
+
+[node name="clock" type="TextureRect" parent="HBoxContainer"]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+texture = ExtResource("1_emfhu")
+expand_mode = 1
+
+[node name="ProgressBar" type="ProgressBar" parent="HBoxContainer"]
+custom_minimum_size = Vector2(680, 32)
+layout_mode = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_emfhu")
+theme_override_styles/fill = SubResource("StyleBoxFlat_r6lpp")
+show_percentage = false
+script = ExtResource("2_script")

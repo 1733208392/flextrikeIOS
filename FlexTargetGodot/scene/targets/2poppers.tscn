@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3 uid="uid://b8kly2jhfquiv"]
+
+[ext_resource type="PackedScene" uid="uid://dqwy2uf6beqmw" path="res://scene/popper.tscn" id="1_rd4ub"]
+[ext_resource type="Script" uid="uid://brwajqd1r8euo" path="res://script/2poppers.gd" id="2_script"]
+
+[node name="2Poppers" type="Node2D"]
+script = ExtResource("2_script")
+
+[node name="Popper" parent="." instance=ExtResource("1_rd4ub")]
+position = Vector2(-150, 100)
+
+[node name="Popper2" parent="." instance=ExtResource("1_rd4ub")]
+position = Vector2(150, 100)

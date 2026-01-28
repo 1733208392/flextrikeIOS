@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=3 uid="uid://dv7jdybl4yeyc"]
+
+[ext_resource type="Script" uid="uid://dtgwbad885rua" path="res://script/games/score_label.gd" id="1_script"]
+[ext_resource type="FontFile" uid="uid://d2eub6rd80tjp" path="res://asset/games/soupofjustice.ttf" id="1_yqyi7"]
+
+[node name="ScoreLabel" type="Label"]
+theme_override_constants/outline_size = 10
+theme_override_fonts/font = ExtResource("1_yqyi7")
+theme_override_font_sizes/font_size = 48
+text = "+100"
+script = ExtResource("1_script")

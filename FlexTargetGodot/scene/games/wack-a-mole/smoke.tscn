@@ -1,0 +1,62 @@
+[gd_scene load_steps=10 format=3 uid="uid://de0ssgk520168"]
+
+[ext_resource type="Texture2D" uid="uid://c4b2ocsnq6dbl" path="res://asset/games/wack-a-mole/Sprites/Mole/Smokes.png" id="1_42gxu"]
+[ext_resource type="Script" uid="uid://bqj28qx07jhfp" path="res://script/games/mole_smoke.gd" id="2_isria"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_isria"]
+atlas = ExtResource("1_42gxu")
+region = Rect2(0, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fuxxm"]
+atlas = ExtResource("1_42gxu")
+region = Rect2(64, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hlgp8"]
+atlas = ExtResource("1_42gxu")
+region = Rect2(128, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kjhl6"]
+atlas = ExtResource("1_42gxu")
+region = Rect2(192, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_57di6"]
+atlas = ExtResource("1_42gxu")
+region = Rect2(256, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3tsjt"]
+atlas = ExtResource("1_42gxu")
+region = Rect2(320, 0, 64, 64)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_f7s4m"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_isria")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fuxxm")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hlgp8")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kjhl6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_57di6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3tsjt")
+}],
+"loop": false,
+"name": &"default",
+"speed": 12.0
+}]
+
+[node name="smoke" type="AnimatedSprite2D"]
+scale = Vector2(2, 2)
+sprite_frames = SubResource("SpriteFrames_f7s4m")
+autoplay = "default"
+frame = 5
+frame_progress = 1.0
+script = ExtResource("2_isria")

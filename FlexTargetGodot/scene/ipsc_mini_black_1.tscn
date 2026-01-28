@@ -1,0 +1,81 @@
+[gd_scene load_steps=5 format=3 uid="uid://b7gq40xmvbr23"]
+
+[ext_resource type="Texture2D" uid="uid://mmiwfe3kc2l4" path="res://asset/ipsc_black_1.png" id="2_lcvdd"]
+[ext_resource type="Script" uid="uid://c82up1ybvx647" path="res://script/ipsc_mini_black_1.gd" id="2_script"]
+
+[sub_resource type="Animation" id="Animation_1"]
+resource_name = "disappear"
+length = 1.0
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.0666667, 0.133333, 0.2, 0.266667, 0.333333, 0.4, 0.466667, 0.533333, 0.6, 0.666667, 0.733333, 0.8, 0.866667, 0.933333, 1.0),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 0,
+"values": [0.0, 0.174533, -0.174533, 0.139626, -0.139626, 0.10472, -0.10472, 0.0698132, -0.0698132, 0.0349066, -0.0349066, 0.0174533, -0.0174533, 0.00872665, -0.00872665, 0.0]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:modulate")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 1.0),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath(".:scale")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 1.0),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(1, 1), Vector2(0.8, 0.8)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_1"]
+_data = {
+&"disappear": SubResource("Animation_1")
+}
+
+[node name="IPSC" type="Area2D"]
+collision_layer = 7
+collision_mask = 0
+script = ExtResource("2_script")
+
+[node name="TargetSprite" type="Sprite2D" parent="."]
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("2_lcvdd")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary_1")
+}
+
+[node name="AZone" type="CollisionPolygon2D" parent="."]
+polygon = PackedVector2Array(43, -452, 134, -152, 134, -26, 43, 106, -43, 106, -134, -26, -134, -152, -42, -452)
+
+[node name="CZone" type="CollisionPolygon2D" parent="."]
+polygon = PackedVector2Array(136, -484, 137, -155, 138, 220, 85, 286, -85, 286, -140, 220, -138, -148, -136, -483)
+
+[node name="DZone" type="CollisionPolygon2D" parent="."]
+position = Vector2(-5, 553)
+polygon = PackedVector2Array(86, -271, 144, -345, 142, -72, -136, -70, -133, -344, -79, -274)
+
+[node name="BlackZoneRight" type="CollisionPolygon2D" parent="."]
+position = Vector2(-18, -6)
+polygon = PackedVector2Array(-119, 495, -382, 168, -381, -160, -121, -481)
+
+[node name="BlackZoneLeft" type="CollisionPolygon2D" parent="."]
+position = Vector2(268, -8)
+polygon = PackedVector2Array(-127, 493, 124, 178, 126, -159, -132, -477)

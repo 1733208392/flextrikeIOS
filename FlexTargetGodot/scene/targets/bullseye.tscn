@@ -1,0 +1,24 @@
+[gd_scene load_steps=5 format=3 uid="uid://b8x3say4k2m1"]
+
+[ext_resource type="Script" uid="uid://cq45o1flcjbtn" path="res://scene/targets/bullseye.gd" id="1_qln23"]
+[ext_resource type="Texture2D" uid="uid://3eqigthh6l8u" path="res://asset/bullseye.png" id="2_qln23"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_7p0dk"]
+radius = 400.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_qln23"]
+radius = 35.0
+
+[node name="BullseyeTarget" type="Area2D"]
+collision_layer = 7
+collision_mask = 0
+script = ExtResource("1_qln23")
+
+[node name="TargetSprite" type="Sprite2D" parent="."]
+texture = ExtResource("2_qln23")
+
+[node name="OuterZone" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_7p0dk")
+
+[node name="BullseyeZone" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_qln23")

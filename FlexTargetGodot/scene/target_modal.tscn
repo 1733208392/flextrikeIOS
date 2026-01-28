@@ -1,0 +1,161 @@
+[gd_scene load_steps=2 format=3 uid="uid://dnymaudxpp3fr"]
+
+[ext_resource type="Script" path="res://script/target_modal.gd" id="1_target_modal"]
+
+[node name="target_modal" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_target_modal")
+
+[node name="ModalBackground" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.7)
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 30
+theme_override_constants/margin_top = 50
+theme_override_constants/margin_right = 30
+theme_override_constants/margin_bottom = 50
+
+[node name="Panel" type="Panel" parent="MarginContainer"]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="HeaderContainer" type="HBoxContainer" parent="MarginContainer/Panel/VBoxContainer"]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="MarginContainer/Panel/VBoxContainer/HeaderContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Target Details"
+horizontal_alignment = 1
+
+[node name="CloseButton" type="Button" parent="MarginContainer/Panel/VBoxContainer/HeaderContainer"]
+layout_mode = 2
+text = "×"
+
+[node name="HSeparator" type="HSeparator" parent="MarginContainer/Panel/VBoxContainer"]
+layout_mode = 2
+
+[node name="ContentContainer" type="VBoxContainer" parent="MarginContainer/Panel/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="TargetImageContainer" type="CenterContainer" parent="MarginContainer/Panel/VBoxContainer/ContentContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="TargetImage" type="TextureRect" parent="MarginContainer/Panel/VBoxContainer/ContentContainer/TargetImageContainer"]
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 0
+stretch_mode = 4
+
+[node name="StatsContainer" type="VBoxContainer" parent="MarginContainer/Panel/VBoxContainer/ContentContainer"]
+layout_mode = 2
+
+[node name="StatisticsLabel" type="Label" parent="MarginContainer/Panel/VBoxContainer/ContentContainer/StatsContainer"]
+layout_mode = 2
+text = "Statistics"
+horizontal_alignment = 1
+
+[node name="HSeparator2" type="HSeparator" parent="MarginContainer/Panel/VBoxContainer/ContentContainer/StatsContainer"]
+layout_mode = 2
+
+[node name="StatsGrid" type="GridContainer" parent="MarginContainer/Panel/VBoxContainer/ContentContainer/StatsContainer"]
+layout_mode = 2
+columns = 2
+
+[node name="FastestShotLabel" type="Label" parent="MarginContainer/Panel/VBoxContainer/ContentContainer/StatsContainer/StatsGrid"]
+layout_mode = 2
+text = "Fastest Shot:"
+
+[node name="FastestShotValue" type="Label" parent="MarginContainer/Panel/VBoxContainer/ContentContainer/StatsContainer/StatsGrid"]
+layout_mode = 2
+text = "0.8s"
+horizontal_alignment = 2
+
+[node name="TotalTimeLabel" type="Label" parent="MarginContainer/Panel/VBoxContainer/ContentContainer/StatsContainer/StatsGrid"]
+layout_mode = 2
+text = "Total Time:"
+
+[node name="TotalTimeValue" type="Label" parent="MarginContainer/Panel/VBoxContainer/ContentContainer/StatsContainer/StatsGrid"]
+layout_mode = 2
+text = "15.2s"
+horizontal_alignment = 2
+
+[node name="ShotsCountLabel" type="Label" parent="MarginContainer/Panel/VBoxContainer/ContentContainer/StatsContainer/StatsGrid"]
+layout_mode = 2
+text = "Total Shots:"
+
+[node name="ShotsCountValue" type="Label" parent="MarginContainer/Panel/VBoxContainer/ContentContainer/StatsContainer/StatsGrid"]
+layout_mode = 2
+text = "6"
+horizontal_alignment = 2
+
+[node name="AverageTimeLabel" type="Label" parent="MarginContainer/Panel/VBoxContainer/ContentContainer/StatsContainer/StatsGrid"]
+layout_mode = 2
+text = "Average Time:"
+
+[node name="AverageTimeValue" type="Label" parent="MarginContainer/Panel/VBoxContainer/ContentContainer/StatsContainer/StatsGrid"]
+layout_mode = 2
+text = "2.5s"
+horizontal_alignment = 2
+
+[node name="AccuracyLabel" type="Label" parent="MarginContainer/Panel/VBoxContainer/ContentContainer/StatsContainer/StatsGrid"]
+layout_mode = 2
+text = "Accuracy:"
+
+[node name="AccuracyValue" type="Label" parent="MarginContainer/Panel/VBoxContainer/ContentContainer/StatsContainer/StatsGrid"]
+layout_mode = 2
+text = "83%"
+horizontal_alignment = 2
+
+[node name="PointsLabel" type="Label" parent="MarginContainer/Panel/VBoxContainer/ContentContainer/StatsContainer/StatsGrid"]
+layout_mode = 2
+text = "Points Scored:"
+
+[node name="PointsValue" type="Label" parent="MarginContainer/Panel/VBoxContainer/ContentContainer/StatsContainer/StatsGrid"]
+layout_mode = 2
+text = "28/30"
+horizontal_alignment = 2
+
+[node name="HSeparator3" type="HSeparator" parent="MarginContainer/Panel/VBoxContainer"]
+layout_mode = 2
+
+[node name="ButtonContainer" type="HBoxContainer" parent="MarginContainer/Panel/VBoxContainer"]
+layout_mode = 2
+
+[node name="BackButton" type="Button" parent="MarginContainer/Panel/VBoxContainer/ButtonContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Back"
+
+[connection signal="pressed" from="MarginContainer/Panel/VBoxContainer/HeaderContainer/CloseButton" to="." method="_on_close_button_pressed"]
+[connection signal="pressed" from="MarginContainer/Panel/VBoxContainer/ButtonContainer/BackButton" to="." method="_on_back_button_pressed"]

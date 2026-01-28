@@ -1,0 +1,59 @@
+[gd_scene load_steps=11 format=3 uid="uid://cw28wieq74y06"]
+
+[ext_resource type="Texture2D" uid="uid://bphhxo788pt8" path="res://asset/games/bomb.png" id="1_4kkau"]
+[ext_resource type="Script" uid="uid://c5jvq6q58px31" path="res://script/games/bomb.gd" id="2_bomb"]
+[ext_resource type="PackedScene" path="res://scene/games/smoke.tscn" id="3_j15uc"]
+[ext_resource type="AudioStream" uid="uid://bs8tkd0dt7qff" path="res://audio/car-crash-sound-effect.mp3" id="4_84slv"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_4kkau"]
+radius = 55.0
+
+[sub_resource type="Gradient" id="Gradient_4kkau"]
+offsets = PackedFloat32Array(0, 0.48584905, 1)
+colors = PackedColorArray(1, 1, 1, 1, 0.8634631, 0, 0.010954559, 1, 0.9903874, 0.21552408, 0.17847556, 1)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_vpdcx"]
+gradient = SubResource("Gradient_4kkau")
+
+[sub_resource type="Curve" id="Curve_84slv"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(0.9849624, 0.27498394), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_nxi8k"]
+curve = SubResource("Curve_84slv")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_1hf1o"]
+particle_flag_disable_z = true
+direction = Vector3(0, 0, 0)
+spread = 180.0
+initial_velocity_min = 217.65
+initial_velocity_max = 385.28998
+scale_min = 0.0
+scale_max = 27.64
+scale_curve = SubResource("CurveTexture_nxi8k")
+color_ramp = SubResource("GradientTexture1D_vpdcx")
+turbulence_noise_strength = 0.0
+
+[node name="Bomb" type="RigidBody2D"]
+gravity_scale = 0.04
+script = ExtResource("2_bomb")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(4, 4)
+texture = ExtResource("1_4kkau")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(-10, 13)
+shape = SubResource("CircleShape2D_4kkau")
+
+[node name="smoke" parent="." instance=ExtResource("3_j15uc")]
+
+[node name="debris" type="GPUParticles2D" parent="."]
+emitting = false
+amount = 60
+one_shot = true
+explosiveness = 1.0
+process_material = SubResource("ParticleProcessMaterial_1hf1o")
+
+[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("4_84slv")

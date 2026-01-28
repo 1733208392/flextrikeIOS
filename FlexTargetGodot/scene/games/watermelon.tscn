@@ -1,0 +1,117 @@
+[gd_scene load_steps=18 format=3 uid="uid://c2q7b15uf0aw"]
+
+[ext_resource type="Texture2D" uid="uid://cjjwxfwhfcah" path="res://asset/games/watermelon.png" id="2_ifjry"]
+[ext_resource type="Script" uid="uid://do42ni6k777pq" path="res://script/games/watermelon.gd" id="2_script"]
+[ext_resource type="AudioStream" uid="uid://k3did0ku0n0" path="res://audio/SE-Collision_08C.ogg" id="3_audio"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_hplsj"]
+radius = 50.0
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_t2ksd"]
+atlas = ExtResource("2_ifjry")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ealrl"]
+atlas = ExtResource("2_ifjry")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hcnla"]
+atlas = ExtResource("2_ifjry")
+region = Rect2(64, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7ey3n"]
+atlas = ExtResource("2_ifjry")
+region = Rect2(96, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_l52b0"]
+atlas = ExtResource("2_ifjry")
+region = Rect2(128, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_aa0xy"]
+atlas = ExtResource("2_ifjry")
+region = Rect2(160, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wqnbw"]
+atlas = ExtResource("2_ifjry")
+region = Rect2(192, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mca6c"]
+atlas = ExtResource("2_ifjry")
+region = Rect2(224, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_36flm"]
+atlas = ExtResource("2_ifjry")
+region = Rect2(256, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_a1fx1"]
+atlas = ExtResource("2_ifjry")
+region = Rect2(288, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3cxp0"]
+atlas = ExtResource("2_ifjry")
+region = Rect2(320, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_800g0"]
+atlas = ExtResource("2_ifjry")
+region = Rect2(352, 0, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_kgiay"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_t2ksd")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ealrl")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hcnla")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_7ey3n")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_l52b0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_aa0xy")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_wqnbw")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mca6c")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_36flm")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_a1fx1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3cxp0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_800g0")
+}],
+"loop": false,
+"name": &"default",
+"speed": 12.0
+}]
+
+[node name="watermelon" type="RigidBody2D"]
+input_pickable = true
+gravity_scale = 0.04
+script = ExtResource("2_script")
+
+[node name="CollisionShape" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_hplsj")
+
+[node name="Sprite" type="AnimatedSprite2D" parent="."]
+scale = Vector2(3, 3)
+sprite_frames = SubResource("SpriteFrames_kgiay")
+
+[node name="HitSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("3_audio")
+volume_db = 10.0
+pitch_scale = 0.9

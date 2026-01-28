@@ -1,0 +1,197 @@
+[gd_scene load_steps=26 format=3 uid="uid://cfqgpe6axmbbi"]
+
+[ext_resource type="Texture2D" uid="uid://cr7li7spqkndk" path="res://asset/games/truck-small-crasht.png" id="1_0xl1e"]
+[ext_resource type="Script" uid="uid://b8x1i2ar7seni" path="res://script/games/truck.gd" id="1_1n0o7"]
+[ext_resource type="Texture2D" uid="uid://bt2p86waqmkfj" path="res://asset/games/truck-small-hit.png" id="2_1n0o7"]
+[ext_resource type="Texture2D" uid="uid://c4gsu8ox2umfl" path="res://asset/games/truck-small-run.png" id="3_m2ugu"]
+[ext_resource type="Texture2D" uid="uid://0ibfnlk1lquj" path="res://asset/games/truck-small-idle.png" id="4_m2ugu"]
+[ext_resource type="AudioStream" uid="uid://bawg2io4jxd1l" path="res://audio/ground-impact.mp3" id="4_nrudi"]
+[ext_resource type="AudioStream" uid="uid://bj5a1to066jv6" path="res://audio/car-crash-sound-effect.mp3" id="5_j2sht"]
+[ext_resource type="AudioStream" uid="uid://c4t1v6e5014es" path="res://audio/motor-brake-sound.mp3" id="6_1ddkj"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mqesg"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0.784314, 0.160784, 0.192157, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qjvdq"]
+bg_color = Color(0, 1, 0, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0, 0, 0, 1)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vtaks"]
+atlas = ExtResource("1_0xl1e")
+region = Rect2(0, 0, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kvpfn"]
+atlas = ExtResource("1_0xl1e")
+region = Rect2(64, 0, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_m2ugu"]
+atlas = ExtResource("2_1n0o7")
+region = Rect2(0, 0, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qjvdq"]
+atlas = ExtResource("2_1n0o7")
+region = Rect2(64, 0, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bnaug"]
+atlas = ExtResource("2_1n0o7")
+region = Rect2(128, 0, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xro4f"]
+atlas = ExtResource("2_1n0o7")
+region = Rect2(192, 0, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_nrudi"]
+atlas = ExtResource("4_m2ugu")
+region = Rect2(0, 0, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_j2sht"]
+atlas = ExtResource("4_m2ugu")
+region = Rect2(64, 0, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1ddkj"]
+atlas = ExtResource("4_m2ugu")
+region = Rect2(128, 0, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mqesg"]
+atlas = ExtResource("4_m2ugu")
+region = Rect2(192, 0, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dinhu"]
+atlas = ExtResource("3_m2ugu")
+region = Rect2(0, 0, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kvuet"]
+atlas = ExtResource("3_m2ugu")
+region = Rect2(64, 0, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_trtic"]
+atlas = ExtResource("3_m2ugu")
+region = Rect2(128, 0, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ir15t"]
+atlas = ExtResource("3_m2ugu")
+region = Rect2(192, 0, 64, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_xro4f"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vtaks")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kvpfn")
+}],
+"loop": false,
+"name": &"crash",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_m2ugu")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_qjvdq")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bnaug")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xro4f")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bnaug")
+}],
+"loop": false,
+"name": &"hit",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_nrudi")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_j2sht")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_1ddkj")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mqesg")
+}],
+"loop": false,
+"name": &"idle",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_dinhu")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kvuet")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_trtic")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ir15t")
+}],
+"loop": true,
+"name": &"run",
+"speed": 5.0
+}]
+
+[node name="Truck" type="Node2D"]
+script = ExtResource("1_1n0o7")
+
+[node name="ProgressBar" type="ProgressBar" parent="."]
+offset_left = 128.0
+offset_top = 952.001
+offset_right = 300.0
+offset_bottom = 974.334
+theme_override_styles/background = SubResource("StyleBoxFlat_mqesg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_qjvdq")
+step = -10.0
+value = 100.0
+show_percentage = false
+
+[node name="Truck" type="Area2D" parent="."]
+position = Vector2(360, 1125)
+scale = Vector2(1.5, 1.5)
+
+[node name="BodyCollision" type="CollisionPolygon2D" parent="Truck"]
+position = Vector2(-136.201, 40)
+polygon = PackedVector2Array(-98.46566, -32, 8.201004, -129.33331, 149.53435, -128.66663, 150.86768, -53.333313, 359.53436, -50.666626)
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+position = Vector2(360, 1126)
+scale = Vector2(11.25, 11.25)
+sprite_frames = SubResource("SpriteFrames_xro4f")
+animation = &"hit"
+
+[node name="HitSound" type="AudioStreamPlayer2D" parent="."]
+position = Vector2(360, 1125)
+scale = Vector2(1.5, 1.5)
+stream = ExtResource("4_nrudi")
+
+[node name="CrashSound" type="AudioStreamPlayer2D" parent="."]
+position = Vector2(360, 1125)
+scale = Vector2(1.5, 1.5)
+stream = ExtResource("5_j2sht")
+
+[node name="RunSound" type="AudioStreamPlayer2D" parent="."]
+position = Vector2(360, 1125)
+scale = Vector2(1.5, 1.5)
+stream = ExtResource("6_1ddkj")
