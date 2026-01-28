@@ -93,7 +93,7 @@ class BLERepository @Inject constructor(
             }
 
             // Send BLE command to request auth data from device
-            val timestamp = System.currentTimeMillis()
+            val timestamp = System.currentTimeMillis() / 1000
             val command = """{"action":"get_auth_data","timestamp":$timestamp}"""
             BLEManager.shared.writeJSON(command)
             Log.d(TAG, "Sent get_auth_data command to device")

@@ -79,10 +79,9 @@ fun OTAUpdateView(
                         stepMessage = otaUiState.description,
                         onCheckClick = {
                             Log.d("OTAUpdateView", "Check for updates button tapped")
-                            val bleState = bleViewModel.bleUiState.value
-                            Log.d("OTAUpdateView", "BLE state: isConnected=${bleState.isConnected}, deviceState=${bleState.deviceState}")
+                            Log.d("OTAUpdateView", "BLE manager isConnected=${bleManager.isConnected}")
                             
-                            if (!bleState.isConnected) {
+                            if (!bleManager.isConnected) {
                                 Log.e("OTAUpdateView", "Cannot check for updates: BLE device not connected")
                                 return@CheckUpdatesButton
                             }
@@ -116,8 +115,7 @@ fun OTAUpdateView(
                             ErrorCard(
                                 errorMessage = otaUiState.error ?: "Unknown error occurred",
                                 onRetry = {
-                                    val bleState = bleViewModel.bleUiState.value
-                                    if (!bleState.isConnected) {
+                                    if (!bleManager.isConnected) {
                                         Log.e("OTAUpdateView", "Cannot retry: BLE device not connected")
                                         return@ErrorCard
                                     }
@@ -138,9 +136,54 @@ fun OTAUpdateView(
                         if (otaUiState.availableVersion != null) {
                             item {
                                 UpdateAvailableCard(
-                                    availableVersion = otaUiState.availableVersion
+                                    availableVersion = otaUiState.availableVersion,
+                                    onUpdateClick = { otaViewModel.prepareUpdate() }
                                 )
                             }
+                        }
+                    }
+                    OTAState.PREPARING -> {
+                        item {
+                            PreparingCard(
+                                progress = otaUiState.progress,
+                                version = otaUiState.availableVersion ?: ""
+                            )
+                        }
+                    }
+                    OTAState.WAITING_FOR_READY_TO_DOWNLOAD -> {
+                        item {
+                            WaitingCard(
+                                version = otaUiState.availableVersion ?: ""
+                            )
+                        }
+                    }
+                    OTAState.DOWNLOADING -> {
+                        item {
+                            DownloadingCard(
+                                progress = otaUiState.progress,
+                                version = otaUiState.availableVersion ?: ""
+                            )
+                        }
+                    }
+                    OTAState.RELOADING -> {
+                        item {
+                            ReloadingCard(
+                                version = otaUiState.availableVersion ?: ""
+                            )
+                        }
+                    }
+                    OTAState.VERIFYING -> {
+                        item {
+                            VerifyingCard(
+                                version = otaUiState.availableVersion ?: ""
+                            )
+                        }
+                    }
+                    OTAState.COMPLETED -> {
+                        item {
+                            CompletedCard(
+                                version = otaUiState.availableVersion ?: ""
+                            )
                         }
                     }
                     OTAState.IDLE -> {
@@ -162,6 +205,7 @@ fun OTAUpdateView(
                 }
             }
         }
+
     }
 }
 
@@ -381,7 +425,8 @@ private fun ErrorCard(errorMessage: String, onRetry: () -> Unit) {
 
 @Composable
 private fun UpdateAvailableCard(
-    availableVersion: String
+    availableVersion: String,
+    onUpdateClick: () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -429,7 +474,7 @@ private fun UpdateAvailableCard(
             )
 
             Button(
-                onClick = { },
+                onClick = onUpdateClick,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(44.dp),
@@ -525,6 +570,271 @@ private fun InfoCard(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun PreparingCard(
+    progress: Int,
+    version: String
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White.copy(alpha = 0.05f)
+        ),
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(48.dp),
+                color = Color.Red,
+                strokeWidth = 3.dp
+            )
+            Text(
+                "Preparing Update",
+                color = Color.White,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+            Text(
+                "Version $version",
+                color = Color.Gray,
+                style = MaterialTheme.typography.labelSmall,
+                textAlign = TextAlign.Center
+            )
+            LinearProgressIndicator(
+                progress = progress / 100f,
+                modifier = Modifier.fillMaxWidth(),
+                color = Color.Red,
+                trackColor = Color.Gray.copy(alpha = 0.3f)
+            )
+            Text(
+                "$progress%",
+                color = Color.Gray,
+                style = MaterialTheme.typography.labelSmall
+            )
+        }
+    }
+}
+
+@Composable
+private fun WaitingCard(
+    version: String
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White.copy(alpha = 0.05f)
+        ),
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(48.dp),
+                color = Color.Red,
+                strokeWidth = 3.dp
+            )
+            Text(
+                "Waiting for Device",
+                color = Color.White,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+            Text(
+                "Version $version",
+                color = Color.Gray,
+                style = MaterialTheme.typography.labelSmall,
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+@Composable
+private fun DownloadingCard(
+    progress: Int,
+    version: String
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White.copy(alpha = 0.05f)
+        ),
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(48.dp),
+                color = Color.Red,
+                strokeWidth = 3.dp
+            )
+            Text(
+                "Downloading Update",
+                color = Color.White,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+            Text(
+                "Version $version",
+                color = Color.Gray,
+                style = MaterialTheme.typography.labelSmall,
+                textAlign = TextAlign.Center
+            )
+            LinearProgressIndicator(
+                progress = progress / 100f,
+                modifier = Modifier.fillMaxWidth(),
+                color = Color.Red,
+                trackColor = Color.Gray.copy(alpha = 0.3f)
+            )
+            Text(
+                "$progress%",
+                color = Color.Gray,
+                style = MaterialTheme.typography.labelSmall
+            )
+        }
+    }
+}
+
+@Composable
+private fun ReloadingCard(
+    version: String
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White.copy(alpha = 0.05f)
+        ),
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(48.dp),
+                color = Color.Red,
+                strokeWidth = 3.dp
+            )
+            Text(
+                "Reloading Device",
+                color = Color.White,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+            Text(
+                "Version $version",
+                color = Color.Gray,
+                style = MaterialTheme.typography.labelSmall,
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+@Composable
+private fun VerifyingCard(
+    version: String
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White.copy(alpha = 0.05f)
+        ),
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(48.dp),
+                color = Color.Red,
+                strokeWidth = 3.dp
+            )
+            Text(
+                "Verifying Update",
+                color = Color.White,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+            Text(
+                "Version $version",
+                color = Color.Gray,
+                style = MaterialTheme.typography.labelSmall,
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+@Composable
+private fun CompletedCard(
+    version: String
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.Green.copy(alpha = 0.1f)
+        ),
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Check,
+                contentDescription = null,
+                tint = Color.Green,
+                modifier = Modifier.size(48.dp)
+            )
+            Text(
+                "Update Completed",
+                color = Color.White,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+            Text(
+                "Version $version",
+                color = Color.Gray,
+                style = MaterialTheme.typography.labelSmall,
+                textAlign = TextAlign.Center
+            )
         }
     }
 }

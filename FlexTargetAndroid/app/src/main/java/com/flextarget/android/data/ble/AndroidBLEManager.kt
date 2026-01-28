@@ -50,6 +50,14 @@ class AndroidBLEManager(private val context: Context) {
     // Callback for auth data response
     var onAuthDataReceived: ((String) -> Unit)? = null
 
+    // OTA Callbacks
+    var onGameDiskOTAReady: (() -> Unit)? = null
+    var onOTAPreparationFailed: ((String) -> Unit)? = null
+    var onBLEErrorOccurred: (() -> Unit)? = null
+    var onReadyToDownload: (() -> Unit)? = null
+    var onDownloadComplete: ((String) -> Unit)? = null
+    var onVersionInfoReceived: ((String) -> Unit)? = null
+
     private var bluetoothGatt: BluetoothGatt? = null
     private var writeCharacteristic: BluetoothGattCharacteristic? = null
     private var notifyCharacteristic: BluetoothGattCharacteristic? = null
@@ -290,6 +298,61 @@ class AndroidBLEManager(private val context: Context) {
                         this.onShotReceived?.invoke(shotData)
                     }
                 }
+                // OTA Messages - matching iOS format
+                // Handle prepare_game_disk_ota success
+                type == "notice" && action == "prepare_game_disk_ota" && json.optString("state") == "success" -> {
+                    println("[AndroidBLEManager] Received prepare_game_disk_ota success confirmation: Device entering OTA mode")
+                    BLEManager.shared.onGameDiskOTAReady?.invoke()
+                }
+                // Handle prepare_game_disk_ota failure
+                type == "notice" && action == "prepare_game_disk_ota" && json.optString("state") == "failure" -> {
+                    val failureReason = json.optString("failure_reason", "Unknown error")
+                    val message = json.optString("message", "Device failed to enter OTA mode")
+                    println("[AndroidBLEManager] Received prepare_game_disk_ota failure: $failureReason - $message")
+                    
+                    // Check if it's a game disk not found error
+                    if (failureReason.lowercase().contains("game disk not found") || 
+                        message.lowercase().contains("game disk not found")) {
+                        BLEManager.shared.onOTAPreparationFailed?.invoke("game_disk_not_found")
+                    } else {
+                        BLEManager.shared.onBLEErrorOccurred?.invoke()
+                    }
+                }
+                // Handle forward messages for OTA
+                type == "forward" && json.has("content") -> {
+                    val content = json.getJSONObject("content")
+                    
+                    // Check for OTA "ready_to_download" notification
+                    if (content.optString("notification") == "ready_to_download") {
+                        println("[AndroidBLEManager] Received OTA ready_to_download notification")
+                        BLEManager.shared.onReadyToDownload?.invoke()
+                    }
+                    // Check for OTA "download_complete" notification
+                    else if (content.optString("notification") == "download_complete") {
+                        val version = content.optString("version")
+                        println("[AndroidBLEManager] Received OTA download complete (forwarded): $version")
+                        // Note: iOS calls reloadUI() here, but we'll handle it in the repository
+                        BLEManager.shared.onDownloadComplete?.invoke(version)
+                    }
+                    // Check for OTA version info
+                    else if (content.has("version")) {
+                        val version = content.optString("version")
+                        println("[AndroidBLEManager] Received OTA version info (forwarded): $version")
+                        BLEManager.shared.onVersionInfoReceived?.invoke(version)
+                    }
+                }
+                // Handle OTA "download complete" notification (Top-level fallback)
+                json.has("notification") && json.optString("notification") == "download_complete" -> {
+                    val version = json.optString("version")
+                    println("[AndroidBLEManager] Received OTA download complete: $version")
+                    BLEManager.shared.onDownloadComplete?.invoke(version)
+                }
+                // Handle OTA version query response (Top-level fallback)
+                type == "version" && json.has("version") -> {
+                    val version = json.optString("version")
+                    println("[AndroidBLEManager] Received OTA version info: $version")
+                    BLEManager.shared.onVersionInfoReceived?.invoke(version)
+                }
                 // Add other message types as needed
             }
         } catch (e: Exception) {
@@ -468,5 +531,59 @@ class AndroidBLEManager(private val context: Context) {
                ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED &&
                ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
                ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+    }
+
+    // OTA Methods
+    fun prepareGameDiskOTA() {
+        val command = mapOf(
+            "action" to "prepare_game_disk_ota"
+        )
+        writeJSON(Gson().toJson(command))
+    }
+
+    fun startGameUpgrade(address: String, checksum: String, otaVersion: String) {
+        val content = mapOf(
+            "action" to "start_game_upgrade",
+            "address" to address,
+            "checksum" to checksum,
+            "version" to otaVersion
+        )
+        val command = mapOf(
+            "action" to "forward",
+            "content" to content
+        )
+        writeJSON(Gson().toJson(command))
+    }
+
+    fun reloadUI() {
+        val command = mapOf(
+            "action" to "reload_ui"
+        )
+        writeJSON(Gson().toJson(command))
+    }
+
+    fun queryVersion() {
+        val content = mapOf(
+            "command" to "query_version"
+        )
+        val command = mapOf(
+            "action" to "forward",
+            "content" to content
+        )
+        writeJSON(Gson().toJson(command))
+    }
+
+    fun finishGameDiskOTA() {
+        val command = mapOf(
+            "action" to "finish_game_disk_ota"
+        )
+        writeJSON(Gson().toJson(command))
+    }
+
+    fun recoveryGameDiskOTA() {
+        val command = mapOf(
+            "action" to "recovery_game_disk_ota"
+        )
+        writeJSON(Gson().toJson(command))
     }
 }

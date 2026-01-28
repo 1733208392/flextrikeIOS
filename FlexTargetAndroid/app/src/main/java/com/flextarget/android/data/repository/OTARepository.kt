@@ -3,11 +3,13 @@ package com.flextarget.android.data.repository
 import android.util.Log
 import androidx.work.*
 import com.flextarget.android.data.auth.AuthManager
+import com.flextarget.android.data.ble.BLEManager
 import com.flextarget.android.data.remote.api.FlexTargetAPI
 import com.flextarget.android.data.remote.api.GetOTAVersionRequest
 import com.flextarget.android.data.remote.api.GetOTAHistoryRequest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -26,11 +28,12 @@ enum class OTAState {
     IDLE,              // No update in progress
     CHECKING,          // Checking for new version
     UPDATE_AVAILABLE,  // New version found
-    PREPARING,         // Downloading/preparing update (10min timeout)
-    READY,             // Update ready to install
-    VERIFYING,         // Verifying update integrity (30s timeout)
-    INSTALLING,        // Applying update
-    COMPLETE,          // Update installed
+    PREPARING,         // Preparing device for OTA
+    WAITING_FOR_READY_TO_DOWNLOAD, // Waiting for device ready signal
+    DOWNLOADING,       // Downloading update to device
+    RELOADING,         // Reloading device after download
+    VERIFYING,         // Verifying update integrity
+    COMPLETED,         // Update completed successfully
     ERROR              // Update failed
 }
 
@@ -213,7 +216,14 @@ class OTARepository @Inject constructor(
             _currentState.emit(OTAState.PREPARING)
             _otaProgress.emit(OTAProgress(state = OTAState.PREPARING, version = updateInfo.version))
             
-            // Simulate download with progress updates
+            // Set up BLE callbacks for OTA state transitions
+            setupOTACallbacks()
+            
+            // Send BLE command to prepare device for OTA
+            Log.d(TAG, "Sending prepare_game_disk_ota command to device")
+            BLEManager.shared.androidManager?.prepareGameDiskOTA()
+            
+            // Simulate download with progress updates (in real implementation, this would download the file)
             for (i in 0..100 step 10) {
                 _otaProgress.emit(
                     OTAProgress(
@@ -227,10 +237,10 @@ class OTARepository @Inject constructor(
             }
             
             Log.d(TAG, "Update prepared: ${updateInfo.version}")
-            _currentState.emit(OTAState.READY)
+            _currentState.emit(OTAState.WAITING_FOR_READY_TO_DOWNLOAD)
             _otaProgress.emit(
                 OTAProgress(
-                    state = OTAState.READY,
+                    state = OTAState.WAITING_FOR_READY_TO_DOWNLOAD,
                     progress = 100,
                     version = updateInfo.version
                 )
@@ -286,16 +296,16 @@ class OTARepository @Inject constructor(
      */
     suspend fun installUpdate(): Result<Unit> = withContext(Dispatchers.IO) {
         try {
-            _currentState.emit(OTAState.INSTALLING)
-            _otaProgress.emit(OTAProgress(state = OTAState.INSTALLING))
+            _currentState.emit(OTAState.COMPLETED)
+            _otaProgress.emit(OTAProgress(state = OTAState.COMPLETED))
             
             // In real implementation, would trigger actual update installation
             Log.d(TAG, "Installing update")
             
-            _currentState.emit(OTAState.COMPLETE)
+            _currentState.emit(OTAState.COMPLETED)
             _otaProgress.emit(
                 OTAProgress(
-                    state = OTAState.COMPLETE,
+                    state = OTAState.COMPLETED,
                     progress = 100
                 )
             )
@@ -375,6 +385,87 @@ class OTARepository @Inject constructor(
      */
     fun setDownloadCachePath(path: String) {
         downloadCachePath = path
+    }
+    
+    private fun setupOTACallbacks() {
+        Log.d(TAG, "Setting up OTA BLE callbacks")
+        
+        // Set up callback for successful OTA preparation
+        BLEManager.shared.onGameDiskOTAReady = {
+            Log.d(TAG, "Received onGameDiskOTAReady callback")
+            coroutineScope.launch {
+                _currentState.emit(OTAState.WAITING_FOR_READY_TO_DOWNLOAD)
+                _otaProgress.emit(OTAProgress(state = OTAState.WAITING_FOR_READY_TO_DOWNLOAD))
+            }
+        }
+        
+        // Set up callback for device ready to download
+        BLEManager.shared.onReadyToDownload = {
+            Log.d(TAG, "Received onReadyToDownload callback")
+            coroutineScope.launch {
+                _currentState.emit(OTAState.DOWNLOADING)
+                _otaProgress.emit(OTAProgress(state = OTAState.DOWNLOADING))
+                
+                // Start the actual download/install process
+                installUpdate()
+            }
+        }
+        
+        // Set up callback for download completion
+        BLEManager.shared.onDownloadComplete = { version ->
+            Log.d(TAG, "Received onDownloadComplete callback with version: $version")
+            coroutineScope.launch {
+                _currentState.emit(OTAState.RELOADING)
+                _otaProgress.emit(OTAProgress(state = OTAState.RELOADING, version = version))
+                
+                // Simulate device reload delay
+                kotlinx.coroutines.delay(2000)
+                
+                _currentState.emit(OTAState.VERIFYING)
+                _otaProgress.emit(OTAProgress(state = OTAState.VERIFYING, version = version))
+                
+                // Query version to verify update
+                BLEManager.shared.androidManager?.queryVersion()
+            }
+        }
+        
+        // Set up callback for version info (verification)
+        BLEManager.shared.onVersionInfoReceived = { version ->
+            Log.d(TAG, "Received onVersionInfoReceived callback with version: $version")
+            coroutineScope.launch {
+                val expectedVersion = currentUpdateInfo?.version
+                if (version == expectedVersion) {
+                    Log.d(TAG, "Version verification successful: $version")
+                    _currentState.emit(OTAState.COMPLETED)
+                    _otaProgress.emit(OTAProgress(state = OTAState.COMPLETED, version = version))
+                    
+                    // Send finish command
+                    BLEManager.shared.androidManager?.finishGameDiskOTA()
+                } else {
+                    Log.e(TAG, "Version verification failed. Expected: $expectedVersion, Got: $version")
+                    _currentState.emit(OTAState.ERROR)
+                    _otaProgress.emit(OTAProgress(state = OTAState.ERROR, error = "Version verification failed"))
+                }
+            }
+        }
+        
+        // Set up callback for OTA preparation failure
+        BLEManager.shared.onOTAPreparationFailed = { errorReason ->
+            Log.e(TAG, "Received onOTAPreparationFailed callback: $errorReason")
+            coroutineScope.launch {
+                _currentState.emit(OTAState.ERROR)
+                _otaProgress.emit(OTAProgress(state = OTAState.ERROR, error = "OTA preparation failed: $errorReason"))
+            }
+        }
+        
+        // Set up callback for general BLE errors
+        BLEManager.shared.onBLEErrorOccurred = {
+            Log.e(TAG, "Received onBLEErrorOccurred callback")
+            coroutineScope.launch {
+                _currentState.emit(OTAState.ERROR)
+                _otaProgress.emit(OTAProgress(state = OTAState.ERROR, error = "BLE communication error"))
+            }
+        }
     }
     
     companion object {

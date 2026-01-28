@@ -48,6 +48,14 @@ class BLEManager private constructor() {
     // Auth data response callback
     var onAuthDataReceived: ((String) -> Unit)? = null
 
+    // OTA Callbacks
+    var onGameDiskOTAReady: (() -> Unit)? = null
+    var onOTAPreparationFailed: ((String) -> Unit)? = null
+    var onBLEErrorOccurred: (() -> Unit)? = null
+    var onReadyToDownload: (() -> Unit)? = null
+    var onDownloadComplete: ((String) -> Unit)? = null
+    var onVersionInfoReceived: ((String) -> Unit)? = null
+
     val connectedPeripheralName: String?
         get() = connectedPeripheral?.name
 
@@ -65,6 +73,24 @@ class BLEManager private constructor() {
             }
             onAuthDataReceived = { authData ->
                 this@BLEManager.onAuthDataReceived?.invoke(authData)
+            }
+            onGameDiskOTAReady = {
+                this@BLEManager.onGameDiskOTAReady?.invoke()
+            }
+            onOTAPreparationFailed = { errorReason ->
+                this@BLEManager.onOTAPreparationFailed?.invoke(errorReason)
+            }
+            onBLEErrorOccurred = {
+                this@BLEManager.onBLEErrorOccurred?.invoke()
+            }
+            onReadyToDownload = {
+                this@BLEManager.onReadyToDownload?.invoke()
+            }
+            onDownloadComplete = { version ->
+                this@BLEManager.onDownloadComplete?.invoke(version)
+            }
+            onVersionInfoReceived = { version ->
+                this@BLEManager.onVersionInfoReceived?.invoke(version)
             }
         }
     }
