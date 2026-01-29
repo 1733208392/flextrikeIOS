@@ -38,6 +38,7 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = true
+            isBundleEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
