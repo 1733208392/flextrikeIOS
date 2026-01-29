@@ -1,0 +1,65 @@
+[gd_scene load_steps=10 format=3 uid="uid://bqn8ukdokemxg"]
+
+[ext_resource type="Texture2D" uid="uid://boems74apt13n" path="res://asset/games/pear.png" id="1_eeymf"]
+[ext_resource type="AudioStream" uid="uid://k3did0ku0n0" path="res://audio/SE-Collision_08C.ogg" id="2_2bcob"]
+[ext_resource type="Script" uid="uid://c4rc1aa8hy4f" path="res://script/games/pear.gd" id="3_script"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2bcob"]
+atlas = ExtResource("1_eeymf")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_pqbvb"]
+atlas = ExtResource("1_eeymf")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ql0tf"]
+atlas = ExtResource("1_eeymf")
+region = Rect2(64, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_t2kfl"]
+atlas = ExtResource("1_eeymf")
+region = Rect2(96, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hujyb"]
+atlas = ExtResource("1_eeymf")
+region = Rect2(128, 0, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_hgkpe"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2bcob")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_pqbvb")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ql0tf")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_t2kfl")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hujyb")
+}],
+"loop": false,
+"name": &"default",
+"speed": 12.0
+}]
+
+[node name="pear" type="RigidBody2D"]
+input_pickable = true
+gravity_scale = 0.04
+script = ExtResource("3_script")
+
+[node name="CollisionShape" type="CollisionPolygon2D" parent="."]
+polygon = PackedVector2Array(33, -13, 37, 25, -2, 47, -39, 23, -28, -18, 14, -45)
+
+[node name="Sprite" type="AnimatedSprite2D" parent="."]
+scale = Vector2(2.5, 2.5)
+sprite_frames = SubResource("SpriteFrames_hgkpe")
+
+[node name="HitSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("2_2bcob")
+volume_db = 10.0
+pitch_scale = 0.9

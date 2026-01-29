@@ -1,0 +1,160 @@
+[gd_scene load_steps=13 format=3 uid="uid://cgtbpgksycu1a"]
+
+[ext_resource type="Script" uid="uid://b3wh72ptgfrqa" path="res://scene/games/tictactoe/main.gd" id="1_0ni5y"]
+[ext_resource type="Shader" uid="uid://bwnehm6a5m4xv" path="res://scene/games/tictactoe/background.gdshader" id="2_jufxn"]
+[ext_resource type="PackedScene" uid="uid://dturr8so8g8cw" path="res://scene/custom_button.tscn" id="2_jxke1"]
+[ext_resource type="LabelSettings" uid="uid://cuf6m18dwphgd" path="res://theme/target_title_ipsc.tres" id="3_5vywm"]
+[ext_resource type="ButtonGroup" uid="uid://cktuxsvgfnylf" path="res://scene/games/tictactoe/play_mode.tres" id="5_l67ou"]
+[ext_resource type="Theme" uid="uid://csj6q8ijf8ex" path="res://theme/wifi_button_theme.tres" id="5_r3u8x"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_r3u8x"]
+shader = ExtResource("2_jufxn")
+shader_parameter/bg_color = Color(0, 0, 0, 1)
+shader_parameter/offset = Vector2(0, 0)
+shader_parameter/bigStarSlow = 2.0
+shader_parameter/mediumStarSlow = 6.0
+shader_parameter/smallStarSlow = 8.0
+shader_parameter/smallStarAmount = 0.002
+shader_parameter/mediumStarAmount = 0.01
+shader_parameter/bigStarAmount = 0.02
+
+[sub_resource type="ButtonGroup" id="ButtonGroup_r3u8x"]
+
+[sub_resource type="ButtonGroup" id="ButtonGroup_l67ou"]
+
+[sub_resource type="ButtonGroup" id="ButtonGroup_pv8f7"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ocfh0"]
+bg_color = Color(0.458824, 0, 0, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_go4it"]
+
+[node name="Main" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_0ni5y")
+ai_difficulty = "Easy"
+
+[node name="SceneBackground" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_r3u8x")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TitleLabel" type="Label" parent="."]
+layout_mode = 0
+offset_right = 720.0
+offset_bottom = 100.0
+text = "Tic-Tac-Toe"
+label_settings = ExtResource("3_5vywm")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HBoxContainerDifficultLevel" type="HBoxContainer" parent="."]
+custom_minimum_size = Vector2(720, 50)
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -167.0
+offset_bottom = -118.0
+grow_horizontal = 2
+grow_vertical = 0
+alignment = 1
+
+[node name="Easy" parent="HBoxContainerDifficultLevel" instance=ExtResource("2_jxke1")]
+layout_mode = 2
+toggle_mode = true
+button_group = SubResource("ButtonGroup_r3u8x")
+text = "Easy"
+
+[node name="Medium" parent="HBoxContainerDifficultLevel" instance=ExtResource("2_jxke1")]
+layout_mode = 2
+toggle_mode = true
+button_group = SubResource("ButtonGroup_l67ou")
+text = "Medium"
+
+[node name="Hard" parent="HBoxContainerDifficultLevel" instance=ExtResource("2_jxke1")]
+layout_mode = 2
+toggle_mode = true
+button_group = SubResource("ButtonGroup_pv8f7")
+text = "Hard"
+
+[node name="PlayModeContainer" type="HBoxContainer" parent="."]
+custom_minimum_size = Vector2(520, 40)
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -212.0
+offset_bottom = -176.0
+grow_horizontal = 2
+grow_vertical = 0
+alignment = 1
+
+[node name="PlayModeLabel" type="Label" parent="PlayModeContainer"]
+visible = false
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Mode"
+
+[node name="AI" parent="PlayModeContainer" instance=ExtResource("2_jxke1")]
+layout_mode = 2
+toggle_mode = true
+button_group = ExtResource("5_l67ou")
+text = "AI"
+
+[node name="Human" parent="PlayModeContainer" instance=ExtResource("2_jxke1")]
+layout_mode = 2
+toggle_mode = true
+button_group = ExtResource("5_l67ou")
+text = "Human"
+
+[node name="Cells" type="GridContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -300.0
+offset_right = 300.0
+offset_bottom = 300.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/h_separation = 0
+theme_override_constants/v_separation = 0
+columns = 3
+
+[node name="RestartButton" type="Button" parent="."]
+custom_minimum_size = Vector2(720, 100)
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 1.0
+offset_top = -100.0
+offset_right = 1.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_default_cursor_shape = 2
+theme = ExtResource("5_r3u8x")
+theme_override_font_sizes/font_size = 36
+theme_override_styles/normal = SubResource("StyleBoxFlat_ocfh0")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_ocfh0")
+theme_override_styles/hover = SubResource("StyleBoxFlat_ocfh0")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_go4it")
+text = "Restart"
+
+[connection signal="pressed" from="RestartButton" to="." method="_on_restart_button_pressed"]

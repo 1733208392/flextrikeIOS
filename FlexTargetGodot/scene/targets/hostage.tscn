@@ -1,0 +1,78 @@
+[gd_scene load_steps=6 format=3 uid="uid://chsym5rlqsstp"]
+
+[ext_resource type="Texture2D" uid="uid://dve4iuyjc5x3u" path="res://asset/ipsc.png" id="1_tfsii"]
+[ext_resource type="Texture2D" uid="uid://cvudnr4qxxsw" path="res://asset/ipsc-white.png" id="2_ff3ss"]
+[ext_resource type="Script" uid="uid://iaps4wkkv1nv" path="res://script/hostage.gd" id="3_hostage"]
+
+[sub_resource type="Animation" id="Animation_1"]
+resource_name = "disappear"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.0666667, 0.133333, 0.2, 0.266667, 0.333333, 0.4, 0.466667, 0.533333, 0.6, 0.666667, 0.733333, 0.8, 0.866667, 0.933333, 1),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 0,
+"values": [0.0, 0.174533, -0.174533, 0.139626, -0.139626, 0.10472, -0.10472, 0.0698132, -0.0698132, 0.0349066, -0.0349066, 0.0174533, -0.0174533, 0.00872665, -0.00872665, 0.0]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:modulate")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath(".:scale")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(1, 1), Vector2(0.8, 0.8)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_1"]
+_data = {
+&"disappear": SubResource("Animation_1")
+}
+
+[node name="Hostage" type="Area2D"]
+scale = Vector2(0.9, 0.9)
+script = ExtResource("3_hostage")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("1_tfsii")
+
+[node name="Sprite2D2" type="Sprite2D" parent="."]
+texture = ExtResource("2_ff3ss")
+offset = Vector2(0, 300)
+
+[node name="WhiteZone" type="CollisionPolygon2D" parent="."]
+position = Vector2(0, 300)
+polygon = PackedVector2Array(130, -483.33334, 402.22223, -136.66666, 402, 169, 140, 498.88892, -142.22223, 495.5556, -402.22223, 172.22226, -404.44446, -134.44444, -131.11111, -484.44446)
+
+[node name="AZone" type="CollisionPolygon2D" parent="."]
+polygon = PackedVector2Array(42, -452, 127.77779, -184.44446, -127.77779, -185.55556, -42, -452)
+
+[node name="CZone" type="CollisionPolygon2D" parent="."]
+polygon = PackedVector2Array(132, -485, 263, -152, 263.33334, -17.777779, 133.33334, -184.44446, -135.55556, -182.22223, -261.1111, -21.111113, -263, -152, -132, -485)
+
+[node name="DZone" type="CollisionPolygon2D" parent="."]
+polygon = PackedVector2Array(135.55556, -501.11115, 397.7778, -170.00002, 402.22223, 167.77779, 134.44446, -184.44446, -132.22223, -182.22223, -402.22223, 163.33334, -400.00003, -167.77779, -135.55556, -502.22226)
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary_1")
+}

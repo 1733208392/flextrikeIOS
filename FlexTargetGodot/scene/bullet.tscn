@@ -1,0 +1,32 @@
+[gd_scene load_steps=8 format=3 uid="uid://n7jidx87dpdq"]
+
+[ext_resource type="Script" uid="uid://fd0v7htq8iv" path="res://script/bullet.gd" id="1_7t3yn"]
+[ext_resource type="PackedScene" uid="uid://cc24anctnijxh" path="res://scene/bullet_smoke.tscn" id="2_fud7i"]
+[ext_resource type="PackedScene" uid="uid://bxe8x68iqdudd" path="res://scene/bullet_impact.tscn" id="3_fud7i"]
+[ext_resource type="Texture2D" uid="uid://cywdquisabreu" path="res://asset/bullet.png" id="3_tpcvc"]
+[ext_resource type="AudioStream" uid="uid://3753bewgj3bg" path="res://audio/single-gunshot.mp3" id="4_4wfq1"]
+[ext_resource type="Texture2D" uid="uid://vekex1nym2md" path="res://asset/lights1.png" id="5_tpcvc"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_4wfq1"]
+radius = 5.0
+height = 15.0
+
+[node name="bullet" type="Area2D"]
+collision_layer = 8
+collision_mask = 7
+script = ExtResource("1_7t3yn")
+bullet_smoke_scene = ExtResource("2_fud7i")
+bullet_impact_scene = ExtResource("3_fud7i")
+impact_sound = ExtResource("4_4wfq1")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("3_tpcvc")
+
+[node name="PointLight2D" type="PointLight2D" parent="."]
+energy = 0.1
+texture = ExtResource("5_tpcvc")
+texture_scale = 3.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+rotation = 1.5708
+shape = SubResource("CapsuleShape2D_4wfq1")

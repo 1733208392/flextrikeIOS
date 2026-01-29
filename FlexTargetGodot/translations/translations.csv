@@ -1,0 +1,714 @@
+keys,en,zh_CN,ja,zh_TW
+languages,Locale,语言,言語,語言
+about,About,关于,約,關於
+drill,Control,参数,ドコントロール,參數
+random_sequence,"Random Sequence
+",随机序列,ランダムシーケンス,隨機序列
+
+fixed_sequence,Fixed Sequence,固定序列,固定シーケンス,固定序列
+description,"The Grwolf Smart Target is designed for shooting enthusiasts who want a convenient solution for practicing with airsoft. Compared to the traditional target, the device has the following features, 
+* Real-time hit point display allows you to track and score your shots instantly.
+* Choose different controls with the same device, such as bill control and free shooting, to enhance your shooting experience.","Grwolf 智能靶专为希望便捷练习软气枪的射击爱好者设计。与传统靶相比，该设备具有以下特点：
+* 实时命中点显示，让您可以即时追踪射击并计分。
+* 同一设备可选择不同的练习方式，例如枪枝练习和自由射击，提升您的射击体验。","Grwolfスマートターゲットは、エアソフトガンの練習に便利なソリューションを求める射撃愛好家のために設計されており。従来のターゲットと比較して、このデバイスは以下の機能を備えています。
+* リアルタイムのヒットポイント表示により、射撃の追跡とスコアリングが瞬時に行えます。
+* ビルドリルやフリーシューティングなど、同じデバイスで様々なドリルを選択できるため、射撃体験が向上します。","Grwolf 智能靶專為希望便捷練習軟氣槍的射擊愛好者設計。與傳統靶相比，該設備具有以下特點：
+* 即時命中點顯示，讓您可以即時追蹤射擊併計分。
+* 同一裝置可選擇不同的練習方式，例如槍枝練習和自由射擊，提升您的射擊體驗。 "
+copyright,© 2025 FlexTarget IPSC@Grwolf.com,© 2025 FlexTarget IPSC@Grwolf.com,© 2025 FlexTarget IPSC@Grwolf.com,2025 FlexTarget IPSC@Grwolf.com
+ipsc,IPSC Drill,IPSC场景,IPSCステージ,IPSC場景
+idpa,IDPA Drill,IDPA场景,IDPAステージ,IDPA場景
+stage,Mini Stage,迷你场景,ミニステージ,迷你场景
+standard_stage,Standard Stage,标准阶段,スタンダードステージ,標準階段
+stage_mini,Stage Mini,迷你阶段,ステージミニ,迷你階段
+stage_white,Stage White,白色阶段,ホワイトステージ,白色階段
+back_to_main,Back to Main Menu,返回主菜单,メインメニューに戻る,返回主選單
+network,Netlink Drill,多靶训练,マルチターゲットドリル,多靶訓練
+drills,My Drills,我的练习,カスタムドリル,客製訓練
+boot_camp,Boot Camp,自由射击,フリーシュート,自由射擊
+leaderboard,Leaderboard,排行榜,リーダーボード,排行榜
+ipsc_leaderboard,Leaderboard(IPSC),排行榜(IPSC),リーダーボード(IPSC),排行榜(IPSC)
+idpa_leaderboard,Leaderboard(IDPA),排行榜(IDPA),リーダーボード(IDPA),排行榜(IDPA)
+games,Casual Games,休闲游戏,カジュアルゲーム,休閒遊戲
+fruitcatcher,Fruit Ninja,水果忍者,フルーツ忍者,水果忍者
+monkey_duel,Monkey Duel,猴子对决,モンキーデュエル,猴子對決
+mole_attack,Mole Attack,鼹鼠攻击,モグラアタック,鼴鼠攻擊
+tictactoe,TicTacToe,井字游戏,三目並べ,井字遊戲
+shoot_painter,Shoot Painter,射击画师,シュートペインター,射擊畫師
+options,Options,选项,オプション,選項
+prev,Prev,上页,上页,上頁
+next,Next,下页,ページ,下頁
+start,Start,启动,启アニメーション,啟動
+difficulty_level,Difficulty Level,难度等级,難易度レベル,難度等級
+duration,Duration,时长,期間,時長
+difficulty_easy,Easy,简单,イージー,簡單
+difficulty_medium,Medium,中等,ミディアム,中等
+difficulty_hard,Hard,困难,ハード,困難
+play_mode_ai,AI,AI,AI,AI
+play_mode_human,Human,人类,人間,人類
+Easy,Easy,简单,イージー,簡單
+Medium,Medium,中等,ミディアム,中等
+Hard,Hard,困难,ハード,困難
+Impossible,Impossible,不可能,インポッシブル,不可能
+low,Low,低,低,低
+medium,Medium,中,中,中
+high,High,高,高,高
+20_seconds,20s,20秒,20秒,20秒
+30_seconds,30s,30秒,30秒,30秒
+60_seconds,60s,60秒,60秒,60秒
+90_seconds,90s,90秒,90秒,90秒
+loading,Loading,加载中,ロード中,載入中
+rules,IPSC Rules,IPSC训练规则,IPSC接続,IPSC訓練規則
+target,Target,标靶,标靶,標靶
+complete,Drill Completed,训练结束,训练结束,訓練結束
+score,Score,得分,得分,得分
+hit_factor,Hit Factor,射击系数,射击系数,射擊係數
+fastest_shot,Fastest Interval,最快击发,最新の投稿,最快擊發
+restart,Restart,再来一局,再来一局,再來一局
+replay,Replay & Review,回放检查,再放检查,回放檢查
+clear,Clear Shots,清屏,清屏,清螢幕
+leaderboard,Leaderboard,排行榜,排行トレンド,排行榜
+no,No.,序号,序号,序號
+your_score,Your Score:,你的分数：,あなたのスコア：,你的分數：
+time,Time,时长,時間長,時長
+
+custom_target_instruction,Please use the mobile App to send your own target image.,请使用手机应用上传自定义靶图像。,モバイルアプリを使用して独自のターゲット画像を送信してください。,請使用手機應用上傳自訂靶圖像。
+
+custom_target_status_waiting,Waiting for image...,正在等待图像...,画像を待っています...,正在等待圖像...
+custom_target_status_ready,Ready to receive image,准备接收图像,画像の受信準備ができました,準備接收圖像
+custom_target_status_receiving_total,Receiving image (%d chunks)...,接收图像（%d 块）...,画像を受信中（%d チャンク）...,接收圖像（%d 塊）...
+custom_target_status_receiving_progress,Receiving image (%d/%d chunks)...,接收图像（%d/%d 块）...,画像を受信中（%d/%d チャンク）...,接收圖像（%d/%d 塊）...
+custom_target_status_transfer_complete,Transfer complete: %d/%d chunks received,传输完成：已接收 %d/%d 块,転送完了：%d/%d チャンク受信,傳輸完成：已接收 %d/%d 塊
+custom_target_status_error_decode_chunk,Error: Failed to decode chunk %d,错误：无法解码块 %d,エラー：チャンク %d のデコードに失敗しました,錯誤：無法解碼區塊 %d
+custom_target_status_error_missing_chunk,Error: Missing chunk during reconstruction,错误：重建时缺少块,エラー：再構築中にチャンクが欠落しています,錯誤：重建時缺少區塊
+custom_target_status_error_base64_null,Error: Failed to decode base64 (null),错误：base64 解码失败（空）,エラー：base64 のデコードに失敗しました（null）,錯誤：base64 解碼失敗（空）
+custom_target_status_error_decode_image,Error: Failed to decode image,错误：图像解码失败,エラー：画像のデコードに失敗しました,錯誤：圖像解碼失敗
+custom_target_status_error_load_code,Error: Failed to load image (code: %d),错误：加载图像失败（代码：%d）,エラー：画像の読み込みに失敗しました（コード：%d）,錯誤：載入影像失敗（代碼：%d）
+custom_target_status_image_received,Image received: %s (%dx%d),已接收图像：%s (%dx%d),画像を受信しました：%s (%dx%d),已接收圖像：%s (%dx%d)
+
+fastest_t,Fastest,最快,一番嬉しい,最快
+hit_factor_t,HF,系数,システム数,係數
+timeout,TIMEOUT!,超时了，继续努力！,タイムアウト,超時了，繼續努力！
+score_rule,"{""title"": ""SCORING RULES"",
+""content"": ""[center]SCORING RULES[/center]
+
+• IPSC Alpha (A): 5 pts 
+• IPSC Charlie (C): 2 pts 
+• IPSC Delta (D): 1 pt
+• IPSC No Shoot(White):  -10 pts
+• IPSC Invalid(Black): 0 pts
+• Miss: 0 pt
+• Steel Poppers: 5 pts
+• Steel Paddles: 5 pts""}","{""title"": ""记分规则"",
+""content"": ""[center] 记分规则 [/center]
+
+•  A区: 5 分
+•  C区: 2 分
+•  D区: 1 分
+•  白色禁止区:  -10 pts
+•  黑色无效区: 0 pts
+•  脱靶: 0 分
+•  金属起倒靶: 5 pts
+•  金属蝶靶: 5 pts""}","{""title"": ""记分规则"",
+""content"": ""[center] 记分规则 [/center]
+
+•  A区: 5 分
+•  C区: 2 分
+•  D区: 1 分
+•  白色禁止区:  -10 pts
+•  黑色无效区: 0 pts
+•  脱靶: 0 分
+•  金属起倒靶: 5 pts
+•  金属蝶靶: 5 pts""}
+{""title"": ""採点ルール"",
+""content"": ""[center]採点ルール[/center]
+
+• IPSC アルファ (A): 5ポイント
+• IPSC チャーリー (C): 2ポイント
+• IPSC デルタ (D): 1ポイント
+• IPSC ノーシュート(白): -10ポイント
+• IPSC インバリッド(黒): 0ポイント
+• ミス: 0ポイント
+• スチールポッパー: 5ポイント
+• スチールパドル: 5ポイント""}","{""title"": ""記分規則"",
+""content"": ""[center] 記分規則 [/center]
+
+• A區: 5 分
+• C區: 2 分
+• D區: 1 分
+• 白色禁止區: -10 pts
+• 黑色無效區: 0 pts
+• 脫靶: 0 分
+• 金屬起倒靶: 5 pts
+• 金屬蝶靶: 5 pts""}"
+panelty_rule,"{""title"": ""PENALTY RULES"",
+""content"": ""[center] PENALTY RULES[/center]
+
+ Score Penalties:
+•  No-Shoot Hit: -10 pts""}","{""title"": ""惩罚规则"",
+""content"": ""[center]惩罚规则[/center]
+
+分数惩罚:
+• 白色禁止区: -10 pts""}","{""title"": ""ペナルティルール"",
+""content"": ""[center] ペナルティルール[/center]
+
+得点ペナルティ:
+• シュートなしヒット: -10ポイント""}","{""title"": ""懲罰規則"",
+""content"": ""[center]懲罰規則[/center]
+
+分數懲罰:
+• 白色禁止區: -10 pts""}"
+drill_rule,"{""title"": ""DRILL RULE"",
+""content"": ""[center]DRILL RULE[/center]
+
+TARGET TYPES:
+• Paper targets (IPSC zones)
+• Steel plates and poppers
+• White targets (no-shoot)
+• Special target (no score area)
+• Rotating and Moving target
+
+DRILL PROGRESSESSION:
+• At each shooting spot, 2 shots on paper targets or  hitting all steel targets will auto move to the next spot
+• Completion of shooting all required targets finishes the drill""}","{""title"": ""训练"",
+""content"": ""[center]训练规则[/center]
+
+靶子类型:
+• IPSC纸靶 (IPSC 区域)
+• 钢质蝶靶
+• 钢质起倒靶
+• 白色禁止靶
+• 黑色无效区靶
+• 移动靶
+
+训练进程:
+• 每个射击区域，击中纸靶两枪或者击倒所有钢靶自动进入下一个设计区
+• 完成所有射击区射击完成训练""}","{""title"": ""ドリルのルール"",
+""content"": ""[center]ドリルのルール[/center]
+
+ターゲットの種類:
+• 紙ターゲット（IPSCゾーン）
+• スチールプレートとポッパー
+• 白ターゲット（射撃禁止）
+• 特殊ターゲット（得点エリアなし）
+• 回転ターゲットと移動ターゲット
+
+ドリルの進行:
+• 各射撃スポットで、紙ターゲットに2発、またはすべてのスチールターゲットに命中すると、自動的に次のスポットに移動します。
+• 必要なターゲットをすべて射撃し終えると、ドリルは終了します。""}","{""title"": ""訓練"",
+""content"": ""[center]訓練規則[/center]
+
+靶子類型:
+• IPSC紙靶 (IPSC 區域)
+• 鋼蝶靶
+• 鋼質起倒靶
+• 白色禁止靶
+• 黑色無效區靶
+• 移動靶
+
+訓練過程:
+• 每個射擊區域，擊中紙靶兩槍或擊倒所有鋼靶自動進入下一個設計區
+• 完成所有射擊區射擊完成訓練""}"
+timer_system,"{""title"": ""TIMER SYSTEM"",
+""content"": ""[center]TIMER SYSTEM[/center]
+
+Drill Start:
+• Drill begins with BEEPING sound
+• 3-5 second random delay from standby to beep
+
+Timing:
+• Timer starts on beep
+• Timer stops when all spots clear
+• Total time includes penalties""}","{""title"": ""计时系统"",
+""content"": ""[center]计时系统[/center]
+
+游戏开始:
+• 游戏滴声后开始计时
+• 从预备到滴声有3-5秒随机延迟
+
+计时:
+• 滴声后开始
+• 所有目标击中后结束
+• 总时长包含惩罚时长""}","{""title"": ""タイマーシステム"",
+""content"": ""[center]タイマーシステム[/center]
+
+ドリル開始:
+• ドリルはビープ音で開始します
+• スタンバイ状態からビープ音まで、3～5秒のランダムな遅延があります
+
+タイミング:
+• ビープ音でタイマーがスタートします
+• すべてのスポットがクリアされるとタイマーが停止します
+• 合計時間にはペナルティが含まれます""}","{""title"": ""計時系統"",
+""content"": ""[center]計時系統[/center]
+
+遊戲開始:
+• 遊戲滴聲後開始計時
+• 從預備到滴聲有3-5秒隨機延遲
+
+計時:
+• 滴聲後開始
+• 所有目標擊中後結束
+• 總時長包含懲罰時長""}"
+hit_factor_rule,"{""title"": ""HIT FACTOR"",
+""content"": ""[center]HIT FACTOR[/center]
+
+Hit Factor Formula:
+
+[center]HF = Score ÷ Total Time[/center]
+
+Leaderboard:
+• Higher Hit Factor wins a better position in rankings
+
+[center]Highest HF = Champion![/center]
+
+Strategy:
+• Balance speed and accuracy
+• Minimize penalties""}","{""title"": ""射击系数"",
+""content"": ""[center]射击系数[/center]
+
+计算公式:
+
+[center]HF = 总分 ÷  总时长[/center]
+
+排行榜:
+• 按照射击系数从高到低进行排名
+
+[center]最高射击系数 = 冠军![/center]
+
+策略:
+• 平衡速度与准确度
+• 追求最小惩罚""}","{""title"": ""ヒットファクター"",
+""content"": ""[center]ヒットファクター[/center]
+
+ヒットファクターの計算式:
+
+[center]HF = スコア ÷ 合計時間[/center]
+
+リーダーボード:
+• ヒットファクターが高いほど、ランキングで上位にランクインします
+
+[center]最高HF = チャンピオン！[/center]
+
+戦略:
+• スピードと正確さのバランスをとる
+• ペナルティを最小限に抑える""}","{""title"": ""射擊係數"",
+""content"": ""[center]射擊係數[/center]
+
+計算公式:
+
+[center]HF = 總分 ÷ 總時長[/center]
+
+排行榜:
+• 依照射擊係數由高到低進行排名
+
+[center]最高射擊係數 = 冠軍![/center]
+
+策略:
+• 平衡速度與準確度
+• 追求最小懲罰""}"
+idpa_score_rule,"{""title"": ""SCORING RULES - IDPA"",
+""content"": ""[center]SCORING RULES - IDPA[/center]
+
+Target Scoring Zones:
+• Center Mass: 5 pts per round
+• Head Area (Optional): 3 pts per round
+• Emergency 8 Ring: 2 pts per round
+• Outside Zones: 0 pts
+• Miss: 0 pts (no -5 penalty like paper targets)
+
+Overall Stage Score:
+• Stage Raw Score (total points)
+• Stage Time (total seconds)
+• Stage Points = Raw Score ÷ Time""}","{""title"": ""记分规则 - IDPA"",
+""content"": ""[center]记分规则 - IDPA[/center]
+
+靶子计分区域:
+• 躯干中心: 每发 5 分
+• 头部区域 (可选): 每发 3 分
+• 应急 8 环: 每发 2 分
+• 区域外: 0 分
+• 脱靶: 0 分 (不像纸靶有 -5 惩罚)
+
+总体阶段计分:
+• 阶段原始分数 (总点数)
+• 阶段时间 (总秒数)
+• 阶段点数 = 原始分数 ÷ 时间""}","{""title"": ""採点ルール - IDPA"",
+""content"": ""[center]採点ルール - IDPA[/center]
+
+ターゲットスコアリングゾーン:
+• 躯干中心: 1ラウンド 5ポイント
+• 頭部エリア (オプション): 1ラウンド 3ポイント
+• 緊急 8 リング: 1ラウンド 2ポイント
+• ゾーン外: 0ポイント
+• ミス: 0ポイント (紙ターゲットの -5 ペナルティなし)
+
+全体ステージスコア:
+• ステージ生スコア (総ポイント)
+• ステージタイム (総秒数)
+• ステージポイント = 生スコア ÷ タイム""}","{""title"": ""記分規則 - IDPA"",
+""content"": ""[center]記分規則 - IDPA[/center]
+
+靶子計分區域:
+• 軀幹中心: 每發 5 分
+• 頭部區域 (可選): 每發 3 分
+• 應急 8 環: 每發 2 分
+• 區域外: 0 分
+• 脫靶: 0 分 (不像紙靶有 -5 懲罰)
+
+總體階段計分:
+• 階段原始分數 (總點數)
+• 階段時間 (總秒數)
+• 階段點數 = 原始分數 ÷ 時間""}"
+idpa_penalty_rule,"{""title"": ""PENALTY RULES - IDPA"",
+""content"": ""[center]PENALTY RULES - IDPA[/center]
+
+Time Penalties (Added to Stage Time):
+• Concealment Violation: +3 sec
+• Safety Violation: +3 sec
+• Procedural Error: +1 sec
+• Failure to Stop: +3 sec
+
+Disqualification (DQ):
+• Unsafe firearm handling
+• Pointing gun at self/others
+• Negligent discharge""}","{""title"": ""惩罚规则 - IDPA"",
+""content"": ""[center]惩罚规则 - IDPA[/center]
+
+时间惩罚 (加入舞台时间):
+• 隐蔽违规: +3 秒
+• 安全违规: +3 秒
+• 程序错误: +1 秒
+• 失败停止: +3 秒
+
+失格 (DQ):
+• 不安全的枪支操作
+• 指向自己/他人的枪
+• 意外射击""}","{""title"": ""ペナルティルール - IDPA"",
+""content"": ""[center]ペナルティルール - IDPA[/center]
+
+時間ペナルティ (ステージタイムに追加):
+• 隠蔽違反: +3 秒
+• 安全違反: +3 秒
+• 手順エラー: +1 秒
+• 停止失敗: +3 秒
+
+失格 (DQ):
+• 不安全な銃器の取り扱い
+• 自分/他人に銃を向ける
+• 不注意な射撃""}","{""title"": ""懲罰規則 - IDPA"",
+""content"": ""[center]懲罰規則 - IDPA[/center]
+
+時間懲罰 (加入舞台時間):
+• 隱蔽違規: +3 秒
+• 安全違規: +3 秒
+• 程序錯誤: +1 秒
+• 失敗停止: +3 秒
+
+失格 (DQ):
+• 不安全的槍支操作
+• 指向自己/他人的槍
+• 意外射擊""}"
+idpa_timer_system,"{""title"": ""TIMER SYSTEM - IDPA"",
+""content"": ""[center]TIMER SYSTEM - IDPA[/center]
+
+Drill Start:
+• Drill begins with BEEPING sound
+• 3-5 second random delay from standby to beep
+
+Timing:
+• Timer starts on beep
+• Timer stops when stage is complete
+• Total time includes penalties""}","{""title"": ""计时系统 - IDPA"",
+""content"": ""[center]计时系统 - IDPA[/center]
+
+游戏开始:
+• 游戏滴声后开始计时
+• 从预备到滴声有3-5秒随机延迟
+
+计时:
+• 滴声后开始
+• 阶段完成后结束
+• 总时长包含惩罚时长""}","{""title"": ""タイマーシステム - IDPA"",
+""content"": ""[center]タイマーシステム - IDPA[/center]
+
+ドリル開始:
+• ドリルはビープ音で開始します
+• スタンバイ状態からビープ音まで、3～5秒のランダムな遅延があります
+
+タイミング:
+• ビープ音でタイマーがスタートします
+• ステージが完了するとタイマーが停止します
+• 合計時間にはペナルティが含まれます""}","{""title"": ""計時系統 - IDPA"",
+""content"": ""[center]計時系統 - IDPA[/center]
+
+遊戲開始:
+• 遊戲滴聲後開始計時
+• 從預備到滴聲有3-5秒隨機延遲
+
+計時:
+• 滴聲後開始
+• 階段完成後結束
+• 總時長包含懲罰時長""}"
+idpa_drill_rule,"{""title"": ""STAGE RULES - IDPA"",
+""content"": ""[center]STAGE RULES - IDPA[/center]
+
+Stage Setup:
+• Real-world scenarios (home, building, outdoor)
+• Varying distances (5 to 25 yards)
+• Tactical movement required
+• Concealment/barricade use
+• Hostage/No-shoot targets
+
+Required Actions:
+• Follow specific shooting order/sequence
+• Engage targets from designated positions
+• Use appropriate cover/concealment
+• Prove firearm safety at stage end
+• Stage time includes all movement and shooting""}","{""title"": ""阶段规则 - IDPA"",
+""content"": ""[center]阶段规则 - IDPA[/center]
+
+阶段设置:
+• 真实世界场景 (家里、建筑、户外)
+• 不同距离 (5 到 25 码)
+• 需要战术移动
+• 使用掩护/屏障
+• 人质/禁止射击目标
+
+所需操作:
+• 遵循特定的射击顺序/序列
+• 从指定位置接触目标
+• 使用适当的掩护/隐蔽
+• 在阶段末端证明枪支安全
+• 阶段时间包括所有移动和射击""}","{""title"": ""ステージルール - IDPA"",
+""content"": ""[center]ステージルール - IDPA[/center]
+
+ステージセットアップ:
+• リアルワールドシナリオ (家、建築、屋外)
+• 異なる距離 (5 から 25 ヤード)
+• 戦術的な動きが必要
+• 掩護/バリケード使用
+• 人質/非射撃ターゲット
+
+必要なアクション:
+• 特定の射撃順序/シーケンスに従う
+• 指定された位置からターゲットに接触
+• 適切なカバー/隠蔽を使用
+• ステージ終了時に銃器安全を実証
+• ステージタイムはすべての移動と射撃を含む""}","{""title"": ""階段規則 - IDPA"",
+""content"": ""[center]階段規則 - IDPA[/center]
+
+階段設置:
+• 真實世界場景 (家裡、建築、戶外)
+• 不同距離 (5 到 25 碼)
+• 需要戰術移動
+• 使用掩護/屏障
+• 人質/禁止射擊目標
+
+所需操作:
+• 遵循特定的射擊順序/序列
+• 從指定位置接觸目標
+• 使用適當的掩護/隱蔽
+• 在階段末端證明槍支安全
+• 階段時間包括所有移動和射擊""}"
+idpa_hit_factor_rule,"{""title"": ""STAGE POINTS - IDPA"",
+""content"": ""[center]STAGE POINTS - IDPA[/center]
+
+Stage Scoring Formula:
+
+[center]Stage Points = Raw Score ÷ Time[/center]
+
+Raw Score:
+• Sum of all points from targets engaged
+
+Stage Time:
+• Includes all movement, shooting, reloads
+• Starts on signal, stops at final shot
+• Time penalties added here
+
+Competitor Ranking:
+• Each stage scored individually
+• Overall match = average of all stage points
+• Highest points wins the match""}","{""title"": ""阶段点数 - IDPA"",
+""content"": ""[center]阶段点数 - IDPA[/center]
+
+阶段计分公式:
+
+[center]阶段点数 = 原始分数 ÷ 时间[/center]
+
+原始分数:
+• 接触所有目标的所有点数之和
+
+阶段时间:
+• 包括所有移动、射击、填弹
+• 信号开始，最后一枪停止
+• 时间惩罚添加到这里
+
+竞争者排名:
+• 每个阶段单独计分
+• 整个比赛 = 所有阶段点数的平均值
+• 最高分获胜""}","{""title"": ""ステージポイント - IDPA"",
+""content"": ""[center]ステージポイント - IDPA[/center]
+
+ステージスコアリング公式:
+
+[center]ステージポイント = 生スコア ÷ タイム[/center]
+
+生スコア:
+• 接触されたすべてのターゲットからのすべてのポイントの合計
+
+ステージタイム:
+• すべての動き、射撃、リロードを含む
+• 信号で開始、最後のショットで停止
+• ここに時間ペナルティが追加される
+
+競争相手のランキング:
+• 各ステージは個別にスコア
+• 全試合 = すべてのステージポイントの平均
+• 最高ポイントが勝利""}","{""title"": ""階段點數 - IDPA"",
+""content"": ""[center]階段點數 - IDPA[/center]
+
+階段計分公式:
+
+[center]階段點數 = 原始分數 ÷ 時間[/center]
+
+原始分數:
+• 接觸所有目標的所有點數之和
+
+階段時間:
+• 包括所有移動、射擊、填彈
+• 信號開始，最後一槍停止
+• 時間懲罰添加到這裡
+
+競爭者排名:
+• 每個階段單獨計分
+• 整個比賽 = 所有階段點數的平均值
+• 最高分獲勝""}"
+shots,Shots,射击,ショット,射擊
+on_text,on,于,で,於
+target_text,Target,标靶,ターゲット,標靶
+navigate_instruction,▲ ▼ Browse bullet shots,▲ ▼ 浏览弹着点,▲ ▼ 弾丸射撃をナビゲート,▲ ▼ 瀏覽彈著點
+networking,Netlink,网络,ネットワーキング,網路
+auto_restart_in,Auto Restart in,自动重启倒计时,自動再起動まで,自動重新啟動倒數
+failed_open_settings,Failed to open settings.json,无法打开设置文件,設定ファイルを開けません,無法開啟設定檔案
+sending_save_request,Sending save request...,正在发送保存请求...,保存リクエストを送信中...,正在傳送儲存請求...
+http_service_not_found,HttpService not found,未找到HttpService,HttpServiceが見つかりません,未找到HttpService
+sending_load_request,Sending load request...,正在发送加载请求...,読み込みリクエストを送信中...,正在傳送載入請求...
+failed_open_leaderboard,Failed to open leader_board_index.json,无法打开排行榜文件,リーダーボードファイルを開けません,無法開啟排行榜檔案
+sending_save_leaderboard,Sending save leaderboard request...,正在发送保存排行榜请求...,リーダーボード保存リクエストを送信中...,正在傳送儲存排行榜請求...
+sending_load_leaderboard,Sending load leaderboard request...,正在发送加载排行榜请求...,リーダーボード読み込みリクエストを送信中...,正在傳送載入排行榜請求...
+timeout_loading,Timeout - Loading anyway...,超时 - 继续加载...,タイムアウト - 読み込みを継続...,超時 - 繼續載入...
+hf_descending,  HF ↓,  系数 ↓,  HF ↓,  係數 ↓
+hf_ascending,  HF  ,  系数  ,  HF  ,  係數  
+fps_display,FPS: ,FPS: ,FPS: ,FPS: 
+content_not_available,Content not available,内容不可用,コンテンツが利用できません,內容不可用
+page_data_invalid,Page data invalid,页面数据无效,ページデータが無効です,頁面資料無效
+shoot_command,SHOOT!,开火！,シュート！,開火！
+wifi_title,WI-FI,WI-FI,WI-FI,WI-FI
+scanning_networks,Scanning for networks,正在扫描网络,ネットワークをスキャン中,正在掃描網路
+retry_wifi_scan,Retry WIFI Scan,重试WIFI扫描,WIFIスキャンを再試行,重試WIFI掃描
+enter_password,Enter Password for {wifi_name},输入 {wifi_name} 的密码,{wifi_name} のパスワードを入力,輸入 {wifi_name} 的密碼
+password_placeholder,Password,密码,パスワード,密碼
+target_details,Target Details,目标详情,ターゲット詳細,標靶詳情
+statistics,Statistics,统计,統計,統計
+fastest_shot,Fastest Shot:,最快击发:,最速ショット:,最快擊發:
+total_time,Total Time:,总时间:,合計時間:,總時間:
+total_shots,Total Shots:,总射击数:,合計ショット数:,總射擊數:
+average_time,Average Time:,平均时间:,平均時間:,平均時間:
+accuracy,Accuracy:,准确度:,精度:,準確度:
+points_scored,Points Scored:,得分:,得点:,得分:
+back_button,Back,返回,戻る,返回
+bluetooth_name,Bluetooth Name,蓝牙名称,Bluetooth名,藍牙名稱
+device_name,Device Name,设备名称,デバイス名,設備名稱
+network_channel,Network Channel,网络频道,ネットワークチャンネル,網路頻道
+ip_address,IP Address,IP地址,IPアドレス,IP位址
+working_mode,Working Mode,工作模式,動作モード,工作模式
+netlink_config,Netlink Config,网联,ネットリンク,網聯
+netlink_config_progress,Netlink Config In Progress,网络配置进行中,ネットリンク設定進行中,網路配置進行中
+netlink_config_failed,Netlink Config Failed,网络配置失败,ネットリンク設定失敗,網路配置失敗
+netlink_config_timeout,Netlink Config Timeout,网络配置超时,ネットリンク設定タイムアウト,網路配置超時
+stopping_netlink,Stopping Netlink,正在停止网络连接,ネットリンク停止中,正在停止網路連接
+stopping_netlink_failed,Stopping Netlink Failed,停止网络连接失败,ネットリンク停止失敗,停止網路連接失敗
+wifi_scan_timeout,WIFI Scan Timeout,WIFI扫描超时,WIFIスキャンタイムアウト,WIFI掃描超時
+wifi_scan_failed,WIFI Scan Failed,WIFI扫描失败,WIFIスキャン失敗,WIFI掃描失敗
+wifi_configure,WIFI Configure,WIFI配置,WIFI設定,WIFI配置
+already_connected,Already connected to {wifi_name},已连接到 {wifi_name},既に {wifi_name} に接続中,已連接到 {wifi_name}
+network_configure,Netlink Configure,网联配置,ネットワーク設定,網聯配置
+start_netlink,Start Netlink,启动网联,ネットリンク開始,啟動網聯
+stop_netlink,Stop Netlink,停止网联,ネットリンク停止,停止網聯
+netlink_status,Netlink Status,网联状态,ネットリンクステータス,網聯狀態
+netlink_status_updating,Netlink Status Being Updated,网联状态正在更新,ネットリンクステータス更新中,網聯狀態正在更新
+started,Started,已启动,已開始,已啟動
+stopped,Stopped,已停止,已停止,已停止
+auto_restart,Auto Restart,自动重启,自動再起動,自動重新啟動
+ending_target,Ending Target,结束靶,エンディングターゲット,結束靶
+pause_5s,Pause 5s,暂停5秒,5秒一時停止,暫停5秒
+pause_10s,Pause 10s,暂停10秒,10秒一時停止,暫停10秒
+auto_restart_note,NOTE: This setting only applies to the Single Target IPSC Drill.,注意：以上设置仅适用于单靶IPSC训练。,注意：この設定はシングルターゲットIPSCドリルのみに適用されます。,注意：此設定僅適用於單靶IPSC訓練。
+net_config_status,Status,状态,ステータス,狀態
+net_config_channel,Channel,频道,チャンネル,頻道
+net_config_workmode,Workmode,工作模式,動作モード,工作模式
+workmode_master,Master,主机,マスター,主機
+workmode_slave,Slave,从机,スレーブ,從機
+net_config_target_name,Target Name,设备名称,ターゲット名,標靶名稱
+net_config_done,Confirm,确认,完了,完成
+wifi_connecting,Connecting,连接中,接続中,連線中
+drill_repeat_ended,"Drill Repeat #%d Ended", #%d 轮训练结束,ドリルリピート #%d 終了,#%d 輪訓練結束
+drill_repeat_ends,"Drill Repeat Ends",训练重复结束,ドリルリピート終了,訓練重複結束
+unknown_device,"Unknown Device",未知设备,不明なデバイス,不明裝置
+power_off_alert,"Please manually turn off the device by flipping the power switch.","请通过电源开关手动关闭设备。","電源スイッチを反転させてデバイスを手動でオフにしてください。","請通過翻轉電源開關手動關閉設備。"
+sensor_sensitivity,"Sensor Sensitivity(15s Take Effect):","传感器灵敏度(15秒生效):","センサー感度(15秒で有効):","感應器敏感度(15秒生效):"
+sound_sfx,"Sound SFX:","声音 SFX:","サウンド SFX:","聲音 SFX:"
+about_description_intro,"The Grwolf Smart Target is designed for shooting enthusiasts who want a convenient solution for practicing with airsoft or Laser Dry Fire at home, eliminating the hassle of going to the shooting range. Compared to the traditional target, the device has the following features,","Grwolf 智能射击训练系统是为射击爱好者设计，方便他们在家中或者专门的场地练习水弹和BB弹射击的方便解决方案。与传统靶相比，该设备具有以下功能，","Grwolf Smart Targetは、射撃愛好家向けに設計されており、自宅でエアソフトやレーザードライファイアを練習するための便利なソリューションを求めており、射撃場に行く手間を省きます。従来のターゲットと比較して、デバイスには以下の機能があります。","Grwolf 智能靶是為射擊愛好者設計的，他們希望在家中練習氣槍的方便解決方案。與傳統靶相比，該設備具有以下功能，"
+about_description_features,"* Real-time hit point display allows you to track and score your shots instantly.\n* Choose different drills with the same device, such as high-speed shooting and free shooting, to enhance your shooting experience.","* 实时命中点显示允许您立即跟踪和记录您的射击。\n* 选择不同的练习模式，包括自定义训练，各种自由射击靶子类型以及趣味小游戏，极大增强您的射击练习体验。","* リアルタイムのヒットポイント表示により、ショットを即座に追跡およびスコアリングできます。\n* 高速射撃や自由射撃など、同じデバイスで異なるドリルを選択して、射撃体験を向上させます。","* 實時命中點顯示允許您立即追蹤和記錄您的射擊。\n* 選擇不同的練習模式，如高速射擊和自由射擊，增強您的射擊體驗。"
+switch_targets_instruction,"Please Use Remote Control 'Left' and 'Right' Buttons to switch targets.","请使用遥控器的'左'和'右'按钮切换靶子。","リモコンの「左」ボタンと「右」ボタンを使用してターゲットを切り替えてください。","請使用遙控器的'左'和'右'按鈕切換靶子。"
+shoot_to_reset,"SHOOT TO RESET","射击此区清靶纸","シュートしてリセット","射擊此區清靶紙"
+work_mode_master,Master,主机,マスター,主機
+work_mode_slave,Slave,从机,スレーブ,從機
+stats_a_zone,"A:%.1f%%","A:%.1f%%","A:%.1f%%","A:%.1f%%"
+stats_c_zone,"C:%.1f%%","C:%.1f%%","C:%.1f%%","C:%.1f%%"
+stats_d_zone,"D:%.1f%%","D:%.1f%%","D:%.1f%%","D:%.1f%%"
+stats_miss,"Miss:%.1f%%","脱靶:%.1f%%","ミス:%.1f%%","脱靶:%.1f%%"
+stats_count,"Count:%d","弹数:%d","カウント:%d","彈數:%d"
+stats_fastest,"Fastest:%.2fs","最快:%.2fs","最速:%.2fs","最快:%.2fs"
+stats_average,"Average:%.2fs","平均:%.2fs","平均:%.2fs","平均:%.2fs"
+stats_fastest_no_data,"Fastest:--","最快:--","最速:--","最快:--"
+stats_average_no_data,"Average:--","平均:--","平均:--","平均:--"
+points_down,"Points Down", "失分", "ポイントダウン", "失分"
+SUCCESS,"SUCCESS","成功","成功","成功"
+FAILURE,"FAILURE","失败","失敗","失敗"
+first_shot,"First Shot:","首发:","初弾:","首發:"
+idpa_drill_history,IDPA Drill History,IDPA 训练记录,IDPA 訓練履歴,IDPA 訓練記錄
+down_points,Downpts,扣分,減点,扣分
+dismiss,Dismiss,取消,キャンセル,取消
+only_one_master_config,Only One Master Can Be Configurated in Your Network,只能配置一个主设备在您的网络中,ネットワークで設定できるマスターは1つだけです,只能配置一個主設備在您的網路中
+level_cleared,Cleared!,通关！,クリア！,通關！
+level_failed,Failed!,失败！,失敗！,失敗！
+level_label,Level,关卡,レベル,關卡
+coin_label,Coin,金币,コイン,金幣
+bonus_label,Bonus,奖励,ボーナス,獎勵
+replay_button,Replay,重玩,リプレイ,重玩software_upgrade,Software Upgrade,软件升级,ソフトウェアのアップグレード,軟體升級
+wifi_status_unknown,"WiFi Status: Unknown","WiFi 状态：未知","WiFi ステータス: 不明","WiFi 狀態：未知"
+wifi_connected,"✓ WiFi Connected (%s)","✓ WiFi 已连接 (%s)","✓ WiFi 接続済み (%s)","✓ WiFi 已連線 (%s)"
+wifi_not_connected,"✗ WiFi Not Connected",✗ WiFi 未连接,✗ WiFi 未接続,✗ WiFi 未連線
+waiting_upgrade_command,"Waiting for upgrade command from mobile app...","正在等待来自移动应用的升级指令...","モバイルアプリからのアップグレードコマンドを待機中...","正在等待來自行動應用的升級指令..."
+downloading_software,Downloading Software...,正在下载软件...,ソフトウェアをダウンロード中...,正在下載軟體...
+version,"Version: ","版本: ","バージョン: ","版本: "
+upgrade_success,"Upgrade completed successfully!
+
+Please restart the application via the mobile app.","升级成功完成！
+
+请通过移动应用重启应用程序。","アップグレードが正常に完了しました！
+
+モバイルアプリからアプリケーションを再起動してください。","升級成功完成！
+
+請透過行動應用重啟應用程式。"
+upgrade_failed,"Upgrade failed. Please check your WiFi connection and try again.","升级失败。请检查您的 WiFi 连接并重试。","アップグレードに失敗しました。WiFi 接続を確認して、もう一度お試しください。","升級失敗。請檢查您的 WiFi 連線並重試。"
+retry,Retry,重试,再試行,重試
+back_to_options,Back to Options,返回选项,オプションに戻る,返回選項
+wifi_not_connected_error,"WiFi not connected. Please connect to WiFi and try again.","WiFi 未连接。请连接到 WiFi 并重试。","WiFi が接続されていません。WiFi に接続して、もう一度お試しください。","WiFi 未連線。請連線到 WiFi 並重試。"
+download_in_progress,"Download in progress. Please wait...","正在下载，请稍候...","ダウンロード中です。お待ちください...","正在下載，請稍候..."
+shot_1,Shot 1,第一发,ショット 1,第一發
+shot_2,Shot 2,第二发,ショット 2,第二發
+total,Total,合计,合計,合計
+split,Split,分段,スプリット,分段

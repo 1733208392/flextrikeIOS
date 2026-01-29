@@ -1,0 +1,158 @@
+[gd_scene load_steps=12 format=3 uid="uid://bya70qvcafon8"]
+
+[ext_resource type="Script" uid="uid://wwvh3ttlvgdl" path="res://script/games/game.gd" id="1_sycdm"]
+[ext_resource type="PackedScene" uid="uid://bvtdvj3rleh6v" path="res://scene/games/status_bar.tscn" id="2_foicq"]
+[ext_resource type="Texture2D" uid="uid://bv51qwpstdia2" path="res://asset/games/orig.png" id="3_pnp74"]
+[ext_resource type="PackedScene" path="res://scene/games/truck.tscn" id="4_jx5mp"]
+[ext_resource type="FontFile" uid="uid://d2eub6rd80tjp" path="res://asset/games/soupofjustice.ttf" id="5_128vo"]
+
+[sub_resource type="Animation" id="Animation_kvpfn"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:offset")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(-200, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_vtaks"]
+resource_name = "moving"
+length = 8.0
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:offset")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 8),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(-200, 0), Vector2(200, 0)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_dinhu"]
+_data = {
+&"RESET": SubResource("Animation_kvpfn"),
+&"moving": SubResource("Animation_vtaks")
+}
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_o5qli"]
+size = Vector2(10, 1280)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_0wfyh"]
+size = Vector2(10, 1280)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_kuqtn"]
+size = Vector2(710, 10)
+
+[node name="game" type="Node2D"]
+script = ExtResource("1_sycdm")
+
+[node name="StatusBar" parent="." instance=ExtResource("2_foicq")]
+
+[node name="Background" type="CanvasLayer" parent="."]
+layer = -1
+
+[node name="Sprite2D" type="Sprite2D" parent="Background"]
+position = Vector2(360, 640)
+scale = Vector2(4, 4)
+texture = ExtResource("3_pnp74")
+offset = Vector2(-200, 0)
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Background/Sprite2D"]
+libraries = {
+&"": SubResource("AnimationLibrary_dinhu")
+}
+
+[node name="LeftWall" type="StaticBody2D" parent="."]
+position = Vector2(50, 640)
+
+[node name="LeftCollision" type="CollisionShape2D" parent="LeftWall"]
+shape = SubResource("RectangleShape2D_o5qli")
+
+[node name="RightWall" type="StaticBody2D" parent="."]
+position = Vector2(670, 640)
+
+[node name="RightCollision" type="CollisionShape2D" parent="RightWall"]
+shape = SubResource("RectangleShape2D_0wfyh")
+
+[node name="floor" type="StaticBody2D" parent="."]
+position = Vector2(360, 1270)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="floor"]
+shape = SubResource("RectangleShape2D_kuqtn")
+
+[node name="Truck" parent="." instance=ExtResource("4_jx5mp")]
+
+[node name="GameOverLayer" type="CanvasLayer" parent="."]
+layer = 100
+
+[node name="GameOverPanel" type="Panel" parent="GameOverLayer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="GameOverLabel" type="Label" parent="GameOverLayer/GameOverPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -39.0
+offset_top = -8.0
+offset_right = 39.0
+offset_bottom = 8.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("5_128vo")
+theme_override_font_sizes/font_size = 32
+text = "GAME OVER"
+
+[node name="PauseOverlay" type="CanvasLayer" parent="."]
+visible = false
+
+[node name="Background" type="ColorRect" parent="PauseOverlay"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.7)
+
+[node name="Control" type="Control" parent="PauseOverlay"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PlayButton" type="Button" parent="PauseOverlay/Control"]
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -50.0
+offset_top = -25.0
+offset_right = 50.0
+offset_bottom = 25.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("5_128vo")
+theme_override_font_sizes/font_size = 32
+text = "Play"
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(360, 640)

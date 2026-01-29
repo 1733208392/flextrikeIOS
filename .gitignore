@@ -52,6 +52,7 @@ Carthage/Build/
 
 # Ignore macOS system files
 .DS_Store
+._*
 
 # fastlane
 #

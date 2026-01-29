@@ -1,0 +1,156 @@
+[gd_scene load_steps=5 format=3 uid="uid://bqu4ulp1sa63l"]
+
+[ext_resource type="FontFile" uid="uid://d2eub6rd80tjp" path="res://asset/games/soupofjustice.ttf" id="1"]
+[ext_resource type="Script" uid="uid://dg8ahru04ysxg" path="res://script/games/leaderboard.gd" id="2"]
+[ext_resource type="PackedScene" uid="uid://dturr8so8g8cw" path="res://scene/custom_button.tscn" id="3_1vd1g"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
+bg_color = Color(0, 0, 0, 0.8)
+
+[node name="Leaderboard" type="CanvasLayer"]
+layer = 10
+script = ExtResource("2")
+
+[node name="Control" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="Panel" parent="Control"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Control/Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="space2" type="Control" parent="Control/Panel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="Control/Panel/VBoxContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1")
+theme_override_font_sizes/font_size = 48
+text = "Leaderboard"
+horizontal_alignment = 1
+
+[node name="ScoresContainer" type="VBoxContainer" parent="Control/Panel/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+alignment = 1
+
+[node name="Panel_VBoxContainer_ScoresContainer#Score1" type="Label" parent="Control/Panel/VBoxContainer/ScoresContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1")
+theme_override_font_sizes/font_size = 32
+text = "1. --"
+horizontal_alignment = 1
+
+[node name="Panel_VBoxContainer_ScoresContainer#Score2" type="Label" parent="Control/Panel/VBoxContainer/ScoresContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1")
+theme_override_font_sizes/font_size = 32
+text = "2. --"
+horizontal_alignment = 1
+
+[node name="Panel_VBoxContainer_ScoresContainer#Score3" type="Label" parent="Control/Panel/VBoxContainer/ScoresContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1")
+theme_override_font_sizes/font_size = 32
+text = "3. --"
+horizontal_alignment = 1
+
+[node name="Panel_VBoxContainer_ScoresContainer#Score4" type="Label" parent="Control/Panel/VBoxContainer/ScoresContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1")
+theme_override_font_sizes/font_size = 32
+text = "4. --"
+horizontal_alignment = 1
+
+[node name="Panel_VBoxContainer_ScoresContainer#Score5" type="Label" parent="Control/Panel/VBoxContainer/ScoresContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1")
+theme_override_font_sizes/font_size = 32
+text = "5. --"
+horizontal_alignment = 1
+
+[node name="Panel_VBoxContainer_ScoresContainer#Score6" type="Label" parent="Control/Panel/VBoxContainer/ScoresContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1")
+theme_override_font_sizes/font_size = 32
+text = "6. --"
+horizontal_alignment = 1
+
+[node name="Panel_VBoxContainer_ScoresContainer#Score7" type="Label" parent="Control/Panel/VBoxContainer/ScoresContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1")
+theme_override_font_sizes/font_size = 32
+text = "7. --"
+horizontal_alignment = 1
+
+[node name="Panel_VBoxContainer_ScoresContainer#Score8" type="Label" parent="Control/Panel/VBoxContainer/ScoresContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1")
+theme_override_font_sizes/font_size = 32
+text = "8. --"
+horizontal_alignment = 1
+
+[node name="Panel_VBoxContainer_ScoresContainer#Score9" type="Label" parent="Control/Panel/VBoxContainer/ScoresContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1")
+theme_override_font_sizes/font_size = 32
+text = "9. --"
+horizontal_alignment = 1
+
+[node name="Panel_VBoxContainer_ScoresContainer#Score10" type="Label" parent="Control/Panel/VBoxContainer/ScoresContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1")
+theme_override_font_sizes/font_size = 32
+text = "10. --"
+horizontal_alignment = 1
+
+[node name="YourScoreLabel" type="Label" parent="Control/Panel/VBoxContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1")
+theme_override_font_sizes/font_size = 36
+text = "Your Score: 0"
+horizontal_alignment = 1
+
+[node name="space" type="Control" parent="Control/Panel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Control"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -80.0
+offset_bottom = -32.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/separation = 32
+alignment = 1
+
+[node name="Back" parent="Control/HBoxContainer" instance=ExtResource("3_1vd1g")]
+layout_mode = 2
+text = "Back"
+
+[node name="Replay" parent="Control/HBoxContainer" instance=ExtResource("3_1vd1g")]
+layout_mode = 2
+text = "Replay"

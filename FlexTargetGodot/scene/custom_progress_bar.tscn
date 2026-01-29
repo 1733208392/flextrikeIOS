@@ -1,0 +1,238 @@
+[gd_scene load_steps=3 format=3 uid="uid://5awavhwtv8op"]
+
+[ext_resource type="Texture2D" uid="uid://gntj0vaj0ifm" path="res://asset/smallCntnrs4.png" id="1_bg_texture"]
+[ext_resource type="Script" uid="uid://bhw6p10ajmpx1" path="res://script/custom_progress_bar.gd" id="2_script"]
+
+[node name="CustomProgressBar" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -440.0
+offset_bottom = -1250.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("2_script")
+
+[node name="BackgroundContainer" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_bg_texture")
+stretch_mode = 5
+
+[node name="ProgressContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -1.0
+offset_top = -3.0
+offset_right = -1.0
+offset_bottom = -3.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_right = 8
+
+[node name="ProgressSegments" type="HBoxContainer" parent="ProgressContainer"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="Segment1" type="Control" parent="ProgressContainer/ProgressSegments"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SkewedBar1" type="ColorRect" parent="ProgressContainer/ProgressSegments/Segment1"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.301961, 0.301961, 0.301961, 1)
+
+[node name="Segment2" type="Control" parent="ProgressContainer/ProgressSegments"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SkewedBar2" type="ColorRect" parent="ProgressContainer/ProgressSegments/Segment2"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.301961, 0.301961, 0.301961, 1)
+
+[node name="Segment3" type="Control" parent="ProgressContainer/ProgressSegments"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SkewedBar3" type="ColorRect" parent="ProgressContainer/ProgressSegments/Segment3"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.301961, 0.301961, 0.301961, 1)
+
+[node name="Segment4" type="Control" parent="ProgressContainer/ProgressSegments"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SkewedBar4" type="ColorRect" parent="ProgressContainer/ProgressSegments/Segment4"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.301961, 0.301961, 0.301961, 1)
+
+[node name="Segment5" type="Control" parent="ProgressContainer/ProgressSegments"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SkewedBar5" type="ColorRect" parent="ProgressContainer/ProgressSegments/Segment5"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.301961, 0.301961, 0.301961, 1)
+
+[node name="Segment6" type="Control" parent="ProgressContainer/ProgressSegments"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SkewedBar6" type="ColorRect" parent="ProgressContainer/ProgressSegments/Segment6"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.3, 0.3, 0.3, 1)
+
+[node name="Segment7" type="Control" parent="ProgressContainer/ProgressSegments"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SkewedBar7" type="ColorRect" parent="ProgressContainer/ProgressSegments/Segment7"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.3, 0.3, 0.3, 1)
+
+[node name="Segment8" type="Control" parent="ProgressContainer/ProgressSegments"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SkewedBar8" type="ColorRect" parent="ProgressContainer/ProgressSegments/Segment8"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.3, 0.3, 0.3, 1)
+
+[node name="Segment9" type="Control" parent="ProgressContainer/ProgressSegments"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SkewedBar9" type="ColorRect" parent="ProgressContainer/ProgressSegments/Segment9"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.3, 0.3, 0.3, 1)
+
+[node name="Segment10" type="Control" parent="ProgressContainer/ProgressSegments"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SkewedBar10" type="ColorRect" parent="ProgressContainer/ProgressSegments/Segment10"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.3, 0.3, 0.3, 1)
+
+[node name="Segment11" type="Control" parent="ProgressContainer/ProgressSegments"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SkewedBar11" type="ColorRect" parent="ProgressContainer/ProgressSegments/Segment11"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.3, 0.3, 0.3, 1)
+
+[node name="Segment12" type="Control" parent="ProgressContainer/ProgressSegments"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SkewedBar12" type="ColorRect" parent="ProgressContainer/ProgressSegments/Segment12"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.3, 0.3, 0.3, 1)
+
+[node name="Segment13" type="Control" parent="ProgressContainer/ProgressSegments"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SkewedBar13" type="ColorRect" parent="ProgressContainer/ProgressSegments/Segment13"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.3, 0.3, 0.3, 1)
+
+[node name="Segment14" type="Control" parent="ProgressContainer/ProgressSegments"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SkewedBar14" type="ColorRect" parent="ProgressContainer/ProgressSegments/Segment14"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.3, 0.3, 0.3, 1)
+
+[node name="Segment15" type="Control" parent="ProgressContainer/ProgressSegments"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SkewedBar15" type="ColorRect" parent="ProgressContainer/ProgressSegments/Segment15"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.3, 0.3, 0.3, 1)

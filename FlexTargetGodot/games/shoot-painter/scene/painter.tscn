@@ -1,0 +1,106 @@
+[gd_scene load_steps=7 format=3 uid="uid://dby28s2it8dj7"]
+
+[ext_resource type="Texture2D" uid="uid://dixwhgg0qg6ud" path="res://asset/games/Background_1.png" id="1_r5kur"]
+[ext_resource type="Script" uid="uid://clfkslwk142a8" path="res://games/shoot-painter/script/stem_manager.gd" id="2_omiao"]
+[ext_resource type="Script" uid="uid://iur200exsdc7" path="res://script/screenshot_manager.gd" id="2_r5kur"]
+[ext_resource type="AudioStream" uid="uid://d3g1qmoe8bedm" path="res://audio/cartoon-splat.mp3" id="3_fw0ma"]
+[ext_resource type="Script" uid="uid://wrjfqv7g68uk" path="res://games/shoot-painter/script/splat_spawner.gd" id="3_yd2mb"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_omiao"]
+bg_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 999
+corner_radius_top_right = 999
+corner_radius_bottom_right = 999
+corner_radius_bottom_left = 999
+
+[node name="SplatDemo" type="Node2D"]
+
+[node name="TextureRect" type="TextureRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 720.0
+offset_bottom = 1120.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_r5kur")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="StemManager" type="Node2D" parent="CanvasLayer"]
+script = ExtResource("2_omiao")
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="CanvasLayer/StemManager"]
+stream = ExtResource("3_fw0ma")
+
+[node name="Spawner" type="Node2D" parent="CanvasLayer"]
+script = ExtResource("3_yd2mb")
+prompt_stem_manager_node = NodePath("../StemManager")
+capture_manager_node = NodePath("../../CaptureManager")
+capture_area_node = NodePath("")
+prompt_clear_area_node = NodePath("../../CaptureManager/Overlay/UI/ClearArea")
+
+[node name="CaptureManager" type="Node2D" parent="."]
+script = ExtResource("2_r5kur")
+
+[node name="Overlay" type="CanvasLayer" parent="CaptureManager"]
+layer = 20
+
+[node name="Shutter" type="ColorRect" parent="CaptureManager/Overlay"]
+visible = false
+custom_minimum_size = Vector2(720, 1280)
+color = Color(18.892157, 18.892157, 18.892157, 1)
+
+[node name="Thumbnail" type="TextureRect" parent="CaptureManager/Overlay"]
+visible = false
+custom_minimum_size = Vector2(200, 200)
+offset_left = 254.0
+offset_top = 239.0
+offset_right = 454.0
+offset_bottom = 439.0
+expand_mode = 1
+stretch_mode = 2
+
+[node name="UI" type="Control" parent="CaptureManager/Overlay"]
+layout_mode = 3
+anchors_preset = 0
+
+[node name="ClearArea" type="ColorRect" parent="CaptureManager/Overlay/UI"]
+z_index = 5
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 1120.0
+offset_right = 720.0
+offset_bottom = 1280.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.9882353, 0.53333336, 0.06666667, 1)
+
+[node name="Label" type="Label" parent="CaptureManager/Overlay/UI/ClearArea"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -84.0
+offset_top = -33.5
+offset_right = 84.0
+offset_bottom = 33.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 48
+text = "Restart"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CaptureButton" type="Button" parent="CaptureManager/Overlay/UI"]
+visible = false
+layout_mode = 1
+offset_left = 305.0
+offset_top = 918.0
+offset_right = 474.0
+offset_bottom = 1075.0
+theme_override_styles/normal = SubResource("StyleBoxFlat_omiao")

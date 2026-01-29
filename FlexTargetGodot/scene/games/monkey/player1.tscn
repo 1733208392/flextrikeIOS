@@ -1,0 +1,103 @@
+[gd_scene load_steps=16 format=3 uid="uid://cojbyh3nmp67k"]
+
+[ext_resource type="Script" uid="uid://kx5kaily1t65" path="res://script/games/player1.gd" id="1_player1"]
+[ext_resource type="Texture2D" uid="uid://33q5l5rn52rt" path="res://asset/games/jiong-hit.png" id="2_33sqe"]
+[ext_resource type="Texture2D" uid="uid://08bp48gnsiw4" path="res://asset/jiong-idle.png" id="3_lgpjw"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_a8sum"]
+atlas = ExtResource("2_33sqe")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4xnqp"]
+atlas = ExtResource("2_33sqe")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wuswm"]
+atlas = ExtResource("2_33sqe")
+region = Rect2(64, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_e63gm"]
+atlas = ExtResource("2_33sqe")
+region = Rect2(96, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5euj4"]
+atlas = ExtResource("2_33sqe")
+region = Rect2(128, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cpukd"]
+atlas = ExtResource("3_lgpjw")
+region = Rect2(0, 0, 32, 40)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cp8e0"]
+atlas = ExtResource("3_lgpjw")
+region = Rect2(32, 0, 32, 40)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ip8n0"]
+atlas = ExtResource("3_lgpjw")
+region = Rect2(64, 0, 32, 40)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_65nnh"]
+atlas = ExtResource("3_lgpjw")
+region = Rect2(96, 0, 32, 40)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_00lvw"]
+atlas = ExtResource("3_lgpjw")
+region = Rect2(128, 0, 32, 40)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_a8sum"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_a8sum")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4xnqp")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_wuswm")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_e63gm")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5euj4")
+}],
+"loop": false,
+"name": &"hit",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_cpukd")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_cp8e0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ip8n0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_65nnh")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_00lvw")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 5.0
+}]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_33sqe"]
+radius = 46.0
+height = 92.0
+
+[node name="Jiong" type="Area2D"]
+script = ExtResource("1_player1")
+
+[node name="player" type="AnimatedSprite2D" parent="."]
+scale = Vector2(4, 4)
+sprite_frames = SubResource("SpriteFrames_a8sum")
+animation = &"idle"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CapsuleShape2D_33sqe")

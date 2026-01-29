@@ -1,0 +1,128 @@
+[gd_scene load_steps=11 format=3 uid="uid://cxd2xq70pq0ln"]
+
+[ext_resource type="Script" uid="uid://bywkb3gjgcap0" path="res://scene/targets/mozambique.gd" id="1_tqo6r"]
+[ext_resource type="Texture2D" uid="uid://bulikg7fe0w3h" path="res://asset/mosambique.png" id="2_tqo6r"]
+[ext_resource type="Theme" uid="uid://dmg3xu7opmvt1" path="res://theme/drill_title_theme.tres" id="2_upr8q"]
+[ext_resource type="PackedScene" uid="uid://bvmw1s06twfav" path="res://scene/shot_timer.tscn" id="3_s8c5b"]
+[ext_resource type="PackedScene" uid="uid://56tkisbqcuaf" path="res://scene/mozambique_drill_complete_overlay.tscn" id="4_u875l"]
+
+[sub_resource type="Animation" id="Animation_1"]
+resource_name = "disappear"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.0666667, 0.133333, 0.2, 0.266667, 0.333333, 0.4, 0.466667, 0.533333, 0.6, 0.666667, 0.733333, 0.8, 0.866667, 0.933333, 1),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 0,
+"values": [0.0, 0.174533, -0.174533, 0.139626, -0.139626, 0.10472, -0.10472, 0.0698132, -0.0698132, 0.0349066, -0.0349066, 0.0174533, -0.0174533, 0.00872665, -0.00872665, 0.0]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:modulate")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_2"]
+resource_name = "reset"
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [0.0]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:modulate")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath(".:scale")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(1, 1)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_1"]
+_data = {
+&"disappear": SubResource("Animation_1"),
+&"reset": SubResource("Animation_2")
+}
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_knpln"]
+radius = 81.3019
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_s8c5b"]
+size = Vector2(319, 492)
+
+[node name="Mosambique" type="Area2D"]
+collision_layer = 7
+collision_mask = 0
+script = ExtResource("1_tqo6r")
+
+[node name="Label" type="Label" parent="."]
+custom_minimum_size = Vector2(720, 100)
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = -360.0
+offset_top = 500.0
+offset_right = 360.0
+offset_bottom = 600.0
+grow_horizontal = 2
+theme = ExtResource("2_upr8q")
+text = "Mozambique Drill"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TargetSprite" type="Sprite2D" parent="."]
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("2_tqo6r")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary_1")
+}
+
+[node name="head" type="CollisionShape2D" parent="."]
+position = Vector2(-29, -314)
+shape = SubResource("CircleShape2D_knpln")
+
+[node name="torso" type="CollisionShape2D" parent="."]
+position = Vector2(-24.5, 26)
+shape = SubResource("RectangleShape2D_s8c5b")
+
+[node name="ShotTimer" parent="." instance=ExtResource("3_s8c5b")]
+visible = false
+
+[node name="drill_complete_overlay" parent="." instance=ExtResource("4_u875l")]
+visible = false
