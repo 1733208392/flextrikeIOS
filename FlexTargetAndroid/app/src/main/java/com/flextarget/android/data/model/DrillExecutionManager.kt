@@ -428,10 +428,12 @@ class DrillExecutionManager(
         ackTimeoutTimer = null
 
         val repeatIndex = currentRepeat
+        val shotCount = currentRepeatShots.size
         finalizeRepeat(repeatIndex)
 
         // Notify UI that repeat is finalized
-        println("Completed repeat $repeatIndex")
+        println("[DrillExecutionManager] Completed repeat $repeatIndex with $shotCount shots")
+        onRepeatComplete?.invoke(repeatIndex, shotCount)
         onRepeatFinalized?.invoke(repeatIndex)
         // NOTE: onComplete is NOT called here - UI will call completeDrill() when all repeats are done
     }

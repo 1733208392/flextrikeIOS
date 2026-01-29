@@ -409,6 +409,13 @@ fun TimerSessionView(
             onReadinessTimeout = { nonResponsiveList ->
                 nonResponsiveTargets = nonResponsiveList
                 readinessTimeoutOccurred = true
+            },
+            onRepeatComplete = { repeatIndex, shotCount ->
+                println("[TimerSessionView] Repeat $repeatIndex completed with $shotCount shots")
+                if (!gracePeriodActive) {
+                    gracePeriodActive = true
+                    gracePeriodRemaining = gracePeriodDuration
+                }
             }
         )
 

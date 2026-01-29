@@ -3,9 +3,12 @@ package com.flextarget.android.ui.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.flextarget.android.data.auth.DeviceAuthManager
+import com.flextarget.android.data.ble.BLEManager
 import com.flextarget.android.data.repository.BLERepository
 import com.flextarget.android.data.repository.DeviceState
 import com.flextarget.android.data.repository.ShotEvent
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -35,11 +38,41 @@ data class BLEUiState(
  * - Manage device state transitions
  */
 class BLEViewModel(
-    private val bleRepository: BLERepository
+    private val bleRepository: BLERepository,
+    private val deviceAuthManager: DeviceAuthManager
 ) : ViewModel() {
     
     init {
         Log.d("BLEViewModel", "BLEViewModel initialized")
+        
+        // Monitor BLE connection state and auto-authenticate when connected
+        viewModelScope.launch {
+            Log.d("BLEViewModel", "Starting BLE ready monitoring loop")
+            var wasReady = false
+            // Check initial state
+            val initialReady = BLEManager.shared.isReady
+            Log.d("BLEViewModel", "Initial BLE ready state: $initialReady")
+            if (initialReady) {
+                Log.d("BLEViewModel", "BLE device already ready, attempting authentication")
+                delay(1000) // Wait 1 additional second for stability
+                authenticateDevice()
+                wasReady = true
+            }
+            
+            while (true) {
+                val isReady = BLEManager.shared.isReady
+                if (isReady != wasReady) {
+                    Log.d("BLEViewModel", "BLE ready state changed: $wasReady -> $isReady")
+                }
+                if (isReady && !wasReady) {
+                    Log.d("BLEViewModel", "BLE device ready, attempting authentication")
+                    delay(1000) // Wait 1 additional second for stability
+                    authenticateDevice()
+                }
+                wasReady = isReady
+                delay(100) // Check every 100ms
+            }
+        }
     }
     
     /**
@@ -94,6 +127,30 @@ class BLEViewModel(
      */
     suspend fun getDeviceAuthData(): Result<String> {
         return bleRepository.getDeviceAuthData()
+    }
+    
+    /**
+     * Authenticate device after BLE connection
+     */
+    private suspend fun authenticateDevice() {
+        try {
+            Log.d("BLEViewModel", "Requesting device auth data")
+            val authDataResult = getDeviceAuthData()
+            if (authDataResult.isSuccess) {
+                val authData = authDataResult.getOrThrow()
+                Log.d("BLEViewModel", "Received auth data, authenticating device")
+                val authResult = deviceAuthManager.authenticateDevice(authData)
+                if (authResult.isSuccess) {
+                    Log.d("BLEViewModel", "Device authentication successful")
+                } else {
+                    Log.e("BLEViewModel", "Device authentication failed: ${authResult.exceptionOrNull()?.message}")
+                }
+            } else {
+                Log.e("BLEViewModel", "Failed to get device auth data: ${authDataResult.exceptionOrNull()?.message}")
+            }
+        } catch (e: Exception) {
+            Log.e("BLEViewModel", "Error during device authentication: ${e.message}")
+        }
     }
     
     /**

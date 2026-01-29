@@ -83,7 +83,7 @@ interface FlexTargetAPI {
     /**
      * POST /game/play/add
      * Submit a game play result (drill execution result for competition)
-     * Requires device token in Authorization header
+     * Requires both user and device authentication tokens in Authorization header
      */
     @POST("/game/play/add")
     suspend fun addGamePlay(

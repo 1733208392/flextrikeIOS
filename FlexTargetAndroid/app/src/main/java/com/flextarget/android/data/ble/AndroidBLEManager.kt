@@ -168,6 +168,7 @@ class AndroidBLEManager(private val context: Context) {
                         // Check if ready
                         val ready = writeCharacteristic != null && notifyCharacteristic != null
                         this@AndroidBLEManager.isReady = ready
+                        BLEManager.shared.isReady = ready
                         println("[AndroidBLEManager] Ready: $ready (write: ${writeCharacteristic != null}, notify: ${notifyCharacteristic != null})")
                         if (ready) {
                             this@AndroidBLEManager.isConnected = true

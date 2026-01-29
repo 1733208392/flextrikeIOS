@@ -176,25 +176,15 @@ class CompetitionRepositoryTest {
     }
 
     @Test
-    fun `submitGamePlay succeeds when device not authenticated but user is authenticated`() = runTest {
+    fun `submitGamePlay fails when device not authenticated`() = runTest {
         // Given
         val competitionId = UUID.randomUUID()
         val drillSetupId = UUID.randomUUID()
-        val playUuid = "user-only-submission-uuid"
         
         every { mockAuthManager.currentAccessToken } returns "user_token"
         every { mockDeviceAuthManager.deviceToken.value } returns null
         every { mockDeviceAuthManager.deviceUUID.value } returns null
-        coEvery { mockApi.addGamePlay(any(), "Bearer user_token") } returns
-            AddGamePlayResponse(
-                code = 0,
-                msg = "success",
-                data = GamePlayResponseData(
-                    playUUID = playUuid,
-                    deviceUUID = "server-assigned-device"
-                )
-            )
-        coEvery { mockGamePlayDao.insertGamePlay(any()) } returns Unit
+        every { mockDeviceAuthManager.getAuthorizationHeader("user_token", true) } throws IllegalStateException("Device token required but not available. Connect BLE device first.")
 
         // When
         val result = competitionRepository.submitGamePlay(
@@ -204,10 +194,10 @@ class CompetitionRepositoryTest {
             detail = "{}"
         )
 
-        // Then - should succeed with user token only
-        assertThat(result.isSuccess).isTrue()
-        assertThat(result.getOrNull()).isEqualTo(playUuid)
-        coVerify { mockApi.addGamePlay(any(), "Bearer user_token") }
+        // Then - should fail without device token
+        assertThat(result.isFailure).isTrue()
+        assertThat(result.exceptionOrNull()).isInstanceOf(IllegalStateException::class.java)
+        assertThat(result.exceptionOrNull()?.message).isEqualTo("Device token required but not available. Connect BLE device first.")
     }
 
     @Test
@@ -221,8 +211,10 @@ class CompetitionRepositoryTest {
         val playUuid = "server-generated-uuid"
 
         every { mockAuthManager.currentAccessToken } returns "user_token"
+        every { mockAuthManager.currentUser.value?.mobile } returns "1234567890"
         every { mockDeviceAuthManager.deviceToken.value } returns "device_token"
         every { mockDeviceAuthManager.deviceUUID.value } returns "device-uuid"
+        every { mockDeviceAuthManager.getAuthorizationHeader("user_token", true) } returns "Bearer user_token|device_token"
 
         val mockResponse = mockk<ApiResponse<GamePlayResponse>>()
         every { mockResponse.data?.playUUID } returns playUuid
@@ -244,7 +236,7 @@ class CompetitionRepositoryTest {
         assertThat(result.isSuccess).isTrue()
         assertThat(result.getOrNull()).isEqualTo(playUuid)
 
-        coVerify { mockApi.addGamePlay(any(), any()) }
+        coVerify { mockApi.addGamePlay(any(), "Bearer user_token|device_token") }
         coVerify { mockGamePlayDao.insertGamePlay(any()) }
     }
 

@@ -130,6 +130,7 @@ class CompetitionRepository @Inject constructor(
     
     /**
      * Submit game play result (drill execution result)
+     * Requires both user and device authentication.
      * 
      * @param competitionId Competition UUID (game_type)
      * @param drillSetupId Drill setup ID
@@ -150,27 +151,18 @@ class CompetitionRepository @Inject constructor(
             val userToken = authManager.currentAccessToken
                 ?: return@withContext Result.failure(IllegalStateException("Not authenticated"))
             
-            // Device token is optional - allow submission with just user token
-            val deviceToken = deviceAuthManager.deviceToken.value
-            val deviceUuid = deviceAuthManager.deviceUUID.value
-            
             // Format play time
             val playTime = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).format(Date())
             
-            // Build auth header: include device token if available, otherwise use just user token
-            val authHeader = if (deviceToken != null && deviceUuid != null) {
-                "Bearer $userToken|$deviceToken"
-            } else {
-                Log.w(TAG, "Device token not available, submitting with user token only")
-                "Bearer $userToken"
-            }
+            // Build auth header: requires both user and device tokens
+            val authHeader = deviceAuthManager.getAuthorizationHeader(userToken, requireDeviceToken = true)
             
             // Call API to submit result
             val response = api.addGamePlay(
                 AddGamePlayRequest(
                     game_type = competitionId.toString(),
                     game_ver = "1.0.0",
-                    player_mobile = null,
+                    player_mobile = authManager.currentUser.value?.mobile ?: "",
                     player_nickname = playerNickname,
                     score = score,
                     detail = detail,

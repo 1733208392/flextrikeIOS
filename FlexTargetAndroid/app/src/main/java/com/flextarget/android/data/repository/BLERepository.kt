@@ -75,11 +75,14 @@ class BLERepository @Inject constructor(
      * Called during 2-step device auth process
      */
     suspend fun getDeviceAuthData(): Result<String> = withContext(Dispatchers.IO) {
-        if (!BLEManager.shared.isConnected) {
+        if (!BLEManager.shared.isReady) {
             return@withContext Result.failure(
-                IllegalStateException("Device not connected")
+                IllegalStateException("Device not ready")
             )
         }
+
+        // Wait for connection to stabilize before sending command
+        delay(1000)
 
         return@withContext suspendCancellableCoroutine { continuation ->
             var timeoutJob: Job? = null

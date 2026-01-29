@@ -138,7 +138,7 @@ object AppContainer {
     }
 
     val bleViewModel by lazy {
-        BLEViewModel(bleRepository)
+        BLEViewModel(bleRepository, deviceAuthManager)
     }
 
     val competitionViewModel by lazy {
