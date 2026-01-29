@@ -1,6 +1,0 @@
-Changes to make:
-
-1. Update metrics layout - add Factor and reorganize
-2. Add HitZonesBadgesRow composable
-3. Add HitZoneBadge composable
-4. Update SummaryCard layout to separate hit zones row

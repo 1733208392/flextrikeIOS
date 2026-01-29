@@ -1,0 +1,459 @@
+/* Localizable.strings - Traditional Chinese */
+
+/* DrillMainPageView */
+"target_connected" = "目標已連接";
+"target_disconnected" = "目標未連接";
+"drills" = "訓練";
+"athletes" = "運動員";
+"ipsc_questionaries" = "IPSC 問題集";
+"idpa_questionaries" = "IDPA 問題集";
+
+/* AthletesManagementView */
+"athletes_title" = "運動員";
+"new_athlete" = "新增運動員";
+"athlete_name" = "姓名";
+"athlete_club" = "俱樂部";
+"select_avatar" = "選擇頭像";
+"add_athlete" = "新增運動員";
+"athletes_empty" = "尚無運動員";
+
+/* Leaderboard */
+"leaderboard_title" = "排行榜";
+"submit_to_leaderboard_button" = "提交到排行榜";
+"select_athlete_title" = "選擇運動員";
+
+/* DrillFormView */
+"drill_setup" = "訓練設定";
+"drill_mode" = "訓練模式";
+
+/* DrillListView */
+"my_drills" = "我的訓練";
+"search_drills" = "搜尋訓練";
+"delete_drill_title" = "刪除訓練";
+"delete" = "刪除";
+"cancel" = "取消";
+"back" = "返回";
+"delete_drill_message" = "您確定要刪除 %@ 嗎？";
+"connection_required" = "需要連接";
+"connection_required_message" = "請在新增訓練前連接目標裝置。";
+"connect_target_first" = "請先連接您的目標裝置。";
+"ok" = "確定";
+"untitled" = "未命名";
+"copy" = "複製";
+"targets" = "目標";
+"targets_count" = "%d 個目標";
+"performed" = "已執行";
+"delay_seconds" = "延遲: %d秒";
+
+/* BLE/ConnectSmartTargetView */
+"disconnect" = "斷開連接";
+"reconnect" = "重新連接";
+"okay" = "確定";
+"select_target" = "選擇目標";
+"connected" = "已連接";
+"connecting" = "連接中";
+"trying_to_connect" = "正在嘗試連接 FlexTarget 裝置";
+"target_not_found" = "未找到目標";
+"bluetooth_service_not_found" = "未找到藍牙服務";
+"scan" = "重新掃描";
+"my_target" = "上傳圖片";
+"scanning_for_target" = "正在掃描 %@";
+"ready_to_scan" = "準備掃描";
+
+/* HistoryTabView - Filters */
+"all_drill_setup" = "所有訓練設定";
+
+/* LaserDryFire/OverlayView */
+"fps_display" = "FPS: %d";
+
+/* ShotTimelineView */
+"shots_count" = "%d 發射擊";
+"shot_number" = "射擊 %d";
+"shot_with_time" = "射擊 %d: %.2f秒";
+
+/* DrillResultView */
+"progress_time" = "%.2f/%.2f秒";
+"drill_in_progress" = "訓練進行中";
+"drill_in_progress_overlay" = "訓練進行中...";
+"end_drill" = "結束訓練";
+"confirm" = "確認";
+"drill_ended" = "訓練結束";
+"shot_added" = "已添加位置處的新射擊";
+"duplicate_shot_ignored" = "忽略重複射擊";
+"decode_shot_error" = "解碼射擊數據失敗";
+"drill_timer_expired" = "訓練計時器超時";
+"shots_received" = "收到的射擊";
+"drill_status_completed" = "已完成";
+
+/* DrillSummaryView */
+"drill_result_summary_title" = "訓練結果摘要";
+"no_summary_data_title" = "尚未記錄摘要數據。";
+"no_summary_data_subtitle" = "運行訓練課程以生成性能指標。";
+"repeat_number" = "重複 #%d";
+"shots_label" = "射擊";
+"total_time_label" = "總時間";
+"shots_metric_label" = "射擊";
+"fastest_label" = "最快";
+"first_shot_label" = "首槍";
+"score_label" = "分數";
+"factor_label" = "係數";"submit_result" = "提交成績";"watch_replay_button" = "觀看回放";
+
+/* SubViews */
+"history_record" = "歷史記錄";
+"delay_seconds_label" = "延遲(秒)";
+"num_repeats_label" = "重複次數";
+"select_repeats" = "選擇重複次數";
+"drill_duration_seconds_label" = "持續時間/Rep(s)";
+"drill_pause_seconds_label" = "重複之間的暫停(秒)";
+"delay_range" = "2...5";
+"description" = "描述";
+"enter_description_placeholder" = "輸入描述...";
+"add_demo_video" = "新增示範影片";
+"add_target" = "新增目標";
+"targets_count_label" = "%d";
+"gun" = "槍械";
+"save" = "儲存";
+"device" = "裝置";
+"type" = "類型";
+
+/* AddDrillView */
+"drill_setups_exist" = "訓練設定已存在。TODO: 顯示清單或主畫面。";
+"failed_to_load_drills" = "載入訓練失敗";
+
+/* RecentTrainingView */
+"no_recent_drills" = "沒有最近的訓練";
+"complete_drills_message" = "完成一些訓練以在此處查看";
+"hit_factor" = "命中因子";
+"date" = "日期";
+"fastest" = "最快";
+
+/* Information Views */
+"privacy_policy" = "隱私權政策";
+"faq" = "常見問題";
+"about_us" = "關於我們";
+"drill_history" = "訓練歷史";
+"drill_replay" = "訓練重播";
+"select_device" = "選擇裝置";
+"select_target_type" = "選擇目標類型";
+"select_action" = "選擇動作";
+"action" = "動作";
+"duration" = "持續時間";
+"select_duration" = "選擇持續時間";
+"duration_continuous" = "連續";
+"duration_seconds_format" = "%.1f秒";
+
+/* CQB Target Types */
+"cqb_swing" = "窺視";
+"cqb_front" = "瞄準";
+"cqb_move" = "跑動";
+"cqb_hostage" = "人質";
+"disguised_enemy" = "偽裝威脅";
+
+/* CQB Drill Summary */
+"cqb_total_shots" = "總射擊數";
+"cqb_duration" = "持續時間";
+"cqb_passed" = "通過";
+"cqb_failed" = "未通過";
+"cqb_threat" = "威脅";
+"cqb_non_threat" = "無威脅";
+"cqb_shots_format" = "射擊數：%d/%d";
+"duration_value_format" = "%.1fs";
+/* DrillFormView */
+"start_drill" = "開始訓練";
+"save_drill" = "儲存訓練";
+"save_changes" = "儲存變更";
+
+/* ACK / Waiting messages */
+"ack_timeout_title" = "等待 10 秒";
+"ack_timeout_message" = "逾時";
+"waiting_for_devices" = "等待中";
+"waiting_devices_count" = "%d 個裝置待就緒";
+
+/* TargetConfigListView */
+"maximum_targets_title" = "已達最大目標數量";
+"maximum_targets_message" = "您已達到網絡中的最大目標數量（%d / %d）。";
+
+/* Additional */
+"copy_suffix" = " 複製";
+"retry" = "重試";
+
+/* BLE Error */
+"ble_error" = "BLE 錯誤";
+
+/* Duration Configuration */
+"select_duration" = "選擇時間";
+
+/* Drill Execution - Back Navigation */
+"continue_button" = "繼續";
+"drill_in_progress_back_message" = "訓練正在進行中。返回將丟失訓練記錄。您確定嗎？";
+
+/* Firmware Upgrade */
+"firmware_upgrade" = "韌體升級";
+"firmware_upgrade_title" = "韌體升級";
+"firmware_upgrade_message" = "確保新的韌體USB驅動器牢固地插入設備右側的USB端口。";
+
+/* Image transfer / ImageCropView */
+"my_target" = "上傳圖片";
+"choose_photo" = "選擇照片";
+"complete" = "傳送";
+"align_qr_code" = "對齊控制框內的二維碼";
+"transferring_image" = "正在傳送圖片...";
+"cancel_transfer" = "取消傳送";
+"cancel_transfer_confirm_title" = "取消傳送並返回？";
+"yes_cancel" = "是，取消";
+"no" = "否";
+"cancel_transfer_message" = "圖片傳送正在進行中。若返回，傳送將被停止。";
+"live_preview" = "即時預覽";
+"live_preview_description" = "顯示您的照片在輪廓導引下如何定位與裁切。";
+"zoom_level" = "縮放等級：";
+"offset" = "位移：";
+"close_preview" = "關閉預覽";
+"close" = "關閉";
+
+/* ImageTransferManager messages */
+"transfer_in_progress_error" = "傳送已在進行中";
+"ble_not_connected" = "BLE 未連接";
+"failed_compress_image" = "圖片壓縮失敗";
+"failed_encode_ready" = "準備命令編碼失敗";
+"image_transfer_target_not_ready" = "目標未準備好接收圖片";
+"failed_encode_start_command" = "開始命令編碼失敗";
+"failed_encode_chunk" = "分片編碼失敗";
+"failed_encode_complete_command" = "完成命令編碼失敗";
+"image_transferred_success" = "圖片傳送成功";
+"transfer_cancelled" = "傳送已取消";
+"transfer" = "傳輸";
+"ensure_target_ready" = "請確保標靶已準備就緒";
+"target_not_ready" = "標靶尚未準備好接收";
+
+/* TimerSessionView - Target Readiness */
+"targets_ready" = "所有標靶已準備好進行練習";
+"targets_not_ready" = "標靶未準備好";
+"targets_not_ready_message" = "以下標靶未回應:";
+"end_drill" = "結束練習?";
+"drill_in_progress" = "練習進行中";
+"processing_shots" = "正在處理數據";
+"pause_between_repeats" = "重複間暫停";
+"repeat_of_total" = "第 %d 次 (共 %d 次)";
+
+"hit_area_azone" = "A區";
+"hit_area_czone" = "C區";
+"hit_area_dzone" = "D區";
+"hit_area_miss" = "脫靶";
+"hit_area_barrel_miss" = "掩體";
+"hit_area_circlearea" = "擊倒";
+"hit_area_standarea" = "擊倒";
+"hit_area_popperzone" = "擊倒";
+"hit_area_blackzone" = "黑區";
+"hit_area_blackzoneleft" = "黑區左";
+"hit_area_blackzoneright" = "黑區右";
+"hit_area_whitezone" = "白區";
+"hit_area_blackzone" = "黑區";
+"hit_area_blackzoneleft" = "黑區左";
+
+/* SummaryEditSheet */
+"edit_hit_zone_counts_title" = "編輯命中區域計數";
+"a_zone_label" = "A區";
+"c_zone_label" = "C區";
+"d_zone_label" = "D區";
+"no_shoot_label" = "禁止射擊";
+"miss_label" = "脫靶";
+"penalty_label" = "罰分";
+"cancel_button" = "取消";
+"save_button" = "儲存";
+
+/* History Tab */
+"all_modes" = "所有模式";
+"all_time" = "全部時間";
+"past_week" = "過去一週";
+"past_month" = "過去一個月";
+"custom_date" = "自訂日期";
+"no_results" = "無結果";
+"no_results_hint" = "執行訓練以查看歷史記錄";
+"unknown_date" = "未知日期";
+
+/* Tab Navigation */
+"history" = "記錄";
+"admin" = "管理";
+"competition" = "競賽";
+
+/* Competition */
+"competition_login" = "競賽登錄";
+"username" = "用戶名";
+"password" = "密碼";
+"login" = "登錄";
+"login_hint" = "測試期間，任何用戶名和密碼均可。";
+"search_competition" = "按名稱或地點搜索";
+"all" = "全部";
+"this_month" = "本月";
+"last_3_months" = "最近3個月";
+"competitions" = "競賽列表";
+"view_competitions" = "查看競賽";
+"shooters" = "射手";
+"manage_shooters" = "管理射手";
+"leaderboard" = "排行榜";
+"view_leaderboard" = "查看排行榜";
+"untitled_competition" = "未命名競賽";
+"competition_info" = "競賽信息";
+"competition_name" = "競賽名稱";
+"venue" = "地點";
+"date" = "日期";
+"change" = "更改";
+"select_drill" = "選擇訓練";
+"create_competition" = "創建競賽";
+"add_competition" = "添加競賽";
+"cancel" = "取消";
+"competition_details" = "競賽詳情";
+"results" = "結果";
+"no_results_yet" = "暫無結果";
+"start_competition_drill" = "開始競賽訓練";
+"unknown_athlete" = "未知運動員";
+"competition_mode" = "競賽模式";
+"drill_editing_disabled_hint" = "由於此練習已有結果或已關聯競賽，編輯功能已禁用。";
+/* AdminTabView - 管理菜單 */
+"device_management" = "設備管理";
+"device_connected" = "設備已連接";
+"connect_device" = "連接到設備";
+"disconnect" = "斷開連接";
+"login" = "登錄";
+"user_login" = "用戶登錄";
+"information" = "信息";
+"app_info" = "應用信息";
+"connected_device" = "已連接設備";
+"manage_connection" = "管理連接";
+"scan_qr_code" = "掃描二維碼";
+"scan_device_qr" = "掃描設備二維碼";
+/* 排行榜提交錯誤 */
+"error_title" = "錯誤";
+"duplicate_submission_title" = "重複提交";
+"duplicate_submission_message" = "此訓練已為此運動員提交到排行榜。";
+"missing_drill_result_id_message" = "缺少訓練結果 ID";
+"no_drill_result_found_message" = "未找到訓練結果";
+"hit_area_circlearea" = "擊倒";
+"hit_area_standarea" = "擊倒";
+"hit_area_popperzone" = "擊倒";
+
+/* User Management */
+"logout" = "登出";
+"logout_confirm" = "您確定要登出嗎？";
+"user_logout" = "用戶登出";
+"user_login" = "用戶登錄";
+"mobile_number" = "手機號碼";
+"password" = "密碼";
+"login" = "登錄";
+"login_title" = "登錄";
+"manage_profile" = "管理用戶資料";
+
+/* Competition Submission */
+"error_title" = "錯誤";
+"no_competition_error" = "此結果沒有關聯的競賽";
+"invalid_competition_id_error" = "無效的競賽ID";
+"device_disconnected_title" = "設備已斷開連接";
+"connect_device_before_submit" = "請在提交前連接設備";
+"device_auth_required_title" = "需要設備認證";
+"device_token_unavailable" = "設備認證令牌不可用。請確保設備已正確連接";
+"not_authenticated_title" = "未認證";
+"login_before_submit" = "請在提交結果前登錄";
+"success_title" = "成功";
+"submit_success_message" = "競賽結果已成功提交";
+"submit_failed_title" = "提交失敗";
+"alert_title" = "提示";
+"ok_button" = "確定";
+
+/* User Profile */
+"user_profile" = "用戶資料";
+"profile" = "資料";
+"edit_profile" = "編輯資料";
+"change_password" = "更改密碼";
+"update_profile" = "更新資料";
+"current_password" = "目前密碼";
+"new_password" = "新密碼";
+"confirm_password" = "確認新密碼";
+"profile_updated_success" = "資料更新成功";
+"username" = "用戶名稱";
+"session_expired_message" = "您的工作階段已過期。請重新登入。";
+
+/* Competition Results Sync */
+"sync_results" = "同步結果";
+"sync_error_title" = "同步錯誤";
+"device_reauth_message" = "請連接您的標靶設備以重新授權設備";
+"submitted" = "已提交";
+"local_unsubmitted" = "本機/未提交";
+
+/* OTA - Over-The-Air Update */
+"ota_waiting_for_confirm" = "等待設備確認進入OTA模式...";
+"ota_device_in_mode" = "設備處於OTA模式。等待下載準備就緒信號...";
+"ota_preparation_timeout" = "設備準備逾時（10分鐘）。請檢查您的設備並重試。";
+"ota_success_confirmation" = "設備已成功進入OTA模式";
+"ota_waiting_for_ready" = "設備正在準備下載...";
+"ota_device_ready" = "設備已就緒。開始升級...";
+"ota_preparation_failed" = "OTA準備失敗";
+
+/* OTA Update UI - AdminTabView & OTAUpdateView */
+"ota_update_title" = "OTA更新";
+"ota_update_description" = "檢查並安裝系統更新";
+"ota_version_history" = "版本歷史";
+"ota_fetching_history" = "正在獲取歷史...";
+"ota_latest_version" = "最新";
+"ota_confirm_title" = "開始OTA更新?";
+"ota_confirm_message" = "將目標設備更新到版本%@?任何未保存的遊戲進度將丟失。";
+"ota_cancel_button" = "取消";
+"ota_start_update_button" = "開始更新";
+"ota_retry_verification" = "重新驗證";
+"ota_recovery_backup" = "恢復（還原備份）";
+"ota_done_button" = "完成";
+"ota_target_version" = "目標版本:";
+/* Manual Device Selection */
+"device_select_title" = "選擇裝置";
+"device_select_description" = "具有FlexTarget服務的可用裝置";
+"device_scanning" = "正在掃描裝置...";
+"device_not_found" = "未發現裝置";
+"device_not_found_description" = "確保您的裝置已打開電源且在附近";
+"device_start_scan" = "開始掃描";
+"device_scan_again" = "再次掃描";
+"device_cancel" = "取消";
+"manual_select_title" = "手動選擇";
+"manual_select_description" = "瀏覽並選擇可用設備";
+
+/* OTA States and Messages */
+"ota_state_idle" = "閒置";
+"ota_state_preparing" = "準備中";
+"ota_state_waiting_for_ready" = "等待中";
+"ota_state_downloading" = "下載中";
+"ota_state_reloading" = "重新載入中";
+"ota_state_verifying" = "驗證中";
+"ota_state_completed" = "已完成";
+"ota_state_failed" = "失敗";
+
+"ota_msg_preparing" = "等待設備確認進入OTA模式...";
+"ota_msg_ready_to_download" = "設備處於OTA模式。等待下載準備就緒信號...";
+"ota_msg_downloading" = "在目標設備上下載更新...";
+"ota_msg_reloading" = "下載完成。正在重新載入設備應用...";
+"ota_msg_verifying" = "正在驗證安裝...";
+"ota_msg_success" = "更新成功！";
+"ota_msg_prep_timeout" = "設備準備逾時（10分鐘）。請檢查您的設備並重試。";
+"ota_msg_ready_timeout" = "設備未進入OTA模式。請重試。";
+"ota_msg_verification_timeout" = "驗證逾時。更新可能失敗。";
+"ota_msg_no_upgrade_info" = "升級資訊無法使用。";
+"ota_msg_retrying_verification" = "正在重試驗證...";
+"ota_msg_restoring_backup" = "正在還原備份...";
+"ota_msg_no_metadata" = "找不到版本%@的升級元數據。";
+"ota_msg_fetch_metadata_failed" = "獲取升級元數據失敗。";
+"ota_msg_auth_failed" = "獲取OTA認證數據失敗。";
+"ota_msg_no_version_selected" = "未選擇OTA版本。";
+
+/* OTA Error Alerts */
+"ota_failed_to_start_title" = "OTA啟動失敗";
+"ota_game_disk_not_found" = "設備上找不到遊戲磁碟。請檢查設備並重試。";
+
+/* OTA - Over-The-Air Update */
+"ota_waiting_for_confirm" = "等待設備確認進入OTA模式...";
+"ota_device_in_mode" = "設備處於OTA模式。等待下載準備就緒信號...";
+"ota_preparation_timeout" = "設備準備逾時（10分鐘）。請檢查您的設備並重試。";
+"ota_success_confirmation" = "設備已成功進入OTA模式";
+"ota_waiting_for_ready" = "設備正在準備下載...";
+"ota_device_ready" = "設備已就緒。開始升級...";
+"ota_preparation_failed" = "OTA準備失敗";
+
+/* Athlete Deletion */
+"delete_athlete" = "刪除運動員";
+"delete_athlete_confirm" = "這將刪除該運動員及其所有競賽成績。此操作無法撤銷。";

@@ -1,0 +1,327 @@
+/* Localizable.strings - English */
+
+/* DrillMainPageView */
+"target_connected" = "Target Connected";
+"target_disconnected" = "Target Disconnected";
+"drills" = "Drills";
+"athletes" = "Athletes";
+"ipsc_questionaries" = "IPSC Questionaries";
+"idpa_questionaries" = "IDPA Questionaries";
+
+/* AthletesManagementView */
+"athletes_title" = "Athletes";
+"new_athlete" = "New Athlete";
+"athlete_name" = "Name";
+"athlete_club" = "Club";
+"select_avatar" = "Select avatar";
+"add_athlete" = "Add Athlete";
+"athletes_empty" = "No athletes yet";
+
+/* DrillFormView */
+"drill_setup" = "Drill Setup";
+"drill_mode" = "Drill Mode";
+
+/* DrillListView */
+"my_drills" = "My Drills";
+"search_drills" = "Search drills";
+"delete_drill_title" = "Delete Drill?";
+"delete" = "Delete";
+"cancel" = "Cancel";
+"back" = "Back";
+"delete_drill_message" = "Are you sure you want to delete %@?";
+"connection_required" = "Connection Required";
+"connection_required_message" = "Please connect to the target device before adding drills.";
+"connect_target_first" = "Please connect to your target device first.";
+"ok" = "OK";
+"copy" = "Copy";
+"untitled" = "Untitled";
+"copy_suffix" = " Copy";
+"targets" = "Targets";
+"targets_count" = "%d targets";
+"performed" = "Performed";
+
+/* HistoryTabView - Filters */
+"all_drill_setup" = "All Drill Setup";
+"delay_seconds" = "delay: %ds";
+
+/* BLE/ConnectSmartTargetView */
+"reconnect" = "RECONNECT";
+"disconnect" = "Disconnect";
+"okay" = "OKAY";
+"select_target" = "SELECT TARGET";
+"connected" = "CONNECTED";
+"connecting" = "CONNECTING";
+"target_not_found" = "TARGET NOT FOUND";
+"bluetooth_service_not_found" = "BLUETOOTH SERVICE NOT FOUND";
+"scan" = "Re-Scan";
+"my_target" = "Upload Picture";
+"scanning_for_target" = "Scanning for %@";
+"ready_to_scan" = "Ready to Scan";
+"trying_to_connect" = "Trying to Connect";
+
+/* LaserDryFire/OverlayView */
+"fps_display" = "FPS: %d";
+
+/* ShotTimelineView */
+"shots_count" = "%d shots";
+"shot_number" = "Shot %d";
+"shot_with_time" = "Shot %d: %.2fs";
+
+/* DrillResultView */
+"progress_time" = "%.2f/%.2fs";
+"drill_in_progress" = "Drill In Progress";
+"drill_in_progress_overlay" = "DRILL IN PROGRESS...";
+"end_drill" = "End Drill";
+"confirm" = "Confirm";
+"drill_ended" = "Drill Ended";
+"shot_added" = "Added new shot at position";
+"duplicate_shot_ignored" = "Ignored duplicate shot";
+"decode_shot_error" = "Failed to decode shot data";
+"drill_timer_expired" = "Drill timer expired";
+"shots_received" = "Shots received";
+"drill_status_completed" = "Completed";
+
+/* DrillSummaryView */
+"drill_result_summary_title" = "Drill Result Summary";
+"no_summary_data_title" = "No summary data recorded yet.";
+"no_summary_data_subtitle" = "Run a drill session to generate performance metrics.";
+"repeat_number" = "Repeat #%d";
+"shots_label" = "shots";
+"total_time_label" = "Total Time";
+"shots_metric_label" = "Shots";
+"fastest_label" = "Fastest";
+"first_shot_label" = "First Shot";
+"score_label" = "Score";
+"factor_label" = "Factor";\"submit_result\" = \"Submit Result\";
+/* SubViews */
+"history_record" = "History Record";
+"delay_seconds_label" = "Delay(s)";
+"num_repeats_label" = "Number of Repeats";
+"select_repeats" = "Select Repeats";
+"drill_duration_seconds_label" = "Duration/Rep(s)";
+"drill_pause_seconds_label" = "Pause Between Reps(s)";
+"delay_range" = "2...5";
+"description" = "Description";
+"enter_description_placeholder" = "Enter description...";
+"add_demo_video" = "Add Demo Video";
+"add_target" = "Add Target";
+"targets_count_label" = "%d";
+"gun" = "Gun";
+"save" = "Save";
+"device" = "Device";
+"type" = "Type";
+
+/* AddDrillView */
+"drill_setups_exist" = "Drill setups exist. TODO: Show list or main view.";
+"failed_to_load_drills" = "Failed to load drills";
+
+/* RecentTrainingView */
+"no_recent_drills" = "No recent drills";
+"complete_drills_message" = "Complete some drills to see them here";
+"hit_factor" = "Hit Factor";
+"date" = "Date";
+"fastest" = "Fastest";
+
+/* Information Views */
+"privacy_policy" = "Privacy Policy";
+"faq" = "FAQ";
+"about_us" = "About Us";
+"drill_history" = "Drill History";
+"drill_replay" = "Drill Replay";
+"select_device" = "Select Device";
+"select_target_type" = "Select Target Type";
+
+/* DrillFormView */
+"start_drill" = "Start Drill";
+"save_drill" = "Save Drill";
+"save_changes" = "Save Changes";
+
+/* ACK / Waiting messages */
+"ack_timeout_title" = "Waiting 10s";
+"ack_timeout_message" = "Timed Out";
+"waiting_for_devices" = "Waiting";
+"waiting_devices_count" = "%d Devices to be Ready";
+
+/* TargetConfigListView */
+"maximum_targets_title" = "Maximum Targets Reached";
+"maximum_targets_message" = "You have reached the maximum number of targets in the network (%d of %d).";
+
+/* BLE Error */
+"ble_error" = "BLE Error";
+
+/* Duration Configuration */
+"select_duration" = "Select Duration";
+"duration_continuous" = "Continuous";
+"duration_seconds_format" = "%.1fs";
+
+/* CQB Target Types */
+"cqb_swing" = "Peeking";
+"cqb_front" = "Aiming";
+"cqb_move" = "Passing";
+"disguised_enemy" = "Disguised Threat";
+
+/* CQB Drill Summary */
+"cqb_total_shots" = "Total Shots";
+"cqb_duration" = "Duration";
+"cqb_passed" = "PASSED";
+"cqb_failed" = "FAILED";
+"cqb_threat" = "THREAT";
+"cqb_non_threat" = "NON-THREAT";
+"cqb_shots_format" = "Shots: %d/%d";
+
+/* Firmware Upgrade */
+"firmware_upgrade" = "Firmware Upgrade";
+"firmware_upgrade_title" = "Firmware Upgrade";
+"firmware_upgrade_message" = "Ensure the new firmware USB drive is securely inserted into the USB port on the right side of the device.";
+
+/* DrillResultView - Hit Areas */
+"hit_area_azone" = "Alpha";
+"hit_area_czone" = "Charlie";
+"hit_area_dzone" = "Delta";
+"hit_area_miss" = "Miss";
+"hit_area_barrel_miss" = "Barricade";
+"hit_area_circlearea" = "Knocked Down";
+"hit_area_standarea" = "Knocked Down";
+"hit_area_popperzone" = "Knocked Down";
+"hit_area_blackzone" = "Black zone";
+"hit_area_blackzoneleft" = "Black zone left";
+"hit_area_blackzoneright" = "Black zone right";
+"hit_area_whitezone" = "White zone";
+"hit_area_blackzone" = "Black zone";
+"hit_area_blackzoneleft" = "Black zone left";
+
+/* SummaryEditSheet */
+"edit_hit_zone_counts_title" = "Edit Hit Zone Counts";
+"a_zone_label" = "A Zone";
+"c_zone_label" = "C Zone";
+"d_zone_label" = "D Zone";
+"no_shoot_label" = "No Shoot";
+"miss_label" = "Miss";
+"penalty_label" = "Penalty";
+"cancel_button" = "Cancel";
+"save_button" = "Save";
+
+/* Leaderboard */
+"leaderboard_title" = "Leaderboard";
+"submit_to_leaderboard_button" = "Submit to Leaderboard";
+"select_athlete_title" = "Select Athlete";
+
+/* Leaderboard submission errors */
+"error_title" = "Error";
+"duplicate_submission_title" = "Duplicate Submission";
+"duplicate_submission_message" = "This drill is already submitted to the leaderboard for this athlete.";
+"missing_drill_result_id_message" = "Missing drill result id";
+"no_drill_result_found_message" = "No drill result found";
+
+/* Tab Navigation */
+"history" = "History";
+"admin" = "Admin";
+"competition" = "Competition";
+
+/* Competition */
+"competition_login" = "Competition Login";
+"username" = "Username";
+"password" = "Password";
+"login" = "Login";
+"login_hint" = "Any username and password will work for testing.";
+"search_competition" = "Search by name or venue";
+"all" = "All";
+"this_month" = "This Month";
+"last_3_months" = "Last 3 Months";
+"competitions" = "Competitions";
+"view_competitions" = "View competitions";
+"shooters" = "Shooters";
+"manage_shooters" = "Manage shooters";
+"leaderboard" = "Leaderboard";
+"view_leaderboard" = "View leaderboard";
+"untitled_competition" = "Untitled Competition";
+"competition_info" = "Competition Information";
+"competition_name" = "Competition Name";
+"venue" = "Venue";
+"date" = "Date";
+"change" = "Change";
+"select_drill" = "Select Drill";
+"create_competition" = "Create Competition";
+"add_competition" = "Add Competition";
+"cancel" = "Cancel";
+"competition_details" = "Competition Details";
+"results" = "Results";
+"no_results_yet" = "No results yet";
+"start_competition_drill" = "Start Competition Drill";
+"unknown_athlete" = "Unknown Athlete";
+"competition_mode" = "COMPETITION MODE";
+"drill_editing_disabled_hint" = "Editing is disabled because this drill has results or is linked to a competition.";
+
+/* History Tab */
+"all_modes" = "All Modes";
+"all_time" = "All Time";
+"past_week" = "Past Week";
+"past_month" = "Past Month";
+"custom_date" = "Custom Date";
+"no_results" = "No Results";
+"no_results_hint" = "Perform drills to see history";
+"unknown_date" = "Unknown Date";
+
+/* Admin Tab */
+"admin_access" = "Admin Access";
+"admin_access_hint" = "Enter your authorization token to access admin features";
+"enter_token" = "Enter Token";
+"authorize" = "Authorize";
+"invalid_token" = "Invalid token. Please try again.";
+"save_token_error" = "Error saving token";
+"logout" = "Logout";
+"logout_confirm" = "Are you sure you want to logout?";
+"drill_submission" = "Drill Submission";
+"no_drills_to_submit" = "No Drills to Submit";
+"no_drills_hint" = "Complete and record drills to submit to leaderboard";
+"select_drill_result" = "Select Drill Result";
+"choose_drill" = "Choose a drill result";
+"select_athlete" = "Select Athlete";
+"choose_athlete" = "Choose an athlete";
+"no_athletes" = "No athletes yet. Add one in the Athletes section.";
+"submit_to_leaderboard" = "Submit to Leaderboard";
+"submission_success" = "Successfully submitted to leaderboard!";
+"submission_error" = "Failed to submit. Please try again.";
+"manage_profile" = "Manage user profile";
+"user_logout" = "User logout";
+
+/* User Management */
+"user_login" = "User Login";
+"mobile_number" = "Mobile Number";
+"password" = "Password";
+"login" = "Login";
+"login_title" = "Login";
+/* Competition Submission */
+"error_title" = "Error";
+"no_competition_error" = "No competition associated with this result";
+"invalid_competition_id_error" = "Invalid competition ID";
+"device_disconnected_title" = "Device Disconnected";
+"connect_device_before_submit" = "Please connect to the device before submitting";
+"device_auth_required_title" = "Device Auth Required";
+"device_token_unavailable" = "Device authentication token is not available. Please ensure device is properly connected";
+"not_authenticated_title" = "Not Authenticated";
+"login_before_submit" = "Please log in before submitting results";
+"success_title" = "Success";
+"submit_success_message" = "Competition result submitted successfully";
+"submit_failed_title" = "Submission Failed";
+"alert_title" = "Alert";
+"ok_button" = "OK";
+
+/* User Profile */
+"user_profile" = "User Profile";
+"profile" = "Profile";
+"edit_profile" = "Edit Profile";
+"change_password" = "Change Password";
+"update_profile" = "Update Profile";
+"current_password" = "Current Password";
+"new_password" = "New Password";
+"confirm_password" = "Confirm New Password";
+"profile_updated_success" = "Profile updated successfully";
+"username" = "Username";
+"session_expired_message" = "Your session has expired. Please login again.";
+
+/* Competition Results Sync */
+"sync_results" = "Sync Results";
+"sync_error_title" = "Sync Error";
+"submitted" = "Submitted";
+"local_unsubmitted" = "Local/Unsubmitted";

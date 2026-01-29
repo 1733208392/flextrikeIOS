@@ -1,0 +1,933 @@
+//
+//  BLEManager.swift
+//  opencvtestminimal
+//
+//  Created by Kai Yang on 2025/6/27.
+//
+
+import Foundation
+import CoreBluetooth
+import Combine
+import UIKit
+
+// Device data structures for netlink device_list
+struct NetworkDevice: Codable, Identifiable {
+    let id = UUID()
+    let name: String
+    let mode: String
+    
+    // Custom coding keys to match JSON structure
+    enum CodingKeys: String, CodingKey {
+        case name, mode
+    }
+    
+    init(name: String, mode: String) {
+        self.name = name
+        self.mode = mode
+    }
+}
+
+struct DeviceListResponse: Codable {
+    let type: String
+    let action: String
+    let data: [NetworkDevice]
+}
+
+public struct DiscoveredPeripheral: Identifiable, Hashable {
+    public let id: UUID
+    let name: String
+    let peripheral: CBPeripheral
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+    
+    public static func == (lhs: DiscoveredPeripheral, rhs: DiscoveredPeripheral) -> Bool {
+        lhs.id == rhs.id
+    }
+}
+
+enum BLEError: Error, LocalizedError {
+    case bluetoothOff
+    case unauthorized
+    case connectionFailed(String)
+    case disconnected(String)
+    case unknown(String)
+    
+    var errorDescription: String? {
+        switch self {
+        case .bluetoothOff: return "Bluetooth is turned off."
+        case .unauthorized: return "Bluetooth access is unauthorized."
+        case .connectionFailed(let msg): return "Connection failed: \(msg)"
+        case .disconnected(let msg): return "Disconnected: \(msg)"
+        case .unknown(let msg): return "Unknown error: \(msg)"
+        }
+    }
+}
+
+protocol BLEManagerProtocol {
+    var isConnected: Bool { get }
+    func write(data: Data, completion: @escaping (Bool) -> Void)
+    func writeJSON(_ jsonString: String)
+    func getAuthData(completion: @escaping (Result<String, Error>) -> Void)
+}
+
+// Backwards-compatibility: some views reference an older protocol name `ConnectSmartTargetBLEProtocol`.
+// Provide a typealias so both names refer to the same protocol and avoid compilation errors.
+public class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeripheralDelegate {
+    // Shared singleton instance for app-wide use
+    static let shared = BLEManager()
+
+    @Published var discoveredPeripherals: [DiscoveredPeripheral] = []
+    @Published var isConnected: Bool = false
+    @Published var isReady: Bool = false
+    @Published var isScanning: Bool = false
+    @Published var error: BLEError?
+    @Published var connectedPeripheral: DiscoveredPeripheral?
+    // Optional name to auto-connect when a matching peripheral is discovered
+    @Published var autoConnectTargetName: String? = nil
+
+    // Global device list data for sharing across views
+    @Published var networkDevices: [NetworkDevice] = []
+    @Published var lastDeviceListUpdate: Date?
+    
+    // Error message for displaying alerts
+    @Published var errorMessage: String?
+    @Published var showErrorAlert: Bool = false
+
+    private var centralManager: CBCentralManager!
+    private var connectingPeripheral: CBPeripheral?
+    private var disposables = Set<AnyCancellable>()
+    // Pending start flag and fallback timer for scanning
+    private var pendingStartScan: Bool = false
+    private var fallbackScanTimer: Timer?
+    private let targetedScanDuration: TimeInterval = 5.0
+
+    // 1. Store the target service UUID
+//    private let advServiceUUID = CBUUID(string: "002A7982-6A23-1A71-A5C2-6C4B54310C9C")
+    private let advServiceUUID = CBUUID(string: "0000FFC9-0000-1000-8000-00805F9B34FB")
+    private let targetServiceUUID = CBUUID(string: "0000FFC9-0000-1000-8000-00805F9B34FB")
+
+    
+    private var connectionAttemptFailed = false
+    private var connectionTimer: Timer?
+    
+    private func timeoutConnection() {
+        print("Connection timeout after 30 seconds")
+        stopScan()
+        disconnect()
+        connectionAttemptFailed = true
+        connectionTimer?.invalidate()
+        connectionTimer = nil
+    }
+    
+//    private let notifyCharacteristicUUID = CBUUID(string: "0C8E3F1E-5654-4C41-B93B-CEA35001ED01")
+    private let notifyCharacteristicUUID = CBUUID(string: "0000FFE1-0000-1000-8000-00805F9B34FB")
+
+//    private let writeCharacteristicUUID = CBUUID(string: "0C8E3F1E-5654-4C41-B93B-CEA35001ED02")
+    private let writeCharacteristicUUID = CBUUID(string: "0000FFE2-0000-1000-8000-00805F9B34FB")
+
+    private var writeCharacteristic: CBCharacteristic?
+    private var notifyCharacteristic: CBCharacteristic?
+    
+    // Add this property to BLEManager to store the completion handler
+    private var writeCompletion: ((Bool) -> Void)?
+    private var authDataCompletion: ((Result<String, Error>) -> Void)?
+    
+    // Buffer to accumulate split messages until "\r\n" is received
+    private var messageBuffer = Data()
+    
+    // Serial queue for BLE writes to prevent interleaving and blocking main thread
+    private let writeQueue = DispatchQueue(label: "com.flextarget.ble.write")
+    
+    // Make initializer private to enforce singleton usage
+    private override init() {
+        super.init()
+        #if targetEnvironment(simulator)
+        // Simulator: Mock connected state and device list
+        isConnected = true
+        isReady = true
+        networkDevices = [
+            NetworkDevice(name: "Simulator Target 1", mode: "active"),
+            NetworkDevice(name: "Simulator Target 2", mode: "standby"),
+            NetworkDevice(name: "Simulator Target 3", mode: "active")
+        ]
+        lastDeviceListUpdate = Date()
+        #else
+        centralManager = CBCentralManager(delegate: self, queue: .main)
+        #endif
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleAppWillTerminate),
+            name: UIApplication.willTerminateNotification,
+            object: nil
+        )
+    }
+    
+    @objc private func handleAppWillTerminate() {
+        disconnect()
+    }
+    
+    // MARK: - Scanning
+    func startScan() {
+        #if targetEnvironment(simulator)
+        // Simulator: No-op for scanning
+        return
+        #else
+        discoveredPeripherals.removeAll()
+        // Reset readiness when starting a new scan
+        DispatchQueue.main.async {
+            self.isReady = false
+        }
+        DispatchQueue.main.async {
+            self.error = nil
+        }
+        guard centralManager.state == .poweredOn else {
+            // Bluetooth not yet powered — remember to start when it becomes ready
+            pendingStartScan = true
+            DispatchQueue.main.async {
+                self.error = .bluetoothOff
+            }
+            return
+        }
+        DispatchQueue.main.async {
+            self.isScanning = true
+        }
+        // Start with a targeted scan for the service UUID
+        centralManager.scanForPeripherals(withServices: [advServiceUUID], options: [CBCentralManagerScanOptionAllowDuplicatesKey: false])
+
+        // Start 60s scan timer to allow time to discover multiple peripherals
+        connectionTimer?.invalidate()
+        connectionTimer = Timer.scheduledTimer(withTimeInterval: 60.0, repeats: false) { [weak self] _ in
+            self?.completeScan()
+        }
+
+        // Schedule fallback to broad scan if nothing found within targetedScanDuration
+        fallbackScanTimer?.invalidate()
+        fallbackScanTimer = Timer.scheduledTimer(withTimeInterval: targetedScanDuration, repeats: false) { [weak self] _ in
+            guard let self = self else { return }
+            if self.isScanning && self.discoveredPeripherals.isEmpty {
+                print("No targeted devices found within \(self.targetedScanDuration)s — falling back to broad scan")
+                self.centralManager.stopScan()
+                self.centralManager.scanForPeripherals(withServices: nil, options: [CBCentralManagerScanOptionAllowDuplicatesKey: false])
+            }
+        }
+        #endif
+    }
+    
+    func stopScan() {
+        isScanning = false
+        centralManager.stopScan()
+        fallbackScanTimer?.invalidate()
+        fallbackScanTimer = nil
+        pendingStartScan = false
+        connectionTimer?.invalidate()
+        connectionTimer = nil
+    }
+    
+    func completeScan() {
+        stopScan()
+    }
+    
+    // MARK: - Connect
+    
+    func connect(to peripheral: CBPeripheral) {
+        #if targetEnvironment(simulator)
+        // Simulator: No-op for connection
+        return
+        #else
+        error = nil
+        stopScan()
+        connectingPeripheral = peripheral
+        peripheral.delegate = self
+        // Actively disconnect immediately after attempting to connect
+//        centralManager.cancelPeripheralConnection(peripheral)
+        centralManager.connect(peripheral, options: nil)
+        #endif
+    }
+    
+    func connectToSelectedPeripheral(_ discoveredPeripheral: DiscoveredPeripheral) {
+        #if targetEnvironment(simulator)
+        // Simulator: No-op for connection
+        return
+        #else
+        error = nil
+        stopScan()
+        connectingPeripheral = discoveredPeripheral.peripheral
+        discoveredPeripheral.peripheral.delegate = self
+        centralManager.connect(discoveredPeripheral.peripheral, options: nil)
+        
+        // Start 10s connection timer
+        connectionTimer?.invalidate()
+        connectionTimer = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: false) { [weak self] _ in
+            self?.timeoutConnection()
+        }
+        #endif
+    }
+
+    /// Find a discovered peripheral by name.
+    /// - Parameters:
+    ///   - name: The peripheral name to search for.
+    ///   - caseInsensitive: If true, comparison is case-insensitive. Default is true.
+    ///   - contains: If true, use substring matching (contains). If false, require exact match. Default is false.
+    /// - Returns: The first matching `DiscoveredPeripheral` or nil if none found.
+    public func findPeripheral(named name: String, caseInsensitive: Bool = true, contains: Bool = false) -> DiscoveredPeripheral? {
+        // Normalize strings to avoid mismatches caused by different Unicode punctuation
+        func normalize(_ s: String) -> String {
+            // Trim whitespace
+            var out = s.trimmingCharacters(in: .whitespacesAndNewlines)
+            // Replace common curly quotes/apostrophes with ASCII equivalents
+            let replacements: [Character: Character] = [
+                Character("\u{2019}"): Character("'"),
+                Character("\u{2018}"): Character("'"),
+                Character("\u{201C}"): Character("\"") ,
+                Character("\u{201D}"): Character("\"")
+            ]
+            out = String(out.map { replacements[$0] ?? $0 })
+            return out
+        }
+
+        let target = normalize(name)
+
+        if caseInsensitive {
+            let targetLower = target.lowercased()
+            if contains {
+                return discoveredPeripherals.first { normalize($0.name).lowercased().contains(targetLower) }
+            } else {
+                return discoveredPeripherals.first { normalize($0.name).lowercased() == targetLower }
+            }
+        } else {
+            if contains {
+                return discoveredPeripherals.first { normalize($0.name).contains(target) }
+            } else {
+                return discoveredPeripherals.first { normalize($0.name) == target }
+            }
+        }
+    }
+
+    /// Set or clear the auto-connect target name. When set, BLEManager will attempt
+    /// to automatically connect to the first discovered peripheral that matches
+    /// this name according to the `findPeripheral` rules.
+    public func setAutoConnectTarget(_ name: String?) {
+        DispatchQueue.main.async {
+            self.autoConnectTargetName = name
+            // If name cleared, ensure no pending auto-connect behavior remains
+            if name == nil {
+                // no-op for now
+            }
+        }
+    }
+    
+    func disconnect() {
+        #if targetEnvironment(simulator)
+        // Simulator: Set disconnected state
+        isConnected = false
+        isReady = false
+        connectedPeripheral = nil
+        #else
+        connectionAttemptFailed = true
+        if let peripheral = connectingPeripheral {
+            //print device is disconnected
+            print("Device is disconnected")
+            centralManager.cancelPeripheralConnection(peripheral)
+        }
+        #endif
+    }
+    
+    // MARK: - Manual Device Selection
+    
+    /// Enable manual device selection mode by clearing auto-connect target.
+    /// Call this before startScan() to allow user manual selection instead of auto-connect.
+    public func enableManualMode() {
+        DispatchQueue.main.async {
+            self.autoConnectTargetName = nil
+        }
+    }
+    
+    /// Explicitly select and connect to a discovered peripheral.
+    /// Convenience method wrapping connectToSelectedPeripheral.
+    /// - Parameter discoveredPeripheral: The peripheral to connect to
+    public func selectPeripheral(_ discoveredPeripheral: DiscoveredPeripheral) {
+        connectToSelectedPeripheral(discoveredPeripheral)
+    }
+    
+    // MARK: - CBCentralManagerDelegate
+    
+    #if !targetEnvironment(simulator)
+    public func centralManagerDidUpdateState(_ central: CBCentralManager) {
+        switch central.state {
+        case .poweredOn:
+            // Auto-start pending scan if requested earlier
+            if pendingStartScan {
+                pendingStartScan = false
+                startScan()
+            }
+            break
+        case .unauthorized:
+            error = .unauthorized
+        case .poweredOff:
+            error = .bluetoothOff
+        default:
+            error = .unknown("Bluetooth state: \(central.state.rawValue)")
+        }
+    }
+    
+    public func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
+        let name = peripheral.name ?? (advertisementData[CBAdvertisementDataLocalNameKey] as? String) ?? "Unknown"
+        print("Discovered peripheral: \(name), RSSI: \(RSSI)")
+        var matchesTargetService = false
+        if let advServiceUUIDs = advertisementData[CBAdvertisementDataServiceUUIDsKey] as? [CBUUID] {
+            matchesTargetService = advServiceUUIDs.contains(where: { $0 == advServiceUUID })
+        }
+        
+        // Previously we matched by a hardcoded name substring ("GR-WOLF").
+        // Now rely only on advertised service UUID to identify candidate devices.
+        if matchesTargetService {
+            print("Adding peripheral: \(name)")
+            // Cancel fallback broad-scan timer because we found a candidate
+            fallbackScanTimer?.invalidate()
+            fallbackScanTimer = nil
+
+            if !discoveredPeripherals.contains(where: { $0.id == peripheral.identifier }) {
+                let discovered = DiscoveredPeripheral(id: peripheral.identifier, name: name, peripheral: peripheral)
+                discoveredPeripherals.append(discovered)
+            }
+            // If an auto-connect target name is set, and this discovered peripheral
+            // matches, initiate an automatic connection and clear the target name.
+            if let target = autoConnectTargetName {
+                if let match = findPeripheral(named: target) {
+                    // Clear the auto-connect target to avoid repeated attempts
+                    autoConnectTargetName = nil
+                    print("Auto-connecting to discovered target: \(match.name)")
+                    connectToSelectedPeripheral(match)
+                }
+            }
+        }
+    }
+    
+    public func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
+        error = nil
+        if let found = discoveredPeripherals.first(where: { $0.id == peripheral.identifier }) {
+            connectedPeripheral = found
+        }
+        peripheral.delegate = self
+        // Discover only the target service
+        peripheral.discoverServices([targetServiceUUID])
+    }
+    
+    public func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
+        isConnected = false
+        connectedPeripheral = nil
+        self.error = .connectionFailed(error?.localizedDescription ?? "Unknown")
+    }
+    
+    public func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
+        isConnected = false
+        isReady = false
+        connectedPeripheral = nil
+        if let err = error {
+            self.error = .disconnected(err.localizedDescription)
+        }
+        // Do not auto-retry scan, let the view handle reconnection logic
+    }
+    #else
+    // Simulator stubs for required protocol methods
+    public func centralManagerDidUpdateState(_ central: CBCentralManager) {}
+    public func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {}
+    public func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {}
+    public func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {}
+    public func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {}
+    #endif
+    
+    #if !targetEnvironment(simulator)
+    public func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
+        if let error = error {
+            print("Service discovery failed: \(error.localizedDescription)")
+            return
+        }
+        guard let services = peripheral.services else { return }
+        if let targetService = services.first(where: { $0.uuid == targetServiceUUID }) {
+            print("Found target service: \(targetService.uuid)")
+            peripheral.discoverCharacteristics(nil, for: targetService)
+        } else {
+            print("Target service not found.")
+            connectionAttemptFailed = true
+            centralManager.cancelPeripheralConnection(peripheral)
+            isConnected = false
+        }
+    }
+    
+    public func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
+        if let error = error {
+            print("Characteristic discovery failed: \(error.localizedDescription)")
+            return
+        }
+        guard let characteristics = service.characteristics else { return }
+        for characteristic in characteristics {
+            if characteristic.uuid == writeCharacteristicUUID {
+                writeCharacteristic = characteristic
+                print("Found write characteristic: \(characteristic.uuid), properties: \(characteristic.properties)")
+            } else if characteristic.uuid == notifyCharacteristicUUID {
+                notifyCharacteristic = characteristic
+                print("Found notify characteristic: \(characteristic.uuid), properties: \(characteristic.properties)")
+                if characteristic.properties.contains(.notify) {
+                    peripheral.setNotifyValue(true, for: characteristic)
+                    print("Attempting to enable notifications for \(characteristic.uuid)")
+                } else {
+                    print("Notify characteristic does not support notifications: \(characteristic.properties)")
+                }
+                isConnected = true
+            }
+        }
+        
+        // Update readiness: true only when both write and notify characteristics are found
+        let ready = (writeCharacteristic != nil) && (notifyCharacteristic != nil)
+        DispatchQueue.main.async {
+            self.isReady = ready
+            if ready {
+                self.connectionTimer?.invalidate()
+                self.connectionTimer = nil
+            }
+        }
+    }
+    
+    public func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
+        _ = characteristic.value
+        
+        if let error = error {
+            print("Failed to receive notification: \(error.localizedDescription)")
+            return
+        }
+        
+        guard error == nil, let data = characteristic.value else {
+            guard characteristic.value != nil else {
+                print("No data received from notify characteristic")
+                return
+            }
+            return
+        }
+        
+        // Accumulate data and process complete messages separated by \r\r or \r\n
+        messageBuffer.append(data)
+        let separator1 = "\r\r".data(using: .utf8)!
+        let separator2 = "\r\n".data(using: .utf8)!
+        let range1 = messageBuffer.range(of: separator1, options: .backwards)
+        let range2 = messageBuffer.range(of: separator2, options: .backwards)
+        guard let lastSeparatorRange = [range1, range2].compactMap({ $0 }).max(by: { $0.lowerBound < $1.lowerBound }) else {
+            return
+        }
+        let completeData = messageBuffer.subdata(in: 0..<lastSeparatorRange.lowerBound)
+        messageBuffer = messageBuffer.subdata(in: lastSeparatorRange.upperBound..<messageBuffer.count)
+        
+        if let string = String(data: completeData, encoding: .utf8) {
+            let normalized = string.replacingOccurrences(of: "\r\r", with: "\r\n")
+            let parts = normalized.split(separator: "\r\n", omittingEmptySubsequences: true)
+            for part in parts {
+                guard let partData = part.data(using: .utf8) else { continue }
+                
+                var notificationHandled = false
+                
+                // Try to parse as JSON
+                if let json = try? JSONSerialization.jsonObject(with: partData, options: []) as? [String: Any] {
+                    
+                    // Handle the state notification
+                    if let type = json["type"] as? String, type == "state",
+                       let stateCode = json["state_code"] as? Int {
+                        print("Received state notification with code: \(stateCode)")
+                        NotificationCenter.default.post(
+                            name: .bleStateNotificationReceived,
+                            object: nil,
+                            userInfo: ["state_code": stateCode]
+                        )
+                        notificationHandled = true
+                    }
+                    
+                    // Handle auth_data response
+                    if let type = json["type"] as? String, type == "auth_data",
+                       let content = json["content"] as? String {
+                        print("Received auth_data: \(content)")
+                        if let completion = authDataCompletion {
+                            authDataCompletion = nil
+                            completion(.success(content))
+                        }
+                        NotificationCenter.default.post(name: .bleAuthDataReceived, object: nil, userInfo: ["content": content])
+                        notificationHandled = true
+                    }
+                    
+                    // Handle prepare_game_disk_ota response - success confirmation
+                    if let type = json["type"] as? String, type == "notice",
+                       let action = json["action"] as? String, action == "prepare_game_disk_ota",
+                       let state = json["state"] as? String, state == "success" {
+                        let failureReasonValue = json["failure_reason"]
+                        let isNullOrNil = failureReasonValue is NSNull || failureReasonValue == nil
+                        if isNullOrNil {
+                            print("Received prepare_game_disk_ota success confirmation: Device entering OTA mode")
+                            NotificationCenter.default.post(name: .bleGameDiskOTAReady, object: nil)
+                            notificationHandled = true
+                        }
+                    }
+                    
+                    // Handle prepare_game_disk_ota response - failure
+                    if !notificationHandled,
+                       let type = json["type"] as? String, type == "notice",
+                       let action = json["action"] as? String, action == "prepare_game_disk_ota",
+                       let state = json["state"] as? String, state == "failure" {
+                        let failureReason = json["failure_reason"] as? String ?? "Unknown error"
+                        let message = json["message"] as? String ?? "Device failed to enter OTA mode"
+                        print("Received prepare_game_disk_ota failure: \(failureReason) - \(message)")
+                        
+                        // Check if it's a game disk not found error
+                        if failureReason.lowercased().contains("game disk not found") || 
+                           message.lowercased().contains("game disk not found") {
+                            NotificationCenter.default.post(name: .bleOTAPreparationFailed, object: nil, userInfo: ["errorReason": "game_disk_not_found"])
+                        } else {
+                            NotificationCenter.default.post(name: .bleErrorOccurred, object: nil, userInfo: ["error": BLEError.unknown("OTA preparation failed: \(failureReason)")])
+                        }
+                        notificationHandled = true
+                    }
+                    
+                    // Handle wrapped "forward" notifications for OTA and UI data
+                    if let type = json["type"] as? String, type == "forward",
+                       let content = json["content"] as? [String: Any] {
+                        
+                        // Check for OTA "ready_to_download" notification (underscore format)
+                        if let notification = content["notification"] as? String, notification == "ready_to_download" {
+                            print("Received OTA ready_to_download notification")
+                            NotificationCenter.default.post(name: .bleReadyToDownload, object: nil)
+                            notificationHandled = true
+                        }
+                        
+                        // Check for OTA "download_complete" notification (underscore format)
+                        if !notificationHandled,
+                           let notification = content["notification"] as? String, notification == "download_complete",
+                           let version = content["version"] as? String {
+                            print("Received OTA download complete (forwarded): \(version)")
+                            self.reloadUI()
+                            NotificationCenter.default.post(name: .bleDownloadComplete, object: nil, userInfo: ["version": version])
+                            notificationHandled = true
+                        }
+                        
+                        // Check for OTA version info directly in content (without type field)
+                        if !notificationHandled,
+                           let version = content["version"] as? String {
+                            print("Received OTA version info (forwarded): \(version)")
+                            NotificationCenter.default.post(name: .bleVersionInfoReceived, object: nil, userInfo: ["version": version])
+                            notificationHandled = true
+                        }
+                    }
+                    
+                    // Handle OTA "download complete" notification (Top-level fallback)
+                    if !notificationHandled,
+                       let notification = json["notification"] as? String, notification == "download_complete",
+                       let version = json["version"] as? String {
+                        print("Received OTA download complete: \(version)")
+                        NotificationCenter.default.post(name: .bleDownloadComplete, object: nil, userInfo: ["version": version])
+                        notificationHandled = true
+                    }
+                    
+                    // Handle OTA version query response (Top-level fallback)
+                    if !notificationHandled,
+                       let type = json["type"] as? String, type == "version",
+                       let version = json["version"] as? String {
+                        print("Received OTA version info: \(version)")
+                        NotificationCenter.default.post(name: .bleVersionInfoReceived, object: nil, userInfo: ["version": version])
+                        notificationHandled = true
+                    }
+                    
+                    // Handle incoming netlink device_list response and save globally
+                    if let type = json["type"] as? String, type == "netlink",
+                       let action = json["action"] as? String, action == "device_list",
+                       let dataArray = json["data"] {
+                        do {
+                            let normalizedJson = try JSONSerialization.data(withJSONObject: dataArray, options: [])
+                            let decoder = JSONDecoder()
+                            let devices = try decoder.decode([NetworkDevice].self, from: normalizedJson)
+                            print("Received netlink device_list: \(devices)")
+                            DispatchQueue.main.async {
+                                self.networkDevices = devices
+                                self.lastDeviceListUpdate = Date()
+                            }
+                            NotificationCenter.default.post(name: .bleDeviceListUpdated, object: nil, userInfo: ["device_list": devices])
+                            notificationHandled = true
+                        } catch {
+                            print("Failed to decode netlink device_list: \(error.localizedDescription)")
+                        }
+                    }
+                    
+                    // Handle incoming shot data (supports both old format "command" and new format "cmd")
+                    if let type = json["type"] as? String, type == "netlink",
+                       let action = json["action"] as? String, action == "forward",
+                       let content = json["content"] as? [String: Any] {
+                        
+                        // Check for old format "command" or new format "cmd"
+                        let commandValue = content["command"] as? String ?? content["cmd"] as? String
+                        if commandValue == "shot" {
+                            print("[BLEManager] Received shot data (both formats supported): \(json)")
+                            NotificationCenter.default.post(name: .bleShotReceived, object: nil, userInfo: ["shot_data": json])
+                            notificationHandled = true
+                        }
+                    }
+                    
+                    // Handle notice for non-master device connection failure
+                    if let type = json["type"] as? String, type == "notice",
+                       let state = json["state"] as? String, state == "failure",
+                       let failureReason = json["failure_reason"] as? String, failureReason == "execution_error",
+                       let message = json["message"] as? String, message.contains("working mode is not master") {
+                        print("Received non-master device failure notice: \(json)")
+                        DispatchQueue.main.async {
+                            self.error = .unknown("Device is not in master mode: \(message)")
+                        }
+                        NotificationCenter.default.post(name: .bleErrorOccurred, object: nil, userInfo: ["error": BLEError.unknown("Device is not in master mode: \(message)")])
+                        notificationHandled = true
+                    }
+                    
+                    // Handle notice for netlink not enabled failure
+                    if let type = json["type"] as? String, type == "notice",
+                       let action = json["action"] as? String, action == "netlink_query_device_list",
+                       let state = json["state"] as? String, state == "failure",
+                       let message = json["message"] as? String {
+                        print("Received netlink not enabled failure notice: \(json)")
+                        DispatchQueue.main.async {
+                            self.error = .unknown(message)
+                            self.errorMessage = message
+                            self.showErrorAlert = true
+                        }
+                        NotificationCenter.default.post(name: .bleErrorOccurred, object: nil, userInfo: ["error": BLEError.unknown(message)])
+                        notificationHandled = true
+                    }
+                    
+                    // Post general netlink forward messages (e.g. device ACKs with content "ready")
+                    if let type = json["type"] as? String, type == "netlink",
+                       let action = json["action"] as? String, action == "forward" {
+                        // Avoid duplicating the shot notification which is already posted above
+                        var isShot = false
+                        if let content = json["content"] as? [String: Any], let command = content["command"] as? String, command == "shot" {
+                            isShot = true
+                        }
+                        if let contentStr = json["content"] as? String, contentStr == "shot" {
+                            isShot = true
+                        }
+                        
+                        // Check if this is an image chunk
+                        var isImageChunk = false
+                        if let content = json["content"] as? [String: Any], let command = content["command"] as? String, command == "image_chunk" {
+                            isImageChunk = true
+                            print("Received image chunk: \(json)")
+                            NotificationCenter.default.post(name: .bleImageChunkReceived, object: nil, userInfo: ["json": content])
+                            notificationHandled = true
+                        }
+                        
+                        if !isShot && !isImageChunk {
+                            print("Received general netlink forward: \(json)")
+                            NotificationCenter.default.post(name: .bleNetlinkForwardReceived, object: nil, userInfo: ["json": json])
+                            notificationHandled = true
+                        }
+                    }
+                    
+                    if !notificationHandled {
+                        print("Received unrecognized JSON notification: \(json)")
+                        
+                        // Check if this is a failure message that should be alerted
+                        if let state = json["state"] as? String, state == "failure",
+                           let message = json["message"] as? String {
+                            DispatchQueue.main.async {
+                                self.errorMessage = message
+                                self.showErrorAlert = true
+                            }
+                        }
+                        
+                        // Optionally post a general notification for unrecognized JSON
+                        NotificationCenter.default.post(name: .bleNetlinkForwardReceived, object: nil, userInfo: ["json": json, "unrecognized": true])
+                    }
+                } else {
+                    // Handle non-JSON data
+                    if let stringData = String(data: partData, encoding: .utf8) {
+                        print("Received non-JSON notification: \(stringData)")
+                    } else {
+                        print("Received binary notification: \(partData as NSData)")
+                    }
+                    // Optionally post a notification for non-JSON data
+                    if !notificationHandled {
+                        NotificationCenter.default.post(name: .bleNetlinkForwardReceived, object: nil, userInfo: ["raw_data": partData])
+                        notificationHandled = true
+                    }
+                }
+            }
+        }
+    }
+    
+    // In BLEManager, implement the delegate to handle write response
+    public func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
+        if let completion = writeCompletion {
+            writeCompletion = nil
+            if let error = error {
+                print("BLE write error: \(error.localizedDescription)")
+                completion(false)
+            } else {
+                print("BLE write to characteristic \(characteristic.uuid) succeeded")
+                completion(true)
+            }
+        }
+    }
+    
+    public func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {
+        if let error = error {
+            print("Failed to enable notifications for \(characteristic.uuid): \(error.localizedDescription)")
+            // Optionally, set isConnected to false or handle reconnection
+        } else {
+            print("Notifications enabled for \(characteristic.uuid)")
+        }
+    }
+    #else
+    // Simulator stubs for required protocol methods
+    public func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {}
+    public func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {}
+    public func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {}
+    public func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {}
+    public func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {}
+    #endif
+}
+
+// BLEManager conforms to BLEManagerProtocol
+extension BLEManager: BLEManagerProtocol {
+    func write(data: Data, completion: @escaping (Bool) -> Void) {
+        #if targetEnvironment(simulator)
+        // Simulator: Mock successful write
+        print("Simulator: Mock writing data")
+        completion(true)
+        #else
+        guard let peripheral = connectingPeripheral,
+              let writeCharacteristic = writeCharacteristic,
+              isConnected else {
+            completion(false)
+            return
+        }
+        // Store the completion to call after write response
+        writeCompletion = completion
+//        print("Writing data to BLE: \(data as NSData)")
+        peripheral.writeValue(data, for: writeCharacteristic, type: .withResponse)
+        #endif
+    }
+    
+    func writeJSON(_ jsonString: String) {
+        #if targetEnvironment(simulator)
+        // Simulator: No-op for writing
+        print("Simulator: Mock writing JSON: \(jsonString)")
+        #else
+        guard let peripheral = connectingPeripheral,
+              let writeCharacteristic = writeCharacteristic else {
+            print("Peripheral or write characteristic not available")
+            return
+        }
+        let commandStr = jsonString + "\r\n"
+        guard let data = commandStr.data(using: .utf8) else {
+            print("Failed to encode JSON string")
+            return
+        }
+
+        // peripheral.writeValue(data, for: writeCharacteristic, type: .withResponse)
+        
+        //Add debug to print the JSON string
+        print("Writing JSON data to BLE: \(commandStr)")
+        print("BLE data length: \(data.count)")
+
+        // User requirement: Force maximum packet size to 100 bytes
+        let packetSize = 100
+        print("Using packet size: \(packetSize)")
+
+        writeQueue.async {
+            var startIndex = 0
+            while startIndex < data.count {
+                let endIndex = min(startIndex + packetSize, data.count)
+                let chunk = data[startIndex..<endIndex]
+                print("Writing chunk of size \(chunk.count) at index \(startIndex)")
+                
+                peripheral.writeValue(chunk, for: writeCharacteristic, type: .withResponse)
+                startIndex = endIndex
+                
+                if startIndex < data.count {
+                    // Small delay to ensure device can process chunks
+                    Thread.sleep(forTimeInterval: 0.1)
+                }
+            }
+        }
+        #endif
+    }
+    
+    func getAuthData(completion: @escaping (Result<String, Error>) -> Void) {
+        #if targetEnvironment(simulator)
+        // Simulator: Mock auth data
+        print("Simulator: Mock getting auth data")
+        let mockContent = "e1pvpo09DrIQjd5VNJ5vRGuJ0MQT7siRKIn75iVZoQ1fsW6+VBzWP+6xYp92DiH5ju5LHLd8gQQommj8OrADYFZL2LvFprK2YA1mUF90aZA17bmriiLsz+MbtoxcJAP7M9U+YdcpYX4WIipifrIpk9Om23+TJO266W8kTAK+LZb6MdiZdKcQJ166CH/lU7t3oItronL2637R8SGglgkVSIi8DIy4hyCh0JQ4OZb5TLUvQoTfwa0VwoQjQXCNZK1ZkMzr56rIyh5qg89lH0Dsr1KZuPUVgfj3TkG3KbIfBoRMY89SzuLBCSdgoNcSaUANeswLwxTfNk7m++7xh/vWFgAGNcFLxjqrMdwV7BLl0hd6Qo2hIp+XCHcVYC9XCpAbwPEhoCQ1YNwV98cUVBZsWo1EgU1czr41f/wQfVvv0jeygVbwJI0S48LPyIMsaxjZIDKMkl8y3+FxOgLz3liRlhDdWKHaxs1ttlupAbf7+He17JPs+WXbXyth0alq1J3BMv1Cc91P2xG2O2migZdHHbhUbSD0ZM1mdkAAT6XUI5IpdOCry22AQm0c03D/xgyF50EY/nkxf3ARpxsL+Xh4yK7KsThEaB6eI3Z+t+mHJcBTjkDh5fYuZUn1utHKIjtxe5uhO9pp78SbC+L6yP0JwqZoWIhhhVxS4XaeNU8Qvm4"
+        completion(.success(mockContent))
+        #else
+        guard isConnected else {
+            completion(.failure(BLEError.disconnected("Not connected to device")))
+            return
+        }
+        authDataCompletion = completion
+        let timestamp = Int(Date().timeIntervalSince1970)
+        let jsonString = "{\"action\": \"get_auth_data\", \"timestamp\": \(timestamp)}"
+        writeJSON(jsonString)
+        #endif
+    }
+    
+    func prepareGameDiskOTA() {
+        writeJSON("{\"action\": \"prepare_game_disk_ota\"}")
+    }
+    
+    func startGameUpgrade(address: String, checksum: String, otaVersion: String? = nil) {
+        var contentDict: [String: Any] = [
+            "action": "start_game_upgrade",
+            "address": address,
+            "checksum": checksum
+        ]
+        
+        if let version = otaVersion {
+            contentDict["version"] = version
+        }
+        
+        let json: [String: Any] = [
+            "action": "forward",
+            "content": contentDict
+        ]
+        
+        if let jsonData = try? JSONSerialization.data(withJSONObject: json, options: [.withoutEscapingSlashes]),
+           let jsonString = String(data: jsonData, encoding: .utf8) {
+            writeJSON(jsonString)
+        }
+    }
+    
+    func reloadUI() {
+        writeJSON("{\"action\": \"reload_ui\"}")
+    }
+    
+    func finishGameDiskOTA() {
+        writeJSON("{\"action\": \"finish_game_disk_ota\"}")
+    }
+    
+    func recoveryGameDiskOTA() {
+        writeJSON("{\"action\": \"recovery_game_disk_ota\"}")
+    }
+    
+    func queryVersion() {
+        writeJSON("{\"action\": \"forward\", \"content\": {\"command\": \"query_version\"}}")
+    }
+}
+
+// Add a notification name for BLE state updates
+extension Notification.Name {
+    static let bleStateNotificationReceived = Notification.Name("bleStateNotificationReceived")
+    static let bleDeviceListUpdated = Notification.Name("bleDeviceListUpdated")
+    static let bleShotReceived = Notification.Name("bleShotReceived")
+    static let bleNetlinkForwardReceived = Notification.Name("bleNetlinkForwardReceived")
+    static let bleImageChunkReceived = Notification.Name("bleImageChunkReceived")
+    static let bleErrorOccurred = Notification.Name("bleErrorOccurred")
+    static let drillExecutionCompleted = Notification.Name("drillExecutionCompleted")
+    static let bleAuthDataReceived = Notification.Name("bleAuthDataReceived")
+    static let bleReadyToDownload = Notification.Name("bleReadyToDownload")
+    static let bleDownloadComplete = Notification.Name("bleDownloadComplete")
+    static let bleVersionInfoReceived = Notification.Name("bleVersionInfoReceived")
+    static let bleGameDiskOTAReady = Notification.Name("bleGameDiskOTAReady")
+    static let bleOTAPreparationFailed = Notification.Name("bleOTAPreparationFailed")
+}
