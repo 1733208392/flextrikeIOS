@@ -1,0 +1,31 @@
+[gd_scene load_steps=4 format=3 uid="uid://benwj6w5un0vk"]
+
+[ext_resource type="Texture2D" uid="uid://xl4mfebm2k2w" path="res://asset/games/coin.png" id="1_a1x2p"]
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_nl12v"]
+particles_animation = true
+particles_anim_h_frames = 1
+particles_anim_v_frames = 1
+particles_anim_loop = false
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_coin"]
+particle_flag_disable_z = true
+direction = Vector3(0, -1, 0)
+spread = 180.0
+initial_velocity_min = 200.0
+initial_velocity_max = 300.0
+gravity = Vector3(0, 300, 0)
+anim_speed_min = 0.5
+anim_speed_max = 1.0
+
+[node name="CoinParticles" type="GPUParticles2D"]
+material = SubResource("CanvasItemMaterial_nl12v")
+emitting = false
+amount = 30
+texture = ExtResource("1_a1x2p")
+lifetime = 3.0
+one_shot = true
+explosiveness = 0.5
+randomness = 0.3
+visibility_rect = Rect2(-500, -500, 1000, 1000)
+process_material = SubResource("ParticleProcessMaterial_coin")

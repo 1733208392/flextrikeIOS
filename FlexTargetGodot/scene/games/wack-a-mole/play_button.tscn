@@ -1,0 +1,23 @@
+[gd_scene load_steps=4 format=3 uid="uid://81sv6qhgfij1"]
+
+[ext_resource type="Texture2D" uid="uid://vbwqe8dtlff1" path="res://asset/games/wack-a-mole/GUI/play.png" id="1_p2b07"]
+[ext_resource type="Script" uid="uid://fl14xld083gr" path="res://script/games/play_button.gd" id="2_lw0p4"]
+
+[sub_resource type="StyleBoxFlat" id="1"]
+corner_radius_top_left = 60
+corner_radius_top_right = 60
+corner_radius_bottom_right = 60
+corner_radius_bottom_left = 60
+
+[node name="PlayButton" type="Button"]
+custom_minimum_size = Vector2(120, 120)
+theme_override_styles/normal = SubResource("1")
+theme_override_styles/pressed = SubResource("1")
+theme_override_styles/hover = SubResource("1")
+theme_override_styles/focus = SubResource("1")
+icon = ExtResource("1_p2b07")
+icon_alignment = 1
+expand_icon = true
+script = ExtResource("2_lw0p4")
+
+[connection signal="pressed" from="." to="." method="_on_pressed"]

@@ -1,0 +1,71 @@
+[gd_scene load_steps=7 format=3 uid="uid://hi8aom0rumjj"]
+
+[ext_resource type="Script" uid="uid://7w43w1ctbqhi" path="res://script/paddle.gd" id="1_g2524"]
+[ext_resource type="Texture2D" uid="uid://cs6gxkhjacg2u" path="res://asset/paddle.png" id="2_idco4"]
+[ext_resource type="Material" uid="uid://clvihc3cf0hk2" path="res://shader/paddle_fall_material.tres" id="3_fall_material"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_faqlu"]
+radius = 236.0
+
+[sub_resource type="Animation" id="Animation_fall"]
+resource_name = "fall_down"
+length = 0.6
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("PopperSprite:material:shader_parameter/fall_progress")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.6),
+"transitions": PackedFloat32Array(1, 2),
+"update": 0,
+"values": [0.0, 1.0]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("PopperSprite:material:shader_parameter/rotation_angle")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.2, 0.4, 0.6),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 0,
+"values": [0.0, -25.0, 45.0, -80.0]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath(".:position")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.6),
+"transitions": PackedFloat32Array(1, 3),
+"update": 0,
+"values": [null, Vector2(0, 120)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_paddle"]
+_data = {
+&"fall_down": SubResource("Animation_fall")
+}
+
+[node name="Paddle" type="Area2D"]
+scale = Vector2(0.5, 0.5)
+script = ExtResource("1_g2524")
+
+[node name="PopperSprite" type="Sprite2D" parent="."]
+material = ExtResource("3_fall_material")
+scale = Vector2(1.3, 1.3)
+texture = ExtResource("2_idco4")
+
+[node name="CircleArea" type="CollisionShape2D" parent="."]
+position = Vector2(0, -270)
+shape = SubResource("CircleShape2D_faqlu")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary_paddle")
+}

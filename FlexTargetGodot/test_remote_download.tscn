@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://b6sm05xfc3kbw"]
+
+[ext_resource type="Script" uid="uid://b84rrhoil3wy1" path="res://test_remote_download.gd" id="1_m52u6"]
+
+[node name="TestRemoteDownload" type="Node"]
+script = ExtResource("1_m52u6")

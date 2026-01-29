@@ -1,0 +1,23 @@
+[gd_resource type="Theme" load_steps=2 format=3 uid="uid://dmg3xu7opmvt1"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_title_bg"]
+bg_color = Color(0.2, 0.2, 0.2, 0.7)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.9, 0, 0.8)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[resource]
+Label/colors/font_color = Color(1, 0.9, 0, 1)
+Label/colors/font_outline_color = Color(0, 0, 0, 0.8)
+Label/colors/font_shadow_color = Color(0, 0, 0, 0.6)
+Label/constants/outline_size = 3
+Label/constants/shadow_offset_x = 2
+Label/constants/shadow_offset_y = 2
+Label/font_sizes/font_size = 36
+Label/styles/normal = SubResource("StyleBoxFlat_title_bg")

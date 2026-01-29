@@ -1,0 +1,126 @@
+[gd_scene load_steps=8 format=3 uid="uid://unm5ps1c30g"]
+
+[ext_resource type="Texture2D" uid="uid://coyf4yn5drgki" path="res://asset/modalCntnrs.png" id="1_8fjpi"]
+[ext_resource type="PackedScene" uid="uid://dturr8so8g8cw" path="res://scene/custom_button.tscn" id="1_o6736"]
+[ext_resource type="Script" uid="uid://cemltlpw7rf20" path="res://script/drill_complete_overlay.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://d34m0mqmlp1qq" path="res://asset/crosshair.png" id="2_m5n5t"]
+[ext_resource type="LabelSettings" uid="uid://codb57trfq77w" path="res://theme/target_title_competitive.tres" id="2_o6736"]
+[ext_resource type="LabelSettings" uid="uid://cuf6m18dwphgd" path="res://theme/target_title_ipsc.tres" id="3_m5n5t"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_m5n5t"]
+radius = 100.0
+
+[node name="drill_complete_overlay" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+custom_minimum_size = Vector2(680, 640)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -340.0
+offset_top = -352.0
+offset_right = 340.0
+offset_bottom = 352.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ReviewReplayButton" parent="VBoxContainer" instance=ExtResource("1_o6736")]
+custom_minimum_size = Vector2(200, 48)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 36
+text = "Review Replay"
+
+[node name="TextureRect" type="TextureRect" parent="VBoxContainer/ReviewReplayButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_m5n5t")
+expand_mode = 1
+stretch_mode = 3
+
+[node name="AreaReplay" type="Area2D" parent="VBoxContainer/ReviewReplayButton"]
+collision_layer = 7
+collision_mask = 8
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="VBoxContainer/ReviewReplayButton/AreaReplay"]
+position = Vector2(124, 27)
+shape = SubResource("CircleShape2D_m5n5t")
+
+[node name="MarginContainer" type="CenterContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="TextureRect" type="TextureRect" parent="VBoxContainer/MarginContainer"]
+layout_mode = 2
+texture = ExtResource("1_8fjpi")
+stretch_mode = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/MarginContainer"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="VBoxContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Drill Completed"
+label_settings = ExtResource("2_o6736")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Score" type="Label" parent="VBoxContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Score: 0 points"
+label_settings = ExtResource("3_m5n5t")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HitFactor" type="Label" parent="VBoxContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Hit Factor: 0.00"
+label_settings = ExtResource("3_m5n5t")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="FastestShot" type="Label" parent="VBoxContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Fastest Shot: 0.18s"
+label_settings = ExtResource("3_m5n5t")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="RestartButton" parent="VBoxContainer" instance=ExtResource("1_o6736")]
+custom_minimum_size = Vector2(200, 48)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 36
+text = "Restart"
+
+[node name="TextureRect" type="TextureRect" parent="VBoxContainer/RestartButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_m5n5t")
+expand_mode = 1
+stretch_mode = 3
+
+[node name="AreaRestart" type="Area2D" parent="VBoxContainer/RestartButton"]
+collision_layer = 7
+collision_mask = 8
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="VBoxContainer/RestartButton/AreaRestart"]
+position = Vector2(100, 24)
+shape = SubResource("CircleShape2D_m5n5t")

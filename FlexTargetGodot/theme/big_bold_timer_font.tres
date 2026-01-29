@@ -1,0 +1,9 @@
+[gd_resource type="LabelSettings" load_steps=2 format=3 uid="uid://deg7d40rl6o81"]
+
+[ext_resource type="FontFile" uid="uid://d0p1xydx2mug0" path="res://font/dreamart/DIGITALDREAMFAT 3.ttf" id="1_a0jni"]
+
+[resource]
+font = ExtResource("1_a0jni")
+font_size = 48
+outline_size = 2
+outline_color = Color(0, 0, 0, 1)

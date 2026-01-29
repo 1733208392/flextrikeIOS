@@ -1,0 +1,70 @@
+[gd_scene load_steps=5 format=3 uid="uid://bn4jluyldwlwl"]
+
+[ext_resource type="Script" uid="uid://d052u6s0ikdgy" path="res://script/ipsc_mini.gd" id="1_11fyi"]
+[ext_resource type="Texture2D" uid="uid://dve4iuyjc5x3u" path="res://asset/ipsc.png" id="2_uv8qi"]
+
+[sub_resource type="Animation" id="Animation_1"]
+resource_name = "disappear"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.0666667, 0.133333, 0.2, 0.266667, 0.333333, 0.4, 0.466667, 0.533333, 0.6, 0.666667, 0.733333, 0.8, 0.866667, 0.933333, 1),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 0,
+"values": [0.0, 0.174533, -0.174533, 0.139626, -0.139626, 0.10472, -0.10472, 0.0698132, -0.0698132, 0.0349066, -0.0349066, 0.0174533, -0.0174533, 0.00872665, -0.00872665, 0.0]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:modulate")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath(".:scale")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(1, 1), Vector2(0.8, 0.8)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_1"]
+_data = {
+&"disappear": SubResource("Animation_1")
+}
+
+[node name="IPSC" type="Area2D"]
+collision_layer = 7
+collision_mask = 0
+script = ExtResource("1_11fyi")
+
+[node name="TargetSprite" type="Sprite2D" parent="."]
+texture = ExtResource("2_uv8qi")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary_1")
+}
+
+[node name="AZone" type="CollisionPolygon2D" parent="."]
+polygon = PackedVector2Array(44, -456, 138, -153, 138, -25, 45, 111, -44, 111, -137, -24, -137, -158, -45, -456)
+
+[node name="CZone" type="CollisionPolygon2D" parent="."]
+polygon = PackedVector2Array(133, -483, 267, -153, 267, 76, 88, 291, -88, 291, -267, 76, -269, -152, -132, -485)
+
+[node name="DZone" type="CollisionPolygon2D" parent="."]
+polygon = PackedVector2Array(136, -491, 388, -160, 388, 166, 137, 483, -133, 483, -388, 166, -388, -165, -138, -489)

@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3 uid="uid://iutkhax33s2e"]
+
+[ext_resource type="Script" uid="uid://chrl61yepg8hb" path="res://script/games/vine_horizontal.gd" id="1_u3xy3"]
+[ext_resource type="Texture2D" uid="uid://2wbvcj50ghw1" path="res://asset/games/vine_horizontal.png" id="2_u3xy3"]
+
+[node name="VineHorizon" type="Node2D"]
+script = ExtResource("1_u3xy3")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_u3xy3")
+centered = false
+region_enabled = true
+region_rect = Rect2(800, 0, 400, 192)

@@ -1,0 +1,94 @@
+[gd_scene load_steps=8 format=3 uid="uid://bvmw1s06twfav"]
+
+[ext_resource type="Script" uid="uid://clfaksioumf4c" path="res://script/shot_timer.gd" id="1_shot_timer_script"]
+[ext_resource type="AudioStream" uid="uid://b7v3qngslfsqw" path="res://audio/synthetic-shot-timer.wav" id="2_timer_beep"]
+[ext_resource type="AudioStream" uid="uid://don0vj400vxgd" path="res://audio/standby.mp3" id="3_cetwe"]
+[ext_resource type="AudioStream" uid="uid://ck6m5j4f2s7i4" path="res://audio/ready.mp3" id="4_ready"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_standby"]
+font_size = 120
+font_color = Color(1, 1, 0, 1)
+outline_size = 8
+outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="Animation" id="Animation_ready_flash"]
+resource_name = "ready_flash"
+length = 0.5
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("CenterContainer/StandbyLabel:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3, 0.4, 0.5),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 1), Color(0, 1, 0, 1), Color(1, 1, 1, 1), Color(0, 1, 0, 1), Color(1, 1, 1, 1), Color(0, 1, 0, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_standby_pulse"]
+resource_name = "standby_pulse"
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("CenterContainer/StandbyLabel:scale")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.5, 1),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(1, 1), Vector2(1.1, 1.1), Vector2(1, 1)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary"]
+_data = {
+&"ready_flash": SubResource("Animation_ready_flash"),
+&"standby_pulse": SubResource("Animation_standby_pulse")
+}
+
+[node name="ShotTimer" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_shot_timer_script")
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="StandbyLabel" type="Label" parent="CenterContainer"]
+layout_mode = 2
+label_settings = SubResource("LabelSettings_standby")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BeepPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("2_timer_beep")
+volume_db = 5.0
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary")
+}
+
+[node name="TimerDelay" type="Timer" parent="."]
+wait_time = 3.0
+one_shot = true
+
+[node name="StandbyPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("3_cetwe")
+volume_db = 5.0
+
+[node name="ReadyPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("4_ready")
+volume_db = 5.0

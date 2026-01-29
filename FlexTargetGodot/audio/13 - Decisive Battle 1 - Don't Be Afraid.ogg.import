@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://cc4026ptu87nx"
+path="res://.godot/imported/13 - Decisive Battle 1 - Don't Be Afraid.ogg-1ca1de931f4630a291173056c91597cf.oggvorbisstr"
+
+[deps]
+
+source_file="res://audio/13 - Decisive Battle 1 - Don't Be Afraid.ogg"
+dest_files=["res://.godot/imported/13 - Decisive Battle 1 - Don't Be Afraid.ogg-1ca1de931f4630a291173056c91597cf.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

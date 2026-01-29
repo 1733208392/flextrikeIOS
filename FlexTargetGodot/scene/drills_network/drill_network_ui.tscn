@@ -1,0 +1,125 @@
+[gd_scene load_steps=8 format=3 uid="uid://cx4ygwpmsuiyn"]
+
+[ext_resource type="Script" uid="uid://bkh7dxe60xxyh" path="res://scene/drills_network/drill_network_ui.gd" id="1_m1owd"]
+[ext_resource type="Texture2D" uid="uid://cj5m8qdpg1amv" path="res://asset/coin.png" id="2_ueq8j"]
+[ext_resource type="LabelSettings" uid="uid://cuf6m18dwphgd" path="res://theme/target_title_ipsc.tres" id="3_7x8sl"]
+[ext_resource type="Texture2D" uid="uid://bhksfu7pulyjs" path="res://asset/thunder.png" id="4_mmkqu"]
+[ext_resource type="LabelSettings" uid="uid://deg7d40rl6o81" path="res://theme/big_bold_timer_font.tres" id="6_plgmk"]
+[ext_resource type="PackedScene" uid="uid://bvmw1s06twfav" path="res://scene/shot_timer.tscn" id="7_vvbiq"]
+[ext_resource type="PackedScene" uid="uid://bgnvqj8xi6u7e" path="res://scene/volumn.tscn" id="9_1atv0"]
+
+[node name="DrillUI" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_m1owd")
+
+[node name="FPSLabel" type="Label" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 100.0
+offset_bottom = 30.0
+grow_vertical = 0
+text = "FPS: 60"
+
+[node name="TopContainer" type="MarginContainer" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 268.0
+grow_horizontal = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 0
+
+[node name="TopLayout" type="VBoxContainer" parent="TopContainer"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="HeaderContainer" type="HBoxContainer" parent="TopContainer/TopLayout"]
+visible = false
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+
+[node name="ScoreContainer" type="HBoxContainer" parent="TopContainer/TopLayout/HeaderContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="CoinIcon" type="TextureRect" parent="TopContainer/TopLayout/HeaderContainer/ScoreContainer"]
+layout_mode = 2
+texture = ExtResource("2_ueq8j")
+stretch_mode = 5
+
+[node name="Score" type="Label" parent="TopContainer/TopLayout/HeaderContainer/ScoreContainer"]
+layout_mode = 2
+text = "--"
+label_settings = ExtResource("3_7x8sl")
+
+[node name="TargetName" type="Label" parent="TopContainer/TopLayout/HeaderContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 24
+label_settings = ExtResource("3_7x8sl")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="FastestContainer" type="HBoxContainer" parent="TopContainer/TopLayout/HeaderContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Spacer2" type="Control" parent="TopContainer/TopLayout/HeaderContainer/FastestContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ThunderIcon" type="TextureRect" parent="TopContainer/TopLayout/HeaderContainer/FastestContainer"]
+layout_mode = 2
+texture = ExtResource("4_mmkqu")
+stretch_mode = 5
+
+[node name="FastestInterval" type="Label" parent="TopContainer/TopLayout/HeaderContainer/FastestContainer"]
+layout_mode = 2
+text = "--s"
+label_settings = ExtResource("3_7x8sl")
+
+[node name="TimerContainer" type="CenterContainer" parent="TopContainer/TopLayout"]
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Timer" type="Label" parent="TopContainer/TopLayout/TimerContainer"]
+visible = false
+layout_mode = 2
+text = "00:00:00"
+label_settings = ExtResource("6_plgmk")
+horizontal_alignment = 1
+
+[node name="DrillTimer" type="Timer" parent="."]
+wait_time = 0.1
+
+[node name="ShotTimerOverlay" parent="." instance=ExtResource("7_vvbiq")]
+layout_mode = 1
+
+[node name="VolumeControl" parent="." instance=ExtResource("9_1atv0")]
+visible = false
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -120.0
+offset_top = -420.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 0
+grow_vertical = 0

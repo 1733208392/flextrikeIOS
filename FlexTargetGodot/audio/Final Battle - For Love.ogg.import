@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://i6eh50aq5t66"
+path="res://.godot/imported/Final Battle - For Love.ogg-b4bae9ae756f359440b87d2b5909c5ad.oggvorbisstr"
+
+[deps]
+
+source_file="res://audio/Final Battle - For Love.ogg"
+dest_files=["res://.godot/imported/Final Battle - For Love.ogg-b4bae9ae756f359440b87d2b5909c5ad.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

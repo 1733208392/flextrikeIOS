@@ -1,0 +1,47 @@
+[gd_scene load_steps=5 format=3 uid="uid://5w6j4130dlpu"]
+
+[ext_resource type="Texture2D" uid="uid://gpyjow0hb5mh" path="res://asset/drills_back.jpg" id="2_6482l"]
+[ext_resource type="Script" uid="uid://cem3r70jw4llu" path="res://scene/ipsc_mini_stage/ipsc_mini_stage.gd" id="2_abc123"]
+[ext_resource type="PackedScene" uid="uid://drfnfhdej2kp8" path="res://scene/drill_ui.tscn" id="3_drill_ui"]
+[ext_resource type="PackedScene" uid="uid://bqjy8d7x2h5na" path="res://scene/footsteps.tscn" id="4_giq64"]
+
+[node name="ipsc_mini_stage" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("2_abc123")
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="BackgroundImage" type="TextureRect" parent="."]
+z_index = -4
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_6482l")
+stretch_mode = 6
+
+[node name="DrillUI" parent="." instance=ExtResource("3_drill_ui")]
+layout_mode = 1
+
+[node name="Footsteps" parent="." instance=ExtResource("4_giq64")]
+layout_mode = 1
+anchors_preset = 4
+offset_right = 720.0
+grow_horizontal = 1
+grow_vertical = 1

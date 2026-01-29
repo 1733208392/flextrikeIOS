@@ -1,0 +1,57 @@
+[gd_scene load_steps=5 format=3 uid="uid://01k74eejvx3c"]
+
+[ext_resource type="Texture2D" uid="uid://be3d6krkhtcf2" path="res://asset/wifi.fill.idle.png" id="1"]
+[ext_resource type="Texture2D" uid="uid://b2xtcro40awy8" path="res://asset/connectivity.idle.png" id="2"]
+[ext_resource type="Texture2D" uid="uid://c08kv7n12txx5" path="res://asset/bluetooth-icon.png" id="2_omxcs"]
+[ext_resource type="Script" uid="uid://u33sfhovnmc6" path="res://script/status_bar.gd" id="3"]
+
+[node name="StatusBar" type="CanvasLayer"]
+layer = 100
+script = ExtResource("3")
+
+[node name="Root" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 72.0
+grow_horizontal = 2
+mouse_filter = 2
+
+[node name="Panel" type="Panel" parent="Root"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Root/Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = 12.0
+offset_right = -16.0
+offset_bottom = -12.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 2
+
+[node name="BluetoothIcon" type="TextureRect" parent="Root/Panel/HBoxContainer"]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+texture = ExtResource("2_omxcs")
+stretch_mode = 3
+
+[node name="WifiIcon" type="TextureRect" parent="Root/Panel/HBoxContainer"]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+texture = ExtResource("1")
+stretch_mode = 3
+
+[node name="ConnectivityIcon" type="TextureRect" parent="Root/Panel/HBoxContainer"]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+texture = ExtResource("2")
+stretch_mode = 3

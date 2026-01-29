@@ -1,0 +1,66 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="GODotTetris"
+config/version="1.0"
+run/main_scene="uid://d0r0jmdp4nky3"
+config/features=PackedStringArray("4.5", "GL Compatibility")
+run/max_fps=60
+boot_splash/image="uid://cipq0m36i6v83"
+config/icon="uid://df7hy2vqfeny8"
+
+[audio]
+
+buses/default_bus_layout="res://audio_bus_layout.tres"
+
+[autoload]
+
+GlobalData="*res://script/global_data.gd"
+SignalBus="*res://script/signal_bus.gd"
+WebSocketListener="*res://script/WebSocketListener.gd"
+HttpService="*res://script/HttpService.gd"
+MenuController="*res://script/MenuController.gd"
+GlobalDebug="*res://script/GlobalDebug.gd"
+StatusBar="*res://scene/StatusBar.tscn"
+
+[display]
+
+window/size/viewport_width=720
+window/size/viewport_height=1280
+window/size/resizable=false
+window/stretch/mode="viewport"
+window/handheld/orientation=1
+window/vsync/vsync_mode=0
+window/main_scene="res://scene/splash_loading.tscn"
+
+[dotnet]
+
+project/assembly_name="GODotTetris"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/onscreenkeyboard/plugin.cfg")
+
+[gui]
+
+theme/dynamic_fonts/use_oversampling=true
+
+[internationalization]
+
+locale/translations=PackedStringArray("res://translations/translations.en.translation", "res://translations/translations.zh_CN.translation", "res://translations/translations.ja.translation", "res://translations/translations.zh_TW.translation")
+
+[rendering]
+
+textures/canvas_textures/default_texture_filter=0
+gl_compatibility/driver.linuxbsd="opengl3_es"
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"

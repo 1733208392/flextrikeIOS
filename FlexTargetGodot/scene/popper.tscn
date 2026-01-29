@@ -1,0 +1,69 @@
+[gd_scene load_steps=7 format=3 uid="uid://dqwy2uf6beqmw"]
+
+[ext_resource type="Script" uid="uid://c2hqne4qktyv5" path="res://script/popper.gd" id="1_popper_script"]
+[ext_resource type="Texture2D" uid="uid://qam0rhd4anvf" path="res://asset/popper.png" id="2_faqlu"]
+[ext_resource type="Material" uid="uid://b4jaexsu8ynms" path="res://shader/popper_fall_material.tres" id="3_fall_material"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_nmotk"]
+radius = 66.1211
+
+[sub_resource type="Animation" id="Animation_fall"]
+resource_name = "fall_down"
+length = 0.6
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("PopperSprite:material:shader_parameter/fall_progress")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.6),
+"transitions": PackedFloat32Array(1, 2),
+"update": 0,
+"values": [0.0, 1.0]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("PopperSprite:material:shader_parameter/rotation_angle")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.2, 0.4, 0.6),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 0,
+"values": [0.0, -30.0, 50.0, -90.0]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath(".:position")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.6),
+"transitions": PackedFloat32Array(1, 3),
+"update": 1,
+"values": [Vector2(0, 0), Vector2(0, 0)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_popper"]
+_data = {
+&"fall_down": SubResource("Animation_fall")
+}
+
+[node name="Popper" type="Area2D"]
+script = ExtResource("1_popper_script")
+
+[node name="PopperSprite" type="Sprite2D" parent="."]
+material = ExtResource("3_fall_material")
+texture = ExtResource("2_faqlu")
+
+[node name="HeadArea" type="CollisionShape2D" parent="."]
+position = Vector2(0, -301)
+shape = SubResource("CircleShape2D_nmotk")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary_popper")
+}

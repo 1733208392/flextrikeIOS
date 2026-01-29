@@ -1,0 +1,42 @@
+[gd_scene load_steps=3 format=3 uid="uid://cxcf7ci5mr56m"]
+
+[ext_resource type="PackedScene" uid="uid://d376nuesjyhe2" path="res://scene/test_dueling_tree.tscn" id="1_124jw"]
+[ext_resource type="Texture2D" uid="uid://bvnmip7l1v4so" path="res://asset/duelling-tree-stand.png" id="2_447go"]
+
+[node name="Node2D" type="Node2D"]
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+metadata/_edit_use_anchors_ = true
+
+[node name="Node2D5" parent="VBoxContainer" instance=ExtResource("1_124jw")]
+position = Vector2(-105, 214)
+
+[node name="Node2D6" parent="VBoxContainer" instance=ExtResource("1_124jw")]
+position = Vector2(-105, 344)
+
+[node name="Node2D7" parent="VBoxContainer" instance=ExtResource("1_124jw")]
+position = Vector2(-105, 84)
+
+[node name="Node2D8" parent="VBoxContainer" instance=ExtResource("1_124jw")]
+position = Vector2(-105, -46)
+
+[node name="Node2D3" parent="VBoxContainer" instance=ExtResource("1_124jw")]
+position = Vector2(-105, -436)
+
+[node name="Node2D2" parent="VBoxContainer" instance=ExtResource("1_124jw")]
+position = Vector2(-105, -176)
+
+[node name="Node2D" parent="VBoxContainer" instance=ExtResource("1_124jw")]
+position = Vector2(-105, -306)
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(-2, 107)
+scale = Vector2(3, 3.3722224)
+texture = ExtResource("2_447go")

@@ -1,0 +1,96 @@
+[gd_scene load_steps=7 format=3 uid="uid://dxhw3r7t4daxm"]
+
+[ext_resource type="Texture2D" uid="uid://xoqil48qkl7d" path="res://asset/games/jiong-avatar.png" id="1"]
+[ext_resource type="FontFile" uid="uid://d2eub6rd80tjp" path="res://asset/games/soupofjustice.ttf" id="2_ghm7o"]
+[ext_resource type="Texture2D" uid="uid://bt7v22nd4vwar" path="res://asset/games/trophy.png" id="3_um74f"]
+[ext_resource type="AudioStream" uid="uid://dxpul16876qad" path="res://audio/victory-chime.mp3" id="4_hefvv"]
+[ext_resource type="PackedScene" uid="uid://dturr8so8g8cw" path="res://scene/custom_button.tscn" id="4_wo8hs"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
+bg_color = Color(0, 0, 0, 0.8)
+
+[node name="GameOverOverlay" type="CanvasLayer"]
+layer = 10
+
+[node name="Panel" type="Panel" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
+
+[node name="HBoxContainerAvatars" type="HBoxContainer" parent="Panel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -58.5
+offset_top = -13.5
+offset_right = 58.5
+offset_bottom = 13.5
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="LeftSide" type="VBoxContainer" parent="Panel/HBoxContainerAvatars"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+
+[node name="AvatarSprite" type="TextureRect" parent="Panel/HBoxContainerAvatars/LeftSide"]
+layout_mode = 2
+texture = ExtResource("1")
+stretch_mode = 4
+
+[node name="NameLabel" type="Label" parent="Panel/HBoxContainerAvatars/LeftSide"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_ghm7o")
+theme_override_font_sizes/font_size = 32
+text = "Jiong"
+horizontal_alignment = 1
+
+[node name="RightSide" type="VBoxContainer" parent="Panel/HBoxContainerAvatars"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+alignment = 1
+
+[node name="AvatarSprite" type="TextureRect" parent="Panel/HBoxContainerAvatars/RightSide"]
+layout_mode = 2
+texture = ExtResource("3_um74f")
+expand_mode = 4
+
+[node name="ResultLabel" type="Label" parent="Panel/HBoxContainerAvatars/RightSide"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_ghm7o")
+theme_override_font_sizes/font_size = 32
+text = "         Winer         "
+horizontal_alignment = 1
+
+[node name="HBoxContainerButtons" type="HBoxContainer" parent="Panel"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -480.0
+offset_bottom = -432.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/separation = 32
+alignment = 1
+
+[node name="BackButton" parent="Panel/HBoxContainerButtons" instance=ExtResource("4_wo8hs")]
+layout_mode = 2
+text = "Back"
+
+[node name="ReplayButton" parent="Panel/HBoxContainerButtons" instance=ExtResource("4_wo8hs")]
+layout_mode = 2
+text = "Replay
+"
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
+process_mode = 3
+stream = ExtResource("4_hefvv")

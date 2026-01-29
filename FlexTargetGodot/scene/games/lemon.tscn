@@ -1,0 +1,68 @@
+[gd_scene load_steps=11 format=3 uid="uid://b5vb074nroscf"]
+
+[ext_resource type="Texture2D" uid="uid://ctafu0ug0bifb" path="res://asset/games/lemon.png" id="1_726da"]
+[ext_resource type="AudioStream" uid="uid://k3did0ku0n0" path="res://audio/SE-Collision_08C.ogg" id="3_ivft1"]
+[ext_resource type="Script" uid="uid://crm80k347tsg7" path="res://script/games/lemon.gd" id="4_script"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_urfhf"]
+radius = 50.0
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_urfhf"]
+atlas = ExtResource("1_726da")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_pmauy"]
+atlas = ExtResource("1_726da")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ivft1"]
+atlas = ExtResource("1_726da")
+region = Rect2(64, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_te4fv"]
+atlas = ExtResource("1_726da")
+region = Rect2(96, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_p6o8c"]
+atlas = ExtResource("1_726da")
+region = Rect2(128, 0, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_qcj1n"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_urfhf")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_pmauy")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ivft1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_te4fv")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_p6o8c")
+}],
+"loop": false,
+"name": &"default",
+"speed": 12.0
+}]
+
+[node name="lemon" type="RigidBody2D"]
+input_pickable = true
+gravity_scale = 0.04
+script = ExtResource("4_script")
+
+[node name="CollisionShape" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_urfhf")
+
+[node name="Sprite" type="AnimatedSprite2D" parent="."]
+scale = Vector2(2.5, 2.5)
+sprite_frames = SubResource("SpriteFrames_qcj1n")
+
+[node name="HitSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("3_ivft1")
+volume_db = 10.0
+pitch_scale = 0.9

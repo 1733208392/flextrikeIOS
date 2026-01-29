@@ -1,0 +1,54 @@
+[gd_scene load_steps=5 format=3 uid="uid://bgnvqj8xi6u7e"]
+
+[ext_resource type="Texture2D" uid="uid://b8usst8iass6b" path="res://asset/volumn.png" id="1_volumn_texture"]
+[ext_resource type="Script" uid="uid://bvx7n2m1k8qp3" path="res://script/volumn.gd" id="1_volumn_script"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1"]
+bg_color = Color(0.2, 0.2, 0.2, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2"]
+bg_color = Color(0.996078, 0.341176, 0.0196078, 1)
+
+[node name="Volume" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_right = 100.0
+offset_bottom = 400.0
+script = ExtResource("1_volumn_script")
+
+[node name="VolumeContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ProgressBar" type="ProgressBar" parent="VolumeContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 3
+custom_minimum_size = Vector2(30, 300)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_colors/font_outline_color = Color(1, 1, 1, 1)
+theme_override_styles/background = SubResource("StyleBoxFlat_1")
+theme_override_styles/fill = SubResource("StyleBoxFlat_2")
+min_value = 0.0
+max_value = 100.0
+value = 50.0
+fill_mode = 3
+show_percentage = false
+
+[node name="VolumeIcon" type="TextureRect" parent="VolumeContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 0
+custom_minimum_size = Vector2(50, 50)
+texture = ExtResource("1_volumn_texture")
+expand_mode = 1
+stretch_mode = 5

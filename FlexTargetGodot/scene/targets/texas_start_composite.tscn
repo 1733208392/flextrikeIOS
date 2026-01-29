@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=3 uid="uid://tuy1441mibo8"]
+
+[ext_resource type="PackedScene" uid="uid://cobu4fihcnevf" path="res://scene/texas_star.tscn" id="2_jyrlk"]
+[ext_resource type="Texture2D" uid="uid://bsdsdvkhperwh" path="res://asset/texas-star-stand.png" id="2_kdm4b"]
+
+[node name="Node2D" type="Node2D"]
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(0, 160)
+texture = ExtResource("2_kdm4b")
+
+[node name="TexasStar" parent="." instance=ExtResource("2_jyrlk")]
+position = Vector2(0, -140)
+plate_count = 7

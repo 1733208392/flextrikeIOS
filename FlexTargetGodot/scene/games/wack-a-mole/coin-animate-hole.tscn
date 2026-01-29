@@ -1,0 +1,66 @@
+[gd_scene load_steps=11 format=3 uid="uid://eriic1twe5sj"]
+
+[ext_resource type="Texture2D" uid="uid://cs13t8uk54g86" path="res://asset/games/wack-a-mole/Sprites/Miscellaneous/hole.png" id="1_hkv57"]
+[ext_resource type="Texture2D" uid="uid://b0n6xdnha4s17" path="res://asset/games/wack-a-mole/GUI/coin-rotate.png" id="2_5doe0"]
+[ext_resource type="Script" uid="uid://bwmsvhdclrygg" path="res://script/games/coin_hole.gd" id="3_script"]
+[ext_resource type="AudioStream" uid="uid://qlwn7wact1va" path="res://audio/retro-coin.mp3" id="4_vc01l"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_vc01l"]
+radius = 80.0
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_674g6"]
+atlas = ExtResource("2_5doe0")
+region = Rect2(0, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wgqs2"]
+atlas = ExtResource("2_5doe0")
+region = Rect2(64, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2p4wc"]
+atlas = ExtResource("2_5doe0")
+region = Rect2(128, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qg0pi"]
+atlas = ExtResource("2_5doe0")
+region = Rect2(192, 0, 64, 64)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_6ub55"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_674g6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_wgqs2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2p4wc")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_qg0pi")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[node name="coin-hole" type="Area2D"]
+script = ExtResource("3_script")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_vc01l")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(0, 30)
+scale = Vector2(2, 2)
+texture = ExtResource("1_hkv57")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+scale = Vector2(1.5, 1.5)
+sprite_frames = SubResource("SpriteFrames_6ub55")
+autoplay = "default"
+frame_progress = 0.48937201
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("4_vc01l")
+volume_db = 5.0

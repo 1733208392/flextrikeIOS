@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3 uid="uid://cobu4fihcnevf"]
+
+[ext_resource type="Script" uid="uid://cjalv13lyk7ai" path="res://script/texas_star.gd" id="1_texas"]
+
+[node name="TexasStar" type="Node2D"]
+script = ExtResource("1_texas")
+plate_count = 6
+radius = 260.0
+gravity_strength = 1000.0

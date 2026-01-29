@@ -1,0 +1,67 @@
+[gd_scene load_steps=7 format=3 uid="uid://cdwjxvujq5wc4"]
+
+[ext_resource type="Script" uid="uid://dcjyeg6o7g6mo" path="res://script/cqb_enemy.gd" id="1_6h06e"]
+[ext_resource type="Texture2D" uid="uid://duomg24rcyc2h" path="res://asset/cqb-enemy-moving.png" id="2_6h06e"]
+
+[sub_resource type="Animation" id="Animation_1"]
+resource_name = "disappear"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.0666667, 0.133333, 0.2, 0.266667, 0.333333, 0.4, 0.466667, 0.533333, 0.6, 0.666667, 0.733333, 0.8, 0.866667, 0.933333, 1),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 0,
+"values": [0.0, 0.174533, -0.174533, 0.139626, -0.139626, 0.10472, -0.10472, 0.0698132, -0.0698132, 0.0349066, -0.0349066, 0.0174533, -0.0174533, 0.00872665, -0.00872665, 0.0]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:modulate")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_1"]
+_data = {
+&"disappear": SubResource("Animation_1")
+}
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_qgphj"]
+radius = 94.26028
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_glney"]
+radius = 132.6484
+height = 515.0031
+
+[node name="CQB" type="Area2D"]
+collision_layer = 7
+collision_mask = 0
+script = ExtResource("1_6h06e")
+
+[node name="TargetSprite" type="Sprite2D" parent="."]
+scale = Vector2(2, 2)
+texture = ExtResource("2_6h06e")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary_1")
+}
+
+[node name="head" type="CollisionShape2D" parent="."]
+position = Vector2(87, -517)
+shape = SubResource("CircleShape2D_qgphj")
+
+[node name="body" type="CollisionShape2D" parent="."]
+position = Vector2(4, -159)
+rotation = 0.17802358
+shape = SubResource("CapsuleShape2D_glney")
+metadata/target_type = "cqb_moving"

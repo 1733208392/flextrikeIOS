@@ -1,0 +1,231 @@
+[gd_scene load_steps=11 format=3 uid="uid://3kxxqr2vk31v"]
+
+[ext_resource type="Script" uid="uid://bs3sx1fus0bj0" path="res://script/games/mole_level_complete.gd" id="1_mole"]
+[ext_resource type="FontFile" uid="uid://d2eub6rd80tjp" path="res://asset/games/soupofjustice.ttf" id="3_4n79r"]
+[ext_resource type="Texture2D" uid="uid://c55e2ghwmvqda" path="res://asset/games/wack-a-mole/GUI/star-coin.png" id="4_22ndk"]
+[ext_resource type="PackedScene" path="res://scene/games/back_button.tscn" id="5_r8ohr"]
+[ext_resource type="PackedScene" path="res://scene/games/next_button.tscn" id="6_yga03"]
+[ext_resource type="PackedScene" path="res://scene/games/coin_particles.tscn" id="7_1r4r6"]
+[ext_resource type="AudioStream" uid="uid://dxpul16876qad" path="res://audio/victory-chime.mp3" id="8_jv7kj"]
+[ext_resource type="Shader" path="res://asset/games/circle.gdshader" id="9_circle"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_raqs2"]
+shader = ExtResource("9_circle")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel_bg"]
+draw_center = false
+corner_radius_top_left = 30
+corner_radius_top_right = 30
+corner_radius_bottom_right = 30
+corner_radius_bottom_left = 30
+
+[node name="MoleLevelCompletePanel" type="CanvasLayer"]
+layer = 20
+script = ExtResource("1_mole")
+
+[node name="Control" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="BackgroundDim" type="ColorRect" parent="Control"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.6)
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Control"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -150.0
+offset_top = -300.0
+offset_right = 150.0
+offset_bottom = 4.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="HeaderCircle" type="ColorRect" parent="Control/VBoxContainer"]
+material = SubResource("ShaderMaterial_raqs2")
+custom_minimum_size = Vector2(0, 300)
+layout_mode = 2
+
+[node name="CircleContent" type="Control" parent="Control/VBoxContainer/HeaderCircle"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="LevelLabel" type="Label" parent="Control/VBoxContainer/HeaderCircle/CircleContent"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -50.0
+offset_top = -60.0
+offset_right = 50.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3_4n79r")
+theme_override_font_sizes/font_size = 24
+text = "Level"
+horizontal_alignment = 1
+
+[node name="LevelNumber" type="Label" parent="Control/VBoxContainer/HeaderCircle/CircleContent"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -60.0
+offset_top = -20.0
+offset_right = 60.0
+offset_bottom = 30.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3_4n79r")
+theme_override_font_sizes/font_size = 72
+text = "03"
+horizontal_alignment = 1
+
+[node name="StarsContainer" type="HBoxContainer" parent="Control/VBoxContainer/HeaderCircle"]
+layout_mode = 0
+offset_top = 240.0
+offset_right = 300.0
+offset_bottom = 320.0
+alignment = 1
+
+[node name="Star1" type="TextureRect" parent="Control/VBoxContainer/HeaderCircle/StarsContainer"]
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 2
+texture = ExtResource("4_22ndk")
+expand_mode = 2
+
+[node name="Star2" type="TextureRect" parent="Control/VBoxContainer/HeaderCircle/StarsContainer"]
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 2
+texture = ExtResource("4_22ndk")
+expand_mode = 2
+
+[node name="Star3" type="TextureRect" parent="Control/VBoxContainer/HeaderCircle/StarsContainer"]
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 2
+texture = ExtResource("4_22ndk")
+expand_mode = 2
+
+[node name="Content" type="Panel" parent="Control/VBoxContainer"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel_bg")
+
+[node name="PanelContent" type="VBoxContainer" parent="Control/VBoxContainer/Content"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -158.5
+offset_right = 158.5
+offset_bottom = 360.0
+grow_horizontal = 2
+alignment = 2
+
+[node name="ClearedLabel" type="Label" parent="Control/VBoxContainer/Content/PanelContent"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 0)
+theme_override_colors/font_outline_color = Color(1, 1, 1, 1)
+theme_override_constants/outline_size = 12
+theme_override_fonts/font = ExtResource("3_4n79r")
+theme_override_font_sizes/font_size = 80
+text = "Cleared!"
+horizontal_alignment = 1
+
+[node name="ScoreContainer" type="HBoxContainer" parent="Control/VBoxContainer/Content/PanelContent"]
+layout_mode = 2
+
+[node name="ScoreLabel" type="Label" parent="Control/VBoxContainer/Content/PanelContent/ScoreContainer"]
+custom_minimum_size = Vector2(168, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3_4n79r")
+theme_override_font_sizes/font_size = 32
+text = "Score:"
+
+[node name="ScoreValue" type="Label" parent="Control/VBoxContainer/Content/PanelContent/ScoreContainer"]
+custom_minimum_size = Vector2(168, 0)
+layout_direction = 2
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.2, 0.2, 1)
+theme_override_fonts/font = ExtResource("3_4n79r")
+theme_override_font_sizes/font_size = 36
+text = "37829"
+horizontal_alignment = 2
+
+[node name="VSpacer1" type="Control" parent="Control/VBoxContainer/Content/PanelContent"]
+custom_minimum_size = Vector2(0, 15)
+layout_mode = 2
+
+[node name="CoinContainer" type="HBoxContainer" parent="Control/VBoxContainer/Content/PanelContent"]
+layout_mode = 2
+
+[node name="CoinLabel" type="Label" parent="Control/VBoxContainer/Content/PanelContent/CoinContainer"]
+custom_minimum_size = Vector2(168, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3_4n79r")
+theme_override_font_sizes/font_size = 32
+text = "Coins:"
+uppercase = true
+
+[node name="CoinValue" type="Label" parent="Control/VBoxContainer/Content/PanelContent/CoinContainer"]
+custom_minimum_size = Vector2(168, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.2, 0.2, 1)
+theme_override_fonts/font = ExtResource("3_4n79r")
+theme_override_font_sizes/font_size = 32
+text = "1250"
+horizontal_alignment = 2
+
+[node name="VSpacer2" type="Control" parent="Control/VBoxContainer/Content/PanelContent"]
+custom_minimum_size = Vector2(0, 15)
+layout_mode = 2
+
+[node name="ButtonsContainer" type="HBoxContainer" parent="Control/VBoxContainer/Content/PanelContent"]
+layout_mode = 2
+alignment = 1
+
+[node name="BackButton" parent="Control/VBoxContainer/Content/PanelContent/ButtonsContainer" instance=ExtResource("5_r8ohr")]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+
+[node name="ReplayButton" parent="Control/VBoxContainer/Content/PanelContent/ButtonsContainer" instance=ExtResource("6_yga03")]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Replay"
+
+[node name="NextButton" parent="Control/VBoxContainer/Content/PanelContent/ButtonsContainer" instance=ExtResource("6_yga03")]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+
+[node name="CoinParticles" parent="Control" instance=ExtResource("7_1r4r6")]
+position = Vector2(360, 700)
+
+[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="Control"]
+stream = ExtResource("8_jv7kj")
+autoplay = true
