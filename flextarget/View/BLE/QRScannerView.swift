@@ -9,6 +9,7 @@ struct QRScannerView: View {
     @StateObject private var qrScanner = QRCodeScanner()
     
     var onQRScanned: ((String) -> Void)?
+    var hideBackButton: Bool = false
     
     var body: some View {
         GeometryReader { geometry in
@@ -82,24 +83,26 @@ struct QRScannerView: View {
                 }
                 
                 // Back button - top left corner with red color
-                VStack {
-                    HStack {
-                        Button(action: {
-                            dismiss()
-                        }) {
-                            Image(systemName: "chevron.left")
-                                .font(.system(size: 20, weight: .semibold))
-                                .foregroundColor(.white)
-                                .frame(width: 44, height: 44)
-                                .background(Color.red)
-                                .clipShape(Circle())
+                if !hideBackButton {
+                    VStack {
+                        HStack {
+                            Button(action: {
+                                dismiss()
+                            }) {
+                                Image(systemName: "chevron.left")
+                                    .font(.system(size: 20, weight: .semibold))
+                                    .foregroundColor(.white)
+                                    .frame(width: 44, height: 44)
+                                    .background(Color.red)
+                                    .clipShape(Circle())
+                            }
+                            .padding(.leading, 20)
+                            .padding(.top, 50)
+                            
+                            Spacer()
                         }
-                        .padding(.leading, 20)
-                        .padding(.top, 50)
-                        
                         Spacer()
                     }
-                    Spacer()
                 }
                 
                 // Result overlay

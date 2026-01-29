@@ -1,12 +1,14 @@
 import SwiftUI
 import AVFoundation
 import UniformTypeIdentifiers
+import PhotosUI
 
 // MARK: - Custom TextEditor with Gray Background
 struct CustomTextEditor: UIViewRepresentable {
     @Binding var text: String
     var foregroundColor: UIColor = .white
     var backgroundColor: UIColor = UIColor(red: 0.5, green: 0.5, blue: 0.5, alpha: 0.2)
+    var disabled: Bool = false
     
     func makeUIView(context: Context) -> UITextView {
         let textView = UITextView()
@@ -16,8 +18,8 @@ struct CustomTextEditor: UIViewRepresentable {
         textView.backgroundColor = backgroundColor
         textView.text = text
         textView.isScrollEnabled = true
-        textView.isEditable = true
-        textView.isSelectable = true
+        textView.isEditable = !disabled
+        textView.isSelectable = !disabled
         return textView
     }
     
@@ -25,6 +27,8 @@ struct CustomTextEditor: UIViewRepresentable {
         if uiView.text != text {
             uiView.text = text
         }
+        uiView.isEditable = !disabled
+        uiView.isSelectable = !disabled
     }
     
     func makeCoordinator() -> Coordinator {
@@ -68,10 +72,11 @@ struct DescriptionVideoSectionView: View {
     @Binding var demoVideoThumbnail: UIImage?
     @Binding var thumbnailFileURL: URL?
     @Binding var showVideoPlayer: Bool
+    var disabled: Bool = false
     
     @State private var isGeneratingThumbnail: Bool = false
     @State private var isDownloadingVideo: Bool = false
-    @State private var showFilePicker: Bool = false
+    @State private var selectedVideoItem: PhotosPickerItem? = nil
     @FocusState private var isDescriptionFocused: Bool
     
     var body: some View {
@@ -91,7 +96,7 @@ struct DescriptionVideoSectionView: View {
             }
             
             ZStack(alignment: .topLeading) {
-                CustomTextEditor(text: $description, foregroundColor: .white, backgroundColor: UIColor(red: 0.5, green: 0.5, blue: 0.5, alpha: 0.2))
+                CustomTextEditor(text: $description, foregroundColor: .white, backgroundColor: UIColor(red: 0.5, green: 0.5, blue: 0.5, alpha: 0.2), disabled: disabled)
                     .frame(height: 120) // Fixed height for 5 lines
                     .disableAutocorrection(true)
                     .focused($isDescriptionFocused)
@@ -114,7 +119,7 @@ struct DescriptionVideoSectionView: View {
             }
             
             // Demo Video Upload
-            Button(action: { showFilePicker = true }) {
+            PhotosPicker(selection: $selectedVideoItem, matching: .videos) {
                 VStack {
                     RoundedRectangle(cornerRadius: 16)
                         .stroke(style: StrokeStyle(lineWidth: 1, dash: [4]))
@@ -151,9 +156,11 @@ struct DescriptionVideoSectionView: View {
                                             HStack {
                                                 Spacer()
                                                 Button(action: {
-                                                    demoVideoThumbnail = nil
-                                                    demoVideoURL = nil
-                                                    showFilePicker = false
+                                                    if !disabled {
+                                                        demoVideoThumbnail = nil
+                                                        demoVideoURL = nil
+                                                        selectedVideoItem = nil
+                                                    }
                                                 }) {
                                                     Image(systemName: "xmark.circle.fill")
                                                         .resizable()
@@ -163,13 +170,16 @@ struct DescriptionVideoSectionView: View {
                                                         .clipShape(Circle())
                                                         .shadow(radius: 2)
                                                 }
+                                                .disabled(disabled)
                                                 .padding(8)
                                             }
                                             Spacer()
                                         }
                                     }
                                     .onTapGesture {
-                                        showVideoPlayer = true
+                                        if !disabled {
+                                            showVideoPlayer = true
+                                        }
                                     }
                                 } else {
                                     VStack {
@@ -185,23 +195,34 @@ struct DescriptionVideoSectionView: View {
                         )
                 }
             }
-            .fileImporter(
-                isPresented: $showFilePicker,
-                allowedContentTypes: [.video],
-                onCompletion: { result in
-                    switch result {
-                    case .success(let url):
-                        handleSelectedVideo(url)
-                    case .failure(let error):
-                        print("File picker error: \(error)")
-                    }
-                }
-            )
+            .disabled(disabled)
         }
         .onChange(of: demoVideoURL) { _ in
             // Process the selected video URL
             if let url = demoVideoURL {
                 processSelectedVideo(url)
+            }
+        }
+        .onChange(of: selectedVideoItem) { newItem in
+            Task {
+                if let item = newItem {
+                    do {
+                        if let videoURL = try await item.loadTransferable(type: URL.self) {
+                            await MainActor.run {
+                                handleSelectedVideo(videoURL)
+                            }
+                        } else if let videoData = try await item.loadTransferable(type: Data.self) {
+                            // Fallback: save data to temp file
+                            if let tempURL = writeDataToTemp(data: videoData, ext: "mov") {
+                                await MainActor.run {
+                                    handleSelectedVideo(tempURL)
+                                }
+                            }
+                        }
+                    } catch {
+                        print("Failed to load video from PhotosPicker: \(error)")
+                    }
+                }
             }
         }
     }

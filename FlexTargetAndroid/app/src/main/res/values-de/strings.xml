@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App name -->
+    <string name="app_name">FlexTarget</string>
+    
+    <!-- Login screen -->
+    <string name="login_title">FlexTarget</string>
+    <string name="login_subtitle">Melden Sie sich mit Ihrem Bogenschießziel-Konto an</string>
+    <string name="login_mobile">Mobilnummer</string>
+    <string name="login_password">Passwort</string>
+    <string name="login_button">Anmelden</string>
+    <string name="login_loading">Wird angemeldet...</string>
+    <string name="login_error">Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre Anmeldedaten.</string>
+    <string name="login_hint_mobile">Geben Sie Ihre Mobilnummer ein</string>
+    <string name="login_hint_password">Geben Sie Ihr Passwort ein</string>
+    
+    <!-- Auth state -->
+    <string name="auth_not_authenticated">Nicht authentifiziert</string>
+    <string name="auth_authenticated">Authentifiziert</string>
+    <string name="auth_logout">Abmelden</string>
+    <string name="auth_profile">Profil</string>
+    
+    <!-- Competitions -->
+    <string name="competitions">Wettbewerbe</string>
+    <string name="competitions_title">Wettbewerbe</string>
+    <string name="competitions_empty">Keine Wettbewerbe verfügbar</string>
+    <string name="competitions_venue">Veranstaltungsort</string>
+    <string name="competitions_date">Datum</string>
+    <string name="competitions_description">Beschreibung</string>
+    <string name="competitions_leaderboard">Rangliste</string>
+    <string name="competitions_submit_result">Ergebnis einreichen</string>
+    
+    <!-- Drill execution -->
+    <string name="drill_title">Bohrausführung</string>
+    <string name="drill_state_idle">Bereit</string>
+    <string name="drill_state_initialized">Initialisiert</string>
+    <string name="drill_state_waiting_ack">Warte auf Gerätebestätigung</string>
+    <string name="drill_state_executing">Wird ausgeführt</string>
+    <string name="drill_state_finalizing">Wird fertiggestellt</string>
+    <string name="drill_state_complete">Abgeschlossen</string>
+    <string name="drill_state_error">Fehler</string>
+    <string name="drill_current_score">Aktuelle Punktzahl</string>
+    <string name="drill_shots">Schüsse</string>
+    <string name="drill_time">Zeit</string>
+    <string name="drill_average">Durchschnitt</string>
+    <string name="drill_device_connected">Gerät verbunden</string>
+    <string name="drill_device_disconnected">Gerät getrennt</string>
+    <string name="drill_last_shot">Letzter Schuss</string>
+    <string name="drill_start_shooting">Schießen beginnen</string>
+    <string name="drill_stop_finalize">Stopp &amp; Abschluss</string>
+    <string name="drill_complete">Bohrung abschließen</string>
+    <string name="drill_abort">Bohrung abbrechen</string>
+    
+    <!-- OTA Updates -->
+    <string name="ota_title">Systemupdates</string>
+    <string name="ota_check">Nach Updates suchen</string>
+    <string name="ota_checking">Suche nach Updates...</string>
+    <string name="ota_available">Update verfügbar</string>
+    <string name="ota_up_to_date">Auf dem neuesten Stand</string>
+    <string name="ota_download">Update herunterladen</string>
+    <string name="ota_preparing">Download und Vorbereitung...</string>
+    <string name="ota_ready">Installationsbereit</string>
+    <string name="ota_verifying">Integrität wird überprüft...</string>
+    <string name="ota_verify_install">Überprüfen &amp; Installieren</string>
+    <string name="ota_installing">Update wird installiert...</string>
+    <string name="ota_complete">Installation abgeschlossen</string>
+    <string name="ota_version">Version</string>
+    <string name="ota_current_version">Aktuelle Version</string>
+    <string name="ota_latest">Neueste</string>
+    <string name="ota_mandatory">Obligatorisches Update</string>
+    <string name="ota_cancel">Abbrechen</string>
+    <string name="ota_failed">Update fehlgeschlagen</string>
+    
+    <!-- Settings -->
+    <string name="settings_title">Einstellungen</string>
+    <string name="settings_language">Sprache</string>
+    <string name="settings_notifications">Benachrichtigungen</string>
+    <string name="settings_device">Gerät</string>
+    <string name="settings_about">Über</string>
+    <string name="settings_version">Version</string>
+    
+    <!-- Device -->
+    <string name="device_title">Geräteverwaltung</string>
+    <string name="device_connected">Verbunden</string>
+    <string name="device_disconnected">Getrennt</string>
+    <string name="device_connect">Gerät verbinden</string>
+    <string name="device_disconnect">Trennen</string>
+    <string name="device_auth">Geräteauthentifizierung</string>
+    
+    <!-- BLE Connection -->
+    <string name="connecting">VERBINDUNG</string>
+    <string name="trying_to_connect">Versuche zu verbinden...</string>
+    <string name="target_connected">Ziel verbunden</string>
+    <string name="scanning_for">Suche nach</string>
+    <string name="ready_to_scan">Bereit zum Scannen</string>
+    <string name="target_not_found">Ziel nicht gefunden</string>
+    <string name="no_targets_found">Keine Ziele gefunden</string>
+    <string name="bluetooth_service_not_found">Bluetooth-Dienst nicht gefunden</string>
+    <string name="reconnect">Erneut verbinden</string>
+    <string name="my_target">Mein Ziel</string>
+    <string name="ble_test_tool">BLE-Test-Tool</string>
+    
+    <!-- Errors -->
+    <string name="error_title">Fehler</string>
+    <string name="error_network">Netzwerkfehler</string>
+    <string name="error_auth_failed">Authentifizierung fehlgeschlagen</string>
+    <string name="error_device_not_connected">Gerät nicht verbunden</string>
+    <string name="error_timeout">Anforderungszeitüberschreitung</string>
+    <string name="error_unknown">Unbekannter Fehler aufgetreten</string>
+    
+    <!-- Common -->
+    <string name="back">Zurück</string>
+    <string name="next">Weiter</string>
+    <string name="cancel">Abbrechen</string>
+    <string name="save">Speichern</string>
+    <string name="ok">OK</string>
+    <string name="done">Fertig</string>
+    <string name="retry">Erneut versuchen</string>
+    <string name="confirm">Bestätigen</string>
+    <string name="delete">Löschen</string>
+    <string name="device">Gerät</string>
+    <string name="select_device">Gerät auswählen</string>
+    <string name="type">Typ</string>
+    <string name="select_type">Typ auswählen</string>
+    <string name="edit">Bearbeiten</string>
+    <string name="close">Schließen</string>
+    <string name="loading">Wird geladen...</string>
+    <string name="error">Fehler</string>
+    <string name="information">Information</string>
+    <string name="select">Auswählen</string>
+    <string name="copy">Kopieren</string>
+    <string name="create">Erstellen</string>
+    <string name="search">Suchen</string>
+    <string name="details">Details</string>
+    <string name="name">Name</string>
+    <string name="username">Benutzername</string>
+    
+    <!-- Navigation -->
+    <string name="tab_drills">Übungen</string>
+    <string name="tab_history">Verlauf</string>
+    <string name="tab_competition">Wettkampf</string>
+    <string name="tab_admin">Admin</string>
+    
+    <!-- Drills -->
+    <string name="drill_history">Übungsverlauf</string>
+    <string name="search_drills">Übungen suchen</string>
+    <string name="start_drill">Übung starten</string>
+    <string name="end_drill">Übung beenden</string>
+    <string name="drill_in_progress">Übung läuft</string>
+    <string name="delete_drill">Übung löschen</string>
+    <string name="enter_drill_name">Übungsname eingeben</string>
+    <string name="enter_drill_description">Übungsbeschreibung eingeben (optional)</string>
+    <string name="repeats">Wiederholungen:</string>
+    <string name="pause_seconds">Pause (Sekunden):</string>
+    <string name="no_shots_to_display">Keine Schüsse anzuzeigen</string>
+    <string name="replay">Wiederholen</string>
+    <string name="training_records_available">Trainingsaufzeichnungen verfügbar</string>
+    <string name="maximum_targets_reached">Maximale Ziele erreicht</string>
+    <string name="max_targets_message">Sie können nur bis zu %1$d Ziele konfigurieren (%2$d/%1$d)</string>
+    <string name="connection_required">Verbindung erforderlich</string>
+    <string name="connection_required_message">Sie müssen mit einem Ziel verbunden sein, um neue Übungen zu erstellen.</string>
+    
+    <!-- Competition -->
+    <string name="competitions_menu_desc">Wettkämpfe anzeigen und verwalten</string>
+    <string name="shooters_menu_desc">Schützen und Athleten verwalten</string>
+    <string name="leaderboard_menu_desc">Wettkampf-Rangliste anzeigen</string>
+    <string name="search_competitions">Wettkämpfe suchen...</string>
+    <string name="new_competition">Neuer Wettkampf</string>
+    <string name="competition_name">Wettkampfname</string>
+    <string name="venue_optional">Veranstaltungsort (Optional)</string>
+    
+    <!-- Admin -->
+    <string name="admin">Admin</string>
+    <string name="device_management">Geräteverwaltung</string>
+    <string name="device_connected_desc">Gerät ist verbunden</string>
+    <string name="connect_to_device_desc">Mit einem Gerät verbinden</string>
+    <string name="manage_user_profile">Benutzerprofil verwalten</string>
+    <string name="shooters">Schützen</string>
+    <string name="add_athlete">Athlet hinzufügen</string>
+    <string name="club_optional">Verein (Optional)</string>
+    <string name="no_athletes_found">Keine Athleten gefunden. Fügen Sie einige in der Schützenverwaltung hinzu.</string>
+    <string name="user_profile">Benutzerprofil</string>
+    <string name="update_profile">Profil aktualisieren</string>
+    <string name="change_password">Passwort ändern</string>
+    <string name="logout">Abmelden</string>
+    <string name="logout_confirm">Sind Sie sicher, dass Sie sich abmelden möchten?</string>
+    <string name="session_expired_message">Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an.</string>
+    
+    <!-- Device -->
+    <string name="connected_device">Verbundenes Gerät</string>
+    <string name="manage_connection">Verbindung verwalten</string>
+    <string name="ota_update">OTA-Update</string>
+    <string name="check_install_updates">Nach Systemupdates suchen und installieren</string>
+    <string name="manual_select">Manuelle Auswahl</string>
+    <string name="browse_select_devices">Verfügbare Geräte durchsuchen und auswählen</string>
+    <string name="scan_qr_code">QR-Code scannen</string>
+    <string name="scan_device_qr">Geräte-QR-Code scannen</string>
+    <string name="select_target_type">Zieltyp auswählen</string>
+    <string name="available_devices">Verfügbare Geräte</string>
+    <string name="scan_again">Erneut scannen</string>
+    <string name="scanning">Scanne...</string>
+    <string name="no_devices_found">Keine Geräte gefunden</string>
+    <string name="go_to_device_management">Zur Geräteverwaltung gehen</string>
+    
+    <!-- Updates -->
+    <string name="checking">Wird überprüft...</string>
+    <string name="check_now">Jetzt überprüfen</string>
+    <string name="update_now">Jetzt aktualisieren</string>
+    
+    <!-- JSON -->
+    <string name="enter_json_command">JSON-Befehl eingeben...</string>
+    
+    <!-- Symbols -->
+    <string name="arrow_left">←</string>
+    <string name="minus">-</string>
+    <string name="plus">+</string>
+    
+    <!-- Drill Results -->
+    <string name="drill_results_summary">Bohrergebniszusammenfassung</string>
+    <string name="submit_competition_result">WETTBEWERBSERGEBNIS EINREICHEN</string>
+    <string name="no_results_available">Keine Ergebnisse verfügbar</string>
+    <string name="complete_drill_message">Schließen Sie eine Bohrung ab, um Ihre Ergebnisse hier zu sehen</string>
+    <string name="edit_hit_zone_counts">Trefferzonenanzahlen bearbeiten</string>
+    <string name="a_zone">A-Zone</string>
+    <string name="c_zone">C-Zone</string>
+    <string name="d_zone">D-Zone</string>
+    <string name="no_shoot_zone">Nicht-Schießen (N)</string>
+    <string name="miss_zone">Fehlschuss (M)</string>
+    <string name="penalty_zone">Strafe (PE)</string>
+    <string name="pe_abbrev">PE</string>
+    <string name="replay_drill">BOHRUNG WIEDERHOLEN</string>
+    
+    <!-- Drill List -->
+    <string name="my_drills">Meine Bohrungen</string>
+    <string name="drills">Bohrungen</string>
+    <string name="are_you_sure_delete">Sind Sie sicher, dass Sie \"%1$s\" löschen möchten?</string>
+    <string name="untitled">Unbenannt</string>
+    
+    <!-- Competitions -->
+    <string name="no_competitions_yet">Noch keine Wettbewerbe</string>
+    <string name="select_drill_setup">Bohr-Setup auswählen</string>
+    <string name="date_label">Datum: </string>
+    
+    <!-- History -->
+    <string name="history_title">Verlauf</string>
+    <string name="all_modes">Alle Modi</string>
+    <string name="all_drill_setups">Alle Bohr-Setups</string>
+    <string name="no_results_found">Keine Ergebnisse gefunden</string>
+    <string name="complete_drills_history">Schließen Sie einige Bohrungen ab, um Ihren Verlauf zu sehen</string>
+    <string name="repeats_label">Wiederholungen</string>
+    <string name="shots_label">Schüsse</string>
+    <string name="all_time">Gesamte Zeit</string>
+    <string name="past_week">Letzte Woche</string>
+    <string name="past_month">Letzter Monat</string>
+    
+    <!-- Competition Views -->
+    <string name="new_athlete">Neuer Athlet</string>
+    <string name="unknown">Unbekannt</string>
+    <string name="choose_competition">Wettkampf wählen</string>
+    <string name="no_competitions_available">Keine Wettkämpfe verfügbar</string>
+    <string name="select_competition_to_view_rankings">Wählen Sie einen Wettkampf, um Ranglisten anzuzeigen</string>
+    <string name="loading_ranking">Rangliste laden...</string>
+    <string name="error_loading_ranking">Fehler beim Laden der Rangliste</string>
+    <string name="no_ranking_data_available">Keine Ranglistendaten verfügbar</string>
+    <string name="shots">Schüsse</string>
+    <string name="active_shooter">Aktiver Schütze</string>
+    <string name="select_shooter">Schützen auswählen</string>
+    <string name="select_athlete">Athlet auswählen</string>
+    <string name="no_linked_drill_found">Kein verknüpfter Bohr gefunden</string>
+    <string name="select_shooter_to_start">SCHÜTZEN AUSWÄHLEN ZUM STARTEN</string>
+    <string name="start_competition_drill">WETTKAMPF-BOHR STARTEN</string>
+    
+    <!-- Additional error and UI strings -->
+    <string name="failed_to_load_recent_drills">Fehler beim Laden der letzten Bohrungen</string>
+    <string name="loading_recent_drills">Lade letzte Bohrungen...</string>
+    <string name="changing_config_not_allowed">Das Ändern der Konfiguration ist nicht erlaubt. Bitte erstellen Sie eine neue Bohrung</string>
+    <string name="information_page_placeholder">Informationsseite - TODO</string>
+    
+    <!-- Drill Form View strings -->
+    <string name="add_drill">Bohrung hinzufügen</string>
+    <string name="edit_drill">Bohrung bearbeiten</string>
+    <string name="targets_screen">Ziele</string>
+    <string name="add_target">Ziel hinzufügen</string>
+    <string name="lock">Sperren</string>
+    <string name="editing_disabled_message">Die Bearbeitung ist deaktiviert, da diese Bohrung Ergebnisse hat oder mit einem Wettkampf verknüpft ist.</string>
+    <string name="drill_name">Bohrungsname</string>
+    <string name="description">Beschreibung</string>
+    <string name="drill_mode">Bohrungsmodus</string>
+    <string name="ipsc">IPSC</string>
+    <string name="hostage">Geisel</string>
+    <string name="special_1">Spezial 1</string>
+    <string name="special_2">Spezial 2</string>
+    <string name="paddle">Paddle</string>
+    <string name="popper">Popper</string>
+    <string name="rotation">Rotation</string>
+    <string name="idpa">IDPA</string>
+    <string name="cqb">CQB</string>
+    <!-- CQB Target Types -->
+    <string name="cqb_swing">Spähen</string>
+    <string name="cqb_front">Zielen</string>
+    <string name="cqb_move">Vorbeigehen</string>
+    <string name="cqb_hostage">Geisel</string>
+    <string name="disguised_enemy">Verkleideter Feind</string>
+    <!-- CQB Drill Summary -->
+    <string name="cqb_total_shots">Gesamtschüsse</string>
+    <string name="cqb_duration">Dauer</string>
+    <string name="cqb_passed">BESTANDEN</string>
+    <string name="cqb_failed">GESCHEITERT</string>
+    <string name="cqb_threat">BEDROHUNG</string>
+    <string name="cqb_non_threat">KEINE BEDROHUNG</string>
+    <string name="cqb_shots_format">Schüsse: %1$d/%2$d</string>
+    <string name="configuration">Konfiguration</string>
+    <string name="saving">Speichere...</string>
+    <string name="save_drill">Bohrung speichern</string>
+    <string name="save_changes">Änderungen speichern</string>
+    <string name="targets_count">%d Ziele</string>
+    <string name="arrow_right">></string>
+    <string name="targets_section">Ziele</string>
+</resources>

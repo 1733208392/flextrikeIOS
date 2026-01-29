@@ -8,45 +8,88 @@ struct TargetsSectionView: View {
     let bleManager: BLEManager
     @Binding var targetConfigs: [DrillTargetsConfigData]
     let onTargetConfigDone: () -> Void
+    var disabled: Bool = false
+    var onDisabledTap: (() -> Void)? = nil
+    var drillMode: String = "ipsc"
 
     var body: some View {
-        NavigationLink(destination: TargetConfigListView(deviceList: bleManager.networkDevices, targetConfigs: $targetConfigs, onDone: onTargetConfigDone)) {
-            HStack(spacing: 8) {
-                // Shield icon on the left
-                Image(systemName: "shield")
-                    .foregroundColor(.red)
-                    .padding(10)
-                    .background(Circle().fill(Color.white.opacity(0.1)))
-                    .overlay(
-                        Circle().stroke(Color.red, lineWidth: 2)
-                    )
+        Group {
+            if disabled, let onDisabledTap = onDisabledTap {
+                Button(action: onDisabledTap) {
+                    HStack(spacing: 8) {
+                        // Shield icon on the left
+                        Image(systemName: "shield")
+                            .foregroundColor(.red)
+                            .padding(10)
+                            .background(Circle().fill(Color.white.opacity(0.1)))
+                            .overlay(
+                                Circle().stroke(Color.red, lineWidth: 2)
+                            )
 
-                // Text label
-                Text(NSLocalizedString("targets", comment: "Targets label"))
-                    .foregroundColor(.white)
-                    .font(.headline)
+                        // Text label
+                        Text(NSLocalizedString("targets", comment: "Targets label"))
+                            .foregroundColor(.white)
+                            .font(.headline)
 
-                Spacer()
+                        Spacer()
 
-                // Count
-                Text(String(format: NSLocalizedString("targets_count_label", comment: "Number of targets"), targetConfigs.count))
-                    .foregroundColor(.white)
-                    .font(.headline)
+                        // Count
+                        Text(String(format: NSLocalizedString("targets_count_label", comment: "Number of targets"), targetConfigs.count))
+                            .foregroundColor(.white)
+                            .font(.headline)
 
-                Spacer()
+                        Spacer()
 
-                // > symbol
-                Text(">")
-                    .foregroundColor(.gray)
-                    .font(.headline)
+                        // > symbol
+                        Text(">")
+                            .foregroundColor(.gray)
+                            .font(.headline)
+                    }
+                    .padding()
+                    .background(Color.gray.opacity(targetConfigs.count > 0 ? 0.2 : 0.1))
+                    .cornerRadius(16)
+                    .opacity(isTargetListReceived ? 1.0 : 0.6)
+                }
+            } else {
+                NavigationLink(destination: TargetConfigListView(deviceList: bleManager.networkDevices, targetConfigs: $targetConfigs, onDone: onTargetConfigDone, drillMode: drillMode)) {
+                    HStack(spacing: 8) {
+                        // Shield icon on the left
+                        Image(systemName: "shield")
+                            .foregroundColor(.red)
+                            .padding(10)
+                            .background(Circle().fill(Color.white.opacity(0.1)))
+                            .overlay(
+                                Circle().stroke(Color.red, lineWidth: 2)
+                            )
+
+                        // Text label
+                        Text(NSLocalizedString("targets", comment: "Targets label"))
+                            .foregroundColor(.white)
+                            .font(.headline)
+
+                        Spacer()
+
+                        // Count
+                        Text(String(format: NSLocalizedString("targets_count_label", comment: "Number of targets"), targetConfigs.count))
+                            .foregroundColor(.white)
+                            .font(.headline)
+
+                        Spacer()
+
+                        // > symbol
+                        Text(">")
+                            .foregroundColor(.gray)
+                            .font(.headline)
+                    }
+                    .padding()
+                    .background(Color.gray.opacity(targetConfigs.count > 0 ? 0.2 : 0.1))
+                    .cornerRadius(16)
+                    .opacity(isTargetListReceived ? 1.0 : 0.6)
+                }
+                .navigationTitle(NSLocalizedString("drill_setup", comment: "Navigation title for Drill Setup"))
+                .disabled(!isTargetListReceived)
             }
-            .padding()
-            .background(Color.gray.opacity(targetConfigs.count > 0 ? 0.2 : 0.1))
-            .cornerRadius(16)
-            .opacity(isTargetListReceived ? 1.0 : 0.6)
         }
-        .navigationTitle(NSLocalizedString("drill_setup", comment: "Navigation title for Drill Setup"))
-        .disabled(!isTargetListReceived)
     }
 }
 

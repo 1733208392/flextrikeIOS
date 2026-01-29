@@ -7,6 +7,7 @@ import CoreData
 struct EditDrillView: View {
     let drillSetup: DrillSetup
     let bleManager: BLEManager
+    var onCreateNewDrillSetup: (() -> Void)? = nil
     
     @Environment(\.managedObjectContext) private var viewContext
     

@@ -12,8 +12,13 @@ class PersistenceController {
 
     init(inMemory: Bool = false) {
         container = NSPersistentContainer(name: "DrillDataModel")
-        if inMemory {
-            container.persistentStoreDescriptions.first!.url = URL(fileURLWithPath: "/dev/null")
+        if let description = container.persistentStoreDescriptions.first {
+            // Lightweight migration for additive model changes (like adding a new entity).
+            description.setOption(true as NSNumber, forKey: NSMigratePersistentStoresAutomaticallyOption)
+            description.setOption(true as NSNumber, forKey: NSInferMappingModelAutomaticallyOption)
+            if inMemory {
+                description.url = URL(fileURLWithPath: "/dev/null")
+            }
         }
         loadStores()
         

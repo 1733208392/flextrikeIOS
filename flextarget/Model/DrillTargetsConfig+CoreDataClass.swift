@@ -18,6 +18,9 @@ extension DrillTargetsConfig {
     @NSManaged public var targetType: String?
     @NSManaged public var timeout: Double
     @NSManaged public var countedShots: Int32
+    @NSManaged public var action: String?
+    @NSManaged public var duration: Double
+    @NSManaged public var targetVariant: String?
     @NSManaged public var drillSetup: DrillSetup?
 
 }
@@ -37,7 +40,10 @@ extension DrillTargetsConfig {
             targetName: targetName ?? "", //Device Name
             targetType: targetType ?? "",
             timeout: timeout,
-            countedShots: Int(countedShots)
+            countedShots: Int(countedShots),
+            action: action ?? "",
+            duration: duration,
+            targetVariant: targetVariant
         )
     }
 }

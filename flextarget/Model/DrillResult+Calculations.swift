@@ -4,11 +4,14 @@ import CoreData
 // MARK: - DrillResult Calculations Extension
 extension DrillResult {
     
-    /// Decode all shots from the drill result
+    /// Decode all shots from the drill result, sorted by timestamp to preserve order
     var decodedShots: [ShotData] {
         guard let shotsSet = shots as? Set<Shot> else { return [] }
         
-        return shotsSet.compactMap { shot in
+        // Sort shots by timestamp (which stores the absolute time_diff in ms) to ensure correct order
+        let sortedShots = shotsSet.sorted { $0.timestamp < $1.timestamp }
+        
+        return sortedShots.compactMap { shot in
             guard let data = shot.data,
                   let jsonData = data.data(using: .utf8) else { return nil }
             
@@ -18,13 +21,6 @@ extension DrillResult {
                 print("Failed to decode shot data: \(error)")
                 return nil
             }
-        }.sorted { shot1, shot2 in
-            // Sort by timestamp if available, otherwise by timeDiff
-            if let timestamp1 = shot1.content.timeDiff as TimeInterval?,
-               let timestamp2 = shot2.content.timeDiff as TimeInterval? {
-                return timestamp1 < timestamp2
-            }
-            return false
         }
     }
     
@@ -43,7 +39,7 @@ extension DrillResult {
     
     /// Calculate total score for all shots
     var totalScore: Double {
-        return shotScores.reduce(0, +)
+        return ScoringUtility.calculateTotalScore(shots: decodedShots, drillSetup: drillSetup)
     }
     
     /// Calculate total time for all shots (fallback if not persisted)
@@ -54,8 +50,8 @@ extension DrillResult {
     /// Get effective total time (uses persisted value or calculated fallback)
     var effectiveTotalTime: TimeInterval {
         // Use persisted totalTime if available (non-zero)
-        if totalTime > 0 {
-            return TimeInterval(totalTime)
+        if let totalTimeValue = totalTime?.doubleValue, totalTimeValue > 0 {
+            return totalTimeValue
         }
         // Fallback to shot-based calculation for backward compatibility
         return calculatedTotalTime
@@ -128,96 +124,12 @@ private extension DrillResult {
     
     /// Calculate score for a specific hit area and target type
     func calculateScore(for hitArea: String, targetType: String) -> Double {
-        switch targetType.lowercased() {
-        case "ipsc":
-            return calculateIPSCScore(for: hitArea)
-        case "hostage":
-            return calculateHostageScore(for: hitArea)
-        case "paddle", "popper":
-            return calculatePaddleScore(for: hitArea)
-        case "special_1", "special_2":
-            return calculateSpecialScore(for: hitArea)
-        default:
-            return calculateDefaultScore(for: hitArea)
-        }
+        return Double(ScoringUtility.scoreForHitArea(hitArea))
     }
     
-    /// IPSC target scoring system
-    func calculateIPSCScore(for hitArea: String) -> Double {
-        switch hitArea.lowercased() {
-        case "a":
-            return 5.0
-        case "c":
-            return 4.0
-        case "d":
-            return 2.0
-        case "miss", "m":
-            return 0.0
-        default:
-            return 1.0 // Default for unknown areas
-        }
-    }
-    
-    /// Hostage target scoring (penalty for hostage hits)
-    func calculateHostageScore(for hitArea: String) -> Double {
-        switch hitArea.lowercased() {
-        case "target":
-            return 5.0
-        case "hostage":
-            return -10.0 // Penalty for hitting hostage
-        case "miss", "m":
-            return 0.0
-        default:
-            return 1.0
-        }
-    }
-    
-    /// Paddle/Popper scoring (binary hit/miss)
-    func calculatePaddleScore(for hitArea: String) -> Double {
-        switch hitArea.lowercased() {
-        case "hit", "center", "edge":
-            return 5.0
-        case "miss", "m":
-            return 0.0
-        default:
-            return 2.5 // Partial credit for edge hits
-        }
-    }
-    
-    /// Special target scoring
-    func calculateSpecialScore(for hitArea: String) -> Double {
-        switch hitArea.lowercased() {
-        case "bullseye", "center":
-            return 10.0
-        case "ring1":
-            return 8.0
-        case "ring2":
-            return 6.0
-        case "ring3":
-            return 4.0
-        case "outer", "edge":
-            return 2.0
-        case "miss", "m":
-            return 0.0
-        default:
-            return 1.0
-        }
-    }
-    
-    /// Default scoring system
-    func calculateDefaultScore(for hitArea: String) -> Double {
-        switch hitArea.lowercased() {
-        case "center", "bullseye":
-            return 5.0
-        case "inner":
-            return 4.0
-        case "outer", "edge":
-            return 2.0
-        case "miss", "m":
-            return 0.0
-        default:
-            return 1.0
-        }
+    /// Calculate the number of missed targets
+    func calculateMissedTargets() -> Int {
+        return ScoringUtility.calculateMissedTargets(shots: decodedShots, drillSetup: drillSetup)
     }
     
     /// Check if a hit area represents a valid hit (not a miss)

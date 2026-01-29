@@ -1,199 +1,6 @@
 import SwiftUI
 import CoreData
 
-// Codable structs for JSON decoding
-struct ShotData: Codable {
-    let target: String?
-    let content: Content
-    let type: String?
-    let action: String?
-    let device: String?
-
-    enum CodingKeys: String, CodingKey {
-        case target
-        case content
-        case type
-        case action
-        case device
-    }
-}
-
-struct Content: Codable {
-    let command: String
-    let hitArea: String
-    let hitPosition: Position
-    let rotationAngle: Double?
-    let targetType: String
-    let timeDiff: Double
-    let device: String?
-    let targetPos: Position?
-    let `repeat`: Int?
-
-    enum CodingKeys: String, CodingKey {
-        // Old format keys
-        case command
-        case hitArea = "hit_area"
-        case hitPosition = "hit_position"
-        case rotationAngle = "rotation_angle"
-        case targetType = "target_type"
-        case timeDiff = "time_diff"
-        case device
-        case targetPos = "targetPos"
-        case `repeat` = "repeat"
-        // New abbreviated format keys
-        case cmd = "cmd"
-        case ha = "ha"
-        case hp = "hp"
-        case rot = "rot"
-        case tt = "tt"
-        case td = "td"
-        case std = "std"
-        case tgt_pos = "tgt_pos"
-        case rep = "rep"
-    }
-
-    init(command: String, hitArea: String, hitPosition: Position, rotationAngle: Double? = nil, targetType: String, timeDiff: Double, device: String? = nil, targetPos: Position? = nil, `repeat`: Int? = nil) {
-        self.command = command
-        self.hitArea = hitArea
-        self.hitPosition = hitPosition
-        self.rotationAngle = rotationAngle
-        self.targetType = targetType
-        self.timeDiff = timeDiff
-        self.device = device
-        self.targetPos = targetPos
-        self.`repeat` = `repeat`
-    }
-
-    init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        
-        // Decode command: try new key first, then old key
-        if let cmd = try? container.decode(String.self, forKey: .cmd) {
-            self.command = cmd
-        } else {
-            self.command = try container.decode(String.self, forKey: .command)
-        }
-        
-        // Decode hitArea: try new key first, then old key
-        if let ha = try? container.decode(String.self, forKey: .ha) {
-            self.hitArea = ha
-        } else {
-            self.hitArea = try container.decode(String.self, forKey: .hitArea)
-        }
-        
-        // Decode hitPosition: try new key first, then old key
-        if let hp = try? container.decode(Position.self, forKey: .hp) {
-            self.hitPosition = hp
-        } else {
-            self.hitPosition = try container.decode(Position.self, forKey: .hitPosition)
-        }
-        
-        // Decode rotationAngle: try new key first, then old key, handle multiple types and optional
-        var rotAngle: Double? = nil
-        if let rot = try? container.decodeIfPresent(Double.self, forKey: .rot) {
-            rotAngle = rot
-        } else if let rot = try? container.decodeIfPresent(Int.self, forKey: .rot) {
-            rotAngle = Double(rot)
-        } else if let rotAngleDouble = try? container.decodeIfPresent(Double.self, forKey: .rotationAngle) {
-            rotAngle = rotAngleDouble
-        } else if let rotAngleInt = try? container.decodeIfPresent(Int.self, forKey: .rotationAngle) {
-            rotAngle = Double(rotAngleInt)
-        } else if let rotAngleStr = try? container.decodeIfPresent(String.self, forKey: .rotationAngle), let rotAngleDouble = Double(rotAngleStr) {
-            rotAngle = rotAngleDouble
-        }
-        self.rotationAngle = rotAngle
-        
-        // Decode targetType: try new key first, then old key
-        if let tt = try? container.decode(String.self, forKey: .tt) {
-            self.targetType = tt
-        } else {
-            self.targetType = try container.decode(String.self, forKey: .targetType)
-        }
-        
-        // Decode timeDiff: try new key first, then old key, handle multiple types
-        if let td = try? container.decode(Double.self, forKey: .td) {
-            self.timeDiff = td
-        } else if let td = try? container.decode(Int.self, forKey: .td) {
-            self.timeDiff = Double(td)
-        } else if let tdStr = try? container.decode(String.self, forKey: .td), let tdDouble = Double(tdStr) {
-            self.timeDiff = tdDouble
-        } else if let timeDiffDouble = try? container.decode(Double.self, forKey: .timeDiff) {
-            self.timeDiff = timeDiffDouble
-        } else if let timeDiffStr = try? container.decode(String.self, forKey: .timeDiff), let timeDiffDouble = Double(timeDiffStr) {
-            self.timeDiff = timeDiffDouble
-        } else {
-            self.timeDiff = 0.0
-        }
-        
-        self.device = try container.decodeIfPresent(String.self, forKey: .device)
-        
-        // Decode targetPos: try new key first, then old key (both optional for rotation targets)
-        var targetPosition: Position? = nil
-        if let tgt_pos = try? container.decodeIfPresent(Position.self, forKey: .tgt_pos), tgt_pos != nil {
-            targetPosition = tgt_pos
-        } else if let targetPosValue = try? container.decodeIfPresent(Position.self, forKey: .targetPos), targetPosValue != nil {
-            targetPosition = targetPosValue
-        }
-        self.targetPos = targetPosition
-        
-        // Decode repeat: try new key first, then old key
-        if let rep = try? container.decodeIfPresent(Int.self, forKey: .rep) {
-            self.`repeat` = rep
-        } else {
-            self.`repeat` = try container.decodeIfPresent(Int.self, forKey: .`repeat`)
-        }
-    }
-    
-    // Encode using old format keys for backward compatibility
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(command, forKey: .command)
-        try container.encode(hitArea, forKey: .hitArea)
-        try container.encode(hitPosition, forKey: .hitPosition)
-        try container.encodeIfPresent(rotationAngle, forKey: .rotationAngle)
-        try container.encode(targetType, forKey: .targetType)
-        try container.encode(timeDiff, forKey: .timeDiff)
-        try container.encodeIfPresent(device, forKey: .device)
-        try container.encodeIfPresent(targetPos, forKey: .targetPos)
-        try container.encodeIfPresent(`repeat`, forKey: .`repeat`)
-    }
-}
-
-struct Position: Codable {
-    let x: Double
-    let y: Double
-
-    init(x: Double, y: Double) {
-        self.x = x
-        self.y = y
-    }
-
-    enum CodingKeys: String, CodingKey {
-        case x
-        case y
-    }
-
-    init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        if let xStr = try? container.decode(String.self, forKey: .x), let xVal = Double(xStr) {
-            self.x = xVal
-        } else {
-            self.x = try container.decode(Double.self, forKey: .x)
-        }
-        if let yStr = try? container.decode(String.self, forKey: .y), let yVal = Double(yStr) {
-            self.y = yVal
-        } else {
-            self.y = try container.decode(Double.self, forKey: .y)
-        }
-    }
-    
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(x, forKey: .x)
-        try container.encode(y, forKey: .y)
-    }
-}
-
 private struct TargetDisplay: Identifiable, Hashable {
     let id: String
     let config: DrillTargetsConfig
@@ -209,6 +16,11 @@ private struct TargetDisplay: Identifiable, Hashable {
             return shotIcon == icon
         }
     }
+}
+
+private func isScoringZone(_ hitArea: String) -> Bool {
+    let trimmed = hitArea.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+    return trimmed == "azone" || trimmed == "czone" || trimmed == "dzone"
 }
 
 private struct TargetDisplayView: View {
@@ -227,6 +39,8 @@ private struct TargetDisplayView: View {
         let display: TargetDisplay
         let shots: [ShotData]
         let selectedShotIndex: Int?
+        let pulsingShotIndex: Int?
+        let pulseScale: CGFloat
         let frameWidth: CGFloat
         let frameHeight: CGFloat
 
@@ -264,12 +78,49 @@ private struct TargetDisplayView: View {
                         let overlayBaseWidth: CGFloat = 396.0
                         let overlayBaseHeight: CGFloat = 489.5
 
-                        Image("ipsc")
-                            // .resizable()
-                            // .scaledToFit()
+                        ZStack(alignment: .center) {
+                            // Back: Target image and scoring zone bullets (rotate together)
+                            ZStack(alignment: .center) {
+                                Image("ipsc")
+                                    .resizable()
+                                    .frame(width: overlayBaseWidth * scaleX, height: overlayBaseHeight * scaleY)
+                                    .aspectRatio(contentMode: .fill)
+
+                                // Bullet holes for scoring zones
+                                ForEach(shots.indices, id: \.self) { index in
+                                    let shot = shots[index]
+                                    if display.matches(shot), let shotTargetPos = shot.content.targetPos, isScoringZone(shot.content.hitArea) {
+                                        let dx = shot.content.hitPosition.x - shotTargetPos.x
+                                        let dy = shot.content.hitPosition.y - shotTargetPos.y
+                                        let cosTheta = cos(-rotationRad)
+                                        let sinTheta = sin(-rotationRad)
+                                        let localDx = dx * cosTheta - dy * sinTheta
+                                        let localDy = dx * sinTheta + dy * cosTheta
+                                        let scaledDx = localDx * scaleX
+                                        let scaledDy = localDy * scaleY
+
+                                        ZStack {
+                                            Image("bullet_hole2")
+                                                .resizable()
+                                                .scaledToFit()
+                                                .frame(width: 16, height: 16)
+
+                                            if selectedShotIndex == index {
+                                                Circle()
+                                                    .stroke(Color.yellow, lineWidth: 2.5)
+                                                    .frame(width: 21, height: 21)
+                                                    .scaleEffect(pulsingShotIndex == index ? pulseScale : 1.0)
+                                            }
+                                        }
+                                        .offset(x: scaledDx, y: scaledDy)
+                                    }
+                                }
+                            }
                             .frame(width: overlayBaseWidth * scaleX, height: overlayBaseHeight * scaleY)
                             .rotationEffect(Angle(radians: rotationRad))
-                            .position(x: transformedX, y: transformedY)
+                        }
+                        .frame(width: overlayBaseWidth * scaleX, height: overlayBaseHeight * scaleY)
+                        .position(x: transformedX, y: transformedY)
                     }
                 }
             }
@@ -291,7 +142,7 @@ private struct TargetDisplayView: View {
                     Image("\(display.icon).live.target")
                         .resizable()
                         .scaledToFit()
-                        .frame(width: frameWidth - 20, height: frameHeight - 20)
+                        .frame(width: frameWidth, height: frameHeight)
                         .overlay(alignment: .topTrailing) {
                             if let targetName = display.targetName {
                                 Text(targetName)
@@ -305,11 +156,29 @@ private struct TargetDisplayView: View {
                             }
                         }
 
-                    RotationOverlayView(display: display, shots: shots, selectedShotIndex: selectedShotIndex, frameWidth: frameWidth, frameHeight: frameHeight)
+                    RotationOverlayView(display: display, shots: shots, selectedShotIndex: selectedShotIndex, pulsingShotIndex: pulsingShotIndex, pulseScale: pulseScale, frameWidth: frameWidth, frameHeight: frameHeight)
+
+                    // Barrel image for rotation targets (fixed to background, not affected by target position/rotation)
+                    if display.icon.lowercased() == "rotation" {
+                        let scaleX = frameWidth / 720.0
+                        let scaleY = frameHeight / 1280.0
+                        let barrelWidth: CGFloat = 420.0
+                        let barrelHeight: CGFloat = 641.0
+                        let barrelOffsetX: CGFloat = -200.0
+                        let barrelOffsetY: CGFloat = 230.0
+                        
+                        let barrelCenterX = (frameWidth / 2.0) + (barrelOffsetX * scaleX)
+                        let barrelCenterY = (frameHeight / 2.0) + (barrelOffsetY * scaleY)
+
+                        Image("barrel")
+                            .resizable()
+                            .frame(width: barrelWidth * scaleX, height: barrelHeight * scaleY)
+                            .position(x: barrelCenterX, y: barrelCenterY)
+                    }
 
                     ForEach(shots.indices, id: \.self) { index in
                         let shot = shots[index]
-                        if display.matches(shot) {
+                        if display.matches(shot) && display.icon.lowercased() != "rotation" && isScoringZone(shot.content.hitArea) {
                             let x = shot.content.hitPosition.x
                             let y = shot.content.hitPosition.y
                             let transformedX = (x / 720.0) * frameWidth
@@ -319,13 +188,39 @@ private struct TargetDisplayView: View {
                                 Image("bullet_hole2")
                                     .resizable()
                                     .scaledToFit()
-                                    .frame(width: 21, height: 21)
+                                    .frame(width: 15, height: 15)
 
                                 if selectedShotIndex == index {
                                     Circle()
                                         .stroke(Color.yellow, lineWidth: 2.5)
                                         .frame(width: 21, height: 21)
                                         .scaleEffect(pulsingShotIndex == index ? pulseScale : 1.0)
+                                }
+                            }
+                            .position(x: transformedX, y: transformedY)
+                        }
+                    }
+
+                    // Non-scoring shots rendered on top (fixed position for all target types)
+                    ForEach(shots.indices, id: \.self) { index in
+                        let shot = shots[index]
+                        if display.matches(shot) && !isScoringZone(shot.content.hitArea) {
+                            let x = shot.content.hitPosition.x
+                            let y = shot.content.hitPosition.y
+                            let transformedX = (x / 720.0) * frameWidth
+                            let transformedY = (y / 1280.0) * frameHeight
+
+                            ZStack {
+                                Image("bullet_hole2")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 15, height: 15)
+
+                                if selectedShotIndex == index {
+                                    Circle()
+                                        .stroke(Color.yellow, lineWidth: 2.5)
+                                    .frame(width: 21, height: 21)
+                                    .scaleEffect(pulsingShotIndex == index ? pulseScale : 1.0)
                                 }
                             }
                             .position(x: transformedX, y: transformedY)
@@ -351,6 +246,40 @@ struct DrillResultView: View {
     
     // Array to store received shots
     @State private var shots: [ShotData] = []
+    
+    /// Translates hit area names to localized display text
+    private func translateHitArea(_ hitArea: String) -> String {
+        let trimmed = hitArea.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        
+        switch trimmed {
+        case "azone":
+            return NSLocalizedString("hit_area_azone", comment: "Alpha zone")
+        case "czone":
+            return NSLocalizedString("hit_area_czone", comment: "Charlie zone")
+        case "dzone":
+            return NSLocalizedString("hit_area_dzone", comment: "Delta zone")
+        case "miss":
+            return NSLocalizedString("hit_area_miss", comment: "Miss")
+        case "barrel_miss":
+            return NSLocalizedString("hit_area_barrel_miss", comment: "Barrel miss")
+        case "circlearea":
+            return NSLocalizedString("hit_area_circlearea", comment: "Circle area")
+        case "standarea":
+            return NSLocalizedString("hit_area_standarea", comment: "Stand area")
+        case "popperzone":
+            return NSLocalizedString("hit_area_popperzone", comment: "Popper zone")
+        case "blackzone":
+            return NSLocalizedString("hit_area_blackzone", comment: "Black zone")
+        case "blackzoneleft":
+            return NSLocalizedString("hit_area_blackzoneleft", comment: "Black zone left")
+        case "blackzoneright":
+            return NSLocalizedString("hit_area_blackzoneright", comment: "Black zone right")
+        case "whitezone":
+            return NSLocalizedString("hit_area_whitezone", comment: "White zone")
+        default:
+            return hitArea
+        }
+    }
     
     // Timer for drill duration
     @State private var drillTimer: Timer?
@@ -397,12 +326,22 @@ struct DrillResultView: View {
     private var targetDisplays: [TargetDisplay] {
         let sortedTargets = drillSetup.sortedTargets
         
-        return sortedTargets.map { target in
+        // Create TargetDisplay instances
+        let displays = sortedTargets.map { target in
             let iconName = target.targetType ?? ""
             let resolvedIcon = iconName.isEmpty ? "hostage" : iconName
             let id = target.id?.uuidString ?? UUID().uuidString
             return TargetDisplay(id: id, config: target, icon: resolvedIcon, targetName: target.targetName)
         }
+        
+        // Sort displays based on the earliest shot index for each target
+        let sortedDisplays = displays.sorted { display1, display2 in
+            let minIndex1 = shots.enumerated().first(where: { display1.matches($0.element) })?.offset ?? Int.max
+            let minIndex2 = shots.enumerated().first(where: { display2.matches($0.element) })?.offset ?? Int.max
+            return minIndex1 < minIndex2
+        }
+        
+        return sortedDisplays
     }
     
     var totalDuration: Double {
@@ -443,6 +382,33 @@ struct DrillResultView: View {
         self.repeatSummary = repeatSummary
         _isLiveDrill = State(initialValue: false)
         _shots = State(initialValue: repeatSummary.shots)
+        _drillStatus = State(initialValue: NSLocalizedString("drill_status_completed", comment: "Drill completed status"))
+        if let firstTarget = drillSetup.sortedTargets.first {
+            _selectedTargetKey = State(initialValue: firstTarget.id?.uuidString ?? UUID().uuidString)
+        } else {
+            _selectedTargetKey = State(initialValue: UUID().uuidString)
+        }
+    }
+    
+    init(drillSetup: DrillSetup, drillResult: DrillResult) {
+        self.drillSetup = drillSetup
+        self.repeatSummary = nil
+        _isLiveDrill = State(initialValue: false)
+        
+        // Convert DrillResult shots to ShotData
+        var convertedShots: [ShotData] = []
+        if let shotSet = drillResult.shots as? Set<Shot> {
+            let decoder = JSONDecoder()
+            for shot in shotSet {
+                guard let data = shot.data else { continue }
+                if let shotData = try? decoder.decode(ShotData.self, from: data.data(using: .utf8) ?? Data()) {
+                    convertedShots.append(shotData)
+                }
+            }
+        }
+        convertedShots.sort { (a: ShotData, b: ShotData) in a.content.timeDiff < b.content.timeDiff }
+        
+        _shots = State(initialValue: convertedShots)
         _drillStatus = State(initialValue: NSLocalizedString("drill_status_completed", comment: "Drill completed status"))
         if let firstTarget = drillSetup.sortedTargets.first {
             _selectedTargetKey = State(initialValue: firstTarget.id?.uuidString ?? UUID().uuidString)
@@ -511,7 +477,7 @@ struct DrillResultView: View {
                                     Text("#\(idx + 1)")
                                         .frame(width: 64, alignment: .center)
                                         .foregroundColor(.white)
-                                    Text(shot.content.hitArea)
+                                    Text(translateHitArea(shot.content.hitArea))
                                         .frame(width: 80, alignment: .center)
                                         .foregroundColor(.white)
                                     Text(String(format: "%.2f", shot.content.timeDiff))
@@ -700,16 +666,19 @@ struct DrillResultView: View {
         }
         
         let drillResult = DrillResult(context: context)
+        drillResult.id = UUID()
         drillResult.drillId = drillId
         drillResult.date = Date()
         drillResult.drillSetup = drillSetup
         
         // Set totalTime from repeatSummary if available
         if let repeatSummary = repeatSummary {
-            drillResult.totalTime = repeatSummary.totalTime
+            drillResult.totalTime = NSNumber(value: repeatSummary.totalTime)
         }
         
+        var cumulativeTime: Double = 0
         for shotData in shots {
+            cumulativeTime += shotData.content.timeDiff
             let shot = Shot(context: context)
             do {
                 let jsonData = try JSONEncoder().encode(shotData)
@@ -718,7 +687,8 @@ struct DrillResultView: View {
                 print("Failed to encode shot data: \(error)")
                 shot.data = nil
             }
-            shot.timestamp = Date()
+            // Store absolute time_diff in milliseconds as an integer
+            shot.timestamp = Int64(cumulativeTime * 1000)
             shot.drillResult = drillResult
         }
         
@@ -757,6 +727,7 @@ struct PreviewContent: View {
         mockDrillSetup.name = "Test Drill"
         mockDrillSetup.desc = "Test drill description"
         mockDrillSetup.delay = 2.0
+        mockDrillSetup.mode = "ipsc"
         
         // Add mock targets
         let mockTarget = DrillTargetsConfig(context: context)

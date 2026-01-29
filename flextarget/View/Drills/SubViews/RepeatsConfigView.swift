@@ -20,6 +20,7 @@ import SwiftUI
 struct RepeatsConfigView: View {
     // DelayType removed - this view now only supports random delay mode
     @Binding var repeatsValue: Int
+    var disabled: Bool = false
 
     // Repeats options from 1 to 100
     private let repeatsOptions: [Int] = Array(1...100)
@@ -46,7 +47,9 @@ struct RepeatsConfigView: View {
 
             // Button to open picker sheet
             Button(action: {
-                showRepeatsPicker = true
+                if !disabled {
+                    showRepeatsPicker = true
+                }
             }) {
                 HStack {
                     Text("\(repeatsValue)")
@@ -62,6 +65,7 @@ struct RepeatsConfigView: View {
                 .cornerRadius(6)
             }
             .buttonStyle(.plain)
+            .disabled(disabled)
         }
         .padding()
         .background(Color.gray.opacity(0.2))

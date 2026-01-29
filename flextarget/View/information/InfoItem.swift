@@ -67,5 +67,6 @@ struct InformationPage: View {
             .navigationBarBackButtonHidden(true)
             .navigationViewStyle(.stack)
         }
+        .background(Color.black.ignoresSafeArea())
     }
 }

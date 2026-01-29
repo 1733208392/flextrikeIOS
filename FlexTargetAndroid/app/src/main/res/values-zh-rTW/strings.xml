@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App name -->
+    <string name="app_name">FlexTarget</string>
+    
+    <!-- Login screen -->
+    <string name="login_title">FlexTarget</string>
+    <string name="login_subtitle">使用您的射箭靶場帳戶登入</string>
+    <string name="login_mobile">手機號碼</string>
+    <string name="login_password">密碼</string>
+    <string name="login_button">登入</string>
+    <string name="login_loading">正在登入...</string>
+    <string name="login_error">登入失敗。請檢查您的認證資訊。</string>
+    <string name="login_hint_mobile">輸入您的手機號碼</string>
+    <string name="login_hint_password">輸入您的密碼</string>
+    
+    <!-- Auth state -->
+    <string name="auth_not_authenticated">未認證</string>
+    <string name="auth_authenticated">已認證</string>
+    <string name="auth_logout">登出</string>
+    <string name="auth_profile">個人資料</string>
+    
+    <!-- Competitions -->
+    <string name="competitions">競賽</string>
+    <string name="competitions_title">競賽</string>
+    <string name="competitions_empty">沒有可用的競賽</string>
+    <string name="competitions_venue">場地</string>
+    <string name="competitions_date">日期</string>
+    <string name="competitions_description">描述</string>
+    <string name="competitions_leaderboard">排行榜</string>
+    <string name="competitions_submit_result">提交成績</string>
+    
+    <!-- Drill execution -->
+    <string name="drill_title">演練執行</string>
+    <string name="drill_state_idle">就緒</string>
+    <string name="drill_state_initialized">已初始化</string>
+    <string name="drill_state_waiting_ack">等待設備確認</string>
+    <string name="drill_state_executing">執行中</string>
+    <string name="drill_state_finalizing">正在完成</string>
+    <string name="drill_state_complete">完成</string>
+    <string name="drill_state_error">錯誤</string>
+    <string name="drill_current_score">當前分數</string>
+    <string name="drill_shots">射擊</string>
+    <string name="drill_time">時間</string>
+    <string name="drill_average">平均</string>
+    <string name="drill_device_connected">設備已連接</string>
+    <string name="drill_device_disconnected">設備已斷開</string>
+    <string name="drill_last_shot">最後一射</string>
+    <string name="drill_start_shooting">開始射擊</string>
+    <string name="drill_stop_finalize">停止 &amp; 完成</string>
+    <string name="drill_complete">完成演練</string>
+    <string name="drill_abort">中止演練</string>
+    
+    <!-- OTA Updates -->
+    <string name="ota_title">系統更新</string>
+    <string name="ota_check">檢查更新</string>
+    <string name="ota_checking">正在檢查更新...</string>
+    <string name="ota_available">有可用更新</string>
+    <string name="ota_up_to_date">已是最新版本</string>
+    <string name="ota_download">下載更新</string>
+    <string name="ota_preparing">正在下載和準備...</string>
+    <string name="ota_ready">準備安裝</string>
+    <string name="ota_verifying">正在驗證完整性...</string>
+    <string name="ota_verify_install">驗證 &amp; 安裝</string>
+    <string name="ota_installing">正在安裝更新...</string>
+    <string name="ota_complete">安裝完成</string>
+    <string name="ota_version">版本</string>
+    <string name="ota_current_version">當前版本</string>
+    <string name="ota_latest">最新版本</string>
+    <string name="ota_mandatory">強制更新</string>
+    <string name="ota_cancel">取消</string>
+    <string name="ota_failed">更新失敗</string>
+    
+    <!-- Settings -->
+    <string name="settings_title">設定</string>
+    <string name="settings_language">語言</string>
+    <string name="settings_notifications">通知</string>
+    <string name="settings_device">設備</string>
+    <string name="settings_about">關於</string>
+    <string name="settings_version">版本</string>
+    
+    <!-- Device -->
+    <string name="device_title">設備管理</string>
+    <string name="device_connected">已連接</string>
+    <string name="device_disconnected">已斷開</string>
+    <string name="device_connect">連接設備</string>
+    <string name="device_disconnect">斷開</string>
+    <string name="device_auth">設備認證</string>
+    
+    <!-- BLE Connection -->
+    <string name="connecting">連接中</string>
+    <string name="trying_to_connect">正在嘗試連接...</string>
+    <string name="target_connected">目標已連接</string>
+    <string name="scanning_for">正在掃描</string>
+    <string name="ready_to_scan">準備掃描</string>
+    <string name="target_not_found">未找到目標</string>
+    <string name="no_targets_found">未找到目標</string>
+    <string name="bluetooth_service_not_found">未找到藍牙服務</string>
+    <string name="reconnect">重新連接</string>
+    <string name="my_target">我的目標</string>
+    <string name="ble_test_tool">BLE測試工具</string>
+    
+    <!-- Errors -->
+    <string name="error_title">錯誤</string>
+    <string name="error_network">網路錯誤</string>
+    <string name="error_auth_failed">認證失敗</string>
+    <string name="error_device_not_connected">設備未連接</string>
+    <string name="error_timeout">請求逾時</string>
+    <string name="error_unknown">發生未知錯誤</string>
+    
+    <!-- Common -->
+    <string name="back">返回</string>
+    <string name="next">下一步</string>
+    <string name="cancel">取消</string>
+    <string name="save">保存</string>
+    <string name="ok">確定</string>
+    <string name="done">完成</string>
+    <string name="retry">重試</string>
+    <string name="confirm">確認</string>
+    <string name="delete">刪除</string>
+    <string name="device">設備</string>
+    <string name="select_device">選擇設備</string>
+    <string name="type">類型</string>
+    <string name="select_type">選擇類型</string>
+    <string name="edit">編輯</string>
+    <string name="close">關閉</string>
+    <string name="loading">載入中...</string>
+    <string name="error">錯誤</string>
+    <string name="information">資訊</string>
+    <string name="select">選擇</string>
+    <string name="copy">複製</string>
+    <string name="create">創建</string>
+    <string name="search">搜索</string>
+    <string name="details">詳情</string>
+    <string name="name">名稱</string>
+    <string name="username">用戶名</string>
+    
+    <!-- Navigation -->
+    <string name="tab_drills">演練</string>
+    <string name="tab_history">歷史</string>
+    <string name="tab_competition">競賽</string>
+    <string name="tab_admin">管理</string>
+    
+    <!-- Drills -->
+    <string name="drill_history">演練歷史</string>
+    <string name="search_drills">搜索演練</string>
+    <string name="start_drill">開始演練</string>
+    <string name="end_drill">結束演練</string>
+    <string name="drill_in_progress">演練進行中</string>
+    <string name="delete_drill">刪除演練</string>
+    <string name="enter_drill_name">輸入演練名稱</string>
+    <string name="enter_drill_description">輸入演練描述（可選）</string>
+    <string name="repeats">重複次數：</string>
+    <string name="pause_seconds">暫停（秒）：</string>
+    <string name="no_shots_to_display">沒有射擊可顯示</string>
+    <string name="replay">重播</string>
+    <string name="training_records_available">訓練記錄可用</string>
+    <string name="maximum_targets_reached">達到最大目標數</string>
+    <string name="max_targets_message">您只能配置最多 %1$d 個目標（%2$d/%1$d）</string>
+    <string name="connection_required">需要連接</string>
+    <string name="connection_required_message">您必須連接到目標才能創建新的演練。</string>
+    
+    <!-- Competition -->
+    <string name="competitions_menu_desc">查看和管理競賽</string>
+    <string name="shooters_menu_desc">管理射手和運動員</string>
+    <string name="leaderboard_menu_desc">查看競賽排行榜</string>
+    <string name="search_competitions">搜索競賽...</string>
+    <string name="new_competition">新競賽</string>
+    <string name="competition_name">競賽名稱</string>
+    <string name="venue_optional">場地（可選）</string>
+    
+    <!-- Admin -->
+    <string name="admin">管理員</string>
+    <string name="device_management">設備管理</string>
+    <string name="device_connected_desc">設備已連接</string>
+    <string name="connect_to_device_desc">連接至設備</string>
+    <string name="manage_user_profile">管理用戶資料</string>
+    <string name="shooters">射手</string>
+    <string name="add_athlete">添加運動員</string>
+    <string name="club_optional">俱樂部（可選）</string>
+    <string name="no_athletes_found">未找到運動員。請在射手管理中添加一些。</string>
+    <string name="user_profile">用戶資料</string>
+    <string name="update_profile">更新資料</string>
+    <string name="change_password">更改密碼</string>
+    <string name="logout">登出</string>
+    <string name="logout_confirm">您確定要登出嗎？</string>
+    <string name="session_expired_message">您的工作階段已過期。請重新登入。</string>
+    
+    <!-- Device -->
+    <string name="connected_device">已連接設備</string>
+    <string name="manage_connection">管理連接</string>
+    <string name="ota_update">OTA更新</string>
+    <string name="check_install_updates">檢查並安裝系統更新</string>
+    <string name="manual_select">手動選擇</string>
+    <string name="browse_select_devices">瀏覽並選擇可用設備</string>
+    <string name="scan_qr_code">掃描QR碼</string>
+    <string name="scan_device_qr">掃描設備QR碼</string>
+
+    <string name="select_target_type">選擇目標類型</string>
+    <string name="available_devices">可用設備</string>
+    <string name="scan_again">重新掃描</string>
+    <string name="scanning">掃描中...</string>
+    <string name="no_devices_found">未找到設備</string>
+    <string name="go_to_device_management">轉到設備管理</string>
+    
+    <!-- Updates -->
+    <string name="checking">檢查中...</string>
+    <string name="check_now">立即檢查</string>
+    <string name="update_now">立即更新</string>
+    
+    <!-- JSON -->
+    <string name="enter_json_command">輸入JSON命令...</string>
+    
+    <!-- Symbols -->
+    <string name="arrow_left">←</string>
+    <string name="minus">-</string>
+    <string name="plus">+</string>
+    
+    <!-- Drill Results -->
+    <string name="drill_results_summary">鑽孔結果摘要</string>
+    <string name="submit_competition_result">提交比賽結果</string>
+    <string name="no_results_available">無可用結果</string>
+    <string name="complete_drill_message">完成鑽孔以在此處查看您的結果</string>
+    <string name="edit_hit_zone_counts">編輯命中區計數</string>
+    <string name="a_zone">A區</string>
+    <string name="c_zone">C區</string>
+    <string name="d_zone">D區</string>
+    <string name="no_shoot_zone">不射擊 (N)</string>
+    <string name="miss_zone">未命中 (M)</string>
+    <string name="penalty_zone">罰分 (PE)</string>
+    <string name="pe_abbrev">PE</string>
+    <string name="replay_drill">重播鑽孔</string>
+    
+    <!-- Drill List -->
+    <string name="my_drills">我的鑽孔</string>
+    <string name="drills">鑽孔</string>
+    <string name="are_you_sure_delete">您確定要刪除 \"%1$s\" 嗎？</string>
+    <string name="untitled">無標題</string>
+    
+    <!-- Competitions -->
+    <string name="no_competitions_yet">還沒有比賽</string>
+    <string name="select_drill_setup">選擇鑽孔設置</string>
+    <string name="date_label">日期: </string>    
+    <!-- History -->
+    <string name="history_title">歷史</string>
+    <string name="all_modes">所有模式</string>
+    <string name="all_drill_setups">所有演練設置</string>
+    <string name="no_results_found">未找到結果</string>
+    <string name="complete_drills_history">完成一些演練以查看您的歷史</string>
+    <string name="repeats_label">重複</string>
+    <string name="shots_label">射擊</string>
+    <string name="all_time">全部時間</string>
+    <string name="past_week">過去一週</string>
+    <string name="past_month">過去一個月</string>
+    
+    <!-- Competition Views -->
+    <string name="new_athlete">新運動員</string>
+    <string name="unknown">未知</string>
+    <string name="choose_competition">選擇競賽</string>
+    <string name="no_competitions_available">沒有可用的競賽</string>
+    <string name="select_competition_to_view_rankings">選擇競賽以查看排名</string>
+    <string name="loading_ranking">載入排名...</string>
+    <string name="error_loading_ranking">載入排名錯誤</string>
+    <string name="no_ranking_data_available">沒有可用的排名數據</string>
+    <string name="shots">射擊</string>
+    <string name="active_shooter">活躍射手</string>
+    <string name="select_shooter">選擇射手</string>
+    <string name="select_athlete">選擇運動員</string>
+    <string name="no_linked_drill_found">未找到鏈接的演練</string>
+    <string name="select_shooter_to_start">選擇射手開始</string>
+    <string name="start_competition_drill">開始競賽演練</string>
+    
+    <!-- Additional error and UI strings -->
+    <string name="failed_to_load_recent_drills">載入最近演練失敗</string>
+    <string name="loading_recent_drills">正在載入最近演練...</string>
+    <string name="changing_config_not_allowed">不允許更改配置。請創建一個新的演練</string>
+    <string name="information_page_placeholder">資訊頁面 - TODO</string>
+    
+    <!-- Drill Form View strings -->
+    <string name="add_drill">添加演練</string>
+    <string name="edit_drill">編輯演練</string>
+    <string name="targets_screen">目標</string>
+
+    <string name="add_target">添加目標</string>
+    <string name="lock">鎖定</string>
+    <string name="editing_disabled_message">由於此演練有結果或與競賽相關聯，編輯已被禁用。</string>
+    <string name="drill_name">演練名稱</string>
+    <string name="description">描述</string>
+    <string name="drill_mode">演練模式</string>
+    <string name="ipsc">IPSC</string>
+    <string name="hostage">人質</string>
+    <string name="special_1">特殊1</string>
+    <string name="special_2">特殊2</string>
+    <string name="paddle">槳</string>
+    <string name="popper">爆破器</string>
+    <string name="rotation">旋轉</string>
+    <string name="idpa">IDPA</string>
+    <string name="cqb">CQB</string>
+    <!-- CQB Target Types -->
+    <string name="cqb_swing">窺視</string>
+    <string name="cqb_front">瞄準</string>
+    <string name="cqb_move">經過</string>
+    <string name="cqb_hostage">人質</string>
+    <string name="disguised_enemy">偽裝敵人</string>
+    <!-- CQB Drill Summary -->
+    <string name="cqb_total_shots">總射擊數</string>
+    <string name="cqb_duration">持續時間</string>
+    <string name="cqb_passed">通過</string>
+    <string name="cqb_failed">失敗</string>
+    <string name="cqb_threat">威脅</string>
+    <string name="cqb_non_threat">非威脅</string>
+    <string name="cqb_shots_format">射擊: %1$d/%2$d</string>
+    <string name="configuration">配置</string>
+    <string name="saving">保存中...</string>
+    <string name="save_drill">保存演練</string>
+    <string name="save_changes">保存更改</string>
+    <string name="targets_count">%d 個目標</string>
+    <string name="arrow_right">></string>
+    <string name="targets_section">目標</string>
+</resources>

@@ -7,12 +7,12 @@ struct ConnectSmartTargetView: View {
     var targetPeripheralName: String? = nil
     // Flag indicating if BLE is already connected
     var isAlreadyConnected: Bool = false
+    var hideCloseButton: Bool = false
     @Environment(\.dismiss) var dismiss
     @State private var statusText: String = "CONNECTING"
     @State private var showReconnect: Bool = false
     @State private var isShaking: Bool = true
     @State private var showProgress: Bool = false
-    @State private var showFirmwareAlert: Bool = false
     @State private var hasTriedReconnect: Bool = false
     @State private var selectedPeripheral: DiscoveredPeripheral?
     @State private var showImageCrop: Bool = false
@@ -140,18 +140,10 @@ struct ConnectSmartTargetView: View {
                                         .background(Color.red)
                                         .cornerRadius(8)
                                 }
-                                Button(action: { showFirmwareAlert = true }) {
-                                    Text(NSLocalizedString("firmware_upgrade", comment: "Firmware Upgrade button"))
-                                        .font(.custom("SFPro-Medium", size: 20))
-                                        .foregroundColor(.white)
-                                        .frame(width: geometry.size.width * 0.35, height: 44)
-                                        .background(Color.red)
-                                        .cornerRadius(8)
-                                }
                             }
                             .padding(.horizontal)
                             
-                            // Image Transfer button shown when connected (placed under Scan & Firmware)
+                            // Image Transfer button shown when connected (placed under Scan)
                             Button(action: {
                                 showImageCrop = true
                             }) {
@@ -173,33 +165,24 @@ struct ConnectSmartTargetView: View {
             //                .border(Color.white, width: 1)
         }//Top Level Geometry Reader
         .overlay(alignment: .topTrailing) {
-            Button(action: { dismiss() }) {
-                Image(systemName: "xmark")
-                    .foregroundColor(.white)
-                    .font(.system(size: 20))
-                    .padding(12)
-                    .background(Color.white.opacity(0.2))
-                    .clipShape(Circle())
+            if !hideCloseButton {
+                Button(action: { dismiss() }) {
+                    Image(systemName: "xmark")
+                        .foregroundColor(.white)
+                        .font(.system(size: 20))
+                        .padding(12)
+                        .background(Color.white.opacity(0.2))
+                        .clipShape(Circle())
+                }
+                .padding(.trailing, 20)
+                .padding(.top, 20)
+                .accessibilityLabel(Text("Close"))
             }
-            .padding(.trailing, 20)
-            .padding(.top, 20)
-            .accessibilityLabel(Text("Close"))
         }
         .sheet(isPresented: $showImageCrop) {
             ImageCropView()
         }
         .background(Color.black.ignoresSafeArea())
-        .alert(isPresented: $showFirmwareAlert) {
-            Alert(
-                title: Text(NSLocalizedString("firmware_upgrade_title", comment: "Firmware Upgrade alert title")),
-                message: Text(NSLocalizedString("firmware_upgrade_message", comment: "Firmware Upgrade alert message")),
-                primaryButton: .default(Text("OK")) {
-                    bleManager.writeJSON("{\"action\":\"upgrade_engine\"}")
-                    goToMain()
-                },
-                secondaryButton: .cancel()
-            )
-        }
         .alert(isPresented: $bleManager.showErrorAlert) {
             Alert(
                 title: Text("Error"),

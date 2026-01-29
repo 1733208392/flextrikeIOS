@@ -24,13 +24,12 @@ enum DrillFormMode {
 }
 
 struct DrillFormView: View {
-    let bleManager: BLEManager
+    @ObservedObject var bleManager: BLEManager
     let mode: DrillFormMode
     
     @State private var drillName: String = ""
     @State private var description: String = ""
     @State private var demoVideoURL: URL? = nil
-    @State private var showFilePicker: Bool = false
     @State private var demoVideoThumbnail: UIImage? = nil
     @State private var thumbnailFileURL: URL? = nil
     @State private var showVideoPlayer: Bool = false
@@ -39,6 +38,7 @@ struct DrillFormView: View {
     @State private var repeatsValue: Int = 1
     @State private var pauseValue: Int = 5
     @State private var drillDuration: Double = 5
+    @State private var drillMode: String = "ipsc"
     @State private var targets: [DrillTargetsConfigData] = []
     @State private var isTargetListReceived: Bool = false
     @State private var targetConfigs: [DrillTargetsConfigData] = []
@@ -49,6 +49,7 @@ struct DrillFormView: View {
     @State private var showBackConfirmationAlert: Bool = false
     @State private var navigateToTimerSession: Bool = false
     @State private var drillSetupForTimer: DrillSetup? = nil
+    @State private var showTargetConfigAlert: Bool = false
     
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.managedObjectContext) private var environmentContext
@@ -68,6 +69,13 @@ struct DrillFormView: View {
         return nil
     }
     
+    private var isEditingDisabled: Bool {
+        guard let drillSetup = currentDrillSetup else { return false }
+        let hasResults = (drillSetup.results?.count ?? 0) > 0
+        let hasCompetitions = (drillSetup.competitions?.count ?? 0) > 0
+        return hasResults || hasCompetitions
+    }
+    
     init(bleManager: BLEManager, mode: DrillFormMode) {
         self.bleManager = bleManager
         self.mode = mode
@@ -82,6 +90,7 @@ struct DrillFormView: View {
             _repeatsValue = State(initialValue: Int(drillSetup.repeats))
             _pauseValue = State(initialValue: Int(drillSetup.pause))
             _drillDuration = State(initialValue: drillSetup.drillDuration)
+            _drillMode = State(initialValue: drillSetup.mode ?? "ipsc")
             
             let coreDataTargets = (drillSetup.targets as? Set<DrillTargetsConfig>) ?? []
             let targetsArray = coreDataTargets.sorted(by: { $0.seqNo < $1.seqNo }).map { $0.toStruct() }
@@ -98,50 +107,33 @@ struct DrillFormView: View {
             ZStack {
                 Color.black.ignoresSafeArea()
                     .onTapGesture {
-                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                        hideKeyboard()
                     }
                 
                 VStack(spacing: 20) {
-                        // History Record Button - only show in edit mode
-                        if let drillSetup = currentDrillSetup {
-                            // Extract destination into a local constant to help the compiler
-                            let drillRecordDestination = DrillRecordView(drillSetup: drillSetup)
-                                .environment(\.managedObjectContext, viewContext)
-
-                            NavigationLink(destination: drillRecordDestination) {
-                                HStack(spacing: 8) {
-                                    Image(systemName: "clock.arrow.circlepath")
-                                        .foregroundColor(.red)
-                                        .font(.title3)
-                                    Text(NSLocalizedString("history_record", comment: "History Record button label"))
-                                        .foregroundColor(.white)
-                                        .font(.footnote)
-                                    Spacer()
-                                }
-                                .frame(height: 36)
-                                .frame(maxWidth: .infinity)
-                                .padding(.horizontal)
-                                .padding(.vertical, 8)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 16)
-                                        .stroke(Color.red, lineWidth: 1)
-                                )
-                            }
-                            .padding(.horizontal)
-                            .padding(.top)
-                        }
-                        
                         ScrollView {
+                            if isEditingDisabled {
+                                HStack {
+                                    Image(systemName: "lock.fill")
+                                    Text(NSLocalizedString("drill_editing_disabled_hint", comment: "Hint when drill editing is disabled"))
+                                }
+                                .font(.caption)
+                                .foregroundColor(.orange)
+                                .padding(.horizontal)
+                                .padding(.top, 8)
+                            }
+                            
                             // Grouped Section: Drill Name, Description, Add Video
                             VStack(spacing: 20) {
-                                DrillNameSectionView(drillName: $drillName)
+                                DrillNameSectionView(drillName: $drillName, disabled: isEditingDisabled)
                                 
                                 DescriptionVideoSectionView(
                                     description: $description,
                                     demoVideoURL: $demoVideoURL,
                                     demoVideoThumbnail: $demoVideoThumbnail,
                                     thumbnailFileURL: $thumbnailFileURL,
-                                    showVideoPlayer: $showVideoPlayer
+                                    showVideoPlayer: $showVideoPlayer,
+                                    disabled: isEditingDisabled
                                 )
                                 .sheet(isPresented: $showVideoPlayer) {
                                     if let url = demoVideoURL {
@@ -153,10 +145,17 @@ struct DrillFormView: View {
                             .background(Color.gray.opacity(0.2))
                             .cornerRadius(20)
                             .padding(.horizontal)
+
+                            DrillModeSelectionView(
+                                drillMode: $drillMode,
+                                disabled: isEditingDisabled
+                            )
+                            .padding(.horizontal)
                             
                             // Delay of Set Starting
                             RepeatsConfigView(
-                                repeatsValue: $repeatsValue
+                                repeatsValue: $repeatsValue,
+                                disabled: false
                             )
                             .padding(.horizontal)
                             
@@ -165,7 +164,8 @@ struct DrillFormView: View {
                                 drillDuration: Binding(
                                     get: { Double(pauseValue) },
                                     set: { pauseValue = Int($0) }
-                                )
+                                ),
+                                disabled: false
                             )
                             .padding(.horizontal)
                             
@@ -174,7 +174,10 @@ struct DrillFormView: View {
                                 isTargetListReceived: $isTargetListReceived,
                                 bleManager: bleManager,
                                 targetConfigs: $targetConfigs,
-                                onTargetConfigDone: { targets = targetConfigs }
+                                onTargetConfigDone: { targets = targetConfigs },
+                                disabled: isEditingDisabled,
+                                onDisabledTap: { showTargetConfigAlert = true },
+                                drillMode: drillMode
                             )
                             .padding(.horizontal)
                             
@@ -200,6 +203,11 @@ struct DrillFormView: View {
                             handleDeviceListUpdate(notification)
                         }
                         .ignoresSafeArea(.keyboard, edges: .bottom)
+                        .simultaneousGesture(
+                            TapGesture().onEnded {
+                                hideKeyboard()
+                            }
+                        )
                     }
                 }
             .environment(\.managedObjectContext, viewContext)
@@ -268,6 +276,14 @@ struct DrillFormView: View {
         } message: {
             Text(NSLocalizedString("drill_in_progress_back_message", comment: "Message when trying to go back during drill execution"))
         }
+        .alert("Training Records Available", isPresented: $showTargetConfigAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Changing the Target Config is not allowed. Please create new Drill")
+        }
+        .alert(isPresented: $bleManager.showErrorAlert) {
+            Alert(title: Text("Error"), message: Text(bleManager.errorMessage ?? "Unknown error occurred"), dismissButton: .default(Text("OK")))
+        }
         .navigationBarBackButtonHidden(true)
     }
     
@@ -282,10 +298,10 @@ struct DrillFormView: View {
                     .fontWeight(.semibold)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(bleManager.isConnected ? Color.red : Color.gray)
+                    .background((bleManager.isConnected && !isEditingDisabled) ? Color.red : Color.gray)
                     .cornerRadius(8)
             }
-            .disabled(!bleManager.isConnected)
+            .disabled(!bleManager.isConnected || isEditingDisabled)
             
             Button(action: saveAndStartDrill) {
                 Text(NSLocalizedString("start_drill", comment: "Start drill button"))
@@ -563,9 +579,10 @@ struct DrillFormView: View {
             drillSetup.thumbnailURL = standardizedURL
         }
         
-        drillSetup.repeats = repeatsValue
-        drillSetup.pause = pauseValue
+        drillSetup.repeats = Int32(repeatsValue)
+        drillSetup.pause = Int32(pauseValue)
         drillSetup.drillDuration = drillDuration
+        drillSetup.mode = drillMode
         
         print("Creating drill setup with:")
         print("  name: \(drillName)")
@@ -583,6 +600,9 @@ struct DrillFormView: View {
             target.targetType = targetData.targetType
             target.timeout = targetData.timeout
             target.countedShots = Int32(targetData.countedShots)
+            target.action = targetData.action
+            target.duration = targetData.duration
+            target.targetVariant = targetData.targetVariant
             
             // Use the Core Data generated method to establish relationship
             drillSetup.addToTargets(target)
@@ -642,9 +662,10 @@ struct DrillFormView: View {
         drillSetup.desc = description
         drillSetup.demoVideoURL = demoVideoURL
         drillSetup.thumbnailURL = thumbnailFileURL
-        drillSetup.repeats = repeatsValue
-        drillSetup.pause = pauseValue
+        drillSetup.repeats = Int32(repeatsValue)
+        drillSetup.pause = Int32(pauseValue)
         drillSetup.drillDuration = drillDuration
+        drillSetup.mode = drillMode
         
         // Update targets: reuse existing ones by ID, create only new ones
         let existingTargets = (drillSetup.targets as? Set<DrillTargetsConfig>) ?? []
@@ -681,6 +702,9 @@ struct DrillFormView: View {
             target.targetType = targetData.targetType
             target.timeout = targetData.timeout
             target.countedShots = Int32(targetData.countedShots)
+            target.action = targetData.action
+            target.duration = targetData.duration
+            target.targetVariant = targetData.targetVariant
         }
         
         // Remove targets that are no longer needed
@@ -692,8 +716,96 @@ struct DrillFormView: View {
         }
     }
     
-    // MARK: - Helper Methods
+    // MARK: - File Storage Methods
     
+    /// Get the appropriate directory for persistent file storage (iCloud Drive if available, otherwise Documents)
+    private func getPersistentStorageDirectory() -> URL? {
+        let fileManager = FileManager.default
+        
+        // Try iCloud Drive first
+        if let iCloudURL = fileManager.url(forUbiquityContainerIdentifier: nil)?.appendingPathComponent("Documents") {
+            // Check if iCloud is available
+            if fileManager.fileExists(atPath: iCloudURL.path) || (try? fileManager.createDirectory(at: iCloudURL, withIntermediateDirectories: true)) != nil {
+                print("Using iCloud Drive for file storage: \(iCloudURL.path)")
+                return iCloudURL
+            }
+        }
+        
+        // Fall back to local Documents directory
+        let docs = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        print("Using local Documents directory for file storage: \(docs.path)")
+        return docs
+    }
+
+    // Save JPEG data into persistent storage and return URL
+    private func saveThumbnailDataToDocuments(_ data: Data) -> URL? {
+        guard let storageDir = getPersistentStorageDirectory() else {
+            print("Failed to get storage directory")
+            return nil
+        }
+        
+        let dest = storageDir.appendingPathComponent(UUID().uuidString + ".jpg")
+        do {
+            try data.write(to: dest)
+            print("Successfully saved thumbnail to persistent storage: \(dest.lastPathComponent)")
+            return dest
+        } catch {
+            print("Failed to write thumbnail data to persistent storage: \(error)")
+            return nil
+        }
+    }
+
+    // Move a file from temp directory into persistent storage and return new URL
+    private func moveFileToDocuments(from url: URL) -> URL? {
+        let fileManager = FileManager.default
+        
+        // Check if source file exists
+        guard fileManager.fileExists(atPath: url.path) else {
+            print("Source file does not exist at: \(url.path)")
+            return nil
+        }
+        
+        guard let storageDir = getPersistentStorageDirectory() else {
+            print("Failed to get storage directory")
+            return nil
+        }
+        
+        let dest = storageDir.appendingPathComponent(UUID().uuidString + "." + (url.pathExtension.isEmpty ? "dat" : url.pathExtension))
+        do {
+            if fileManager.fileExists(atPath: dest.path) {
+                try fileManager.removeItem(at: dest)
+            }
+            try fileManager.copyItem(at: url, to: dest)
+            print("Successfully moved file to persistent storage: \(dest.lastPathComponent)")
+            // Try to remove the original temp file after successful copy
+            do { try fileManager.removeItem(at: url) } catch { print("Could not remove temp file: \(error)") }
+            return dest
+        } catch {
+            print("Failed to move file to persistent storage: \(error.localizedDescription)")
+            print("Source: \(url.path)")
+            print("Destination: \(dest.path)")
+            return nil
+        }
+    }
+
+    // Synchronous thumbnail generation helper (used from background thread)
+    private func generateThumbnailSync(for url: URL) -> UIImage? {
+        let asset = AVAsset(url: url)
+        let imageGenerator = AVAssetImageGenerator(asset: asset)
+        imageGenerator.appliesPreferredTrackTransform = true
+        let time = CMTime(seconds: 0.1, preferredTimescale: 600)
+        do {
+            let cgImage = try imageGenerator.copyCGImage(at: time, actualTime: nil)
+            let uiImage = UIImage(cgImage: cgImage)
+            // Optionally crop or scale if needed; return as-is for now
+            return uiImage
+        } catch {
+            print("generateThumbnailSync error: \(error)")
+            return nil
+        }
+    }
+
+    // Load thumbnail if we have a URL for it, or try to regenerate from video
     private func loadThumbnailIfNeeded() {
         // If we have a thumbnail URL, try to load it and validate existence
         if let url = thumbnailFileURL {
@@ -745,70 +857,6 @@ struct DrillFormView: View {
             }
         }
     }
-
-    // Synchronous thumbnail generation helper (used from background thread)
-    private func generateThumbnailSync(for url: URL) -> UIImage? {
-        let asset = AVAsset(url: url)
-        let imageGenerator = AVAssetImageGenerator(asset: asset)
-        imageGenerator.appliesPreferredTrackTransform = true
-        let time = CMTime(seconds: 0.1, preferredTimescale: 600)
-        do {
-            let cgImage = try imageGenerator.copyCGImage(at: time, actualTime: nil)
-            let uiImage = UIImage(cgImage: cgImage)
-            // Optionally crop or scale if needed; return as-is for now
-            return uiImage
-        } catch {
-            print("generateThumbnailSync error: \(error)")
-            return nil
-        }
-    }
-
-    // Save JPEG data into Documents and return URL
-    private func saveThumbnailDataToDocuments(_ data: Data) -> URL? {
-        let fileManager = FileManager.default
-        let docs = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        let dest = docs.appendingPathComponent(UUID().uuidString + ".jpg")
-        do {
-            try data.write(to: dest)
-            return dest
-        } catch {
-            print("Failed to write thumbnail data to Documents: \(error)")
-            return nil
-        }
-    }
-
-    // Move a file from temp directory into app Documents and return new URL
-    private func moveFileToDocuments(from url: URL) -> URL? {
-        let fileManager = FileManager.default
-        
-        // Check if source file exists
-        guard fileManager.fileExists(atPath: url.path) else {
-            print("Source file does not exist at: \(url.path)")
-            return nil
-        }
-        
-        let docs = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        let dest = docs.appendingPathComponent(UUID().uuidString + "." + (url.pathExtension.isEmpty ? "dat" : url.pathExtension))
-        do {
-            if fileManager.fileExists(atPath: dest.path) {
-                try fileManager.removeItem(at: dest)
-            }
-            try fileManager.copyItem(at: url, to: dest)
-            print("Successfully moved file to Documents: \(dest.lastPathComponent)")
-            // Try to remove the original temp file after successful copy
-            do { try fileManager.removeItem(at: url) } catch { print("Could not remove temp file: \(error)") }
-            return dest
-        } catch {
-            print("Failed to move file to Documents: \(error.localizedDescription)")
-            print("Source: \(url.path)")
-            print("Destination: \(dest.path)")
-            return nil
-        }
-    }
-    
-
-    
-    // MARK: - Device List Query
     
     private func queryDeviceList() {
         guard bleManager.isConnected else {
@@ -864,13 +912,29 @@ struct DrillFormView: View {
         
         for summary in summaries {
             let drillResult = DrillResult(context: context)
+            drillResult.id = UUID()
             drillResult.drillId = drillId
             drillResult.sessionId = sessionId
             drillResult.date = Date()
-            drillResult.totalTime = summary.totalTime
+            drillResult.totalTime = NSNumber(value: summary.totalTime)
             drillResult.drillSetup = drillSetup
             
+            // Save CQB-specific data
+            if let cqbPassed = summary.cqbPassed {
+                drillResult.cqbPassed = NSNumber(value: cqbPassed)
+            }
+            if let cqbResults = summary.cqbResults {
+                do {
+                    let jsonData = try JSONEncoder().encode(cqbResults)
+                    drillResult.cqbResults = String(data: jsonData, encoding: .utf8)
+                } catch {
+                    print("Failed to encode cqbResults: \(error)")
+                }
+            }
+            
+            var cumulativeTime: Double = 0
             for shotData in summary.shots {
+                cumulativeTime += shotData.content.timeDiff
                 let shot = Shot(context: context)
                 do {
                     let jsonData = try JSONEncoder().encode(shotData)
@@ -879,7 +943,8 @@ struct DrillFormView: View {
                     print("Failed to encode shot data: \(error)")
                     shot.data = nil
                 }
-                shot.timestamp = Date()
+                // Store absolute time_diff in milliseconds as an integer
+                shot.timestamp = Int64(cumulativeTime * 1000)
                 shot.drillResult = drillResult
             }
         }
@@ -926,9 +991,10 @@ struct DrillFormView_Previews: PreviewProvider {
         drillSetup.name = "Sample Drill"
         drillSetup.desc = "A sample drill for testing"
         drillSetup.delay = 5.0
-        drillSetup.repeats = 1
-        drillSetup.pause = 5
+        drillSetup.repeats = Int32(1)
+        drillSetup.pause = Int32(5)
         drillSetup.drillDuration = 15.0
+        drillSetup.mode = "ipsc"
         
         let target = DrillTargetsConfig(context: context)
         target.id = UUID()

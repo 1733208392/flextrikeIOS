@@ -12,9 +12,11 @@ import CoreData
 struct DrillListView: View {
     let bleManager: BLEManager
     @Binding var showDrillList: Bool
+    var onDrillSelected: ((DrillSetup) -> Void)? = nil
     @State private var searchText: String = ""
     @State private var showConnectionAlert = false
     @State private var alertMessage = ""
+    @State private var showAddDrillView = false
 
     @Environment(\.managedObjectContext) private var environmentContext
 
@@ -37,7 +39,12 @@ struct DrillListView: View {
     @State private var drillToDelete: DrillSetup?
 
     private var filteredDrills: [DrillSetup] {
-        let all = Array(drills)
+        let all = Array(drills).sorted { (drill1, drill2) -> Bool in
+            let count1 = (drill1.results as? Set<DrillResult>)?.count ?? 0
+            let count2 = (drill2.results as? Set<DrillResult>)?.count ?? 0
+            return count1 > count2 // Descending order
+        }
+        
         if searchText.isEmpty { return all }
         return all.filter { $0.name?.localizedCaseInsensitiveContains(searchText) ?? false }
     }
@@ -57,39 +64,8 @@ struct DrillListView: View {
             }
         }
         .tint(.red)
-        .navigationTitle(NSLocalizedString("my_drills", comment: "Navigation title for drill list"))
+        .navigationTitle(NSLocalizedString("drill_setup", comment: "Navigation title for drill list"))
         .navigationBarTitleDisplayMode(.inline)
-        .navigationBarBackButtonHidden(true)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button(action: { showDrillList = false }) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 16, weight: .semibold))
-                        Text(NSLocalizedString("back", comment: "Back button label"))
-                            .font(.system(size: 16, weight: .regular))
-                    }
-                    .foregroundColor(.red)
-                }
-            }
-            
-            ToolbarItem(placement: .navigationBarTrailing) {
-                if bleManager.isConnected {
-                    NavigationLink(destination: AddDrillView(bleManager: bleManager)) {
-                        Image(systemName: "plus")
-                            .foregroundColor(.red)
-                    }
-                } else {
-                    Button(action: {
-                        alertMessage = NSLocalizedString("connection_required_message", comment: "Message when connection is required")
-                        showConnectionAlert = true
-                    }) {
-                        Image(systemName: "plus")
-                            .foregroundColor(.gray)
-                    }
-                }
-            }
-        }
         .alert(NSLocalizedString("delete_drill_title", comment: "Alert title for deleting drill"), isPresented: $showDeleteAlert, presenting: drillToDelete) { drill in
             Button(NSLocalizedString("delete", comment: "Delete button"), role: .destructive) {
                 deleteDrill(drill)
@@ -110,23 +86,23 @@ struct DrillListView: View {
     
     @ViewBuilder
     private func drillRow(for drill: DrillSetup) -> some View {
-        NavigationLink(destination: EditDrillView(drillSetup: drill, bleManager: bleManager)) {
-            drillRowContent(for: drill)
-        }
-        .contentShape(Rectangle())
-        .listRowBackground(Color.clear)
-        .contextMenu {
-            Button(action: { copyDrill(drill) }) {
-                Label(NSLocalizedString("copy", comment: "Copy drill action"), systemImage: "doc.on.doc")
+        drillRowContent(for: drill)
+            .listRowBackground(Color.clear)
+            .onTapGesture {
+                onDrillSelected?(drill)
             }
-            
-            Button(role: .destructive, action: {
-                drillToDelete = drill
-                showDeleteAlert = true
-            }) {
-                Label(NSLocalizedString("delete", comment: "Delete drill action"), systemImage: "trash")
+            .contextMenu {
+                Button(action: { copyDrill(drill) }) {
+                    Label(NSLocalizedString("copy", comment: "Copy drill action"), systemImage: "doc.on.doc")
+                }
+                
+                Button(role: .destructive, action: {
+                    drillToDelete = drill
+                    showDeleteAlert = true
+                }) {
+                    Label(NSLocalizedString("delete", comment: "Delete drill action"), systemImage: "trash")
+                }
             }
-        }
     }
     
     @ViewBuilder
@@ -147,7 +123,7 @@ struct DrillListView: View {
             Spacer()
 
             Image(systemName: "chevron.right")
-                .foregroundColor(.gray)
+                .foregroundColor(.red)
         }
         .contentShape(Rectangle())
         .padding(.vertical, 8)
@@ -161,23 +137,11 @@ struct DrillListView: View {
                 .foregroundColor(.gray)
                 .font(.caption)
             
-            if drill.repeats > 1 {
-                Text("Repeats: \(drill.repeats)")
-                    .foregroundColor(.gray)
-                    .font(.caption)
-            }
-            
-            if drill.pause > 0 {
-                Text("Pause: \(drill.pause)s")
-                    .foregroundColor(.gray)
-                    .font(.caption)
-            }
-            
-            if drill.delay > 0 {
-                Text(String(format: NSLocalizedString("delay_seconds", comment: "Delay in seconds"), Int(drill.delay)))
-                    .foregroundColor(.gray)
-                    .font(.caption)
-            }
+            let performanceCount = (drill.results as? Set<DrillResult>)?.count ?? 0
+            Text("\(NSLocalizedString("performed", comment: "Label for number of times drill was performed")): \(performanceCount)")
+                .foregroundColor(.gray)
+                .font(.caption)
+
         }
     }
 

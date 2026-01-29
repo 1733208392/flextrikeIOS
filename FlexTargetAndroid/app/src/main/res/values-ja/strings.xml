@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App name -->
+    <string name="app_name">FlexTarget</string>
+    
+    <!-- Login screen -->
+    <string name="login_title">FlexTarget</string>
+    <string name="login_subtitle">アーチェリーターゲットアカウントでサインインしてください</string>
+    <string name="login_mobile">携帯電話番号</string>
+    <string name="login_password">パスワード</string>
+    <string name="login_button">ログイン</string>
+    <string name="login_loading">サインイン中...</string>
+    <string name="login_error">ログインに失敗しました。認証情報を確認してください。</string>
+    <string name="login_hint_mobile">携帯電話番号を入力してください</string>
+    <string name="login_hint_password">パスワードを入力してください</string>
+    
+    <!-- Auth state -->
+    <string name="auth_not_authenticated">認証されていません</string>
+    <string name="auth_authenticated">認証済み</string>
+    <string name="auth_logout">ログアウト</string>
+    <string name="auth_profile">プロフィール</string>
+    
+    <!-- Competitions -->
+    <string name="competitions">競技</string>
+    <string name="competitions_title">競技</string>
+    <string name="competitions_empty">利用可能な競技はありません</string>
+    <string name="competitions_venue">会場</string>
+    <string name="competitions_date">日付</string>
+    <string name="competitions_description">説明</string>
+    <string name="competitions_leaderboard">リーダーボード</string>
+    <string name="competitions_submit_result">結果を提出</string>
+    
+    <!-- Drill execution -->
+    <string name="drill_title">ドリル実行</string>
+    <string name="drill_state_idle">準備完了</string>
+    <string name="drill_state_initialized">初期化済み</string>
+    <string name="drill_state_waiting_ack">デバイスACK待機中</string>
+    <string name="drill_state_executing">実行中</string>
+    <string name="drill_state_finalizing">最終処理中</string>
+    <string name="drill_state_complete">完了</string>
+    <string name="drill_state_error">エラー</string>
+    <string name="drill_current_score">現在のスコア</string>
+    <string name="drill_shots">ショット</string>
+    <string name="drill_time">時間</string>
+    <string name="drill_average">平均</string>
+    <string name="drill_device_connected">デバイス接続</string>
+    <string name="drill_device_disconnected">デバイス切断</string>
+    <string name="drill_last_shot">最後のショット</string>
+    <string name="drill_start_shooting">射撃開始</string>
+    <string name="drill_stop_finalize">停止 &amp; 最終処理</string>
+    <string name="drill_complete">ドリル完了</string>
+    <string name="drill_abort">ドリル中止</string>
+    
+    <!-- OTA Updates -->
+    <string name="ota_title">システムアップデート</string>
+    <string name="ota_check">アップデートを確認</string>
+    <string name="ota_checking">アップデート確認中...</string>
+    <string name="ota_available">アップデート利用可能</string>
+    <string name="ota_up_to_date">最新状態</string>
+    <string name="ota_download">アップデートダウンロード</string>
+    <string name="ota_preparing">ダウンロード中...</string>
+    <string name="ota_ready">インストール準備完了</string>
+    <string name="ota_verifying">整合性確認中...</string>
+    <string name="ota_verify_install">確認 &amp; インストール</string>
+    <string name="ota_installing">アップデートインストール中...</string>
+    <string name="ota_complete">インストール完了</string>
+    <string name="ota_version">バージョン</string>
+    <string name="ota_current_version">現在のバージョン</string>
+    <string name="ota_latest">最新</string>
+    <string name="ota_mandatory">必須アップデート</string>
+    <string name="ota_cancel">キャンセル</string>
+    <string name="ota_failed">アップデート失敗</string>
+    
+    <!-- Settings -->
+    <string name="settings_title">設定</string>
+    <string name="settings_language">言語</string>
+    <string name="settings_notifications">通知</string>
+    <string name="settings_device">デバイス</string>
+    <string name="settings_about">について</string>
+    <string name="settings_version">バージョン</string>
+    
+    <!-- Device -->
+    <string name="device_title">デバイス管理</string>
+    <string name="device_connected">接続済み</string>
+    <string name="device_disconnected">切断</string>
+    <string name="device_connect">デバイス接続</string>
+    <string name="device_disconnect">切断</string>
+    <string name="device_auth">デバイス認証</string>
+    
+    <!-- BLE Connection -->
+    <string name="connecting">接続中</string>
+    <string name="trying_to_connect">接続を試みています...</string>
+    <string name="target_connected">ターゲット接続済み</string>
+    <string name="scanning_for">スキャン中</string>
+    <string name="ready_to_scan">スキャン準備完了</string>
+    <string name="target_not_found">ターゲットが見つかりません</string>
+    <string name="no_targets_found">ターゲットが見つかりません</string>
+    <string name="bluetooth_service_not_found">Bluetoothサービスが見つかりません</string>
+    <string name="reconnect">再接続</string>
+    <string name="my_target">マイターゲット</string>
+    <string name="ble_test_tool">BLEテストツール</string>
+    
+    <!-- Errors -->
+    <string name="error_title">エラー</string>
+    <string name="error_network">ネットワークエラー</string>
+    <string name="error_auth_failed">認証失敗</string>
+    <string name="error_device_not_connected">デバイスが接続されていません</string>
+    <string name="error_timeout">リクエストタイムアウト</string>
+    <string name="error_unknown">不明なエラーが発生しました</string>
+    
+    <!-- Common -->
+    <string name="back">戻る</string>
+    <string name="next">次へ</string>
+    <string name="cancel">キャンセル</string>
+    <string name="save">保存</string>
+    <string name="ok">OK</string>
+    <string name="done">完了</string>
+    <string name="retry">再試行</string>
+    <string name="confirm">確認</string>
+    <string name="delete">削除</string>
+    <string name="device">デバイス</string>
+    <string name="select_device">デバイスを選択</string>
+    <string name="type">タイプ</string>
+    <string name="select_type">タイプを選択</string>
+    <string name="edit">編集</string>
+    <string name="close">閉じる</string>
+    <string name="loading">読み込み中...</string>
+    <string name="error">エラー</string>
+    <string name="information">情報</string>
+    <string name="select">選択</string>
+    <string name="copy">コピー</string>
+    <string name="create">作成</string>
+    <string name="search">検索</string>
+    <string name="details">詳細</string>
+    <string name="name">名前</string>
+    <string name="username">ユーザー名</string>
+    
+    <!-- Navigation -->
+    <string name="tab_drills">ドリル</string>
+    <string name="tab_history">履歴</string>
+    <string name="tab_competition">競技</string>
+    <string name="tab_admin">管理者</string>
+    
+    <!-- Drills -->
+    <string name="drill_history">ドリル履歴</string>
+    <string name="search_drills">ドリルを検索</string>
+    <string name="start_drill">ドリル開始</string>
+    <string name="end_drill">ドリル終了</string>
+    <string name="drill_in_progress">ドリル進行中</string>
+    <string name="delete_drill">ドリル削除</string>
+    <string name="enter_drill_name">ドリル名を入力</string>
+    <string name="enter_drill_description">ドリルの説明を入力（オプション）</string>
+    <string name="repeats">繰り返し:</string>
+    <string name="pause_seconds">一時停止（秒）:</string>
+    <string name="no_shots_to_display">表示するショットがありません</string>
+    <string name="replay">リプレイ</string>
+    <string name="training_records_available">トレーニング記録が利用可能</string>
+    <string name="maximum_targets_reached">最大ターゲット数に達しました</string>
+    <string name="max_targets_message">最大 %1$d 個のターゲットのみ設定できます（%2$d/%1$d）</string>
+    <string name="connection_required">接続が必要です</string>
+    <string name="connection_required_message">新しいドリルを作成するにはターゲットに接続する必要があります。</string>
+    
+    <!-- Competition -->
+    <string name="competitions_menu_desc">競技を表示および管理</string>
+    <string name="shooters_menu_desc">射手とアスリートを管理</string>
+    <string name="leaderboard_menu_desc">競技リーダーボードを表示</string>
+    <string name="search_competitions">競技を検索...</string>
+    <string name="new_competition">新しい競技</string>
+    <string name="competition_name">競技名</string>
+    <string name="venue_optional">会場（オプション）</string>
+    
+    <!-- Admin -->
+    <string name="admin">管理者</string>
+    <string name="device_management">デバイス管理</string>
+    <string name="device_connected_desc">デバイスが接続されています</string>
+    <string name="connect_to_device_desc">デバイスに接続</string>
+    <string name="manage_user_profile">ユーザープロフィールを管理</string>
+    <string name="shooters">射手</string>
+    <string name="add_athlete">アスリートを追加</string>
+    <string name="club_optional">クラブ（オプション）</string>
+    <string name="no_athletes_found">アスリートが見つかりません。射手管理で追加してください。</string>
+    <string name="user_profile">ユーザープロフィール</string>
+    <string name="update_profile">プロフィールを更新</string>
+    <string name="change_password">パスワードを変更</string>
+    <string name="logout">ログアウト</string>
+    <string name="logout_confirm">ログアウトしてもよろしいですか？</string>
+    <string name="session_expired_message">セッションの有効期限が切れました。もう一度ログインしてください。</string>
+    
+    <!-- Device -->
+    <string name="connected_device">接続されたデバイス</string>
+    <string name="manage_connection">接続を管理</string>
+    <string name="ota_update">OTAアップデート</string>
+    <string name="check_install_updates">システムアップデートを確認してインストール</string>
+    <string name="manual_select">手動選択</string>
+    <string name="browse_select_devices">利用可能なデバイスを閲覧して選択</string>
+    <string name="scan_qr_code">QRコードをスキャン</string>
+    <string name="scan_device_qr">デバイスQRコードをスキャン</string>
+
+    <string name="select_target_type">ターゲットタイプを選択</string>
+    <string name="available_devices">利用可能なデバイス</string>
+    <string name="scan_again">再度スキャン</string>
+    <string name="scanning">スキャン中...</string>
+    <string name="no_devices_found">デバイスが見つかりません</string>
+    <string name="go_to_device_management">デバイス管理へ</string>
+    
+    <!-- Updates -->
+    <string name="checking">確認中...</string>
+    <string name="check_now">今すぐ確認</string>
+    <string name="update_now">今すぐ更新</string>
+    
+    <!-- JSON -->
+    <string name="enter_json_command">JSONコマンドを入力...</string>
+    
+    <!-- Symbols -->
+    <string name="arrow_left">←</string>
+    <string name="minus">-</string>
+    <string name="plus">+</string>
+    
+    <!-- Drill Results -->
+    <string name="drill_results_summary">ドリル結果の概要</string>
+    <string name="submit_competition_result">競技結果を提出</string>
+    <string name="no_results_available">利用可能な結果なし</string>
+    <string name="complete_drill_message">ここで結果を見るためにドリルを完了してください</string>
+    <string name="edit_hit_zone_counts">ヒットゾーンカウントを編集</string>
+    <string name="a_zone">Aゾーン</string>
+    <string name="c_zone">Cゾーン</string>
+    <string name="d_zone">Dゾーン</string>
+    <string name="no_shoot_zone">非射撃 (N)</string>
+    <string name="miss_zone">ミス (M)</string>
+    <string name="penalty_zone">ペナルティ (PE)</string>
+    <string name="pe_abbrev">PE</string>
+    <string name="replay_drill">ドリルをリプレイ</string>
+    
+    <!-- Drill List -->
+    <string name="my_drills">マイドリル</string>
+    <string name="drills">ドリル</string>
+    <string name="are_you_sure_delete">\"%1$s\" を削除してもよろしいですか？</string>
+    <string name="untitled">無題</string>
+    
+    <!-- Competitions -->
+    <string name="no_competitions_yet">まだ競技がありません</string>
+    <string name="select_drill_setup">ドリルセットアップを選択</string>
+    <string name="date_label">日付: </string>
+    
+    <!-- History -->
+    <string name="history_title">履歴</string>
+    <string name="all_modes">すべてのモード</string>
+    <string name="all_drill_setups">すべてのドリルセットアップ</string>
+    <string name="no_results_found">結果が見つかりません</string>
+    <string name="complete_drills_history">履歴を見るためにいくつかのドリルを完了してください</string>
+    <string name="repeats_label">繰り返し</string>
+    <string name="shots_label">ショット</string>
+    <string name="all_time">すべての時間</string>
+    <string name="past_week">過去1週間</string>
+    <string name="past_month">過去1ヶ月</string>
+    
+    <!-- Competition Views -->
+    <string name="new_athlete">新しいアスリート</string>
+    <string name="unknown">不明</string>
+    <string name="choose_competition">競技を選択</string>
+    <string name="no_competitions_available">利用可能な競技はありません</string>
+    <string name="select_competition_to_view_rankings">ランキングを表示するには競技を選択してください</string>
+    <string name="loading_ranking">ランキングを読み込み中...</string>
+    <string name="error_loading_ranking">ランキングの読み込みエラー</string>
+    <string name="no_ranking_data_available">ランキングデータが利用できません</string>
+    <string name="shots">ショット</string>
+    <string name="active_shooter">アクティブな射手</string>
+    <string name="select_shooter">射手を選択</string>
+    <string name="select_athlete">アスリートを選択</string>
+    <string name="no_linked_drill_found">リンクされたドリルが見つかりません</string>
+    <string name="select_shooter_to_start">開始する射手を選択</string>
+    <string name="start_competition_drill">競技ドリルを開始</string>
+    
+    <!-- Additional error and UI strings -->
+    <string name="failed_to_load_recent_drills">最近のドリルの読み込みに失敗しました</string>
+    <string name="loading_recent_drills">最近のドリルを読み込み中...</string>
+    <string name="changing_config_not_allowed">設定の変更は許可されていません。新しいドリルを作成してください</string>
+    <string name="information_page_placeholder">情報ページ - TODO</string>
+    
+    <!-- Drill Form View strings -->
+    <string name="add_drill">ドリルを追加</string>
+    <string name="edit_drill">ドリルを編集</string>
+    <string name="targets_screen">ターゲット</string>
+    <string name="add_target">ターゲットを追加</string>
+    <string name="lock">ロック</string>
+    <string name="editing_disabled_message">このドリルには結果があるか、競技会にリンクされているため、編集は無効です。</string>
+    <string name="drill_name">ドリル名</string>
+    <string name="description">説明</string>
+    <string name="drill_mode">ドリルモード</string>
+    <string name="ipsc">IPSC</string>
+    <string name="hostage">人質</string>
+    <string name="special_1">スペシャル1</string>
+    <string name="special_2">スペシャル2</string>
+    <string name="paddle">パドル</string>
+    <string name="popper">ポッパー</string>
+    <string name="rotation">ローテーション</string>
+    <string name="idpa">IDPA</string>
+    <string name="cqb">CQB</string>
+    <!-- CQB Target Types -->
+    <string name="cqb_swing">覗く</string>
+    <string name="cqb_front">狙う</string>
+    <string name="cqb_move">通過</string>
+    <string name="cqb_hostage">人質</string>
+    <string name="disguised_enemy">変装した敵</string>
+    <!-- CQB Drill Summary -->
+    <string name="cqb_total_shots">総射撃数</string>
+    <string name="cqb_duration">期間</string>
+    <string name="cqb_passed">合格</string>
+    <string name="cqb_failed">不合格</string>
+    <string name="cqb_threat">脅威</string>
+    <string name="cqb_non_threat">非脅威</string>
+    <string name="cqb_shots_format">射撃: %1$d/%2$d</string>
+    <string name="configuration">設定</string>
+    <string name="saving">保存中...</string>
+    <string name="save_drill">ドリルを保存</string>
+    <string name="save_changes">変更を保存</string>
+    <string name="targets_count">%d ターゲット</string>
+    <string name="arrow_right">></string>
+    <string name="targets_section">ターゲット</string>
+</resources>
