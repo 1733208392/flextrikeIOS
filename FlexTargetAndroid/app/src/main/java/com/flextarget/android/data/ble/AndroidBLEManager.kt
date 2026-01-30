@@ -312,6 +312,11 @@ class AndroidBLEManager(private val context: Context) {
                             val messageMap = jsonToMap(json)
                             this.onForwardReceived?.invoke(messageMap)
                         }
+                        // Check for workmode from Godot
+                        else if (content.has("workmode")) {
+                            val messageMap = jsonToMap(json)
+                            this.onForwardReceived?.invoke(messageMap)
+                        }
                         // Check for OTA notifications
                         else if (content.optString("notification") == "ready_to_download") {
                             println("[AndroidBLEManager] Received OTA ready_to_download notification")

@@ -10,6 +10,8 @@ struct RemoteControlView: View {
     @State private var showPasswordDialog = false
     @State private var currentSsid = ""
     @State private var passwordInput = ""
+    @State private var showNameDialog = false
+    @State private var nameInput = ""
     
     var body: some View {
         ZStack {
@@ -192,6 +194,12 @@ struct RemoteControlView: View {
                 showPasswordDialog = true
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .bleWorkmodeReceived)) { notification in
+            if let _ = notification.userInfo?["workmode"] as? String {
+                nameInput = ""
+                showNameDialog = true
+            }
+        }
         .sheet(isPresented: $showPasswordDialog) {
             PasswordDialogView(
                 ssid: currentSsid,
@@ -202,6 +210,18 @@ struct RemoteControlView: View {
                 },
                 onCancel: {
                     showPasswordDialog = false
+                }
+            )
+        }
+        .sheet(isPresented: $showNameDialog) {
+            NameDialogView(
+                name: $nameInput,
+                onConfirm: {
+                    sendNameCommand(name: nameInput)
+                    showNameDialog = false
+                },
+                onCancel: {
+                    showNameDialog = false
                 }
             )
         }
@@ -225,6 +245,19 @@ struct RemoteControlView: View {
             "content": [
                 "ssid": ssid,
                 "password": password
+            ]
+        ]
+        if let jsonData = try? JSONSerialization.data(withJSONObject: message, options: []),
+           let jsonString = String(data: jsonData, encoding: .utf8) {
+            bleManager.writeJSON(jsonString)
+        }
+    }
+    
+    private func sendNameCommand(name: String) {
+        let message: [String: Any] = [
+            "action": "forward",
+            "content": [
+                "target_name": name
             ]
         ]
         if let jsonData = try? JSONSerialization.data(withJSONObject: message, options: []),
@@ -260,6 +293,36 @@ struct PasswordDialogView: View {
             }
             .padding()
             .navigationBarTitle("WiFi Password", displayMode: .inline)
+            .navigationBarItems(trailing: Button("Cancel", action: onCancel))
+        }
+    }
+}
+
+struct NameDialogView: View {
+    @Binding var name: String
+    let onConfirm: () -> Void
+    let onCancel: () -> Void
+    
+    var body: some View {
+        NavigationView {
+            VStack(spacing: 20) {
+                Text("Enter a name for the target:")
+                    .multilineTextAlignment(.center)
+                TextField("Name", text: $name)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .padding(.horizontal)
+                HStack {
+                    Button("Cancel", action: onCancel)
+                        .foregroundColor(.red)
+                    Spacer()
+                    Button("OK", action: onConfirm)
+                        .foregroundColor(.blue)
+                        .disabled(name.isEmpty)
+                }
+                .padding(.horizontal)
+            }
+            .padding()
+            .navigationBarTitle("Target Name", displayMode: .inline)
             .navigationBarItems(trailing: Button("Cancel", action: onCancel))
         }
     }

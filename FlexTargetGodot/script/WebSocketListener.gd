@@ -11,6 +11,7 @@ signal ble_ready_command(content: Dictionary)
 signal ble_start_command(content: Dictionary)
 signal ble_end_command(content: Dictionary)
 signal animation_config(action: String, duration: float)
+signal target_name_received(target_name: String)
 
 var socket: WebSocketPeer
 var bullet_spawning_enabled: bool = true
@@ -291,6 +292,14 @@ func _handle_ble_forwarded_command(parsed):
 		var sb = get_node_or_null("/root/SignalBus")
 		if sb:
 			sb.emit_wifi_password_received(content["ssid"], content["password"])
+		return
+
+	# Handle target name from mobile app
+	if content.has("target_name"):
+		var target_name = content["target_name"]
+		if not DEBUG_DISABLED:
+			print("[WebSocket] Emitting target_name_received signal with name: ", target_name)
+		target_name_received.emit(target_name)
 		return
 
 func _handle_animation_config(parsed):

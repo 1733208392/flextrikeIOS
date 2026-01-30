@@ -77,6 +77,16 @@ func _ready():
 		if not DEBUG_DISABLED:
 			print("[NetworkingConfig] Attached keyboard handlers")
 	
+	# Connect to WebSocketListener for target name received
+	var websocket_listener = get_node_or_null("/root/WebSocketListener")
+	if websocket_listener:
+		websocket_listener.target_name_received.connect(_on_target_name_received)
+		if not DEBUG_DISABLED:
+			print("[NetworkingConfig] Connected to WebSocketListener.target_name_received signal")
+	else:
+		if not DEBUG_DISABLED:
+			print("[NetworkingConfig] WebSocketListener not found!")
+	
 	workmode_dropdown.grab_focus()
 
 func update_ui_texts():
@@ -184,6 +194,18 @@ func show_keyboard_for_name_input():
 		
 		if not DEBUG_DISABLED:
 			print("[NetworkingConfig] Keyboard shown for name input")
+		
+		# Send workmode to mobile app for name input
+		var workmode = "slave" if workmode_dropdown.selected == 1 else "master"
+		var http_service = get_node_or_null("/root/HttpService")
+		if http_service:
+			http_service.forward_data_to_app(func(_result, _response_code, _headers, _body):
+				if not DEBUG_DISABLED:
+					print("[NetworkingConfig] Workmode sent to mobile app: ", workmode)
+			, {"workmode": workmode})
+		else:
+			if not DEBUG_DISABLED:
+				print("[NetworkingConfig] HttpService not found, cannot send workmode to mobile")
 
 
 func _attach_keyboard_handlers(node: Node = null):
@@ -234,6 +256,19 @@ func _find_key_by_text(node, text: String):
 
 func hide_keyboard():
 	keyboard._hide_keyboard()
+
+func _on_target_name_received(target_name: String):
+	if not DEBUG_DISABLED:
+		print("[NetworkingConfig] Received target name from mobile: ", target_name)
+	
+	# Set the name in the line edit
+	name_line_edit.text = target_name
+	
+	# Hide the keyboard
+	hide_keyboard()
+	
+	# Configure the network
+	configure_network()
 
 func _on_keyboard_key_released(key_data):
 	if not key_data or typeof(key_data) != TYPE_DICTIONARY:

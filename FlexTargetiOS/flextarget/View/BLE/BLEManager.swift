@@ -622,6 +622,14 @@ public class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, C
                             NotificationCenter.default.post(name: .bleWifiSsidReceived, object: nil, userInfo: ["ssid": ssid])
                             notificationHandled = true
                         }
+                        
+                        // Check for workmode in forward content
+                        if !notificationHandled,
+                           let workmode = content["workmode"] as? String {
+                            print("Received workmode forward: \(workmode)")
+                            NotificationCenter.default.post(name: .bleWorkmodeReceived, object: nil, userInfo: ["workmode": workmode])
+                            notificationHandled = true
+                        }
                     }
                     
                     // Handle OTA "download complete" notification (Top-level fallback)
@@ -939,4 +947,5 @@ extension Notification.Name {
     static let bleGameDiskOTAReady = Notification.Name("bleGameDiskOTAReady")
     static let bleOTAPreparationFailed = Notification.Name("bleOTAPreparationFailed")
     static let bleWifiSsidReceived = Notification.Name("bleWifiSsidReceived")
+    static let bleWorkmodeReceived = Notification.Name("bleWorkmodeReceived")
 }

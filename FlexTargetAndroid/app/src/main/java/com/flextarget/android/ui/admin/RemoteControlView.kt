@@ -45,6 +45,8 @@ fun RemoteControlView(
     val showPasswordDialog = remember { mutableStateOf(false) }
     val currentSsid = remember { mutableStateOf("") }
     val passwordInput = remember { mutableStateOf("") }
+    val showNameDialog = remember { mutableStateOf(false) }
+    val nameInput = remember { mutableStateOf("") }
     
     Column(
         modifier = Modifier
@@ -59,6 +61,11 @@ fun RemoteControlView(
                     currentSsid.value = ssid
                     passwordInput.value = ""
                     showPasswordDialog.value = true
+                }
+                val workmode = content?.get("workmode") as? String
+                if (workmode != null) {
+                    nameInput.value = ""
+                    showNameDialog.value = true
                 }
             }
         }
@@ -313,6 +320,44 @@ fun RemoteControlView(
                 },
                 dismissButton = {
                     TextButton(onClick = { showPasswordDialog.value = false }) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
+
+        if (showNameDialog.value) {
+            AlertDialog(
+                onDismissRequest = { showNameDialog.value = false },
+                title = { Text("Enter Target Name") },
+                text = {
+                    Column {
+                        Text("Enter a name for the target:")
+                        OutlinedTextField(
+                            value = nameInput.value,
+                            onValueChange = { nameInput.value = it },
+                            label = { Text("Name") },
+                            singleLine = true
+                        )
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        val command = mapOf(
+                            "action" to "forward",
+                            "content" to mapOf(
+                                "target_name" to nameInput.value
+                            )
+                        )
+                        val json = Gson().toJson(command)
+                        bleManager.writeJSON(json)
+                        showNameDialog.value = false
+                    }) {
+                        Text("OK")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showNameDialog.value = false }) {
                         Text("Cancel")
                     }
                 }
