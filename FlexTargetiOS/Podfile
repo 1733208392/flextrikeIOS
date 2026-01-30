@@ -1,6 +1,0 @@
-project 'FlexTarget.xcodeproj'
-
-platform :ios, '16.0'
-target 'FlexTarget' do
-  pod 'OpenCV'
-end

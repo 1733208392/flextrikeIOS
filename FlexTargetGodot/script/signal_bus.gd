@@ -9,6 +9,7 @@ signal monkey_landed()
 signal settings_applied(start_side: String, growth_speed: float, duration: float)
 signal download_progress(progress: float)
 signal ota_upgrade_requested(address: String, checksum: String, version: String)
+signal wifi_password_received(ssid: String, password: String)
 
 func emit_wifi_connected(ssid: String) -> void:
 	wifi_connected.emit(ssid)
@@ -28,3 +29,6 @@ func emit_download_progress(progress: float) -> void:
 
 func emit_ota_upgrade_requested(address: String, checksum: String, version: String) -> void:
 	ota_upgrade_requested.emit(address, checksum, version)
+
+func emit_wifi_password_received(ssid: String, password: String) -> void:
+	wifi_password_received.emit(ssid, password)

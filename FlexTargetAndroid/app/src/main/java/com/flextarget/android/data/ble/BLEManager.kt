@@ -45,6 +45,9 @@ class BLEManager private constructor() {
     // Netlink forward message callback
     var onNetlinkForwardReceived: ((Map<String, Any>) -> Unit)? = null
 
+    // Forward message callback
+    var onForwardReceived: ((Map<String, Any>) -> Unit)? = null
+
     // Auth data response callback
     var onAuthDataReceived: ((String) -> Unit)? = null
 
@@ -71,6 +74,9 @@ class BLEManager private constructor() {
             }
             onNetlinkForwardReceived = { message ->
                 this@BLEManager.onNetlinkForwardReceived?.invoke(message)
+            }
+            onForwardReceived = { message ->
+                this@BLEManager.onForwardReceived?.invoke(message)
             }
             onAuthDataReceived = { authData ->
                 this@BLEManager.onAuthDataReceived?.invoke(authData)

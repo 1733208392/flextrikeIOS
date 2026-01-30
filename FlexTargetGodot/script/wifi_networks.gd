@@ -74,6 +74,14 @@ func _ready():
 	# Connect to MenuController for remote control
 	_connect_menu_controller_signals()
 
+	# Connect to SignalBus for WiFi password
+	var signal_bus = get_node_or_null("/root/SignalBus")
+	if signal_bus:
+		signal_bus.wifi_password_received.connect(_on_wifi_password_received)
+		print("[WiFi Networks] Connected to SignalBus wifi_password_received signal")
+	else:
+		print("[WiFi Networks] SignalBus not found!")
+
 	# Connect retry button
 	retry_button.pressed.connect(_on_retry_button_pressed)
 	
@@ -325,7 +333,7 @@ func _set_connected_network(ssid: String):
 
 func _on_network_selected(network_name):
 	"""
-	Handle network selection - show password input overlay
+	Handle network selection - send SSID to mobile app for password input
 	"""
 	selected_network = network_name
 
@@ -343,7 +351,16 @@ func _on_network_selected(network_name):
 	# Hide the list
 	list_vbox.visible = false
 
-	# Show password overlay
+	# Send SSID to mobile app
+	status_container.visible = true
+	status_label.text = tr("requesting_mobile_password")
+	
+	# Add delay to avoid BLE message conflicts
+	await get_tree().create_timer(0.5).timeout
+	
+	HttpService.forward_data(Callable(self, "_on_forward_completed"), network_name)
+
+	# Show password overlay for legacy support
 	overlay.visible = true
 	title_label.text = tr("enter_password").replace("{wifi_name}", selected_network)
 	password_line.text = ""
@@ -355,6 +372,36 @@ func _on_network_selected(network_name):
 		call_deferred("_ensure_password_focus")
 		call_deferred("_show_keyboard_for_input")
 		print("[WiFi Networks] Keyboard shown, password LineEdit focused")
+
+func _on_forward_completed(result, response_code, _headers, _body):
+	"""
+	Handle forward data response
+	"""
+	if result == HTTPRequest.RESULT_SUCCESS and response_code == 200:
+		print("[WiFi Networks] SSID forwarded to mobile app successfully")
+		# Status already shows "Requesting password..."
+	else:
+		print("[WiFi Networks] Failed to forward SSID to mobile app")
+		status_label.text = tr("failed_mobile_password_request")
+		# Show retry or something
+		await get_tree().create_timer(2.0).timeout
+		list_vbox.visible = true
+		status_container.visible = false
+
+func _on_wifi_password_received(ssid: String, password: String):
+	"""
+	Handle WiFi password received from mobile app
+	"""
+	if ssid == selected_network:
+		print("[WiFi Networks] Received password for SSID: ", ssid)
+		# Connect to WiFi
+		status_label.text = tr("wifi_connecting")
+		HttpService.wifi_connect(Callable(self, "_on_wifi_connect_completed"), ssid, password)
+		# Dismiss keyboard if visible
+		if keyboard and keyboard.visible:
+			keyboard.visible = false
+	else:
+		print("[WiFi Networks] Received password for different SSID: ", ssid, " expected: ", selected_network)
 
 func _show_keyboard_for_input():
 	"""

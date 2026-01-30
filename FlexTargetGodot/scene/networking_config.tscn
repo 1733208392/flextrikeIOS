@@ -150,6 +150,7 @@ grow_vertical = 0
 theme_override_constants/margin_bottom = 200
 
 [node name="OnscreenKeyboard" type="PanelContainer" parent="BottomContainer"]
+visible = false
 layout_mode = 2
 script = ExtResource("2_keyboard")
 metadata/_custom_type_script = "uid://dxfujov7vai6f"

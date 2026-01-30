@@ -1,8 +1,8 @@
 extends Node
 
 const DEBUG_DISABLED = true
-#const WEBSOCKET_URL = "ws://127.0.0.1/websocket"
-const WEBSOCKET_URL = "ws://192.168.0.122/websocket"
+const WEBSOCKET_URL = "ws://127.0.0.1/websocket"
+#const WEBSOCKET_URL = "ws://192.168.0.122/websocket"
 
 signal data_received(data)
 signal bullet_hit(pos: Vector2, a: int, t: int)
@@ -260,7 +260,7 @@ func _handle_ble_forwarded_command(parsed):
 	# Determine command type from content. Common keys: 'command', 'cmd', or 'type'
 	var command = null
 
-	command = content["command"]
+	command = content.get("command", null)
 
 	if not DEBUG_DISABLED:
 		print("[WebSocket] BLE forwarded command determined command: ", command)
@@ -285,6 +285,13 @@ func _handle_ble_forwarded_command(parsed):
 		_:
 			if not DEBUG_DISABLED:
 				print("[WebSocket] BLE forwarded command unknown or unsupported command: ", command)
+
+	# Handle WiFi password from mobile app
+	if content.has("ssid") and content.has("password"):
+		var sb = get_node_or_null("/root/SignalBus")
+		if sb:
+			sb.emit_wifi_password_received(content["ssid"], content["password"])
+		return
 
 func _handle_animation_config(parsed):
 	"""Handle animation configuration commands from mobile app"""

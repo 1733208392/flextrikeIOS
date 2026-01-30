@@ -47,6 +47,9 @@ class AndroidBLEManager(private val context: Context) {
     // Callback for netlink forward messages (acks, etc.)
     var onNetlinkForwardReceived: ((Map<String, Any>) -> Unit)? = null
 
+    // Callback for forward messages
+    var onForwardReceived: ((Map<String, Any>) -> Unit)? = null
+
     // Callback for auth data response
     var onAuthDataReceived: ((String) -> Unit)? = null
 
@@ -300,6 +303,33 @@ class AndroidBLEManager(private val context: Context) {
                         this.onShotReceived?.invoke(shotData)
                     }
                 }
+                type == "forward" -> {
+                    // Handle forward messages with different content types
+                    val content = json.optJSONObject("content")
+                    if (content != null) {
+                        // Check for WiFi SSID request
+                        if (content.has("ssid")) {
+                            val messageMap = jsonToMap(json)
+                            this.onForwardReceived?.invoke(messageMap)
+                        }
+                        // Check for OTA notifications
+                        else if (content.optString("notification") == "ready_to_download") {
+                            println("[AndroidBLEManager] Received OTA ready_to_download notification")
+                            BLEManager.shared.onReadyToDownload?.invoke()
+                        }
+                        else if (content.optString("notification") == "download_complete") {
+                            val version = content.optString("version")
+                            println("[AndroidBLEManager] Received OTA download complete (forwarded): $version")
+                            BLEManager.shared.onDownloadComplete?.invoke(version)
+                        }
+                        // Check for OTA version info
+                        else if (content.has("version")) {
+                            val version = content.optString("version")
+                            println("[AndroidBLEManager] Received device version info (forwarded): $version")
+                            BLEManager.shared.onDeviceVersionUpdated?.invoke(version)
+                        }
+                    }
+                }
                 // OTA Messages - matching iOS format
                 // Handle prepare_game_disk_ota success
                 type == "notice" && action == "prepare_game_disk_ota" && json.optString("state") == "success" -> {
@@ -318,29 +348,6 @@ class AndroidBLEManager(private val context: Context) {
                         BLEManager.shared.onOTAPreparationFailed?.invoke("game_disk_not_found")
                     } else {
                         BLEManager.shared.onBLEErrorOccurred?.invoke()
-                    }
-                }
-                // Handle forward messages for OTA
-                type == "forward" && json.has("content") -> {
-                    val content = json.getJSONObject("content")
-                    
-                    // Check for OTA "ready_to_download" notification
-                    if (content.optString("notification") == "ready_to_download") {
-                        println("[AndroidBLEManager] Received OTA ready_to_download notification")
-                        BLEManager.shared.onReadyToDownload?.invoke()
-                    }
-                    // Check for OTA "download_complete" notification
-                    else if (content.optString("notification") == "download_complete") {
-                        val version = content.optString("version")
-                        println("[AndroidBLEManager] Received OTA download complete (forwarded): $version")
-                        // Note: iOS calls reloadUI() here, but we'll handle it in the repository
-                        BLEManager.shared.onDownloadComplete?.invoke(version)
-                    }
-                    // Check for OTA version info - treat as device version update
-                    else if (content.has("version")) {
-                        val version = content.optString("version")
-                        println("[AndroidBLEManager] Received device version info (forwarded): $version")
-                        BLEManager.shared.onDeviceVersionUpdated?.invoke(version)
                     }
                 }
                 // Handle OTA "download complete" notification (Top-level fallback)

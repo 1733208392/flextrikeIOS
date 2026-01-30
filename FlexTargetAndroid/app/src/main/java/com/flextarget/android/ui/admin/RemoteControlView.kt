@@ -42,12 +42,26 @@ fun RemoteControlView(
     val lastSwipeTime = remember { mutableStateOf(0L) }
     val swipeDebounceMs = 300 // Debounce swipe gestures
     val showVolumeBar = remember { mutableStateOf(false) }
+    val showPasswordDialog = remember { mutableStateOf(false) }
+    val currentSsid = remember { mutableStateOf("") }
+    val passwordInput = remember { mutableStateOf("") }
     
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
     ) {
+        LaunchedEffect(Unit) {
+            bleManager.onForwardReceived = { message ->
+                val content = message["content"] as? Map<String, Any>
+                val ssid = content?.get("ssid") as? String
+                if (ssid != null) {
+                    currentSsid.value = ssid
+                    passwordInput.value = ""
+                    showPasswordDialog.value = true
+                }
+            }
+        }
         // Top bar with volume (left), centered device name+icon, and close (right)
         TopAppBar(
             title = {
@@ -263,6 +277,45 @@ fun RemoteControlView(
                 stringResource(R.string.remote_control_instruction),
                 color = Color.Gray,
                 fontSize = 12.sp
+            )
+        }
+
+        if (showPasswordDialog.value) {
+            AlertDialog(
+                onDismissRequest = { showPasswordDialog.value = false },
+                title = { Text("Enter WiFi Password") },
+                text = {
+                    Column {
+                        Text("Enter password for WiFi: ${currentSsid.value}")
+                        OutlinedTextField(
+                            value = passwordInput.value,
+                            onValueChange = { passwordInput.value = it },
+                            label = { Text("Password") },
+                            singleLine = true
+                        )
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        val command = mapOf(
+                            "action" to "forward",
+                            "content" to mapOf(
+                                "ssid" to currentSsid.value,
+                                "password" to passwordInput.value
+                            )
+                        )
+                        val json = Gson().toJson(command)
+                        bleManager.writeJSON(json)
+                        showPasswordDialog.value = false
+                    }) {
+                        Text("Connect")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showPasswordDialog.value = false }) {
+                        Text("Cancel")
+                    }
+                }
             )
         }
     }
