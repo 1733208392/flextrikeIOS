@@ -7,6 +7,9 @@ struct RemoteControlView: View {
     @State private var dragOffset: CGSize = .zero
     @State private var isDragging = false
     @State private var showVolume = false
+    @State private var showPasswordDialog = false
+    @State private var currentSsid = ""
+    @State private var passwordInput = ""
     
     var body: some View {
         ZStack {
@@ -182,6 +185,26 @@ struct RemoteControlView: View {
             }
             .padding()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .bleWifiSsidReceived)) { notification in
+            if let ssid = notification.userInfo?["ssid"] as? String {
+                currentSsid = ssid
+                passwordInput = ""
+                showPasswordDialog = true
+            }
+        }
+        .sheet(isPresented: $showPasswordDialog) {
+            PasswordDialogView(
+                ssid: currentSsid,
+                password: $passwordInput,
+                onConnect: {
+                    sendWifiCommand(ssid: currentSsid, password: passwordInput)
+                    showPasswordDialog = false
+                },
+                onCancel: {
+                    showPasswordDialog = false
+                }
+            )
+        }
         .navigationBarBackButtonHidden(true)
     }
     
@@ -193,6 +216,51 @@ struct RemoteControlView: View {
         if let jsonData = try? JSONSerialization.data(withJSONObject: message, options: []),
            let jsonString = String(data: jsonData, encoding: .utf8) {
             bleManager.writeJSON(jsonString)
+        }
+    }
+    
+    private func sendWifiCommand(ssid: String, password: String) {
+        let message: [String: Any] = [
+            "action": "forward",
+            "content": [
+                "ssid": ssid,
+                "password": password
+            ]
+        ]
+        if let jsonData = try? JSONSerialization.data(withJSONObject: message, options: []),
+           let jsonString = String(data: jsonData, encoding: .utf8) {
+            bleManager.writeJSON(jsonString)
+        }
+    }
+}
+
+struct PasswordDialogView: View {
+    let ssid: String
+    @Binding var password: String
+    let onConnect: () -> Void
+    let onCancel: () -> Void
+    
+    var body: some View {
+        NavigationView {
+            VStack(spacing: 20) {
+                Text("Enter password for WiFi: \(ssid)")
+                    .multilineTextAlignment(.center)
+                SecureField("Password", text: $password)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .padding(.horizontal)
+                HStack {
+                    Button("Cancel", action: onCancel)
+                        .foregroundColor(.red)
+                    Spacer()
+                    Button("Connect", action: onConnect)
+                        .foregroundColor(.blue)
+                        .disabled(password.isEmpty)
+                }
+                .padding(.horizontal)
+            }
+            .padding()
+            .navigationBarTitle("WiFi Password", displayMode: .inline)
+            .navigationBarItems(trailing: Button("Cancel", action: onCancel))
         }
     }
 }

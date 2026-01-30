@@ -614,6 +614,14 @@ public class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, C
                             NotificationCenter.default.post(name: .bleVersionInfoReceived, object: nil, userInfo: ["version": version])
                             notificationHandled = true
                         }
+                        
+                        // Check for WIFI SSID in forward content
+                        if !notificationHandled,
+                           let ssid = content["ssid"] as? String {
+                            print("Received WIFI SSID forward: \(ssid)")
+                            NotificationCenter.default.post(name: .bleWifiSsidReceived, object: nil, userInfo: ["ssid": ssid])
+                            notificationHandled = true
+                        }
                     }
                     
                     // Handle OTA "download complete" notification (Top-level fallback)
@@ -930,4 +938,5 @@ extension Notification.Name {
     static let bleVersionInfoReceived = Notification.Name("bleVersionInfoReceived")
     static let bleGameDiskOTAReady = Notification.Name("bleGameDiskOTAReady")
     static let bleOTAPreparationFailed = Notification.Name("bleOTAPreparationFailed")
+    static let bleWifiSsidReceived = Notification.Name("bleWifiSsidReceived")
 }
