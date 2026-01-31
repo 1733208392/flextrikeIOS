@@ -1,11 +1,9 @@
 package com.flextarget.android.ui.ble
 
-import androidx.compose.foundation.background
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -47,10 +45,12 @@ fun ConnectSmartTargetView(
             "trying_to_connect" -> stringResource(R.string.trying_to_connect)
             "target_connected" -> stringResource(R.string.target_connected)
             "scanning_for" -> "${stringResource(R.string.scanning_for)} $activeTargetName"
+            "scanning" -> "Scanning for devices"
             "ready_to_scan" -> stringResource(R.string.ready_to_scan)
             "connected" -> stringResource(R.string.device_connected)
             "target_not_found" -> stringResource(R.string.target_not_found)
             "no_targets_found" -> stringResource(R.string.no_targets_found)
+            "multiple_found" -> "Multiple devices found, select one"
             "bluetooth_service_not_found" -> stringResource(R.string.bluetooth_service_not_found)
             else -> stringResource(R.string.connecting)
         }
@@ -90,6 +90,14 @@ fun ConnectSmartTargetView(
                 bleManager.startScan()
                 showProgress = true
                 statusTextKey = "scanning_for"
+            } else if (bleManager.autoDetectMode) {
+                // Auto-detect mode: start scanning for any targets
+                activeTargetName = null
+                statusTextKey = "scanning"
+                showReconnect = false
+                selectedPeripheral = null
+                bleManager.startScan()
+                showProgress = true
             } else {
                 statusTextKey = "ready_to_scan"
                 showProgress = false
@@ -113,28 +121,42 @@ fun ConnectSmartTargetView(
     }
 
     // Handle scanning logic
-    LaunchedEffect(bleManager.isScanning, activeTargetName) {
-        if (bleManager.isScanning && activeTargetName != null) {
+    LaunchedEffect(bleManager.isScanning, activeTargetName, bleManager.discoveredPeripherals.size) {
+        if (bleManager.isScanning) {
             delay(2000) // 2 second delay to allow BLE to power on
             if (bleManager.isScanning) {
-                val target = activeTargetName
-                if (target != null) {
-                    val match = bleManager.discoveredPeripherals.find { it.name == target }
-                    if (match != null) {
+                if (activeTargetName != null) {
+                    val target = activeTargetName
+                    if (target != null) {
+                        val match = bleManager.discoveredPeripherals.find { it.name == target }
+                        if (match != null) {
+                            bleManager.stopScan()
+                            connectToSelectedPeripheral(match)
+                        } else {
+                            // Target not found
+                            bleManager.stopScan()
+                            statusTextKey = "target_not_found"
+                            showReconnect = true
+                            showProgress = false
+                        }
+                    }
+                } else {
+                    // Auto-detect mode
+                    if (bleManager.discoveredPeripherals.size == 1) {
+                        val peripheral = bleManager.discoveredPeripherals.first()
                         bleManager.stopScan()
-                        connectToSelectedPeripheral(match)
+                        connectToSelectedPeripheral(peripheral)
+                    } else if (bleManager.discoveredPeripherals.size > 1) {
+                        bleManager.stopScan()
+                        statusTextKey = "multiple_found"
+                        showProgress = false
                     } else {
-                        // Target not found
+                        // No targets found
                         bleManager.stopScan()
-                        statusTextKey = "target_not_found"
+                        statusTextKey = "no_targets_found"
                         showReconnect = true
                         showProgress = false
                     }
-                } else if (bleManager.discoveredPeripherals.isEmpty()) {
-                    bleManager.stopScan()
-                    statusTextKey = "no_targets_found"
-                    showReconnect = true
-                    showProgress = false
                 }
             }
         }
@@ -205,6 +227,27 @@ fun ConnectSmartTargetView(
                             color = Color.White,
                             strokeWidth = 2.dp
                         )
+                    }
+                }
+
+                // Device list for multiple found
+                if (statusTextKey == "multiple_found") {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        bleManager.discoveredPeripherals.forEach { peripheral ->
+                            Button(
+                                onClick = { connectToSelectedPeripheral(peripheral) },
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Text(peripheral.name, color = Color.White)
+                            }
+                        }
                     }
                 }
 

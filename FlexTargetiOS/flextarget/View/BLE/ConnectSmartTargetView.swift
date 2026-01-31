@@ -24,6 +24,7 @@ struct ConnectSmartTargetView: View {
     private let minScanDuration: TimeInterval = 5.0  // Minimum 3 seconds before showing picker
     var onConnected: (() -> Void)?
     @State private var activeTargetName: String? = nil
+    @State private var showDeviceList: Bool = false
     
     func goToMain() {
         if let onConnected = onConnected {
@@ -126,6 +127,31 @@ struct ConnectSmartTargetView: View {
                         .padding(.horizontal)
                     }
                     
+                    if showDeviceList {
+                        List(bleManager.discoveredPeripherals) { peripheral in
+                            Button(action: {
+                                bleManager.connectToSelectedPeripheral(peripheral)
+                                showDeviceList = false
+                            }) {
+                                HStack {
+                                    Image(systemName: "smartphone")
+                                        .foregroundColor(.red)
+                                    Text(peripheral.name)
+                                        .foregroundColor(.white)
+                                    Spacer()
+                                    Text(peripheral.peripheral.identifier.uuidString.prefix(8))
+                                        .foregroundColor(.gray)
+                                }
+                                .padding()
+                            }
+                            .listRowBackground(Color.white.opacity(0.05))
+                        }
+                        .frame(height: 200)
+                        .background(Color.black)
+                        .cornerRadius(8)
+                        .padding(.horizontal)
+                    }
+                    
                     if isAlreadyConnected {
                         VStack(spacing: 12) {
                             HStack(spacing: 20) {
@@ -202,8 +228,38 @@ struct ConnectSmartTargetView: View {
                     bleManager.setAutoConnectTarget(target)
                     startScanAndTimer()
                     statusText = String(format: NSLocalizedString("scanning_for_target", comment: "Scanning for specific target"), target)
+                } else if bleManager.autoDetectMode {
+                    // Auto-detect mode: check if peripherals are already discovered
+                    if bleManager.discoveredPeripherals.count == 1 {
+                        // Single device found - auto-connect
+                        let peripheral = bleManager.discoveredPeripherals.first!
+                        bleManager.completeScan()
+                        selectedPeripheral = peripheral
+                        showProgress = true
+                        statusText = NSLocalizedString("trying_to_connect", comment: "Status when trying to connect to FlexTarget device")
+                        connectToSelectedPeripheral()
+                    } else if bleManager.discoveredPeripherals.count > 1 {
+                        // Multiple devices found - show selection
+                        bleManager.stopScan()
+                        showDeviceList = true
+                        statusText = "Multiple devices found, select one"
+                        showProgress = false
+                    } else if bleManager.isScanning {
+                        // Scanning in progress, wait for results
+                        statusText = NSLocalizedString("trying_to_connect", comment: "Status when trying to connect to FlexTarget device")
+                        showProgress = true
+                        isShaking = true
+                    } else {
+                        // No devices found yet, start scanning if not already scanning
+                        if !bleManager.isScanning {
+                            bleManager.startScan()
+                        }
+                        statusText = NSLocalizedString("trying_to_connect", comment: "Status when trying to connect to FlexTarget device")
+                        showProgress = true
+                        isShaking = true
+                    }
                 } else {
-                    // No target provided - shouldn't happen in normal flow
+                    // No target provided and not in auto-detect mode
                     statusText = NSLocalizedString("ready_to_scan", comment: "Ready to scan prompt")
                     showProgress = false
                     isShaking = false
@@ -239,6 +295,21 @@ struct ConnectSmartTargetView: View {
                 }
                 // Otherwise wait for timers (min duration / overall timeout) to decide
                 return
+            }
+            // Auto-detect mode
+            if bleManager.autoDetectMode && activeTargetName == nil {
+                if bleManager.discoveredPeripherals.count == 1 {
+                    let peripheral = bleManager.discoveredPeripherals.first!
+                    bleManager.completeScan()
+                    selectedPeripheral = peripheral
+                    showProgress = true
+                    connectToSelectedPeripheral()
+                } else if bleManager.discoveredPeripherals.count > 1 {
+                    bleManager.stopScan()
+                    showDeviceList = true
+                    statusText = "Multiple devices found, select one"
+                    showProgress = false
+                }
             }
         }
     }
@@ -299,8 +370,8 @@ struct ConnectSmartTargetView: View {
             // Clear manager auto-connect target since we are actively connecting
             bleManager.setAutoConnectTarget(nil as String?)
             
-            // Start 10s connection timer
-            DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
+            // Start 30s connection timer (increased from 10s to match BLEManager timeout)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 30) {
                 if !self.bleManager.isConnected {
                     // Connection timeout
                     self.bleManager.disconnect()
@@ -314,18 +385,18 @@ struct ConnectSmartTargetView: View {
         
         func startConnectionTimeout() {
             timeoutTimer?.invalidate()
-            remainingSeconds = 15
+            remainingSeconds = 45  // Increased from 15 to 45 seconds
             
             timeoutTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
                 guard let startTime = connectionStartTime else { return }
                 let elapsedSeconds = Int(Date().timeIntervalSince(startTime))
-                remainingSeconds = max(0, 15 - elapsedSeconds)
+                remainingSeconds = max(0, 45 - elapsedSeconds)  // Updated to match new timeout
                 
                 // Update status text with countdown
                 statusText = NSLocalizedString("trying_to_connect", comment: "Status when trying to connect to FlexTarget device") + " (\(remainingSeconds))"
                 
-                // If 15 seconds have passed and not connected, dismiss
-                if elapsedSeconds >= 15 && !bleManager.isConnected {
+                // If 45 seconds have passed and not connected, dismiss
+                if elapsedSeconds >= 45 && !bleManager.isConnected {
                     timeoutTimer?.invalidate()
                     bleManager.disconnect()
                     bleManager.completeScan()

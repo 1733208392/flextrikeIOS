@@ -86,14 +86,25 @@ public class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, C
     @Published var connectedPeripheral: DiscoveredPeripheral?
     // Optional name to auto-connect when a matching peripheral is discovered
     @Published var autoConnectTargetName: String? = nil
+    @Published var autoDetectMode: Bool = false
+    @Published var provisionInProgress: Bool = false
+    @Published var errorMessage: String?
+    @Published var showErrorAlert: Bool = false
 
     // Global device list data for sharing across views
     @Published var networkDevices: [NetworkDevice] = []
     @Published var lastDeviceListUpdate: Date?
     
-    // Error message for displaying alerts
-    @Published var errorMessage: String?
-    @Published var showErrorAlert: Bool = false
+    // Provision status callback
+    var onProvisionStatusReceived: ((String) -> Void)?
+    
+    var isBluetoothPoweredOn: Bool {
+        #if targetEnvironment(simulator)
+        return true
+        #else
+        return centralManager?.state == .poweredOn
+        #endif
+    }
 
     private var centralManager: CBCentralManager!
     private var connectingPeripheral: CBPeripheral?
@@ -156,6 +167,12 @@ public class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, C
         #else
         centralManager = CBCentralManager(delegate: self, queue: .main)
         #endif
+        onProvisionStatusReceived = { [weak self] status in
+            if status == "incomplete" {
+                self?.provisionInProgress = true
+                self?.writeJSON("{\"action\":\"forward\", \"content\": {\"provision_step\": \"wifi_connection\"}}")
+            }
+        }
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(handleAppWillTerminate),
@@ -406,6 +423,7 @@ public class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, C
     }
     
     public func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
+        print("BLE: Successfully connected to peripheral: \(peripheral.name ?? "Unknown")")
         error = nil
         if let found = discoveredPeripherals.first(where: { $0.id == peripheral.identifier }) {
             connectedPeripheral = found
@@ -416,6 +434,7 @@ public class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, C
     }
     
     public func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
+        print("BLE: Failed to connect to peripheral: \(peripheral.name ?? "Unknown"), error: \(error?.localizedDescription ?? "Unknown")")
         isConnected = false
         connectedPeripheral = nil
         self.error = .connectionFailed(error?.localizedDescription ?? "Unknown")
@@ -445,12 +464,16 @@ public class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, C
             print("Service discovery failed: \(error.localizedDescription)")
             return
         }
-        guard let services = peripheral.services else { return }
+        guard let services = peripheral.services else { 
+            print("No services found on peripheral")
+            return 
+        }
+        print("Discovered \(services.count) services: \(services.map { $0.uuid })")
         if let targetService = services.first(where: { $0.uuid == targetServiceUUID }) {
             print("Found target service: \(targetService.uuid)")
             peripheral.discoverCharacteristics(nil, for: targetService)
         } else {
-            print("Target service not found.")
+            print("Target service \(targetServiceUUID) not found. Available services: \(services.map { $0.uuid })")
             connectionAttemptFailed = true
             centralManager.cancelPeripheralConnection(peripheral)
             isConnected = false
@@ -462,7 +485,11 @@ public class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, C
             print("Characteristic discovery failed: \(error.localizedDescription)")
             return
         }
-        guard let characteristics = service.characteristics else { return }
+        guard let characteristics = service.characteristics else { 
+            print("No characteristics found for service \(service.uuid)")
+            return 
+        }
+        print("Discovered \(characteristics.count) characteristics for service \(service.uuid): \(characteristics.map { $0.uuid })")
         for characteristic in characteristics {
             if characteristic.uuid == writeCharacteristicUUID {
                 writeCharacteristic = characteristic
@@ -477,6 +504,7 @@ public class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, C
                     print("Notify characteristic does not support notifications: \(characteristic.properties)")
                 }
                 isConnected = true
+                print("Connection established - isConnected set to true")
             }
         }
         
@@ -487,6 +515,7 @@ public class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, C
             if ready {
                 self.connectionTimer?.invalidate()
                 self.connectionTimer = nil
+                print("BLE connection fully ready - both characteristics found")
             }
         }
     }
@@ -529,6 +558,21 @@ public class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, C
                 
                 // Try to parse as JSON
                 if let json = try? JSONSerialization.jsonObject(with: partData, options: []) as? [String: Any] {
+                    
+                    // Handle provision_status
+                    if let provisionStatus = json["provision_status"] as? String {
+                        onProvisionStatusReceived?(provisionStatus)
+                        notificationHandled = true
+                    }
+                    
+                    // Handle provision_status in forwarded messages
+                    if let type = json["type"] as? String, type == "forward",
+                       let content = json["content"] as? [String: Any],
+                       let provisionStatus = content["provision_status"] as? String {
+                        print("Received forwarded provision_status: \(provisionStatus)")
+                        onProvisionStatusReceived?(provisionStatus)
+                        notificationHandled = true
+                    }
                     
                     // Handle the state notification
                     if let type = json["type"] as? String, type == "state",

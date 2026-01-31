@@ -247,9 +247,14 @@ func _handle_ble_forwarded_command(parsed):
 				print("[WebSocket] OTA upgrade attempted but OTA mode is not enabled")
 		return
 
-	var content_str = JSON.stringify(content)
-	if not DEBUG_DISABLED:
-		print("[WebSocket] BLE forwarded: ", content_str)
+	# Handle provision step
+	if content.has("provision_step"):
+		var step = content["provision_step"]
+		if step == "wifi_connection":
+			if not DEBUG_DISABLED:
+				print("[WebSocket] Provision step wifi_connection, changing to WIFI_network scene")
+			get_tree().change_scene_to_file("res://scene/wifi_networks.tscn")
+		return
 
 	#     let content: [String: Any] = [
 	#     "command": "ready"/"start",

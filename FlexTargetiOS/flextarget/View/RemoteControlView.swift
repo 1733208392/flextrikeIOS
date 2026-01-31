@@ -29,7 +29,7 @@ struct RemoteControlView: View {
                     }
                     Spacer()
                     HStack(spacing: 8) {
-                        Image(systemName: "shape.rectangle.portrait")
+                        Image(systemName: "rectangle.portrait")
                             .foregroundColor(.white)
                         Text(bleManager.connectedPeripheral?.name ?? NSLocalizedString("device", comment: "Device"))
                             .font(.body)
@@ -45,6 +45,18 @@ struct RemoteControlView: View {
                     }
                 }
                 .padding(.horizontal)
+                
+                // Provision progress indicator
+                if bleManager.provisionInProgress {
+                    HStack {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .red))
+                        Text("Provisioning: Connecting to WiFi...")
+                            .foregroundColor(.white)
+                            .font(.body)
+                    }
+                    .padding(.horizontal)
+                }
                 
                 // Instruction
                 Text(NSLocalizedString("remote_control_instruction", comment: "Swipe to navigate • Tap to select"))

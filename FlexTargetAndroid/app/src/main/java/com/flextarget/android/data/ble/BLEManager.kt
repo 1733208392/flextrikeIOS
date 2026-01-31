@@ -39,6 +39,10 @@ class BLEManager private constructor() {
     var errorMessage by mutableStateOf<String?>(null)
     var showErrorAlert by mutableStateOf(false)
 
+    // Provision related
+    var autoDetectMode by mutableStateOf(false)
+    var provisionInProgress by mutableStateOf(false)
+
     // Shot notification callback
     var onShotReceived: ((com.flextarget.android.data.model.ShotData) -> Unit)? = null
 
@@ -60,6 +64,9 @@ class BLEManager private constructor() {
     var onVersionInfoReceived: ((String) -> Unit)? = null
     var onDeviceVersionUpdated: ((String) -> Unit)? = null
 
+    // Provision status callback
+    var onProvisionStatusReceived: ((String) -> Unit)? = null
+
     val connectedPeripheralName: String?
         get() = connectedPeripheral?.name
 
@@ -73,6 +80,10 @@ class BLEManager private constructor() {
                 this@BLEManager.onShotReceived?.invoke(shotData)
             }
             onNetlinkForwardReceived = { message ->
+                val provisionStatus = message["provision_status"] as? String
+                if (provisionStatus != null) {
+                    onProvisionStatusReceived?.invoke(provisionStatus)
+                }
                 this@BLEManager.onNetlinkForwardReceived?.invoke(message)
             }
             onForwardReceived = { message ->
@@ -101,6 +112,14 @@ class BLEManager private constructor() {
             }
             onDeviceVersionUpdated = { version ->
                 this@BLEManager.onDeviceVersionUpdated?.invoke(version)
+            }
+        }
+
+        // Set provision status handler
+        onProvisionStatusReceived = { status ->
+            if (status == "incomplete") {
+                provisionInProgress = true
+                writeJSON("{\"action\":\"forward\", \"content\": {\"provision_step\": \"wifi_connection\"}}")
             }
         }
     }

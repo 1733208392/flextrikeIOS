@@ -107,6 +107,30 @@ fun RemoteControlView(
             )
         )
 
+        // Provision progress indicator
+        if (bleManager.provisionInProgress) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.Gray.copy(alpha = 0.2f))
+                    .padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    color = Color.Red,
+                    strokeWidth = 2.dp
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Provisioning: Connecting to WiFi...",
+                    color = Color.White,
+                    fontSize = 14.sp
+                )
+            }
+        }
+
         // Volume vertical bar will be shown as an overlay inside the pad (see pad content)
 
         // Main remote control area (single larger pad)

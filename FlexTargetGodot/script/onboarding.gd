@@ -64,10 +64,7 @@ func _on_blinking_timer_timeout():
 
 func _on_forward_timer_timeout():
 	var content = {
-		"action": "forward",
-		"content": {
 			"provision_status": "incomplete"
-		}
 	}
 	HttpService.forward_data(Callable(), content)
 	if not DEBUG_DISABLED:

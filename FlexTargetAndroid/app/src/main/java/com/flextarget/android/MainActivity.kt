@@ -18,6 +18,8 @@ import com.flextarget.android.ui.TabNavigationView
 import coil.Coil
 import coil.ImageLoader
 import coil.decode.SvgDecoder
+import android.bluetooth.BluetoothAdapter
+import androidx.compose.runtime.*
 
 class MainActivity : ComponentActivity() {
 
@@ -63,7 +65,25 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    TabNavigationView()
+                    val showAutoConnect = remember { mutableStateOf(false) }
+                    LaunchedEffect(Unit) {
+                        if (!BLEManager.shared.isConnected) {
+                            val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+                            if (bluetoothAdapter?.isEnabled == true) {
+                                BLEManager.shared.autoDetectMode = true
+                                BLEManager.shared.startScan()
+                                showAutoConnect.value = true
+                            }
+                        }
+                    }
+                    if (showAutoConnect.value) {
+                        com.flextarget.android.ui.ble.ConnectSmartTargetView(
+                            onDismiss = { showAutoConnect.value = false },
+                            onConnected = { showAutoConnect.value = false }
+                        )
+                    } else {
+                        TabNavigationView()
+                    }
                 }
             }
         }

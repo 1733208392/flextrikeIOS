@@ -49,6 +49,7 @@ struct flextargetApp: App {
     @State private var showLaunchScreen = true
     @StateObject var bleManager = BLEManager.shared
     @StateObject var deviceAuthManager = DeviceAuthManager.shared
+    @State private var showAutoConnect = false
 
     var body: some Scene {
         WindowGroup {
@@ -63,10 +64,19 @@ struct flextargetApp: App {
                             }
                         }
                     }
+            } else if showAutoConnect {
+                ConnectSmartTargetView(bleManager: bleManager, navigateToMain: .constant(false), onConnected: { showAutoConnect = false })
             } else {
                 TabNavigationView()
                     .environmentObject(BLEManager.shared)
                     .environment(\.managedObjectContext, persistenceController.container.viewContext)
+                    .onAppear {
+                        if !bleManager.isConnected && bleManager.isBluetoothPoweredOn {
+                            bleManager.autoDetectMode = true
+                            bleManager.startScan()
+                            showAutoConnect = true
+                        }
+                    }
             }
             }
             .environment(\.managedObjectContext, persistenceController.container.viewContext)

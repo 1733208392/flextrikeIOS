@@ -317,6 +317,12 @@ class AndroidBLEManager(private val context: Context) {
                             val messageMap = jsonToMap(json)
                             this.onForwardReceived?.invoke(messageMap)
                         }
+                        // Check for provision_status
+                        else if (content.has("provision_status")) {
+                            val provisionStatus = content.optString("provision_status")
+                            println("[AndroidBLEManager] Received provision_status: $provisionStatus")
+                            BLEManager.shared.onProvisionStatusReceived?.invoke(provisionStatus)
+                        }
                         // Check for OTA notifications
                         else if (content.optString("notification") == "ready_to_download") {
                             println("[AndroidBLEManager] Received OTA ready_to_download notification")
@@ -437,6 +443,8 @@ class AndroidBLEManager(private val context: Context) {
             .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
             .build()
 
+        // Stop any existing scan first
+        bluetoothLeScanner?.stopScan(scanCallback)
         bluetoothLeScanner?.startScan(null, scanSettings, scanCallback)
 
         // Stop scan after 60 seconds
