@@ -77,6 +77,14 @@ func proceed_to_main_menu():
 	if timeout_timer:
 		timeout_timer.queue_free()
 	
+	# Check if first run is complete
+	var global_data = get_node_or_null("/root/GlobalData")
+	if global_data and not global_data.settings_dict.get("first_run_complete", false):
+		if not DEBUG_DISABLED:
+			print("[Splash] First run not complete, transitioning to onboarding")
+		get_tree().change_scene_to_file("res://scene/onboarding.tscn")
+		return
+
 	# Transition to main menu
 	if not DEBUG_DISABLED:
 		print("[Splash] Transitioning to main menu")

@@ -118,15 +118,20 @@ func _on_settings_loaded(_result, response_code, _headers, body):
 				# Ensure channel is always an integer
 				if settings_dict.has("channel"):
 					settings_dict["channel"] = int(settings_dict["channel"])
-			# Ensure new auto restart fields have defaults
-			if not settings_dict.has("auto_restart"):
-				settings_dict["auto_restart"] = false
-			if not settings_dict.has("auto_restart_pause_time"):
-				settings_dict["auto_restart_pause_time"] = 5
-			# Ensure SFX volume has default
-			if not settings_dict.has("sfx_volume"):
-				settings_dict["sfx_volume"] = 5
-			# print("GlobalData: Settings loaded into dictionary: ", settings_dict)
+				
+				# Ensure new auto restart fields have defaults
+				if not settings_dict.has("auto_restart"):
+					settings_dict["auto_restart"] = false
+				if not settings_dict.has("auto_restart_pause_time"):
+					settings_dict["auto_restart_pause_time"] = 5
+				# Ensure SFX volume has default
+				if not settings_dict.has("sfx_volume"):
+					settings_dict["sfx_volume"] = 5
+				# Ensure first run complete flag has default
+				if not settings_dict.has("first_run_complete"):
+					settings_dict["first_run_complete"] = false
+				
+				# print("GlobalData: Settings loaded into dictionary: ", settings_dict)
 				# print("GlobalData: drill_sequence value: ", settings_dict.get("drill_sequence", "NOT_FOUND"))
 				# print("GlobalData: Settings keys: ", settings_dict.keys())
 				# Emit signal to notify that settings are loaded

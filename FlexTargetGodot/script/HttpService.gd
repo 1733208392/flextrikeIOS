@@ -6,8 +6,8 @@ const DEBUG_DISABLED = true
 const OTA_USERAPP_DIR = "/srv/www/userapp"  # Directory for OTA downloads and files
 #const OTA_USERAPP_DIR = "/Users/kai/otatest"  # Directory for OTA downloads and files
 
-var base_url: String = "http://127.0.0.1"
-#var base_url: String = "http://192.168.0.122"
+#var base_url: String = "http://127.0.0.1"
+var base_url: String = "http://192.168.0.122"
 
 var sb = null  # Signal bus reference
 
@@ -239,12 +239,14 @@ func netlink_forward_data(callback: Callable, data: Dictionary):
 	)
 	http.request(url, ["Content-Type: application/json"], HTTPClient.METHOD_POST, json_data)
 
-func forward_data(callback: Callable, ssid: String):
+func forward_data(callback: Callable, content: Variant):
 	var url = base_url + "/app/forward-data"
-	var data = {"content": {"ssid": ssid}}
+	var data = {"content": content}
+	if content is String:
+		data = {"content": {"ssid": content}}
 	var json_data = JSON.stringify(data)
 	if not DEBUG_DISABLED:
-		print("[HttpService] Sending forward data request to ", url, " with ssid: ", ssid)
+		print("[HttpService] Sending forward data request to ", url, " with data: ", data)
 	var http = HTTPRequest.new()
 	add_child(http)
 	http.request_completed.connect(func(result, response_code, headers, body):
