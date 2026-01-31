@@ -1,8 +1,8 @@
 extends Node
 
 const DEBUG_DISABLED = true
-#const WEBSOCKET_URL = "ws://127.0.0.1/websocket"
-const WEBSOCKET_URL = "ws://192.168.0.122/websocket"
+const WEBSOCKET_URL = "ws://127.0.0.1/websocket"
+#const WEBSOCKET_URL = "ws://192.168.0.122/websocket"
 
 signal data_received(data)
 signal bullet_hit(pos: Vector2, a: int, t: int)
@@ -257,6 +257,14 @@ func _handle_ble_forwarded_command(parsed):
 			if gd:
 				gd.auto_netlink_enabled = true
 			get_tree().change_scene_to_file("res://scene/wifi_networks.tscn")
+		elif step == "verify_targetlink_status":
+			if not DEBUG_DISABLED:
+				print("[WebSocket] Provision step verify_targetlink_status, forwarding netlink status")
+			var http_service = get_node_or_null("/root/HttpService")
+			if http_service:
+				http_service.forward_data(Callable(), global_data.netlink_status)
+			else:
+				print("[WebSocket] HttpService not found for verify_targetlink_status")
 		return
 
 	#     let content: [String: Any] = [

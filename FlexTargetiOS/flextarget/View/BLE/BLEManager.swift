@@ -114,6 +114,9 @@ public class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, C
     private var fallbackScanTimer: Timer?
     private let targetedScanDuration: TimeInterval = 5.0
 
+    // Provision verification timer
+    private var provisionVerifyTimer: Timer?
+
     // 1. Store the target service UUID
 //    private let advServiceUUID = CBUUID(string: "002A7982-6A23-1A71-A5C2-6C4B54310C9C")
     private let advServiceUUID = CBUUID(string: "0000FFC9-0000-1000-8000-00805F9B34FB")
@@ -171,6 +174,7 @@ public class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, C
             if status == "incomplete" {
                 self?.provisionInProgress = true
                 self?.writeJSON("{\"action\":\"forward\", \"content\": {\"provision_step\": \"wifi_connection\"}}")
+                self?.startProvisionVerification()
             }
         }
         NotificationCenter.default.addObserver(
@@ -179,10 +183,46 @@ public class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, C
             name: UIApplication.willTerminateNotification,
             object: nil
         )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleNetlinkForwardReceived(_:)),
+            name: .bleNetlinkForwardReceived,
+            object: nil
+        )
     }
     
     @objc private func handleAppWillTerminate() {
         disconnect()
+    }
+    
+    @objc private func handleNetlinkForwardReceived(_ notification: Notification) {
+        if let userInfo = notification.userInfo, let json = userInfo["json"] as? [String: Any] {
+            // Check if this is netlink status response for provision verification
+            let isStarted: Bool
+            if let startedBool = json["started"] as? Bool {
+                isStarted = startedBool
+            } else if let startedInt = json["started"] as? Int {
+                isStarted = startedInt == 1
+            } else {
+                isStarted = false
+            }
+            if let workMode = json["work_mode"] as? String, isStarted && workMode == "master" {
+                provisionInProgress = false
+                stopProvisionVerification()
+            }
+        }
+    }
+    
+    private func startProvisionVerification() {
+        stopProvisionVerification()
+        provisionVerifyTimer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { [weak self] _ in
+            self?.writeJSON("{\"action\":\"forward\", \"content\": {\"provision_step\": \"verify_targetlink_status\"}}")
+        }
+    }
+    
+    private func stopProvisionVerification() {
+        provisionVerifyTimer?.invalidate()
+        provisionVerifyTimer = nil
     }
     
     // MARK: - Scanning
@@ -349,6 +389,8 @@ public class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, C
             centralManager.cancelPeripheralConnection(peripheral)
         }
         #endif
+        stopProvisionVerification()
+        provisionInProgress = false
     }
     
     // MARK: - Manual Device Selection

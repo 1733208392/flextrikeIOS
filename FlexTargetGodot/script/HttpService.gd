@@ -6,8 +6,8 @@ const DEBUG_DISABLED = true
 const OTA_USERAPP_DIR = "/srv/www/userapp"  # Directory for OTA downloads and files
 #const OTA_USERAPP_DIR = "/Users/kai/otatest"  # Directory for OTA downloads and files
 
-#var base_url: String = "http://127.0.0.1"
-var base_url: String = "http://192.168.0.122"
+var base_url: String = "http://127.0.0.1"
+#var base_url: String = "http://192.168.0.122"
 
 var sb = null  # Signal bus reference
 

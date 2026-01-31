@@ -2,6 +2,8 @@ package com.flextarget.android.data.ble
 
 import android.bluetooth.BluetoothDevice
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -42,6 +44,10 @@ class BLEManager private constructor() {
     // Provision related
     var autoDetectMode by mutableStateOf(false)
     var provisionInProgress by mutableStateOf(false)
+
+    // Provision verification timer
+    private var provisionVerifyHandler: Handler? = null
+    private var provisionVerifyRunnable: Runnable? = null
 
     // Shot notification callback
     var onShotReceived: ((com.flextarget.android.data.model.ShotData) -> Unit)? = null
@@ -87,6 +93,14 @@ class BLEManager private constructor() {
                 this@BLEManager.onNetlinkForwardReceived?.invoke(message)
             }
             onForwardReceived = { message ->
+                // Check if this is netlink status response for provision verification
+                val started = message["started"]
+                val isStarted = started == true || started == 1
+                val workMode = message["work_mode"] as? String
+                if (isStarted && workMode == "master") {
+                    provisionInProgress = false
+                    stopProvisionVerification()
+                }
                 this@BLEManager.onForwardReceived?.invoke(message)
             }
             onAuthDataReceived = { authData ->
@@ -120,8 +134,25 @@ class BLEManager private constructor() {
             if (status == "incomplete") {
                 provisionInProgress = true
                 writeJSON("{\"action\":\"forward\", \"content\": {\"provision_step\": \"wifi_connection\"}}")
+                startProvisionVerification()
             }
         }
+    }
+
+    private fun startProvisionVerification() {
+        stopProvisionVerification() // Stop any existing
+        provisionVerifyHandler = Handler(Looper.getMainLooper())
+        provisionVerifyRunnable = Runnable {
+            writeJSON("{\"action\":\"forward\", \"content\": {\"provision_step\": \"verify_targetlink_status\"}}")
+            provisionVerifyHandler?.postDelayed(provisionVerifyRunnable!!, 5000) // 5 seconds
+        }
+        provisionVerifyHandler?.post(provisionVerifyRunnable!!)
+    }
+
+    private fun stopProvisionVerification() {
+        provisionVerifyRunnable?.let { provisionVerifyHandler?.removeCallbacks(it) }
+        provisionVerifyHandler = null
+        provisionVerifyRunnable = null
     }
 
     fun startScan() {
@@ -157,6 +188,8 @@ class BLEManager private constructor() {
             isReady = false
             connectedPeripheral = null
         }
+        stopProvisionVerification()
+        provisionInProgress = false
     }
 
     fun write(data: ByteArray, completion: (Boolean) -> Unit) {
