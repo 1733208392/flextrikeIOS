@@ -253,6 +253,9 @@ func _handle_ble_forwarded_command(parsed):
 		if step == "wifi_connection":
 			if not DEBUG_DISABLED:
 				print("[WebSocket] Provision step wifi_connection, changing to WIFI_network scene")
+			# Enable auto netlink procedure
+			if gd:
+				gd.auto_netlink_enabled = true
 			get_tree().change_scene_to_file("res://scene/wifi_networks.tscn")
 		return
 

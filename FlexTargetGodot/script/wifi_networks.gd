@@ -49,6 +49,8 @@ var timeout_timer: Timer    # Timer for scan timeout
 var connecting_timer: Timer # Timer for connecting dots animation
 var link_status_timer: Timer # Timer for polling link status
 var link_status_timeout_timer: Timer # Timer for link status polling timeout
+var auto_netlink_timer: Timer # Timer for auto netlink start delay
+var auto_procedure_in_progress: bool = false # Flag to prevent scene change during auto procedure
 var dot_count = 0           # Current dot count for animations (0-3)
 
 # =============================================================================
@@ -346,7 +348,7 @@ func _on_network_selected(network_name):
 		# Hide the message after 2 seconds
 		await get_tree().create_timer(2.0).timeout
 		status_container.visible = false
-		return
+		#return
 
 	# Hide the list
 	list_vbox.visible = false
@@ -597,13 +599,22 @@ func _on_link_status_response(result, response_code, _headers, body):
 					# IP available, complete connection
 					_stop_link_status_polling()
 					_set_connected_network(selected_network)
+					
+					# Check for auto netlink procedure
+					var gd = get_node_or_null("/root/GlobalData")
+					if gd and gd.auto_netlink_enabled:
+						print("[WiFi Networks] Auto netlink enabled, starting config")
+						auto_procedure_in_progress = true
+						_start_auto_netlink()
 
 					# Emit connection signal
 					var signal_bus = get_node_or_null("/root/SignalBus")
 					if signal_bus:
 						print("WiFi Networks: Emitting wifi_connected signal for SSID: ", selected_network)
 						signal_bus.emit_wifi_connected(selected_network)
-						get_tree().change_scene_to_file("res://scene/option/option.tscn")
+						# Only change scene if auto procedure not in progress
+						if not auto_procedure_in_progress:
+							get_tree().change_scene_to_file("res://scene/option/option.tscn")
 					else:
 						print("WiFi Networks: SignalBus not found, cannot emit signal")
 				else:
@@ -638,6 +649,69 @@ func _stop_link_status_polling():
 		link_status_timeout_timer.queue_free()
 		link_status_timeout_timer = null
 	status_container.visible = false
+
+func _start_auto_netlink():
+	"""
+	Start auto netlink config and start procedure
+	"""
+	print("[WiFi Networks] Starting auto netlink config")
+	# Config with channel 17, work_mode "master", device_name "01"
+	HttpService.netlink_config(Callable(self, "_on_auto_netlink_config_response"), 17, "01", "master")
+
+func _on_auto_netlink_config_response(result, response_code, _headers, _body):
+	"""
+	Handle auto netlink config response
+	"""
+	if not is_instance_valid(self) or not is_inside_tree():
+		return
+	
+	if result == HTTPRequest.RESULT_SUCCESS and response_code == 200:
+		print("[WiFi Networks] Auto netlink config successful, starting delay timer")
+		# Start 1-2 second delay timer
+		auto_netlink_timer = Timer.new()
+		auto_netlink_timer.wait_time = 1.5  # 1.5 seconds delay
+		auto_netlink_timer.one_shot = true
+		auto_netlink_timer.connect("timeout", Callable(self, "_on_auto_netlink_delay_timeout"))
+		add_child(auto_netlink_timer)
+		auto_netlink_timer.start()
+	else:
+		print("[WiFi Networks] Auto netlink config failed: ", result, " code: ", response_code)
+		# Reset flags and change scene
+		var gd = get_node_or_null("/root/GlobalData")
+		if gd:
+			gd.auto_netlink_enabled = false
+		auto_procedure_in_progress = false
+		get_tree().change_scene_to_file("res://scene/option/option.tscn")
+
+func _on_auto_netlink_delay_timeout():
+	"""
+	Handle auto netlink delay timeout, start netlink
+	"""
+	if not is_instance_valid(self) or not is_inside_tree():
+		return
+	
+	print("[WiFi Networks] Auto netlink delay timeout, starting netlink")
+	HttpService.netlink_start(Callable(self, "_on_auto_netlink_start_response"))
+
+func _on_auto_netlink_start_response(result, response_code, _headers, _body):
+	"""
+	Handle auto netlink start response
+	"""
+	if not is_instance_valid(self) or not is_inside_tree():
+		return
+	
+	if result == HTTPRequest.RESULT_SUCCESS and response_code == 200:
+		print("[WiFi Networks] Auto netlink start successful")
+	else:
+		print("[WiFi Networks] Auto netlink start failed: ", result, " code: ", response_code)
+	# Reset flag regardless
+	var gd = get_node_or_null("/root/GlobalData")
+	if gd:
+		gd.auto_netlink_enabled = false
+	
+	# Auto procedure complete, change scene
+	auto_procedure_in_progress = false
+	get_tree().change_scene_to_file("res://scene/option/option.tscn")
 
 func _commit_password():
 	"""

@@ -49,6 +49,9 @@ const NETLINK_UPDATE_INTERVAL = 60.0  # Request every 60 seconds
 var ota_mode: bool = false  # True if system is in OTA mode (can write to /srv/www/userapp)
 var current_upgrade_version: String = ""  # Version being downloaded during OTA upgrade
 
+# Auto netlink enable flag
+var auto_netlink_enabled: bool = false
+
 # Signal emitted when settings are successfully loaded
 signal settings_loaded
 signal netlink_status_loaded
