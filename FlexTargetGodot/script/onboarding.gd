@@ -2,7 +2,7 @@ extends Control
 
 const DEBUG_DISABLED = true
 const QR_CODE_GENERATOR = preload("res://script/qrcode.gd")
-const QR_URL = "https://grwolf.com/app"
+const QR_URL = "https://grwolf.com/pages/app-redirect"
 
 @onready var greeting_label = $CenterContainer/VBoxContainer/GreetingLabel
 @onready var qr_texture_rect = $CenterContainer/VBoxContainer/QRTextureRect
