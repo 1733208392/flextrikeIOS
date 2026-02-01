@@ -189,6 +189,12 @@ public class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, C
             name: .bleNetlinkForwardReceived,
             object: nil
         )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleDirectForwardReceived(_:)),
+            name: .bleDirectForwardReceived,
+            object: nil
+        )
     }
     
     @objc private func handleAppWillTerminate() {
@@ -197,18 +203,81 @@ public class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, C
     
     @objc private func handleNetlinkForwardReceived(_ notification: Notification) {
         if let userInfo = notification.userInfo, let json = userInfo["json"] as? [String: Any] {
-            // Check if this is netlink status response for provision verification
+            // Handle netlink forward messages (type: "netlink", action: "forward")
+            // Extract content from json["content"] since this is wrapped in netlink
+            if let content = json["content"] as? [String: Any] {
+                // Handle shot data (supports both old format "command" and new format "cmd")
+                let commandValue = content["command"] as? String ?? content["cmd"] as? String
+                if commandValue == "shot" {
+                    print("[BLEManager] Received shot data (both formats supported): \(json)")
+                    NotificationCenter.default.post(name: .bleShotReceived, object: nil, userInfo: ["shot_data": json])
+                }
+                
+                // Handle image chunk data
+                if commandValue == "image_chunk" {
+                    print("Received image chunk: \(json)")
+                    NotificationCenter.default.post(name: .bleImageChunkReceived, object: nil, userInfo: ["json": content])
+                }
+            }
+        }
+    }
+    
+    @objc private func handleDirectForwardReceived(_ notification: Notification) {
+        if let userInfo = notification.userInfo, let json = userInfo["json"] as? [String: Any] {
+            // Handle direct forward messages (type: "forward")
+            // Extract content from the json directly since type is "forward"
+            let content = json["content"] as? [String: Any] ?? json
+            
+            // Check for provision status in device status messages
             let isStarted: Bool
-            if let startedBool = json["started"] as? Bool {
+            if let startedBool = content["started"] as? Bool {
                 isStarted = startedBool
-            } else if let startedInt = json["started"] as? Int {
+            } else if let startedInt = content["started"] as? Int {
                 isStarted = startedInt == 1
             } else {
                 isStarted = false
             }
-            if let workMode = json["work_mode"] as? String, isStarted && workMode == "master" {
+            if let workMode = content["work_mode"] as? String, isStarted && workMode == "master" {
                 provisionInProgress = false
                 stopProvisionVerification()
+            }
+            
+            // Handle provision_status in forwarded messages
+            if let provisionStatus = content["provision_status"] as? String {
+                print("Received forwarded provision_status: \(provisionStatus)")
+                onProvisionStatusReceived?(provisionStatus)
+            }
+            
+            // Check for OTA "ready_to_download" notification (underscore format)
+            if let notification = content["notification"] as? String, notification == "ready_to_download" {
+                print("Received OTA ready_to_download notification")
+                NotificationCenter.default.post(name: .bleReadyToDownload, object: nil)
+            }
+            
+            // Check for OTA "download_complete" notification (underscore format)
+            if let notification = content["notification"] as? String, notification == "download_complete",
+               let version = content["version"] as? String {
+                print("Received OTA download complete (forwarded): \(version)")
+                self.reloadUI()
+                NotificationCenter.default.post(name: .bleDownloadComplete, object: nil, userInfo: ["version": version])
+            }
+            
+            // Check for OTA version info directly in content (without type field)
+            if let version = content["version"] as? String {
+                print("Received OTA version info (forwarded): \(version)")
+                NotificationCenter.default.post(name: .bleVersionInfoReceived, object: nil, userInfo: ["version": version])
+            }
+            
+            // Check for WIFI SSID in forward content
+            if let ssid = content["ssid"] as? String {
+                print("Received WIFI SSID forward: \(ssid)")
+                NotificationCenter.default.post(name: .bleWifiSsidReceived, object: nil, userInfo: ["ssid": ssid])
+            }
+            
+            // Check for workmode in forward content
+            if let workmode = content["workmode"] as? String {
+                print("Received workmode forward: \(workmode)")
+                NotificationCenter.default.post(name: .bleWorkmodeReceived, object: nil, userInfo: ["workmode": workmode])
             }
         }
     }
@@ -601,20 +670,7 @@ public class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, C
                 // Try to parse as JSON
                 if let json = try? JSONSerialization.jsonObject(with: partData, options: []) as? [String: Any] {
                     
-                    // Handle provision_status
-                    if let provisionStatus = json["provision_status"] as? String {
-                        onProvisionStatusReceived?(provisionStatus)
-                        notificationHandled = true
-                    }
-                    
-                    // Handle provision_status in forwarded messages
-                    if let type = json["type"] as? String, type == "forward",
-                       let content = json["content"] as? [String: Any],
-                       let provisionStatus = content["provision_status"] as? String {
-                        print("Received forwarded provision_status: \(provisionStatus)")
-                        onProvisionStatusReceived?(provisionStatus)
-                        notificationHandled = true
-                    }
+
                     
                     // Handle the state notification
                     if let type = json["type"] as? String, type == "state",
@@ -672,51 +728,7 @@ public class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, C
                         notificationHandled = true
                     }
                     
-                    // Handle wrapped "forward" notifications for OTA and UI data
-                    if let type = json["type"] as? String, type == "forward",
-                       let content = json["content"] as? [String: Any] {
-                        
-                        // Check for OTA "ready_to_download" notification (underscore format)
-                        if let notification = content["notification"] as? String, notification == "ready_to_download" {
-                            print("Received OTA ready_to_download notification")
-                            NotificationCenter.default.post(name: .bleReadyToDownload, object: nil)
-                            notificationHandled = true
-                        }
-                        
-                        // Check for OTA "download_complete" notification (underscore format)
-                        if !notificationHandled,
-                           let notification = content["notification"] as? String, notification == "download_complete",
-                           let version = content["version"] as? String {
-                            print("Received OTA download complete (forwarded): \(version)")
-                            self.reloadUI()
-                            NotificationCenter.default.post(name: .bleDownloadComplete, object: nil, userInfo: ["version": version])
-                            notificationHandled = true
-                        }
-                        
-                        // Check for OTA version info directly in content (without type field)
-                        if !notificationHandled,
-                           let version = content["version"] as? String {
-                            print("Received OTA version info (forwarded): \(version)")
-                            NotificationCenter.default.post(name: .bleVersionInfoReceived, object: nil, userInfo: ["version": version])
-                            notificationHandled = true
-                        }
-                        
-                        // Check for WIFI SSID in forward content
-                        if !notificationHandled,
-                           let ssid = content["ssid"] as? String {
-                            print("Received WIFI SSID forward: \(ssid)")
-                            NotificationCenter.default.post(name: .bleWifiSsidReceived, object: nil, userInfo: ["ssid": ssid])
-                            notificationHandled = true
-                        }
-                        
-                        // Check for workmode in forward content
-                        if !notificationHandled,
-                           let workmode = content["workmode"] as? String {
-                            print("Received workmode forward: \(workmode)")
-                            NotificationCenter.default.post(name: .bleWorkmodeReceived, object: nil, userInfo: ["workmode": workmode])
-                            notificationHandled = true
-                        }
-                    }
+
                     
                     // Handle OTA "download complete" notification (Top-level fallback)
                     if !notificationHandled,
@@ -755,21 +767,7 @@ public class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, C
                             print("Failed to decode netlink device_list: \(error.localizedDescription)")
                         }
                     }
-                    
-                    // Handle incoming shot data (supports both old format "command" and new format "cmd")
-                    if let type = json["type"] as? String, type == "netlink",
-                       let action = json["action"] as? String, action == "forward",
-                       let content = json["content"] as? [String: Any] {
-                        
-                        // Check for old format "command" or new format "cmd"
-                        let commandValue = content["command"] as? String ?? content["cmd"] as? String
-                        if commandValue == "shot" {
-                            print("[BLEManager] Received shot data (both formats supported): \(json)")
-                            NotificationCenter.default.post(name: .bleShotReceived, object: nil, userInfo: ["shot_data": json])
-                            notificationHandled = true
-                        }
-                    }
-                    
+
                     // Handle notice for non-master device connection failure
                     if let type = json["type"] as? String, type == "notice",
                        let state = json["state"] as? String, state == "failure",
@@ -798,32 +796,18 @@ public class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, C
                         notificationHandled = true
                     }
                     
-                    // Post general netlink forward messages (e.g. device ACKs with content "ready")
-                    if let type = json["type"] as? String, type == "netlink",
-                       let action = json["action"] as? String, action == "forward" {
-                        // Avoid duplicating the shot notification which is already posted above
-                        var isShot = false
-                        if let content = json["content"] as? [String: Any], let command = content["command"] as? String, command == "shot" {
-                            isShot = true
-                        }
-                        if let contentStr = json["content"] as? String, contentStr == "shot" {
-                            isShot = true
-                        }
-                        
-                        // Check if this is an image chunk
-                        var isImageChunk = false
-                        if let content = json["content"] as? [String: Any], let command = content["command"] as? String, command == "image_chunk" {
-                            isImageChunk = true
-                            print("Received image chunk: \(json)")
-                            NotificationCenter.default.post(name: .bleImageChunkReceived, object: nil, userInfo: ["json": content])
-                            notificationHandled = true
-                        }
-                        
-                        if !isShot && !isImageChunk {
-                            print("Received general netlink forward: \(json)")
-                            NotificationCenter.default.post(name: .bleNetlinkForwardReceived, object: nil, userInfo: ["json": json])
-                            notificationHandled = true
-                        }
+                    // Post netlink forward messages (type: "netlink", action: "forward")
+                    if let type = json["type"] as? String, type == "netlink", let action = json["action"] as? String, action == "forward" {
+                        print("Received netlink forward: \(json)")
+                        NotificationCenter.default.post(name: .bleNetlinkForwardReceived, object: nil, userInfo: ["json": json])
+                        notificationHandled = true
+                    }
+                    
+                    // Post direct forward messages (type: "forward")
+                    if !notificationHandled, let type = json["type"] as? String, type == "forward" {
+                        print("Received direct forward: \(json)")
+                        NotificationCenter.default.post(name: .bleDirectForwardReceived, object: nil, userInfo: ["json": json])
+                        notificationHandled = true
                     }
                     
                     if !notificationHandled {
@@ -1023,6 +1007,7 @@ extension Notification.Name {
     static let bleDeviceListUpdated = Notification.Name("bleDeviceListUpdated")
     static let bleShotReceived = Notification.Name("bleShotReceived")
     static let bleNetlinkForwardReceived = Notification.Name("bleNetlinkForwardReceived")
+    static let bleDirectForwardReceived = Notification.Name("bleDirectForwardReceived")
     static let bleImageChunkReceived = Notification.Name("bleImageChunkReceived")
     static let bleErrorOccurred = Notification.Name("bleErrorOccurred")
     static let drillExecutionCompleted = Notification.Name("drillExecutionCompleted")
