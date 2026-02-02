@@ -52,7 +52,7 @@ object AppContainer {
             .build()
     }
 
-    private val flexTargetAPI by lazy {
+    private val flexTargetAPIInstance by lazy {
         retrofit.create(FlexTargetAPI::class.java)
     }
 
@@ -79,26 +79,36 @@ object AppContainer {
     private val appPreferences by lazy { AppPreferences(applicationContext) }
 
     // Auth
-    private val authManager by lazy {
+    private val authManagerInstance by lazy {
         AuthManager(
             preferences = appPreferences,
-            userApiService = flexTargetAPI,
+            userApiService = flexTargetAPIInstance,
             tokenRefreshQueue = null
         )
     }
     private val tokenRefreshQueue by lazy {
         TokenRefreshQueue(
-            authManager = authManager,
-            userApiService = flexTargetAPI
+            authManager = authManagerInstance,
+            userApiService = flexTargetAPIInstance
         )
     }
     private val deviceAuthManager by lazy { 
         DeviceAuthManager(
             preferences = appPreferences,
-            userApiService = flexTargetAPI,
-            authManager = authManager
+            userApiService = flexTargetAPIInstance,
+            authManager = authManagerInstance
         )
     }
+
+    // Public accessors
+    val preferences: AppPreferences
+        get() = appPreferences
+    
+    val authManager: AuthManager
+        get() = authManagerInstance
+    
+    val flexTargetAPI: FlexTargetAPI
+        get() = flexTargetAPIInstance
 
     // WorkManager
     private val workManager by lazy { WorkManager.getInstance(applicationContext) }
@@ -111,17 +121,17 @@ object AppContainer {
     }
     private val competitionRepository by lazy {
         CompetitionRepository(
-            api = flexTargetAPI,
+            api = flexTargetAPIInstance,
             competitionDao = competitionDao,
             gamePlayDao = gamePlayDao,
-            authManager = authManager,
+            authManager = authManagerInstance,
             deviceAuthManager = deviceAuthManager
         )
     }
     private val otaRepository by lazy {
         OTARepository(
-            api = flexTargetAPI,
-            authManager = authManager,
+            api = flexTargetAPIInstance,
+            authManager = authManagerInstance,
             workManager = workManager
         )
     }
@@ -129,8 +139,8 @@ object AppContainer {
 
     // ViewModels
     val authViewModel by lazy {
-        authManager.setTokenRefreshQueue(tokenRefreshQueue)
-        AuthViewModel(applicationContext as android.app.Application, authManager, deviceAuthManager)
+        authManagerInstance.setTokenRefreshQueue(tokenRefreshQueue)
+        AuthViewModel(applicationContext as android.app.Application, authManagerInstance, deviceAuthManager)
     }
 
     val drillViewModel by lazy {

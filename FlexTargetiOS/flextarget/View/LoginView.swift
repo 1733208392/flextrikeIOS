@@ -12,12 +12,20 @@ struct LoginView: View {
     @State private var errorMessage = ""
     @State private var showError = false
     @State private var showRegistration = false
+    @State private var showForgotPassword = false
     
     var body: some View {
         if showRegistration {
             RegistrationView(
                 onDismiss: {
                     showRegistration = false
+                    onDismiss()
+                }
+            )
+        } else if showForgotPassword {
+            ForgotPasswordView(
+                onDismiss: {
+                    showForgotPassword = false
                     onDismiss()
                 }
             )
@@ -61,6 +69,14 @@ struct LoginView: View {
                         }
                     }
                     .disabled(isLoading || mobile.isEmpty || password.isEmpty)
+                    
+                    // Forgot Password button
+                    Button(action: { showForgotPassword = true }) {
+                        Text(NSLocalizedString("forgot_password", comment: "Forgot password button"))
+                            .foregroundColor(.red)
+                            .font(.caption)
+                    }
+                    .disabled(isLoading)
                     
                     // Register button
                     Button(action: { showRegistration = true }) {

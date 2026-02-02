@@ -118,6 +118,30 @@ class AuthManager: ObservableObject {
         }
     }
     
+    func sendResetPasswordVerifyCode(email: String) async throws {
+        print("[AuthManager] Sending password reset verification code to email: \(email)")
+        do {
+            let response = try await UserAPIService.shared.sendResetPasswordVerifyCode(email: email)
+            print("[AuthManager] Password reset verification code sent successfully, response code: \(response.code)")
+        } catch {
+            print("[AuthManager] Failed to send password reset verification code: \(error)")
+            throw error
+        }
+    }
+    
+    func resetPassword(email: String, password: String, verifyCode: String) async throws {
+        print("[AuthManager] Attempting to reset password for email: \(email)")
+        do {
+            // Call reset password API
+            try await UserAPIService.shared.resetPassword(email: email, password: password, verifyCode: verifyCode)
+            print("[AuthManager] Password reset successful for email: \(email)")
+            print("[AuthManager] User will need to login with their new password")
+        } catch {
+            print("[AuthManager] Password reset failed: \(error)")
+            throw error
+        }
+    }
+    
     func updateTokens(accessToken: String, refreshToken: String) {
         guard var user = currentUser else { 
             print("[AuthManager] updateTokens called but no current user")

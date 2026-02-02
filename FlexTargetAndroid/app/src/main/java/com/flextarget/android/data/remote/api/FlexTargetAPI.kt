@@ -47,6 +47,23 @@ interface FlexTargetAPI {
     @POST("/user/register/email/send-verify-code")
     suspend fun sendVerifyCode(@Body request: SendVerifyCodeRequest): ApiResponse<SendVerifyCodeResponse>
     
+    // ============ PASSWORD RESET ============
+    
+    /**
+     * POST /user/reset-password/email/send-verify-code
+     * Send verification code to email for password reset
+     */
+    @POST("/user/reset-password/email/send-verify-code")
+    suspend fun sendResetPasswordVerifyCode(@Body request: SendResetPasswordVerifyCodeRequest): ApiResponse<SendResetPasswordVerifyCodeResponse>
+    
+    /**
+     * POST /user/reset-password/email
+     * Reset user password with email and verification code
+     * Returns login data (tokens) for auto-login
+     */
+    @POST("/user/reset-password/email")
+    suspend fun resetPassword(@Body request: ResetPasswordRequest): ApiResponse<ResetPasswordResponse>
+    
     /**
      * POST /user/token/refresh
      * Refresh access token using refresh token

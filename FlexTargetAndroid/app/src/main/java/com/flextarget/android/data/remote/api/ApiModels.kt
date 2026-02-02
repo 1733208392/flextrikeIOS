@@ -79,6 +79,34 @@ data class RegisterResponse(
     val refreshToken: String
 )
 
+// ============ PASSWORD RESET ============
+
+data class SendResetPasswordVerifyCodeRequest(
+    @SerializedName("email")
+    val email: String
+)
+
+data class SendResetPasswordVerifyCodeResponse(
+    @SerializedName("code")
+    val code: Int,
+    @SerializedName("msg")
+    val msg: String
+)
+
+data class ResetPasswordRequest(
+    @SerializedName("email")
+    val email: String,
+    @SerializedName("password")
+    val password: String, // Base64 encoded without padding
+    @SerializedName("verify_code")
+    val verify_code: String
+)
+
+data class ResetPasswordResponse(
+    val code: Int,
+    val msg: String
+)
+
 data class RefreshTokenRequest(
     @SerializedName("refresh_token")
     val refresh_token: String

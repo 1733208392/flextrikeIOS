@@ -38,6 +38,7 @@ fun AdminTabView(
     val showUserProfile = remember { mutableStateOf(false) }
     val showLogin = remember { mutableStateOf(false) }
     val showRegistration = remember { mutableStateOf(false) }
+    val showForgotPassword = remember { mutableStateOf(false) }
     val showManualDeviceSelect = remember { mutableStateOf(false) }
     val showQRScanner = remember { mutableStateOf(false) }
     val showConnectedDeviceDetails = remember { mutableStateOf(false) }
@@ -187,6 +188,10 @@ fun AdminTabView(
                     onRegisterClick = {
                         showLogin.value = false
                         showRegistration.value = true
+                    },
+                    onForgotPasswordClick = {
+                        showLogin.value = false
+                        showForgotPassword.value = true
                     }
                 )
             }
@@ -199,6 +204,18 @@ fun AdminTabView(
                     },
                     onBackClick = {
                         showRegistration.value = false
+                        showLogin.value = true
+                    }
+                )
+            }
+            showForgotPassword.value -> {
+                ForgotPasswordScreen(
+                    onResetSuccess = {
+                        showForgotPassword.value = false
+                        showUserProfile.value = true
+                    },
+                    onBackClick = {
+                        showForgotPassword.value = false
                         showLogin.value = true
                     }
                 )

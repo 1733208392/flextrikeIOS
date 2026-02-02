@@ -37,7 +37,8 @@ import com.flextarget.android.R
 fun LoginScreen(
     authViewModel: AuthViewModel,
     onLoginSuccess: () -> Unit = {},
-    onRegisterClick: () -> Unit = {}
+    onRegisterClick: () -> Unit = {},
+    onForgotPasswordClick: () -> Unit = {}
 ) {
     val authUiState by authViewModel.authUiState.collectAsState()
     
@@ -193,6 +194,27 @@ fun LoginScreen(
                     fontWeight = FontWeight.Bold
                 )
             }
+        }
+        
+        // Forgot Password button
+        Button(
+            onClick = onForgotPasswordClick,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp)
+                .padding(bottom = 16.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Transparent,
+                disabledContainerColor = Color.Transparent
+            ),
+            shape = RoundedCornerShape(8.dp),
+            enabled = !authUiState.isLoading
+        ) {
+            Text(
+                stringResource(R.string.login_forgot_password),
+                style = MaterialTheme.typography.labelMedium,
+                color = Color.Red
+            )
         }
         
         // Register button

@@ -320,6 +320,15 @@
 "username" = "Username";
 "session_expired_message" = "Your session has expired. Please login again.";
 
+/* Password Reset */
+"reset_password" = "Reset Password";
+"reset_password_button" = "Reset Password";
+"forgot_password" = "Forgot Password?";
+"verify_code" = "Verification Code";
+"send_code" = "Send Code";
+"email" = "Email Address";
+"back" = "Back";
+
 /* Competition Results Sync */
 "sync_results" = "Sync Results";
 "sync_error_title" = "Sync Error";

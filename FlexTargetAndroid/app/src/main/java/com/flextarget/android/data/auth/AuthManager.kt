@@ -491,6 +491,49 @@ class AuthManager @Inject constructor(
         }
     
     /**
+     * Set user directly with tokens (for password reset auto-login)
+     * Updates both in-memory state and persistent storage
+     */
+    suspend fun setUserDirectly(
+        userUUID: String,
+        accessToken: String,
+        refreshToken: String,
+        mobile: String,
+        username: String?
+    ) {
+        try {
+            val user = UserData(
+                userUUID = userUUID,
+                accessToken = accessToken,
+                refreshToken = refreshToken,
+                mobile = mobile,
+                username = username
+            )
+            
+            // Save to encrypted storage
+            withContext(Dispatchers.IO) {
+                preferences.saveUserToken(
+                    userUUID = user.userUUID,
+                    accessToken = user.accessToken,
+                    refreshToken = user.refreshToken,
+                    mobile = user.mobile,
+                    username = user.username
+                )
+            }
+            
+            // Update in-memory state
+            _currentUser.value = user
+            
+            // Start refresh timer
+            startTokenRefreshTimer()
+            
+            Log.d(TAG, "User set directly for: $userUUID")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to set user directly", e)
+        }
+    }
+    
+    /**
      * Base64 encode password (matching iOS implementation)
      * Encodes UTF-8 string to Base64 and removes padding (=) characters
      */
