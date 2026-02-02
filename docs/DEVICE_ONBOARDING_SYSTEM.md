@@ -301,3 +301,24 @@ if content.has("provision_step"):
 The Device Onboarding system provides a robust, user-friendly solution for initial smart target device setup. Its cross-platform consistency, comprehensive error handling, and intuitive user experience make it production-ready for large-scale deployment.
 
 The system's modular architecture and well-defined message protocols ensure maintainability and extensibility for future enhancements.
+
+
+App loads → splash_loading
+    ↓
+Settings load complete
+    ↓
+Check: first_run_complete?
+    ├─ NO → onboarding.tscn (unchanged)
+    │
+    └─ YES → Fetch netlink_status
+        ├─ WiFi connected + valid IP?
+        │   ├─ YES → Start auto-netlink
+        │   │         ├─ netlink_config
+        │   │         ├─ wait 1.5s
+        │   │         ├─ netlink_start
+        │   │         └─ option.tscn
+        │   │
+        │   └─ NO → Broadcast provision_status:incomplete
+        │           └─ wifi_networks.tscn (user selects WiFi)
+        │
+        └─ Request fails → main_menu.tscn (fallback)
