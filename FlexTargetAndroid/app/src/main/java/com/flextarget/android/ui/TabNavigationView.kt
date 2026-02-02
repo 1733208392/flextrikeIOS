@@ -40,6 +40,17 @@ fun TabNavigationView(
 ) {
     val navController = rememberNavController()
 
+    // Auto navigate to admin tab when shouldShowRemoteControl is true
+    LaunchedEffect(bleManager.shouldShowRemoteControl) {
+        if (bleManager.shouldShowRemoteControl) {
+            println("[TabNavigationView] Navigating to admin tab")
+            navController.navigate("admin") {
+                popUpTo(navController.graph.startDestinationId)
+                launchSingleTop = true
+            }
+        }
+    }
+
     Scaffold(
         bottomBar = {
             val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route

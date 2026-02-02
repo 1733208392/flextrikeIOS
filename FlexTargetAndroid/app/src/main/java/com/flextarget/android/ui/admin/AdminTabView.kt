@@ -45,6 +45,17 @@ fun AdminTabView(
 
     val authUiState by authViewModel.authUiState.collectAsState()
 
+    // Auto navigate to remote control when provision_step: wifi_connect is received
+    LaunchedEffect(bleManager.shouldShowRemoteControl) {
+        if (bleManager.shouldShowRemoteControl) {
+            println("[AdminTabView] Setting showRemoteControl = true")
+            showRemoteControl.value = true
+            showMainMenu.value = false
+            showDeviceManagement.value = false
+            bleManager.shouldShowRemoteControl = false
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()

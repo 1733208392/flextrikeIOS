@@ -1,6 +1,7 @@
 package com.flextarget.android.data.ble
 
 import android.bluetooth.*
+import android.bluetooth.le.BluetoothLeScanner
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
@@ -89,7 +90,7 @@ class AndroidBLEManagerIntegrationTest {
         every { mockBluetoothAdapter.bluetoothLeScanner } returns mockk<BluetoothLeScanner>(relaxed = true) {
             coEvery { startScan(any(), any(), any<ScanCallback>()) } answers {
                 val callback = lastArg<ScanCallback>()
-                val scanRecord = mockk<BluetoothLeAdvertisingData>(relaxed = true)
+                val scanRecord = mockk<ScanRecord>(relaxed = true)
                 val scanResult = mockk<ScanResult> {
                     every { device } returns mockBluetoothDevice
                     every { this@mockk.scanRecord } returns scanRecord
@@ -214,7 +215,7 @@ class AndroidBLEManagerIntegrationTest {
         )
         
         val characteristic = mockk<BluetoothGattCharacteristic> {
-            every { value } returns shotMessage.data(Charsets.UTF_8)
+            every { value } returns shotMessage.toByteArray(Charsets.UTF_8)
         }
         
         val gattCallback = captureGattCallback()
@@ -235,7 +236,7 @@ class AndroidBLEManagerIntegrationTest {
         val chunks = fullMessage.chunked(100)
         val characteristics = chunks.map { chunk ->
             mockk<BluetoothGattCharacteristic> {
-                every { value } returns chunk.data(Charsets.UTF_8)
+                every { value } returns chunk.toByteArray(Charsets.UTF_8)
             }
         }
         
@@ -258,7 +259,7 @@ class AndroidBLEManagerIntegrationTest {
         )
         
         val characteristic = mockk<BluetoothGattCharacteristic> {
-            every { value } returns deviceListMessage.data(Charsets.UTF_8)
+            every { value } returns deviceListMessage.toByteArray(Charsets.UTF_8)
         }
         
         val gattCallback = captureGattCallback()

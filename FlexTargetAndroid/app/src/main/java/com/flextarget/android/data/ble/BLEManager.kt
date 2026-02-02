@@ -7,6 +7,9 @@ import android.os.Looper
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.ProcessLifecycleOwner
 import java.util.Date
 import java.util.UUID
 
@@ -42,12 +45,20 @@ class BLEManager private constructor() {
     var showErrorAlert by mutableStateOf(false)
 
     // Provision related
-    var autoDetectMode by mutableStateOf(false)
+    var autoDetectMode by mutableStateOf(true)
     var provisionInProgress by mutableStateOf(false)
+    var provisionCompleted by mutableStateOf(false)
+    var shouldShowRemoteControl by mutableStateOf(false)
 
     // Provision verification timer
     private var provisionVerifyHandler: Handler? = null
     private var provisionVerifyRunnable: Runnable? = null
+
+    // Auto-detection properties
+    private var autoDetectHandler: Handler? = null
+    private var autoDetectRunnable: Runnable? = null
+    private val autoDetectInterval: Long = 10000L
+    private var isAppInForeground = true
 
     // Shot notification callback
     var onShotReceived: ((com.flextarget.android.data.model.ShotData) -> Unit)? = null
@@ -76,6 +87,27 @@ class BLEManager private constructor() {
     val connectedPeripheralName: String?
         get() = connectedPeripheral?.name
 
+    init {
+        // Initialize provision status handler at singleton level
+        // This ensures the handler persists across initialize() calls
+        onProvisionStatusReceived = { status ->
+            println("[BLEManager] onProvisionStatusReceived called with status: $status")
+            if (status == "incomplete") {
+                if (isConnected && isReady) {
+                    println("[BLEManager] Device connected and ready. Received provision_status: incomplete")
+                    println("[BLEManager] Setting shouldShowRemoteControl = true to trigger RemoteControlView")
+                    provisionInProgress = true
+                    provisionCompleted = false
+                    shouldShowRemoteControl = true
+                    writeJSON("{\"action\":\"forward\", \"content\": {\"provision_step\": \"wifi_connection\"}}")
+                    startProvisionVerification()
+                } else {
+                    println("[BLEManager] Device not ready yet. isConnected: $isConnected, isReady: $isReady")
+                }
+            }
+        }
+    }
+
     fun initialize(context: Context) {
         // Don't reinitialize if already connected
         if (androidBLEManager != null && isConnected) {
@@ -90,17 +122,13 @@ class BLEManager private constructor() {
                 if (provisionStatus != null) {
                     onProvisionStatusReceived?.invoke(provisionStatus)
                 }
+
                 this@BLEManager.onNetlinkForwardReceived?.invoke(message)
             }
             onForwardReceived = { message ->
-                // Check if this is netlink status response for provision verification
-                val started = message["started"]
-                val isStarted = started == true || started == 1
-                val workMode = message["work_mode"] as? String
-                if (isStarted && workMode == "master") {
-                    provisionInProgress = false
-                    stopProvisionVerification()
-                }
+                // Note: Provision completion is now handled directly in AndroidBLEManager
+                // before this callback is invoked, so we don't need to check for it here.
+                // This callback is kept for any UI-level forward message handling.
                 this@BLEManager.onForwardReceived?.invoke(message)
             }
             onAuthDataReceived = { authData ->
@@ -129,22 +157,46 @@ class BLEManager private constructor() {
             }
         }
 
-        // Set provision status handler
-        onProvisionStatusReceived = { status ->
-            if (status == "incomplete") {
-                provisionInProgress = true
-                writeJSON("{\"action\":\"forward\", \"content\": {\"provision_step\": \"wifi_connection\"}}")
-                startProvisionVerification()
+        // Add lifecycle observer for app foreground/background
+        ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {
+            override fun onStart(owner: LifecycleOwner) {
+                // App came to foreground
+                isAppInForeground = true
+                if (autoDetectMode && !isConnected) {
+                    startAutoDetection()
+                }
             }
+
+            override fun onStop(owner: LifecycleOwner) {
+                // App went to background
+                isAppInForeground = false
+                stopAutoDetection()
+            }
+        })
+
+        // Start auto-detection if app is already in foreground
+        if (autoDetectMode && !isConnected) {
+            startAutoDetection()
         }
     }
 
     private fun startProvisionVerification() {
         stopProvisionVerification() // Stop any existing
+        if (!isConnected || !isReady) {
+            println("[BLEManager] Cannot start provision verification: isConnected=$isConnected, isReady=$isReady")
+            return
+        }
         provisionVerifyHandler = Handler(Looper.getMainLooper())
         provisionVerifyRunnable = Runnable {
-            writeJSON("{\"action\":\"forward\", \"content\": {\"provision_step\": \"verify_targetlink_status\"}}")
-            provisionVerifyHandler?.postDelayed(provisionVerifyRunnable!!, 5000) // 5 seconds
+            // Check connection before sending
+            if (isConnected && isReady && provisionInProgress) {
+                println("[BLEManager] Sending provision verification status request")
+                writeJSON("{\"action\":\"forward\", \"content\": {\"provision_step\": \"verify_targetlink_status\"}}")
+                provisionVerifyHandler?.postDelayed(provisionVerifyRunnable!!, 5000) // 5 seconds
+            } else {
+                println("[BLEManager] Stopping provision verification: isConnected=$isConnected, isReady=$isReady, provisionInProgress=$provisionInProgress")
+                stopProvisionVerification()
+            }
         }
         provisionVerifyHandler?.post(provisionVerifyRunnable!!)
     }
@@ -154,12 +206,43 @@ class BLEManager private constructor() {
         provisionVerifyHandler = null
         provisionVerifyRunnable = null
     }
+    
+    // Public accessor for stopping provision verification from AndroidBLEManager
+    fun stopProvisionVerificationPublic() {
+        stopProvisionVerification()
+    }
+    
+    // MARK: - Auto-Detection
+    fun startAutoDetection() {
+        stopAutoDetection()
+        if (!autoDetectMode || isConnected || !isAppInForeground) return
+        autoDetectHandler = Handler(Looper.getMainLooper())
+        autoDetectRunnable = Runnable {
+            performAutoDetectionScan()
+            autoDetectHandler?.postDelayed(autoDetectRunnable!!, autoDetectInterval)
+        }
+        autoDetectHandler?.post(autoDetectRunnable!!)
+    }
+    
+    fun stopAutoDetection() {
+        autoDetectRunnable?.let { autoDetectHandler?.removeCallbacks(it) }
+        autoDetectHandler = null
+        autoDetectRunnable = null
+    }
+    
+    private fun performAutoDetectionScan() {
+        if (!isScanning && isAppInForeground) {
+            startScan()
+        }
+    }
 
     fun startScan() {
         androidBLEManager?.startScan() ?: run {
             // Fallback for when not initialized
-            isScanning = true
-            error = null
+            if (!isScanning) {
+                isScanning = true
+                error = null
+            }
         }
     }
 
@@ -190,6 +273,8 @@ class BLEManager private constructor() {
         }
         stopProvisionVerification()
         provisionInProgress = false
+        provisionCompleted = false
+        shouldShowRemoteControl = false
     }
 
     fun write(data: ByteArray, completion: (Boolean) -> Unit) {

@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material.icons.filled.VolumeOff
 import androidx.compose.material.icons.filled.Smartphone
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -56,12 +57,16 @@ fun RemoteControlView(
         LaunchedEffect(Unit) {
             bleManager.onForwardReceived = { message ->
                 val content = message["content"] as? Map<String, Any>
+                
+                // Handle WiFi password request
                 val ssid = content?.get("ssid") as? String
                 if (ssid != null) {
                     currentSsid.value = ssid
                     passwordInput.value = ""
                     showPasswordDialog.value = true
                 }
+                
+                // Handle target name request
                 val workmode = content?.get("workmode") as? String
                 if (workmode != null) {
                     nameInput.value = ""
@@ -108,7 +113,7 @@ fun RemoteControlView(
         )
 
         // Provision progress indicator
-        if (bleManager.provisionInProgress) {
+        if (bleManager.provisionInProgress || bleManager.provisionCompleted) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -117,17 +122,32 @@ fun RemoteControlView(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(20.dp),
-                    color = Color.Red,
-                    strokeWidth = 2.dp
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Provisioning: Connecting to WiFi...",
-                    color = Color.White,
-                    fontSize = 14.sp
-                )
+                if (bleManager.provisionCompleted) {
+                    Icon(
+                        imageVector = Icons.Default.CheckCircle,
+                        contentDescription = null,
+                        tint = Color.Green,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Provision completed",
+                        color = Color.White,
+                        fontSize = 14.sp
+                    )
+                } else {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        color = Color.Red,
+                        strokeWidth = 2.dp
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Provisioning: Connecting to WiFi...",
+                        color = Color.White,
+                        fontSize = 14.sp
+                    )
+                }
             }
         }
 

@@ -50,6 +50,7 @@ struct flextargetApp: App {
     @StateObject var bleManager = BLEManager.shared
     @StateObject var deviceAuthManager = DeviceAuthManager.shared
     @State private var showAutoConnect = false
+    @State private var showRemoteControl = false
 
     var body: some Scene {
         WindowGroup {
@@ -64,17 +65,38 @@ struct flextargetApp: App {
                             }
                         }
                     }
-            } else if showAutoConnect {
-                ConnectSmartTargetView(bleManager: bleManager, navigateToMain: .constant(false), onConnected: { showAutoConnect = false })
             } else {
                 TabNavigationView()
                     .environmentObject(BLEManager.shared)
                     .environment(\.managedObjectContext, persistenceController.container.viewContext)
+                    .sheet(isPresented: $showAutoConnect) {
+                        ConnectSmartTargetView(bleManager: bleManager, navigateToMain: .constant(false), onConnected: { 
+                            showAutoConnect = false
+                            showRemoteControl = true
+                        })
+                    }
+                    .sheet(isPresented: $showRemoteControl) {
+                        RemoteControlView()
+                            .environmentObject(BLEManager.shared)
+                            .environment(\.managedObjectContext, persistenceController.container.viewContext)
+                    }
                     .onAppear {
                         if !bleManager.isConnected && bleManager.isBluetoothPoweredOn {
                             bleManager.autoDetectMode = true
                             bleManager.startScan()
                             showAutoConnect = true
+                        }
+                        
+                        // Listen for the specific BLE message to show remote control
+                        NotificationCenter.default.addObserver(forName: .bleNetlinkForwardReceived, object: nil, queue: .main) { notification in
+                            if let userInfo = notification.userInfo,
+                               let json = userInfo["json"] as? [String: Any],
+                               let action = json["action"] as? String, action == "forward",
+                               let content = json["content"] as? [String: Any],
+                               let provisionStep = content["provision_step"] as? String, provisionStep == "verify_targetlink_status" {
+                                print("Received verify_targetlink_status message, showing remote control")
+                                showRemoteControl = true
+                            }
                         }
                     }
             }

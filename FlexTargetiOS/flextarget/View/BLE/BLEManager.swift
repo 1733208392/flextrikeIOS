@@ -86,7 +86,7 @@ public class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, C
     @Published var connectedPeripheral: DiscoveredPeripheral?
     // Optional name to auto-connect when a matching peripheral is discovered
     @Published var autoConnectTargetName: String? = nil
-    @Published var autoDetectMode: Bool = false
+    @Published var autoDetectMode: Bool = true
     @Published var provisionInProgress: Bool = false
     @Published var errorMessage: String?
     @Published var showErrorAlert: Bool = false
@@ -116,6 +116,10 @@ public class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, C
 
     // Provision verification timer
     private var provisionVerifyTimer: Timer?
+
+    // Auto-detection properties
+    private var autoDetectTimer: Timer?
+    private let autoDetectInterval: TimeInterval = 10.0
 
     // 1. Store the target service UUID
 //    private let advServiceUUID = CBUUID(string: "002A7982-6A23-1A71-A5C2-6C4B54310C9C")
@@ -185,6 +189,18 @@ public class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, C
         )
         NotificationCenter.default.addObserver(
             self,
+            selector: #selector(handleAppDidBecomeActive),
+            name: UIApplication.didBecomeActiveNotification,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleAppWillResignActive),
+            name: UIApplication.willResignActiveNotification,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self,
             selector: #selector(handleNetlinkForwardReceived(_:)),
             name: .bleNetlinkForwardReceived,
             object: nil
@@ -199,6 +215,17 @@ public class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, C
     
     @objc private func handleAppWillTerminate() {
         disconnect()
+        stopAutoDetection()
+    }
+    
+    @objc private func handleAppDidBecomeActive() {
+        if autoDetectMode && !isConnected {
+            startAutoDetection()
+        }
+    }
+    
+    @objc private func handleAppWillResignActive() {
+        stopAutoDetection()
     }
     
     @objc private func handleNetlinkForwardReceived(_ notification: Notification) {
@@ -294,12 +321,32 @@ public class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, C
         provisionVerifyTimer = nil
     }
     
+    // MARK: - Auto-Detection
+    private func startAutoDetection() {
+        stopAutoDetection()
+        guard autoDetectMode, !isConnected, UIApplication.shared.applicationState == .active else { return }
+        autoDetectTimer = Timer.scheduledTimer(withTimeInterval: autoDetectInterval, repeats: true) { [weak self] _ in
+            self?.performAutoDetectionScan()
+        }
+    }
+    
+    private func stopAutoDetection() {
+        autoDetectTimer?.invalidate()
+        autoDetectTimer = nil
+    }
+    
+    private func performAutoDetectionScan() {
+        guard !isScanning, UIApplication.shared.applicationState == .active else { return }
+        startScan()
+    }
+    
     // MARK: - Scanning
     func startScan() {
         #if targetEnvironment(simulator)
         // Simulator: No-op for scanning
         return
         #else
+        guard !isScanning else { return } // Avoid restarting if already scanning
         discoveredPeripherals.removeAll()
         // Reset readiness when starting a new scan
         DispatchQueue.main.async {
@@ -326,17 +373,6 @@ public class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, C
         connectionTimer?.invalidate()
         connectionTimer = Timer.scheduledTimer(withTimeInterval: 60.0, repeats: false) { [weak self] _ in
             self?.completeScan()
-        }
-
-        // Schedule fallback to broad scan if nothing found within targetedScanDuration
-        fallbackScanTimer?.invalidate()
-        fallbackScanTimer = Timer.scheduledTimer(withTimeInterval: targetedScanDuration, repeats: false) { [weak self] _ in
-            guard let self = self else { return }
-            if self.isScanning && self.discoveredPeripherals.isEmpty {
-                print("No targeted devices found within \(self.targetedScanDuration)s — falling back to broad scan")
-                self.centralManager.stopScan()
-                self.centralManager.scanForPeripherals(withServices: nil, options: [CBCentralManagerScanOptionAllowDuplicatesKey: false])
-            }
         }
         #endif
     }
@@ -502,7 +538,6 @@ public class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, C
     
     public func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
         let name = peripheral.name ?? (advertisementData[CBAdvertisementDataLocalNameKey] as? String) ?? "Unknown"
-        print("Discovered peripheral: \(name), RSSI: \(RSSI)")
         var matchesTargetService = false
         if let advServiceUUIDs = advertisementData[CBAdvertisementDataServiceUUIDsKey] as? [CBUUID] {
             matchesTargetService = advServiceUUIDs.contains(where: { $0 == advServiceUUID })
@@ -511,6 +546,7 @@ public class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, C
         // Previously we matched by a hardcoded name substring ("GR-WOLF").
         // Now rely only on advertised service UUID to identify candidate devices.
         if matchesTargetService {
+            print("Discovered peripheral: \(name), RSSI: \(RSSI)")
             print("Adding peripheral: \(name)")
             // Cancel fallback broad-scan timer because we found a candidate
             fallbackScanTimer?.invalidate()
@@ -530,6 +566,13 @@ public class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, C
                     connectToSelectedPeripheral(match)
                 }
             }
+            // Auto-connect in auto-detect mode if not connected
+            if autoDetectMode && !isConnected {
+                if let discovered = discoveredPeripherals.first(where: { $0.id == peripheral.identifier }) {
+                    print("Auto-detecting and connecting to: \(discovered.name)")
+                    connectToSelectedPeripheral(discovered)
+                }
+            }
         }
     }
     
@@ -542,6 +585,8 @@ public class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, C
         peripheral.delegate = self
         // Discover only the target service
         peripheral.discoverServices([targetServiceUUID])
+        // Stop auto-detection when connected
+        stopAutoDetection()
     }
     
     public func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
@@ -558,7 +603,10 @@ public class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, C
         if let err = error {
             self.error = .disconnected(err.localizedDescription)
         }
-        // Do not auto-retry scan, let the view handle reconnection logic
+        // Stop provision verification when disconnected
+        stopProvisionVerification()
+        // Start auto-detection when disconnected
+        startAutoDetection()
     }
     #else
     // Simulator stubs for required protocol methods
@@ -900,6 +948,10 @@ extension BLEManager: BLEManagerProtocol {
         // Simulator: No-op for writing
         print("Simulator: Mock writing JSON: \(jsonString)")
         #else
+        guard isConnected else {
+            print("Cannot write JSON: not connected to peripheral")
+            return
+        }
         guard let peripheral = connectingPeripheral,
               let writeCharacteristic = writeCharacteristic else {
             print("Peripheral or write characteristic not available")

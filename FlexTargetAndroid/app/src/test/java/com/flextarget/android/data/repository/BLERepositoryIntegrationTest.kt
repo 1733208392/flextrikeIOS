@@ -1,6 +1,7 @@
 package com.flextarget.android.data.repository
 
 import com.flextarget.android.data.ble.BLEManager
+import com.flextarget.android.data.ble.BLETestDataAndroid
 import com.flextarget.android.data.local.dao.ShotDao
 import com.flextarget.android.data.local.entity.ShotEntity
 import com.google.common.truth.Truth.assertThat

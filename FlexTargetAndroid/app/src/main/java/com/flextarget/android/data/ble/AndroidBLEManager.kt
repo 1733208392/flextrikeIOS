@@ -3,12 +3,14 @@ package com.flextarget.android.data.ble
 import android.Manifest
 import android.bluetooth.*
 import android.bluetooth.le.ScanCallback
+import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Handler
 import android.os.Looper
+import android.os.ParcelUuid
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -66,7 +68,7 @@ class AndroidBLEManager(private val context: Context) {
     private var writeCharacteristic: BluetoothGattCharacteristic? = null
     private var notifyCharacteristic: BluetoothGattCharacteristic? = null
 
-    private var writeCompletion: ((Boolean) -> Unit)? = null
+    internal var writeCompletion: ((Boolean) -> Unit)? = null
     private val messageBuffer = mutableListOf<Byte>()
     private var pendingPeripheral: DiscoveredPeripheral? = null
 
@@ -97,7 +99,6 @@ class AndroidBLEManager(private val context: Context) {
 
             BLEManager.shared.autoConnectTargetName?.let { targetName ->
                 if (matchesName(deviceName, targetName)) {
-                    BLEManager.shared.autoConnectTargetName = null
                     connectToSelectedPeripheral(discovered)
                 }
             }
@@ -122,6 +123,8 @@ class AndroidBLEManager(private val context: Context) {
                     if (ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
                         gatt.discoverServices()
                     }
+                    // Stop auto-detection when connected
+                    BLEManager.shared.stopAutoDetection()
                 }
                 BluetoothProfile.STATE_DISCONNECTED -> {
                     println("[AndroidBLEManager] Disconnected from device")
@@ -136,6 +139,8 @@ class AndroidBLEManager(private val context: Context) {
                     if (status != BluetoothGatt.GATT_SUCCESS) {
                         this@AndroidBLEManager.error = "Disconnected with status: $status"
                     }
+                    // Start auto-detection when disconnected
+                    BLEManager.shared.startAutoDetection()
                 }
             }
         }
@@ -307,8 +312,21 @@ class AndroidBLEManager(private val context: Context) {
                     // Handle forward messages with different content types
                     val content = json.optJSONObject("content")
                     if (content != null) {
+                        // Check for provision completion FIRST (started: true, work_mode: master)
+                        val started = content.opt("started")
+                        val isStarted = started == true || started == 1
+                        val workMode = content.optString("work_mode")
+                        if (isStarted && workMode == "master") {
+                            println("[AndroidBLEManager] Detected provision completion: started=true, work_mode=master")
+                            BLEManager.shared.provisionInProgress = false
+                            BLEManager.shared.provisionCompleted = true
+                            BLEManager.shared.stopProvisionVerificationPublic()
+                            // Invoke callback for any listeners
+                            val messageMap = jsonToMap(json)
+                            this.onForwardReceived?.invoke(messageMap)
+                        }
                         // Check for WiFi SSID request
-                        if (content.has("ssid")) {
+                        else if (content.has("ssid")) {
                             val messageMap = jsonToMap(json)
                             this.onForwardReceived?.invoke(messageMap)
                         }
@@ -435,6 +453,8 @@ class AndroidBLEManager(private val context: Context) {
             return
         }
 
+        if (BLEManager.shared.isScanning) return // Avoid restarting if already scanning
+
         BLEManager.shared.discoveredPeripherals = emptyList()
         BLEManager.shared.error = null
         BLEManager.shared.isScanning = true
@@ -443,9 +463,14 @@ class AndroidBLEManager(private val context: Context) {
             .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
             .build()
 
+        val scanFilter = ScanFilter.Builder()
+            .setServiceUuid(ParcelUuid(advServiceUUID))
+            .build()
+        val filters = listOf(scanFilter)
+
         // Stop any existing scan first
         bluetoothLeScanner?.stopScan(scanCallback)
-        bluetoothLeScanner?.startScan(null, scanSettings, scanCallback)
+        bluetoothLeScanner?.startScan(filters, scanSettings, scanCallback)
 
         // Stop scan after 60 seconds
         handler.postDelayed({
@@ -468,6 +493,7 @@ class AndroidBLEManager(private val context: Context) {
         BLEManager.shared.error = null
         pendingPeripheral = discoveredPeripheral
         BLEManager.shared.connectedPeripheral = discoveredPeripheral
+        BLEManager.shared.autoConnectTargetName = discoveredPeripheral.name
 
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
             bluetoothGatt = discoveredPeripheral.device.connectGatt(context, false, gattCallback)
@@ -490,8 +516,16 @@ class AndroidBLEManager(private val context: Context) {
     }
 
     fun write(data: ByteArray, completion: (Boolean) -> Unit) {
-        if (!this.isConnected || writeCharacteristic == null) {
+        // Check multiple conditions to ensure device is truly connected
+        if (!this.isConnected || writeCharacteristic == null || bluetoothGatt == null) {
             println("[AndroidBLEManager] Write failed - isConnected: ${this.isConnected}, writeCharacteristic: ${writeCharacteristic != null}, gatt: ${bluetoothGatt != null}")
+            // If we detected an inconsistent state, reset the connection
+            if (this.isConnected && (writeCharacteristic == null || bluetoothGatt == null)) {
+                println("[AndroidBLEManager] Detected stale connection state - resetting")
+                this.isConnected = false
+                BLEManager.shared.isConnected = false
+                BLEManager.shared.isReady = false
+            }
             completion(false)
             return
         }
