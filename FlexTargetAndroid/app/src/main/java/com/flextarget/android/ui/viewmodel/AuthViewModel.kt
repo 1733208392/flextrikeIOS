@@ -94,6 +94,36 @@ class AuthViewModel(
     }
     
     /**
+     * Register new user with email
+     */
+    fun registerWithEmail(email: String, password: String, verifyCode: String) {
+        viewModelScope.launch {
+            _loading.value = true
+            _error.value = null
+            val result = authManager.registerWithEmail(email, password, verifyCode)
+            _loading.value = false
+            result.onFailure {
+                _error.value = it.message ?: "Registration failed"
+            }
+        }
+    }
+    
+    /**
+     * Send verification code to email
+     */
+    fun sendVerifyCode(email: String) {
+        viewModelScope.launch {
+            _loading.value = true
+            _error.value = null
+            val result = authManager.sendVerifyCode(email)
+            _loading.value = false
+            result.onFailure {
+                _error.value = it.message ?: "Failed to send verification code"
+            }
+        }
+    }
+    
+    /**
      * Check if user is authenticated
      */
     fun isAuthenticated(): Boolean = authManager.isAuthenticated

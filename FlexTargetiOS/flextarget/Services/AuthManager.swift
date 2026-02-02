@@ -57,6 +57,67 @@ class AuthManager: ObservableObject {
         print("[AuthManager] Logout completed, user data cleared")
     }
     
+    func register(email: String, password: String, verifyCode: String) async throws -> UserAPIService.LoginData {
+        print("[AuthManager] Attempting to register with email: \(email)")
+        do {
+            // Step 1: Register with email (just confirms success, no data returned)
+            try await UserAPIService.shared.register(email: email, password: password, verifyCode: verifyCode)
+            print("[AuthManager] Registration successful for email: \(email), now logging in...")
+            
+            // Step 2: Auto-detect and login with email or mobile
+            let loginData = try await loginWithAutoDetect(input: email, password: password)
+            
+            let user = User(
+                userUUID: loginData.user_uuid,
+                mobile: email,
+                accessToken: loginData.access_token,
+                refreshToken: loginData.refresh_token
+            )
+            
+            await MainActor.run {
+                self.login(user: user)
+                print("[AuthManager] Registration and login successful")
+            }
+            
+            return loginData
+        } catch {
+            print("[AuthManager] Registration failed: \(error)")
+            throw error
+        }
+    }
+    
+    func loginWithAutoDetect(input: String, password: String) async throws -> UserAPIService.LoginData {
+        print("[AuthManager] Attempting login with auto-detection for input: \(input)")
+        let isEmail = input.contains("@")
+        
+        do {
+            let loginData = if isEmail {
+                try await UserAPIService.shared.loginWithEmail(email: input, password: password)
+            } else {
+                try await UserAPIService.shared.loginWithMobile(mobile: input, password: password)
+            }
+            
+            let loginType = isEmail ? "email" : "mobile"
+            print("[AuthManager] Login successful with \(loginType): \(input)")
+            return loginData
+        } catch {
+            let loginType = isEmail ? "email" : "mobile"
+            print("[AuthManager] Login failed with \(loginType) \(input): \(error)")
+            throw error
+        }
+    }
+    
+    func sendVerifyCode(email: String) async throws {
+        print("[AuthManager] Sending verification code to email: \(email)")
+        do {
+            let response = try await UserAPIService.shared.sendVerifyCode(email: email)
+            print("[AuthManager] Verification code sent successfully, response code: \(response.code)")
+        } catch {
+            print("[AuthManager] Failed to send verification code: \(error)")
+            throw error
+        }
+    }
+    
     func updateTokens(accessToken: String, refreshToken: String) {
         guard var user = currentUser else { 
             print("[AuthManager] updateTokens called but no current user")

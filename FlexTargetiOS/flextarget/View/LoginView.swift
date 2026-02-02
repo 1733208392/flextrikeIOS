@@ -11,67 +11,90 @@ struct LoginView: View {
     @State private var isLoading = false
     @State private var errorMessage = ""
     @State private var showError = false
+    @State private var showRegistration = false
     
     var body: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "person.circle")
-                .font(.system(size: 64))
-                .foregroundColor(.red)
-            
-            Text(NSLocalizedString("user_login", comment: "User login title"))
-                .font(.title)
-                .foregroundColor(.white)
-            
-            VStack(spacing: 16) {
-                TextField(NSLocalizedString("mobile_number", comment: "Mobile number placeholder"), text: $mobile)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .keyboardType(.phonePad)
-                    .autocapitalization(.none)
-                    .disableAutocorrection(true)
-                
-                SecureField(NSLocalizedString("password", comment: "Password placeholder"), text: $password)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                
-                if showError {
-                    Text(errorMessage)
-                        .foregroundColor(.red)
-                        .font(.caption)
+        if showRegistration {
+            RegistrationView(
+                onDismiss: {
+                    showRegistration = false
+                    onDismiss()
                 }
+            )
+        } else {
+            VStack(spacing: 20) {
+                Image(systemName: "person.circle")
+                    .font(.system(size: 64))
+                    .foregroundColor(.red)
                 
-                Button(action: login) {
-                    if isLoading {
-                        ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                    } else {
-                        Text(NSLocalizedString("login", comment: "Login button"))
-                            .foregroundColor(.white)
+                Text(NSLocalizedString("user_login", comment: "User login title"))
+                    .font(.title)
+                    .foregroundColor(.white)
+                
+                VStack(spacing: 16) {
+                    TextField(NSLocalizedString("mobile_number", comment: "Mobile number placeholder"), text: $mobile)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .keyboardType(.default)
+                        .autocapitalization(.none)
+                        .disableAutocorrection(true)
+                    
+                    SecureField(NSLocalizedString("password", comment: "Password placeholder"), text: $password)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                    
+                    if showError {
+                        Text(errorMessage)
+                            .foregroundColor(.red)
+                            .font(.caption)
+                    }
+                    
+                    Button(action: login) {
+                        if isLoading {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        } else {
+                            Text(NSLocalizedString("login", comment: "Login button"))
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.red)
+                                .cornerRadius(8)
+                        }
+                    }
+                    .disabled(isLoading || mobile.isEmpty || password.isEmpty)
+                    
+                    // Register button
+                    Button(action: { showRegistration = true }) {
+                        Text(NSLocalizedString("login_register_button", comment: "Register button"))
+                            .foregroundColor(.red)
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(Color.red)
-                            .cornerRadius(8)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.red, lineWidth: 2)
+                            )
+                    }
+                    .disabled(isLoading)
+                }
+                .padding(.horizontal, 32)
+                
+                Spacer()
+            }
+            .background(Color.black.ignoresSafeArea())
+            .navigationTitle(NSLocalizedString("login_title", comment: "Login navigation title"))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(action: onDismiss) {
+                        Image(systemName: "chevron.left")
+                            .foregroundColor(.red)
                     }
                 }
-                .disabled(isLoading || mobile.isEmpty || password.isEmpty)
             }
-            .padding(.horizontal, 32)
-            
-            Spacer()
-        }
-        .background(Color.black.ignoresSafeArea())
-        .navigationTitle(NSLocalizedString("login_title", comment: "Login navigation title"))
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button(action: onDismiss) {
-                    Image(systemName: "chevron.left")
-                        .foregroundColor(.red)
-                }
+            .onAppear {
+                // Clear any previous error
+                showError = false
+                errorMessage = ""
             }
-        }
-        .onAppear {
-            // Clear any previous error
-            showError = false
-            errorMessage = ""
         }
     }
     
@@ -82,7 +105,7 @@ struct LoginView: View {
         
         Task {
             do {
-                let loginData = try await UserAPIService.shared.login(mobile: mobile, password: password)
+                let loginData = try await authManager.loginWithAutoDetect(input: mobile, password: password)
                 let user = User(
                     userUUID: loginData.user_uuid,
                     mobile: mobile,

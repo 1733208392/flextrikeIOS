@@ -49,6 +49,10 @@ class UserAPIService {
         let data: T?
     }
     
+    struct EmptyData: Codable {
+        // Empty structure for API responses with no data
+    }
+    
     struct LoginData: Codable {
         let user_uuid: String
         let access_token: String
@@ -104,6 +108,17 @@ class UserAPIService {
         }
     }
     
+    struct SendVerifyCodeData: Codable {
+        let code: Int
+        let msg: String
+    }
+    
+    struct RegisterData: Codable {
+        let user_uuid: String
+        let access_token: String
+        let refresh_token: String
+    }
+    
     // MARK: - API Methods
     
     func login(mobile: String, password: String) async throws -> LoginData {
@@ -114,6 +129,58 @@ class UserAPIService {
         
         let body = [
             "mobile": mobile,
+            "password": base64Encoded(password)
+        ]
+        request.httpBody = try JSONEncoder().encode(body)
+        
+        let (data, _) = try await session.data(for: request)
+        let response: APIResponse<LoginData> = try JSONDecoder().decode(APIResponse.self, from: data)
+        
+        if response.code != 0 {
+            throw NSError(domain: "UserAPI", code: response.code, userInfo: [NSLocalizedDescriptionKey: response.msg])
+        }
+        
+        guard let data = response.data else {
+            throw NSError(domain: "UserAPI", code: -1, userInfo: [NSLocalizedDescriptionKey: "No data received"])
+        }
+        
+        return data
+    }
+    
+    func loginWithMobile(mobile: String, password: String) async throws -> LoginData {
+        let url = URL(string: "\(baseURL)/user/login/mobile")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let body = [
+            "mobile": mobile,
+            "password": base64Encoded(password)
+        ]
+        request.httpBody = try JSONEncoder().encode(body)
+        
+        let (data, _) = try await session.data(for: request)
+        let response: APIResponse<LoginData> = try JSONDecoder().decode(APIResponse.self, from: data)
+        
+        if response.code != 0 {
+            throw NSError(domain: "UserAPI", code: response.code, userInfo: [NSLocalizedDescriptionKey: response.msg])
+        }
+        
+        guard let data = response.data else {
+            throw NSError(domain: "UserAPI", code: -1, userInfo: [NSLocalizedDescriptionKey: "No data received"])
+        }
+        
+        return data
+    }
+    
+    func loginWithEmail(email: String, password: String) async throws -> LoginData {
+        let url = URL(string: "\(baseURL)/user/login/email")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let body = [
+            "email": email,
             "password": base64Encoded(password)
         ]
         request.httpBody = try JSONEncoder().encode(body)
@@ -276,5 +343,79 @@ class UserAPIService {
         }
         
         return deviceData
+    }
+    
+    func sendVerifyCode(email: String) async throws -> SendVerifyCodeData {
+        let url = URL(string: "\(baseURL)/user/register/email/send-verify-code")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let body = ["email": email]
+        request.httpBody = try JSONEncoder().encode(body)
+        
+        let (data, response) = try await session.data(for: request)
+        
+        // Log raw response for debugging
+        if let httpResponse = response as? HTTPURLResponse {
+            print("[UserAPIService] sendVerifyCode response status: \(httpResponse.statusCode)")
+        }
+        
+        // Try to log the raw response as string for debugging
+        if let responseString = String(data: data, encoding: .utf8) {
+            print("[UserAPIService] sendVerifyCode raw response: \(responseString)")
+        }
+        
+        // Use EmptyData since the data field is empty in the response
+        do {
+            let response: APIResponse<EmptyData> = try JSONDecoder().decode(APIResponse.self, from: data)
+            
+            if response.code != 0 {
+                throw NSError(domain: "UserAPI", code: response.code, userInfo: [NSLocalizedDescriptionKey: response.msg])
+            }
+            
+            return SendVerifyCodeData(code: response.code, msg: response.msg)
+        } catch {
+            print("[UserAPIService] sendVerifyCode JSON decode failed: \(error)")
+            throw error
+        }
+    }
+    
+    func register(email: String, password: String, verifyCode: String) async throws {
+        let url = URL(string: "\(baseURL)/user/register/email")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let body = [
+            "email": email,
+            "password": base64Encoded(password),
+            "verify_code": verifyCode
+        ]
+        request.httpBody = try JSONEncoder().encode(body)
+        
+        let (data, response) = try await session.data(for: request)
+        
+        // Log raw response for debugging
+        if let httpResponse = response as? HTTPURLResponse {
+            print("[UserAPIService] register response status: \(httpResponse.statusCode)")
+        }
+        
+        // Try to log the raw response as string for debugging
+        if let responseString = String(data: data, encoding: .utf8) {
+            print("[UserAPIService] register raw response: \(responseString)")
+        }
+        
+        // Use EmptyData since the data field is empty in the response
+        do {
+            let response: APIResponse<EmptyData> = try JSONDecoder().decode(APIResponse.self, from: data)
+            
+            if response.code != 0 {
+                throw NSError(domain: "UserAPI", code: response.code, userInfo: [NSLocalizedDescriptionKey: response.msg])
+            }
+        } catch {
+            print("[UserAPIService] register JSON decode failed: \(error)")
+            throw error
+        }
     }
 }

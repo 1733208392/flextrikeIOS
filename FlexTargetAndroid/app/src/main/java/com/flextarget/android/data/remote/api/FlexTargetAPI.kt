@@ -20,6 +20,34 @@ interface FlexTargetAPI {
     suspend fun login(@Body request: LoginRequest): ApiResponse<LoginResponse>
     
     /**
+     * POST /user/login/mobile
+     * User login with mobile number and password
+     */
+    @POST("/user/login/mobile")
+    suspend fun loginWithMobile(@Body request: LoginWithMobileRequest): ApiResponse<LoginResponse>
+    
+    /**
+     * POST /user/login/email
+     * User login with email and password
+     */
+    @POST("/user/login/email")
+    suspend fun loginWithEmail(@Body request: LoginWithEmailRequest): ApiResponse<LoginResponse>
+    
+    /**
+     * POST /user/register/email
+     * User registration with email
+     */
+    @POST("/user/register/email")
+    suspend fun registerWithEmail(@Body request: RegisterRequest): ApiResponse<RegisterResponse>
+    
+    /**
+     * POST /user/register/email/send-verify-code
+     * Send verification code to email
+     */
+    @POST("/user/register/email/send-verify-code")
+    suspend fun sendVerifyCode(@Body request: SendVerifyCodeRequest): ApiResponse<SendVerifyCodeResponse>
+    
+    /**
      * POST /user/token/refresh
      * Refresh access token using refresh token
      */

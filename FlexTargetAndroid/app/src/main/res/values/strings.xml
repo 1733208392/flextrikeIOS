@@ -9,10 +9,24 @@
     <string name="login_mobile">Mobile Number</string>
     <string name="login_password">Password</string>
     <string name="login_button">Login</string>
+    <string name="login_register_button">Register New Account</string>
     <string name="login_loading">Signing in...</string>
     <string name="login_error">Login failed. Please check your credentials.</string>
     <string name="login_hint_mobile">Enter your mobile number</string>
     <string name="login_hint_password">Enter your password</string>
+    
+    <!-- Registration screen -->
+    <string name="registration_title">Register</string>
+    <string name="registration_back">← Back</string>
+    <string name="registration_email">Email Address</string>
+    <string name="registration_email_invalid">Please enter a valid email address</string>
+    <string name="registration_password">Password</string>
+    <string name="registration_password_invalid">Password must be at least 6 characters</string>
+    <string name="registration_verify_code">Verification Code</string>
+    <string name="registration_send_code">Send Verification Code</string>
+    <string name="registration_resend_code">Resend Code (%d)</string>
+    <string name="registration_register_button">Complete Registration</string>
+    <string name="registration_success">Registration successful! Logging in...</string>
     
     <!-- Auth state -->
     <string name="auth_not_authenticated">Not authenticated</string>

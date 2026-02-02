@@ -5,7 +5,11 @@ import com.flextarget.android.data.local.preferences.AppPreferences
 import com.flextarget.android.data.local.preferences.UserTokenData
 import com.flextarget.android.data.remote.api.FlexTargetAPI
 import com.flextarget.android.data.remote.api.LoginRequest
+import com.flextarget.android.data.remote.api.LoginWithEmailRequest
+import com.flextarget.android.data.remote.api.LoginWithMobileRequest
 import com.flextarget.android.data.remote.api.ChangePasswordRequest
+import com.flextarget.android.data.remote.api.RegisterRequest
+import com.flextarget.android.data.remote.api.SendVerifyCodeRequest
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -97,22 +101,35 @@ class AuthManager @Inject constructor(
     }
     
     /**
-     * User login: authenticate with mobile and password
+     * User login: authenticate with mobile/email and password
+     * Auto-detects if input is email or mobile number and calls appropriate endpoint
      * 
-     * @param mobile User's mobile number
+     * @param input User's mobile number or email
      * @param password User's password (will be Base64 encoded here)
      * @return Success with user data or failure with exception
      */
-    suspend fun login(mobile: String, password: String): Result<UserData> = 
+    suspend fun login(input: String, password: String): Result<UserData> = 
         withContext(Dispatchers.IO) {
             try {
+                // Auto-detect email vs mobile
+                val isEmail = input.contains("@")
+                
                 val encodedPassword = base64EncodePassword(password)
-                val response = userApiService.login(
-                    LoginRequest(
-                        mobile = mobile,
-                        password = encodedPassword
+                val response = if (isEmail) {
+                    userApiService.loginWithEmail(
+                        LoginWithEmailRequest(
+                            email = input,
+                            password = encodedPassword
+                        )
                     )
-                )
+                } else {
+                    userApiService.loginWithMobile(
+                        LoginWithMobileRequest(
+                            mobile = input,
+                            password = encodedPassword
+                        )
+                    )
+                }
 
                 if (response.code != 0) {
                     return@withContext Result.failure(Exception(response.msg))
@@ -123,7 +140,7 @@ class AuthManager @Inject constructor(
                     userUUID = response.data.userUUID,
                     accessToken = data.accessToken,
                     refreshToken = data.refreshToken,
-                    mobile = mobile,
+                    mobile = input,
                     username = null // Loaded from editProfile call later if needed
                 )
                 
@@ -164,7 +181,7 @@ class AuthManager @Inject constructor(
                     // Continue with login even if user info fetch fails
                 }
                 
-                Log.d(TAG, "Login successful for user: $mobile")
+                Log.d(TAG, "Login successful for ${if (isEmail) "email" else "mobile"}: $input")
                 Result.success(user)
             } catch (e: Exception) {
                 Log.e(TAG, "Login failed", e)
@@ -196,6 +213,118 @@ class AuthManager @Inject constructor(
             Result.success(Unit)
         } catch (e: Exception) {
             Log.e(TAG, "Logout failed", e)
+            Result.failure(e)
+        }
+    }
+    
+    /**
+     * Register new user with email
+     * After successful registration, automatically logs in the user
+     */
+    suspend fun registerWithEmail(email: String, password: String, verifyCode: String): Result<UserData> = 
+        withContext(Dispatchers.IO) {
+            try {
+                val encodedPassword = base64EncodePassword(password)
+                
+                // Step 1: Register with email
+                val registerResponse = userApiService.registerWithEmail(
+                    RegisterRequest(
+                        email = email,
+                        password = encodedPassword,
+                        verify_code = verifyCode
+                    )
+                )
+
+                if (registerResponse.code != 0) {
+                    return@withContext Result.failure(Exception(registerResponse.msg))
+                }
+
+                Log.d(TAG, "Registration successful for email: $email, now logging in...")
+                
+                // Step 2: Login with email and password to get tokens
+                // Note: The login endpoint accepts email or mobile, so we use email
+                val loginResponse = userApiService.login(
+                    LoginRequest(
+                        mobile = email, // Server accepts email as mobile parameter
+                        password = encodedPassword
+                    )
+                )
+
+                if (loginResponse.code != 0) {
+                    return@withContext Result.failure(Exception("Login after registration failed: ${loginResponse.msg}"))
+                }
+
+                val loginData = loginResponse.data ?: return@withContext Result.failure(Exception("Invalid login response after registration"))
+                val user = UserData(
+                    userUUID = loginData.userUUID,
+                    accessToken = loginData.accessToken,
+                    refreshToken = loginData.refreshToken,
+                    mobile = email,
+                    username = null // Will be loaded if needed
+                )
+                
+                // Save to encrypted storage
+                preferences.saveUserToken(
+                    userUUID = user.userUUID,
+                    accessToken = user.accessToken,
+                    refreshToken = user.refreshToken,
+                    mobile = user.mobile,
+                    username = user.username
+                )
+                
+                // Update in-memory state
+                _currentUser.value = user
+                
+                // Start refresh timer
+                startTokenRefreshTimer()
+                
+                // Fetch user info to get username
+                try {
+                    val userGetResponse = userApiService.getUser("Bearer ${loginData.accessToken}")
+                    if (userGetResponse.code == 0 && userGetResponse.data != null) {
+                        val updatedUser = user.copy(username = userGetResponse.data.username)
+                        _currentUser.value = updatedUser
+                        preferences.saveUserToken(
+                            userUUID = updatedUser.userUUID,
+                            accessToken = updatedUser.accessToken,
+                            refreshToken = updatedUser.refreshToken,
+                            mobile = updatedUser.mobile,
+                            username = userGetResponse.data.username
+                        )
+                        Log.d(TAG, "User info fetched after registration: ${userGetResponse.data.username}")
+                    } else {
+                        Log.w(TAG, "Failed to fetch user info after registration: ${userGetResponse.msg}")
+                    }
+                } catch (e: Exception) {
+                    Log.w(TAG, "Exception while fetching user info after registration: ${e.message}")
+                    // Continue with registration even if user info fetch fails
+                }
+                
+                Log.d(TAG, "Registration and login successful for email: $email")
+                Result.success(user)
+            } catch (e: Exception) {
+                Log.e(TAG, "Registration failed", e)
+                Result.failure(e)
+            }
+        }
+    
+    /**
+     * Send verification code to email
+     */
+    suspend fun sendVerifyCode(email: String): Result<String> = withContext(Dispatchers.IO) {
+        try {
+            val response = userApiService.sendVerifyCode(
+                SendVerifyCodeRequest(email = email)
+            )
+
+            if (response.code != 0) {
+                return@withContext Result.failure(Exception(response.msg))
+            }
+
+            Log.d(TAG, "Verification code sent to email: $email")
+            Result.success("Code sent successfully")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to send verification code", e)
             Result.failure(e)
         }
     }

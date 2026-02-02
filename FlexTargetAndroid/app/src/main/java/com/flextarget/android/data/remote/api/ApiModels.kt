@@ -24,7 +24,53 @@ data class LoginRequest(
     val password: String // Base64 encoded without padding
 )
 
+data class LoginWithMobileRequest(
+    @SerializedName("mobile")
+    val mobile: String,
+    @SerializedName("password")
+    val password: String // Base64 encoded without padding
+)
+
+data class LoginWithEmailRequest(
+    @SerializedName("email")
+    val email: String,
+    @SerializedName("password")
+    val password: String // Base64 encoded without padding
+)
+
 data class LoginResponse(
+    @SerializedName("user_uuid")
+    val userUUID: String,
+    @SerializedName("access_token")
+    val accessToken: String,
+    @SerializedName("refresh_token")
+    val refreshToken: String
+)
+
+// ============ EMAIL REGISTRATION ============
+
+data class SendVerifyCodeRequest(
+    @SerializedName("email")
+    val email: String
+)
+
+data class SendVerifyCodeResponse(
+    @SerializedName("code")
+    val code: Int,
+    @SerializedName("msg")
+    val msg: String
+)
+
+data class RegisterRequest(
+    @SerializedName("email")
+    val email: String,
+    @SerializedName("password")
+    val password: String, // Base64 encoded without padding
+    @SerializedName("verify_code")
+    val verify_code: String
+)
+
+data class RegisterResponse(
     @SerializedName("user_uuid")
     val userUUID: String,
     @SerializedName("access_token")

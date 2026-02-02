@@ -1,6 +1,7 @@
 package com.flextarget.android.ui.admin
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -35,7 +36,8 @@ import com.flextarget.android.R
 @Composable
 fun LoginScreen(
     authViewModel: AuthViewModel,
-    onLoginSuccess: () -> Unit = {}
+    onLoginSuccess: () -> Unit = {},
+    onRegisterClick: () -> Unit = {}
 ) {
     val authUiState by authViewModel.authUiState.collectAsState()
     
@@ -84,7 +86,7 @@ fun LoginScreen(
                 cursorColor = Color.Red
             ),
             keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Phone,
+                keyboardType = KeyboardType.Email,
                 imeAction = ImeAction.Next
             ),
             singleLine = true,
@@ -191,6 +193,33 @@ fun LoginScreen(
                     fontWeight = FontWeight.Bold
                 )
             }
+        }
+        
+        // Register button
+        Button(
+            onClick = onRegisterClick,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp)
+                .padding(bottom = 24.dp)
+                .border(
+                    width = 2.dp,
+                    color = Color.Red,
+                    shape = RoundedCornerShape(8.dp)
+                ),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Transparent,
+                disabledContainerColor = Color.Transparent
+            ),
+            shape = RoundedCornerShape(8.dp),
+            enabled = !authUiState.isLoading
+        ) {
+            Text(
+                stringResource(R.string.login_register_button),
+                style = MaterialTheme.typography.labelLarge,
+                color = Color.Red,
+                fontWeight = FontWeight.Bold
+            )
         }
         
         // Additional info

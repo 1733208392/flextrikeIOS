@@ -317,6 +317,7 @@
 "connect_device" = "Connect to a device";
 "disconnect" = "Disconnect";
 "login" = "Login";
+"login_register_button" = "Register New Account";
 "user_login" = "User login";
 "information" = "Information";
 "app_info" = "App information";
@@ -325,6 +326,18 @@
 "scan_qr_code" = "Scan QR Code";
 "scan_device_qr" = "Scan device QR code";
 "manage_profile" = "Manage user profile";
+
+/* Registration */
+"registration_title" = "Register";
+"registration_back" = "← Back";
+"registration_email" = "Email Address";
+"registration_email_invalid" = "Please enter a valid email address";
+"registration_password" = "Password";
+"registration_password_invalid" = "Password must be at least 6 characters";
+"registration_verify_code" = "Verification Code";
+"registration_send_code" = "Send Verification Code";
+"registration_resend_code" = "Resend Code (%d)";
+"registration_register_button" = "Complete Registration";
 
 /* Competition Submission */
 "error_title" = "Error";
