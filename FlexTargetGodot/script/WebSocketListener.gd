@@ -1,8 +1,8 @@
 extends Node
 
 const DEBUG_DISABLED = true
-const WEBSOCKET_URL = "ws://127.0.0.1/websocket"
-#const WEBSOCKET_URL = "ws://192.168.0.122/websocket"
+#const WEBSOCKET_URL = "ws://127.0.0.1/websocket"
+const WEBSOCKET_URL = "ws://192.168.0.122/websocket"
 
 signal data_received(data)
 signal bullet_hit(pos: Vector2, a: int, t: int)
@@ -252,10 +252,13 @@ func _handle_ble_forwarded_command(parsed):
 		var step = content["provision_step"]
 		if step == "wifi_connection":
 			if not DEBUG_DISABLED:
-				print("[WebSocket] Provision step wifi_connection, changing to WIFI_network scene")
-			# Enable auto netlink procedure
+				print("[WebSocket] Provision step wifi_connection, marking provision complete")
+			# Mark provisioning as complete since mobile app is now ready
 			if gd:
+				gd.mark_provision_complete()
 				gd.auto_netlink_enabled = true
+			if not DEBUG_DISABLED:
+				print("[WebSocket] Transitioning to WIFI_network scene")
 			get_tree().change_scene_to_file("res://scene/wifi_networks.tscn")
 		elif step == "verify_targetlink_status":
 			if not DEBUG_DISABLED:

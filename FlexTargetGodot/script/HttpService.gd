@@ -6,8 +6,8 @@ const DEBUG_DISABLED = true
 const OTA_USERAPP_DIR = "/srv/www/userapp"  # Directory for OTA downloads and files
 #const OTA_USERAPP_DIR = "/Users/kai/otatest"  # Directory for OTA downloads and files
 
-var base_url: String = "http://127.0.0.1"
-#var base_url: String = "http://192.168.0.122"
+#var base_url: String = "http://127.0.0.1"
+var base_url: String = "http://192.168.0.122"
 
 var sb = null  # Signal bus reference
 
@@ -274,9 +274,6 @@ func embedded_status(callback: Callable):
 	var http = HTTPRequest.new()
 	add_child(http)
 	http.request_completed.connect(func(result, response_code, headers, body):
-		if sb:
-			var body_str = body.get_string_from_utf8()
-			var debug_msg = "POST " + url + " - Result: " + str(result) + ", Code: " + str(response_code) + ", Body: " + body_str
 		if callback and callback.is_valid():
 			callback.call(result, response_code, headers, body)
 	)

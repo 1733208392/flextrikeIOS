@@ -98,6 +98,14 @@ func load_settings_from_http():
 	# print("GlobalData: Requesting settings from HttpService...")
 	HttpService.load_game(Callable(self, "_on_settings_loaded"), "settings")
 
+func mark_provision_complete():
+	"""Mark provisioning as complete and save settings to server"""
+	settings_dict["first_run_complete"] = true
+	var settings_data = settings_dict.duplicate()
+	HttpService.save_game(Callable(), "settings", settings_data)
+	if not DEBUG_DISABLED:
+		print("[GlobalData] Provision marked complete, first_run_complete set to true")
+
 func _on_settings_loaded(_result, response_code, _headers, body):
 	# print("GlobalData: HTTP response received - Code: ", response_code)
 	if response_code == 200:
