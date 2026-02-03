@@ -2,22 +2,29 @@ extends Control
 
 const DEBUG_DISABLED = true
 const QR_CODE_GENERATOR = preload("res://script/qrcode.gd")
-const QR_URL = "https://grwolf.com/pages/app-redirect"
+const QR_URL_BASE = "https://grwolf.com/pages/app-redirect"
 
-@onready var greeting_label = $CenterContainer/VBoxContainer/GreetingLabel
-@onready var qr_texture_rect = $CenterContainer/VBoxContainer/QRTextureRect
+@onready var greeting_label = $CenterContainer/NormalState/GreetingContainer/GreetingLabel
+@onready var error_label = $ErroContainer/ErrorLabel
+@onready var qr_texture_rect = $CenterContainer/NormalState/QRContainer/QRTextureRect
+@onready var error_container = $ErroContainer
+@onready var normal_state = $CenterContainer/NormalState
 
 var forward_timer: Timer
 var status_poll_timer: Timer
 var typing_timer: Timer
 var blinking_timer: Timer
+var health_check_timer: Timer
 var ble_name: String = "..."
 
 func _ready():
-	# Initial UI update
-	_set_initial_greeting()
-	_generate_qr()
-
+	# Initialize UI - hide normal state, show error container for health check
+	normal_state.visible = false
+	error_container.visible = true
+	
+	# Show health check message
+	_start_health_check()
+	
 	# 1. Setup periodic forward data (every 5s)
 	forward_timer = Timer.new()
 	forward_timer.wait_time = 5.0
@@ -40,27 +47,49 @@ func _ready():
 		if global_data.netlink_status and global_data.netlink_status.has("bluetooth_name"):
 			_on_netlink_status_loaded()
 
-func _set_initial_greeting():
-	# Set initial text with blinking dot
-	greeting_label.text = "Hello, my name is [color=orange].[/color]"
-	greeting_label.visible_characters = -1  # Show all initially
-	_start_blinking()
-
-func _start_blinking():
+func _start_health_check():
+	# Display health check message in error container
+	error_label.text = "HEALTH CHECK IN PROGRESS ..."
+	error_label.visible_characters = -1  # Show all initially
+	
+	# Start animated dots for health check
 	if blinking_timer:
 		blinking_timer.queue_free()
 	blinking_timer = Timer.new()
-	blinking_timer.wait_time = 0.5  # Blink every 0.5 seconds
-	blinking_timer.timeout.connect(_on_blinking_timer_timeout)
+	blinking_timer.wait_time = 0.5
+	blinking_timer.timeout.connect(_on_health_check_dot_timeout)
 	add_child(blinking_timer)
 	blinking_timer.start()
+	
+	# Start health check timeout (10 seconds)
+	if health_check_timer:
+		health_check_timer.queue_free()
+	health_check_timer = Timer.new()
+	health_check_timer.wait_time = 10.0
+	health_check_timer.timeout.connect(_on_health_check_timeout)
+	health_check_timer.one_shot = true
+	add_child(health_check_timer)
+	health_check_timer.start()
 
-func _on_blinking_timer_timeout():
-	# Toggle the dot visibility
-	if greeting_label.text.ends_with("[/color]"):
-		greeting_label.text = "Hello, my name is [color=orange][/color]"
+func _on_health_check_dot_timeout():
+	# Animate dots for health check message
+	if error_label.text.ends_with("..."):
+		error_label.text = "HEALTH CHECK IN PROGRESS ."
+	elif error_label.text.ends_with(".."):
+		error_label.text = "HEALTH CHECK IN PROGRESS ..."
 	else:
-		greeting_label.text = "Hello, my name is [color=orange].[/color]"
+		error_label.text = "HEALTH CHECK IN PROGRESS .."
+
+func _on_health_check_timeout():
+	# Show error message if BLE name was not received
+	if blinking_timer:
+		blinking_timer.stop()
+		blinking_timer.queue_free()
+		blinking_timer = null
+	
+	error_label.text = "[color=orange]HEADS UP: A FAULT IS DETECTED, PLEASE POWER OFF AND POWER ON TO RECOVER.[/color]"
+	if not DEBUG_DISABLED:
+		print("[Onboarding] Health check timeout - major fault detected")
 
 func _on_forward_timer_timeout():
 	var content = {
@@ -92,10 +121,21 @@ func _on_netlink_status_loaded():
 		var new_name = str(status["bluetooth_name"])
 		if not new_name.is_empty() and new_name != ble_name:
 			ble_name = new_name
-			# Stop blinking and start typing animation
+			# Cancel health check timer
+			if health_check_timer:
+				health_check_timer.stop()
+				health_check_timer.queue_free()
+				health_check_timer = null
+			# Stop blinking animation
 			if blinking_timer:
 				blinking_timer.stop()
 				blinking_timer.queue_free()
+				blinking_timer = null
+			# Switch to normal state (show QR and greeting, hide error)
+			error_container.visible = false
+			normal_state.visible = true
+			# Generate QR code and greeting with BLE name
+			_generate_qr(ble_name)
 			_update_greeting()
 			if not DEBUG_DISABLED:
 				print("[Onboarding] BLE name resolved: ", ble_name)
@@ -103,7 +143,7 @@ func _on_netlink_status_loaded():
 func _update_greeting():
 	# Use BBCode for rich text formatting
 	# Orange color for the BLE name
-	var greeting_text = "\"Hello, my name is [color=orange]%s[/color], as this is the first time we met, please scan the QR code to download a mobile APP to control me and explore what I can do for you.\"" % ble_name
+	var greeting_text = "\"Hello, my name is [color=orange]%s[/color], as this is the first time we met, please scan the QR code to download a mobile APP to control me and explore what I can do for you. After you have the App installed, please use the APP to scan this QR code agian to connect me.\"" % ble_name
 	greeting_label.text = greeting_text
 	_start_typing_animation()
 
@@ -123,9 +163,13 @@ func _on_typing_timer_timeout():
 	else:
 		typing_timer.stop()
 
-func _generate_qr():
+func _generate_qr(ble_name: String = ""):
+	var qr_url = QR_URL_BASE
+	if not ble_name.is_empty():
+		qr_url = "%s?ble_name=%s" % [QR_URL_BASE, ble_name]
+	
 	var qr = QR_CODE_GENERATOR.new()
-	var image = qr.generate_image(QR_URL, 8) # Bigger module size for big QR
+	var image = qr.generate_image(qr_url, 8) # Bigger module size for big QR
 	if image:
 		qr_texture_rect.texture = ImageTexture.create_from_image(image)
 

@@ -1,6 +1,6 @@
-[gd_scene load_steps=16 format=3 uid="uid://d30mq788le0nt"]
+[gd_scene load_steps=21 format=3 uid="uid://d30mq788le0nt"]
 
-[ext_resource type="Script" uid="uid://dpv7hrojpq63x" path="res://script/onboarding.gd" id="1_onboard"]
+[ext_resource type="Script" uid="uid://dpv7hrojpq63x" path="res://script/onboarding.gd" id="1_iat7d"]
 [ext_resource type="Texture2D" uid="uid://d3jnypy7bx42r" path="res://asset/largeCntnrs.png" id="3_container"]
 [ext_resource type="Texture2D" uid="uid://ct7bcimjuqusa" path="res://asset/mini_map.png" id="4_minimap"]
 [ext_resource type="Texture2D" uid="uid://d34m0mqmlp1qq" path="res://asset/crosshair.png" id="5_crosshair"]
@@ -12,6 +12,7 @@
 [ext_resource type="AudioStream" uid="uid://ci4xowhem06dc" path="res://audio/radar-beeping.mp3" id="10_audio"]
 [ext_resource type="FontFile" uid="uid://bt41csp00hdy7" path="res://font/Inter/Inter-VariableFont_opsz,wght.ttf" id="11_inter"]
 [ext_resource type="AudioStream" uid="uid://cgkib15mat3f6" path="res://audio/Cursor.ogg" id="12_cursor"]
+[ext_resource type="Texture2D" uid="uid://ifinqy4j7crx" path="res://asset/m-cntr-v5.png" id="15_m_cntr"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_bj3ug"]
 shader = ExtResource("6_radar")
@@ -33,6 +34,20 @@ shader_parameter/cutout = 0.2
 shader_parameter/inner_fill = 0.15
 shader_parameter/blink_speed = 2.0
 
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_iat7d"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ogpcl"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_iat7d"]
+content_margin_left = 20.0
+content_margin_top = 15.0
+content_margin_right = 20.0
+content_margin_bottom = 15.0
+texture = ExtResource("15_m_cntr")
+modulate_color = Color(1, 1, 1, 0.79607844)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_rtuh2"]
+
 [node name="onboarding" type="Control"]
 layout_mode = 3
 anchors_preset = 15
@@ -40,9 +55,17 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1_onboard")
+script = ExtResource("1_iat7d")
 
-[node name="background" type="ColorRect" parent="."]
+[node name="back" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="background" type="ColorRect" parent="back"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -51,7 +74,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.0901961, 0.129412, 0.141176, 1)
 
-[node name="container" type="TextureRect" parent="."]
+[node name="container" type="TextureRect" parent="back"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -61,7 +84,7 @@ grow_vertical = 2
 texture = ExtResource("3_container")
 expand_mode = 1
 
-[node name="minimap" type="TextureRect" parent="."]
+[node name="minimap" type="TextureRect" parent="back"]
 modulate = Color(1, 1, 1, 0.533333)
 layout_mode = 1
 anchors_preset = -1
@@ -69,14 +92,14 @@ anchor_left = 0.833
 anchor_top = 0.5
 anchor_right = 0.833
 anchor_bottom = 0.5
-offset_left = -201.76
+offset_left = -201.76001
 offset_top = 186.0
-offset_right = 211.24
+offset_right = 211.23999
 offset_bottom = 533.0
 scale = Vector2(0.7, 0.7)
 texture = ExtResource("4_minimap")
 
-[node name="radar" type="ColorRect" parent="minimap"]
+[node name="radar" type="ColorRect" parent="back/minimap"]
 material = SubResource("ShaderMaterial_bj3ug")
 layout_mode = 1
 anchors_preset = 15
@@ -89,7 +112,7 @@ offset_bottom = 57.285706
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="blip1" type="ColorRect" parent="minimap"]
+[node name="blip1" type="ColorRect" parent="back/minimap"]
 material = SubResource("ShaderMaterial_eo5a4")
 layout_mode = 0
 offset_left = 220.0
@@ -98,7 +121,7 @@ offset_right = 387.14282
 offset_bottom = 145.7145
 color = Color(0.90588236, 0.24313726, 0.2901961, 1)
 
-[node name="blip2" type="ColorRect" parent="minimap"]
+[node name="blip2" type="ColorRect" parent="back/minimap"]
 material = SubResource("ShaderMaterial_eo5a4")
 layout_mode = 0
 offset_left = 90.0
@@ -107,7 +130,7 @@ offset_right = 257.14282
 offset_bottom = 280.0002
 color = Color(0.90588236, 0.24313726, 0.2901961, 1)
 
-[node name="blip3" type="ColorRect" parent="minimap"]
+[node name="blip3" type="ColorRect" parent="back/minimap"]
 material = SubResource("ShaderMaterial_eo5a4")
 layout_mode = 0
 offset_left = 211.42857
@@ -116,7 +139,7 @@ offset_right = 378.5714
 offset_bottom = 345.71448
 color = Color(0.90588236, 0.24313726, 0.2901961, 1)
 
-[node name="Crosshair" type="TextureRect" parent="."]
+[node name="Crosshair" type="TextureRect" parent="back"]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.833
@@ -125,12 +148,12 @@ anchor_right = 0.833
 anchor_bottom = 0.5
 offset_left = -570.76
 offset_top = -460.0
-offset_right = -170.76
+offset_right = -170.76001
 offset_bottom = -158.0
 scale = Vector2(0.7, 0.7)
 texture = ExtResource("5_crosshair")
 
-[node name="ColorRect" type="ColorRect" parent="Crosshair"]
+[node name="ColorRect" type="ColorRect" parent="back/Crosshair"]
 modulate = Color(1, 1, 1, 0.5647059)
 material = SubResource("ShaderMaterial_lt21p")
 layout_mode = 0
@@ -148,29 +171,61 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer"]
-custom_minimum_size = Vector2(600, 0)
+[node name="NormalState" type="VBoxContainer" parent="CenterContainer"]
 layout_mode = 2
 theme_override_constants/separation = 40
 alignment = 1
 
-[node name="QRTextureRect" type="TextureRect" parent="CenterContainer/VBoxContainer"]
-custom_minimum_size = Vector2(400, 400)
+[node name="space" type="Panel" parent="CenterContainer/NormalState"]
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxEmpty_iat7d")
+
+[node name="QRContainer" type="PanelContainer" parent="CenterContainer/NormalState"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxEmpty_ogpcl")
+
+[node name="QRTextureRect" type="TextureRect" parent="CenterContainer/NormalState/QRContainer"]
+custom_minimum_size = Vector2(300, 300)
 layout_mode = 2
 expand_mode = 1
 stretch_mode = 5
 
-[node name="GreetingLabel" type="RichTextLabel" parent="CenterContainer/VBoxContainer"]
+[node name="GreetingContainer" type="PanelContainer" parent="CenterContainer/NormalState"]
+custom_minimum_size = Vector2(600, 0)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_iat7d")
+
+[node name="GreetingLabel" type="RichTextLabel" parent="CenterContainer/NormalState/GreetingContainer"]
 layout_mode = 2
 theme_override_fonts/normal_font = ExtResource("8_vemtp")
-theme_override_font_sizes/normal_font_size = 32
+theme_override_font_sizes/normal_font_size = 28
 bbcode_enabled = true
 text = "\"Hello, my name is [color=orange]...[/color], As this is the first time we met, please scan the QR code to download a mobile APP to control me and explore what I can do for you.\""
 fit_content = true
 visible_characters = 0
 visible_ratio = 0.0
 
-[node name="Label" type="Label" parent="."]
+[node name="ErroContainer" type="PanelContainer" parent="."]
+layout_mode = 0
+offset_left = 60.0
+offset_top = 1160.0
+offset_right = 660.0
+offset_bottom = 1240.0
+theme_override_styles/panel = SubResource("StyleBoxEmpty_rtuh2")
+
+[node name="ErrorLabel" type="RichTextLabel" parent="ErroContainer"]
+layout_mode = 2
+theme_override_colors/default_color = Color(1, 0.647059, 0, 1)
+theme_override_fonts/normal_font = ExtResource("8_vemtp")
+theme_override_font_sizes/normal_font_size = 24
+bbcode_enabled = true
+text = "HEALTH CHECK IN PROGRESS ..."
+fit_content = true
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Copywrite" type="Label" parent="."]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.5
