@@ -687,7 +687,8 @@ level_failed,Failed!,失败！,失敗！,失敗！
 level_label,Level,关卡,レベル,關卡
 coin_label,Coin,金币,コイン,金幣
 bonus_label,Bonus,奖励,ボーナス,獎勵
-replay_button,Replay,重玩,リプレイ,重玩software_upgrade,Software Upgrade,软件升级,ソフトウェアのアップグレード,軟體升級
+replay_button,Replay,重玩,リプレイ,重玩
+software_upgrade,Software Upgrade,软件升级,ソフトウェアのアップグレード,軟體升級
 wifi_status_unknown,"WiFi Status: Unknown","WiFi 状态：未知","WiFi ステータス: 不明","WiFi 狀態：未知"
 wifi_connected,"✓ WiFi Connected (%s)","✓ WiFi 已连接 (%s)","✓ WiFi 接続済み (%s)","✓ WiFi 已連線 (%s)"
 wifi_not_connected,"✗ WiFi Not Connected",✗ WiFi 未连接,✗ WiFi 未接続,✗ WiFi 未連線
@@ -712,3 +713,10 @@ shot_1,Shot 1,第一发,ショット 1,第一發
 shot_2,Shot 2,第二发,ショット 2,第二發
 total,Total,合计,合計,合計
 split,Split,分段,スプリット,分段
+wifi_connection_failed,"Connection failed: {error}","连接失败：{error}","接続失敗：{error}","連線失敗：{error}"
+requesting_mobile_password,"Please input password either from mobile App or with the On Screen Keyboard","请通过移动应用或屏幕键盘输入密码","モバイルアプリまたはオンスクリーンキーボードのいずれかでパスワードを入力してください","請通過行動應用或螢幕鍵盤輸入密碼"
+failed_mobile_password_request,"Failed to request password from mobile app","从移动应用请求密码失败","モバイルアプリからのパスワードリクエスト失敗","從行動應用請求密碼失敗"
+waiting_for_ip,"Waiting for IP address...","等待获取IP地址...","IP アドレスを取得待機中...","等候取得IP位址..."
+wifi_ip_timeout,"Timeout waiting for IP address","获取IP地址超时","IP アドレス取得タイムアウト","取得IP位址超時"
+auto_netlink_config_failed,"Netlink configuration failed","网络配置失败","ネットリンク設定失敗","網路配置失敗"
+auto_netlink_start_failed,"Netlink start failed","网络启动失败","ネットリンク開始失敗","網路啟動失敗"

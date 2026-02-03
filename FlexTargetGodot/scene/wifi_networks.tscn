@@ -1,10 +1,14 @@
-[gd_scene load_steps=6 format=3 uid="uid://c3g1gp0reiltq"]
+[gd_scene load_steps=8 format=3 uid="uid://c3g1gp0reiltq"]
 
 [ext_resource type="Script" uid="uid://bag7v4s5v88jw" path="res://script/wifi_networks.gd" id="1_xtqbd"]
+[ext_resource type="Texture2D" uid="uid://d0egr702q86ln" path="res://asset/title-cntr-v3.png" id="2_hax0g"]
 [ext_resource type="LabelSettings" uid="uid://bw22f0mtic4xe" path="res://theme/target_title_tactical.tres" id="2_mdl3b"]
 [ext_resource type="Texture2D" uid="uid://vywd0k7tgm56" path="res://asset/largeCntnrs 2.png" id="2_oiug6"]
 [ext_resource type="Script" uid="uid://dxfujov7vai6f" path="res://addons/onscreenkeyboard/onscreen_keyboard.gd" id="2_xtqbd"]
 [ext_resource type="Theme" uid="uid://b1xuwasqtx311" path="res://theme/custom_button_theme.tres" id="4_custom_button_theme"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_hax0g"]
+texture = ExtResource("2_hax0g")
 
 [node name="WiFiNetworks" type="Control"]
 layout_mode = 3
@@ -25,14 +29,25 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.078431375, 0.12941177, 0.14901961, 1)
 
-[node name="TitleLabel" type="Label" parent="."]
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -240.0
+offset_top = 120.0
+offset_right = 240.0
+offset_bottom = 170.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_hax0g")
+
+[node name="TitleLabel" type="Label" parent="Panel"]
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_top = 100.0
-offset_bottom = 140.0
+offset_bottom = 45.0
 grow_horizontal = 2
-text = "WI-FI"
+text = "Wi-Fi"
 label_settings = ExtResource("2_mdl3b")
 horizontal_alignment = 1
 
@@ -70,6 +85,7 @@ alignment = 1
 layout_mode = 2
 text = "Scanning for networks"
 horizontal_alignment = 1
+modulate = Color(1, 0.647059, 0, 1)
 
 [node name="HBoxContainer" type="HBoxContainer" parent="Frame/StatusContainer"]
 layout_mode = 2
@@ -105,6 +121,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 
 [node name="Overlay" type="PanelContainer" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0

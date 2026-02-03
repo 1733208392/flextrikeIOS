@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=3 uid="uid://d30mq788le0nt"]
+[gd_scene load_steps=22 format=3 uid="uid://d30mq788le0nt"]
 
 [ext_resource type="Script" uid="uid://dpv7hrojpq63x" path="res://script/onboarding.gd" id="1_iat7d"]
 [ext_resource type="Texture2D" uid="uid://d3jnypy7bx42r" path="res://asset/largeCntnrs.png" id="3_container"]
@@ -10,6 +10,7 @@
 [ext_resource type="FontFile" uid="uid://dklcxnp1ecpee" path="res://font/Inter/static/Inter_28pt-Medium.ttf" id="8_vemtp"]
 [ext_resource type="PackedScene" uid="uid://bgnvqj8xi6u7e" path="res://scene/volumn.tscn" id="9_volume"]
 [ext_resource type="AudioStream" uid="uid://ci4xowhem06dc" path="res://audio/radar-beeping.mp3" id="10_audio"]
+[ext_resource type="Theme" uid="uid://b1xuwasqtx311" path="res://theme/custom_button_theme.tres" id="10_ogpcl"]
 [ext_resource type="FontFile" uid="uid://bt41csp00hdy7" path="res://font/Inter/Inter-VariableFont_opsz,wght.ttf" id="11_inter"]
 [ext_resource type="AudioStream" uid="uid://cgkib15mat3f6" path="res://audio/Cursor.ogg" id="12_cursor"]
 [ext_resource type="Texture2D" uid="uid://ifinqy4j7crx" path="res://asset/m-cntr-v5.png" id="15_m_cntr"]
@@ -224,6 +225,22 @@ text = "HEALTH CHECK IN PROGRESS ..."
 fit_content = true
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="Button" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -140.0
+offset_top = -105.0
+offset_right = -20.0
+offset_bottom = -55.0
+grow_horizontal = 0
+grow_vertical = 0
+theme = ExtResource("10_ogpcl")
+text = "Main Menu"
 
 [node name="Copywrite" type="Label" parent="."]
 layout_mode = 1

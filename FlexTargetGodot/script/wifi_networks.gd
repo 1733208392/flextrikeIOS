@@ -252,6 +252,24 @@ func _show_scan_error():
 	retry_button.visible = true
 	retry_button.grab_focus()
 
+func _show_connection_error(error_msg: String):
+	"""
+	Show WiFi connection error message with retry option
+	"""
+	print("[WiFi Networks] Showing connection error: ", error_msg)
+	# Stop any running animations
+	_hide_connecting_overlay()
+	# Hide password overlay and keyboard
+	if overlay.visible:
+		_cancel_password(false)  # Keep password for retry
+	# Show error status
+	status_container.visible = true
+	status_label.text = tr("wifi_connection_failed").replace("{error}", error_msg) if tr("wifi_connection_failed") != "wifi_connection_failed" else "Connection failed: " + error_msg
+	retry_button.visible = true
+	# Show network list again for retry
+	list_vbox.visible = true
+	retry_button.grab_focus()
+
 # =============================================================================
 # NETWORK LIST MANAGEMENT
 # =============================================================================
@@ -285,6 +303,7 @@ func _build_list():
 		button.focus_mode = Control.FOCUS_ALL
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		button.theme = WIFI_BUTTON_THEME
+		button.add_theme_font_size_override("font_size", 24)  # Increase SSID font size
 		
 		# Highlight if this is the connected network
 		if net_name == connected_network:
@@ -632,8 +651,15 @@ func _on_link_status_timeout():
 	"""
 	print("[WiFi Networks] Link status polling timeout")
 	_stop_link_status_polling()
+	# Hide password overlay and keyboard
+	if overlay.visible:
+		_cancel_password(false)  # Keep password for retry
+	# Show error status
+	status_container.visible = true
 	status_label.text = tr("wifi_ip_timeout")
 	retry_button.visible = true
+	# Show network list for retry
+	list_vbox.visible = true
 	retry_button.grab_focus()
 
 func _stop_link_status_polling():
@@ -676,11 +702,15 @@ func _on_auto_netlink_config_response(result, response_code, _headers, _body):
 		auto_netlink_timer.start()
 	else:
 		print("[WiFi Networks] Auto netlink config failed: ", result, " code: ", response_code)
-		# Reset flags and change scene
+		# Show error to user and reset
+		status_container.visible = true
+		status_label.text = tr("auto_netlink_config_failed")
 		var gd = get_node_or_null("/root/GlobalData")
 		if gd:
 			gd.auto_netlink_enabled = false
 		auto_procedure_in_progress = false
+		# Wait 2 seconds before returning to option scene
+		await get_tree().create_timer(2.0).timeout
 		get_tree().change_scene_to_file("res://scene/option/option.tscn")
 
 func _on_auto_netlink_delay_timeout():
@@ -704,13 +734,17 @@ func _on_auto_netlink_start_response(result, response_code, _headers, _body):
 		print("[WiFi Networks] Auto netlink start successful")
 	else:
 		print("[WiFi Networks] Auto netlink start failed: ", result, " code: ", response_code)
+		# Show error to user
+		status_container.visible = true
+		status_label.text = tr("auto_netlink_start_failed")
 	# Reset flag regardless
 	var gd = get_node_or_null("/root/GlobalData")
 	if gd:
 		gd.auto_netlink_enabled = false
 	
-	# Auto procedure complete, change scene
+	# Auto procedure complete, wait then change scene
 	auto_procedure_in_progress = false
+	await get_tree().create_timer(2.0).timeout
 	get_tree().change_scene_to_file("res://scene/option/option.tscn")
 
 func _commit_password():
@@ -756,8 +790,10 @@ func _on_wifi_connect_completed(result, response_code, _headers, body):
 			_start_link_status_polling()
 		else:
 			print("Failed to connect to WiFi: ", error_msg)
+			_show_connection_error(error_msg)
 	else:
 		print("WiFi connect request failed: ", result, " code: ", response_code)
+		_show_connection_error("Network error: Connection failed")
 
 # =============================================================================
 # NAVIGATION AND INPUT HANDLING
