@@ -1,7 +1,18 @@
-[gd_scene load_steps=3 format=3 uid="uid://d0r0jmdp4nky3"]
+[gd_scene load_steps=5 format=3 uid="uid://d0r0jmdp4nky3"]
 
 [ext_resource type="Script" uid="uid://djn130epb0fq4" path="res://script/splash_loading.gd" id="1_splash"]
-[ext_resource type="FontFile" uid="uid://bt41csp00hdy7" path="res://font/Inter/Inter-VariableFont_opsz,wght.ttf" id="2_font"]
+[ext_resource type="Texture2D" uid="uid://bb115sf3lecxn" path="res://asset/grwolf-logo-white.png" id="2_50nyg"]
+[ext_resource type="Shader" uid="uid://7abwcqppydok" path="res://shader/orbiting_dot.gdshader" id="3_orbiting"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_28g6l"]
+shader = ExtResource("3_orbiting")
+shader_parameter/radius = 450.0
+shader_parameter/circle_thickness = 3.0
+shader_parameter/dot_size = 4.0
+shader_parameter/circle_color = Vector3(1, 0.4, 0.2)
+shader_parameter/dot_color = Vector3(1, 1, 1)
+shader_parameter/glow_intensity = 24.0
+shader_parameter/time_scale = 1.0
 
 [node name="splash_loading" type="Control"]
 layout_mode = 3
@@ -18,38 +29,27 @@ offset_right = 720.0
 offset_bottom = 1280.0
 color = Color(0.0901961, 0.129412, 0.141176, 1)
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
+[node name="CenterContainer" type="CenterContainer" parent="."]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -150.0
-offset_top = -100.0
-offset_right = 150.0
-offset_bottom = 100.0
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="LogoContainer" type="VBoxContainer" parent="VBoxContainer"]
-layout_mode = 2
-alignment = 1
-
-[node name="AppName" type="Label" parent="VBoxContainer/LogoContainer"]
-layout_mode = 2
-theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 32
-text = "FlexTarget IPSC"
-horizontal_alignment = 1
-
-[node name="Spacer" type="Control" parent="VBoxContainer"]
-custom_minimum_size = Vector2(0, 50)
+[node name="orbiting_circle" type="ColorRect" parent="CenterContainer"]
+material = SubResource("ShaderMaterial_28g6l")
+custom_minimum_size = Vector2(600, 600)
 layout_mode = 2
 
-[node name="LoadingLabel" type="Label" parent="VBoxContainer"]
+[node name="logo" type="TextureRect" parent="CenterContainer"]
+custom_minimum_size = Vector2(300, 150)
 layout_mode = 2
-theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 18
-text = "Loading..."
-horizontal_alignment = 1
+texture = ExtResource("2_50nyg")
+expand_mode = 1

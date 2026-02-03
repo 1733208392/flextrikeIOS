@@ -633,7 +633,7 @@ func _on_link_status_response(result, response_code, _headers, body):
 						signal_bus.emit_wifi_connected(selected_network)
 						# Only change scene if auto procedure not in progress
 						if not auto_procedure_in_progress:
-							get_tree().change_scene_to_file("res://scene/option/option.tscn")
+							get_tree().change_scene_to_file("res://scene/main_menu/main_menu.tscn")
 					else:
 						print("WiFi Networks: SignalBus not found, cannot emit signal")
 				else:
@@ -709,9 +709,9 @@ func _on_auto_netlink_config_response(result, response_code, _headers, _body):
 		if gd:
 			gd.auto_netlink_enabled = false
 		auto_procedure_in_progress = false
-		# Wait 2 seconds before returning to option scene
+		# Wait 2 seconds before returning to main menu
 		await get_tree().create_timer(2.0).timeout
-		get_tree().change_scene_to_file("res://scene/option/option.tscn")
+		get_tree().change_scene_to_file("res://scene/main_menu/main_menu.tscn")
 
 func _on_auto_netlink_delay_timeout():
 	"""
@@ -745,7 +745,7 @@ func _on_auto_netlink_start_response(result, response_code, _headers, _body):
 	# Auto procedure complete, wait then change scene
 	auto_procedure_in_progress = false
 	await get_tree().create_timer(2.0).timeout
-	get_tree().change_scene_to_file("res://scene/option/option.tscn")
+	get_tree().change_scene_to_file("res://scene/main_menu/main_menu.tscn")
 
 func _commit_password():
 	"""

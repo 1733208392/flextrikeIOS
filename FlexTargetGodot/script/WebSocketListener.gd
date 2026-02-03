@@ -12,6 +12,7 @@ signal ble_start_command(content: Dictionary)
 signal ble_end_command(content: Dictionary)
 signal animation_config(action: String, duration: float)
 signal target_name_received(target_name: String)
+signal provision_step_received(step: String)
 
 var socket: WebSocketPeer
 var bullet_spawning_enabled: bool = true
@@ -253,13 +254,12 @@ func _handle_ble_forwarded_command(parsed):
 		if step == "wifi_connection":
 			if not DEBUG_DISABLED:
 				print("[WebSocket] Provision step wifi_connection, marking provision complete")
+			# Emit signal for the current scene to handle
+			provision_step_received.emit(step)
 			# Mark provisioning as complete since mobile app is now ready
 			if gd:
 				gd.mark_provision_complete()
 				gd.auto_netlink_enabled = true
-			if not DEBUG_DISABLED:
-				print("[WebSocket] Transitioning to WIFI_network scene")
-			get_tree().change_scene_to_file("res://scene/wifi_networks.tscn")
 		elif step == "verify_targetlink_status":
 			if not DEBUG_DISABLED:
 				print("[WebSocket] Provision step verify_targetlink_status, forwarding netlink status")

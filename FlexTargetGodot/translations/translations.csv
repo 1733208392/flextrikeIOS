@@ -15,7 +15,7 @@ description,"The Grwolf Smart Target is designed for shooting enthusiasts who wa
 * ビルドリルやフリーシューティングなど、同じデバイスで様々なドリルを選択できるため、射撃体験が向上します。","Grwolf 智能靶專為希望便捷練習軟氣槍的射擊愛好者設計。與傳統靶相比，該設備具有以下特點：
 * 即時命中點顯示，讓您可以即時追蹤射擊併計分。
 * 同一裝置可選擇不同的練習方式，例如槍枝練習和自由射擊，提升您的射擊體驗。 "
-copyright,© 2025 FlexTarget IPSC@Grwolf.com,© 2025 FlexTarget IPSC@Grwolf.com,© 2025 FlexTarget IPSC@Grwolf.com,2025 FlexTarget IPSC@Grwolf.com
+copyright,© 2025-2026 https://grwolf.com,© 2025-2026 https://grwolf.com,© 2025-2026 https://grwolf.com,© 2025-2026 https://grwolf.com
 ipsc,IPSC Drill,IPSC场景,IPSCステージ,IPSC場景
 idpa,IDPA Drill,IDPA场景,IDPAステージ,IDPA場景
 stage,Mini Stage,迷你场景,ミニステージ,迷你场景
@@ -38,7 +38,7 @@ shoot_painter,Shoot Painter,射击画师,シュートペインター,射擊畫�
 options,Options,选项,オプション,選項
 prev,Prev,上页,上页,上頁
 next,Next,下页,ページ,下頁
-start,Start,启动,启アニメーション,啟動
+start,Start,启动,起動,啟動
 difficulty_level,Difficulty Level,难度等级,難易度レベル,難度等級
 duration,Duration,时长,期間,時長
 difficulty_easy,Easy,简单,イージー,簡單
@@ -720,3 +720,7 @@ waiting_for_ip,"Waiting for IP address...","等待获取IP地址...","IP アド�
 wifi_ip_timeout,"Timeout waiting for IP address","获取IP地址超时","IP アドレス取得タイムアウト","取得IP位址超時"
 auto_netlink_config_failed,"Netlink configuration failed","网络配置失败","ネットリンク設定失敗","網路配置失敗"
 auto_netlink_start_failed,"Netlink start failed","网络启动失败","ネットリンク開始失敗","網路啟動失敗"
+onboarding_health_check_progress,"HEALTH CHECK IN PROGRESS ...","健康检查进行中...","ヘルスチェック進行中...","健康檢查進行中..."
+onboarding_health_check_fault,"HEADS UP: A FAULT IS DETECTED, PLEASE POWER OFF AND POWER ON TO RECOVER.","警告：检测到故障，请关闭电源然后重新打开以恢复。","警告：障害が検出されました。デバイスの電源を切ってから再度オンにして復旧してください。","警告：偵測到故障，請關閉電源然後重新打開以復原。"
+onboarding_main_greeting,"Hello, my name is [color=orange]{ble_name}[/color], as this is the first time we met, please scan the QR code to download a mobile APP to control me and explore what I can do for you. After you have the App installed, please use the APP to scan this QR code again to connect me.","你好，我叫[color=orange]{ble_name}[/color]，这是我们第一次见面，请扫描二维码下载移动应用来控制我和探索我能为你做什么。安装应用后，请使用应用扫描此二维码再次连接我。","こんにちは、私の名前は[color=orange]{ble_name}[/color]です。初めて会いましたね。モバイルアプリをダウンロードするためにQRコードをスキャンして、私を制御したり、私ができることを探索してください。アプリをインストール後、このQRコードをアプリでスキャンして、再度私に接続してください。","你好，我叫[color=orange]{ble_name}[/color]，這是我們第一次見面，請掃描二維碼下載行動應用來控制我和探索我能為你做什麼。安裝應用後，請使用應用掃描此二維碼再次連接我。"
+onboarding_wifi_connection_greeting,"Great, I am connected to the Mobile App, now please help me connect your WiFi network...","太棒了，我已连接到移动应用，现在请帮助我连接你的WiFi网络...","素晴らしい、モバイルアプリに接続しました。次は、WiFiネットワークに接続するのを手伝ってください...","太棒了，我已連接到行動應用，現在請幫助我連接你的WiFi網路..."

@@ -2,8 +2,8 @@ extends Control
 
 const DEBUG_DISABLED = true
 
-@onready var loading_label = $VBoxContainer/LoadingLabel
-@onready var logo_container = $VBoxContainer/LogoContainer
+# @onready var loading_label = $VBoxContainer/LoadingLabel
+# @onready var logo_container = $VBoxContainer/LogoContainer
 
 var dots_count = 0
 var loading_timer: Timer
@@ -15,12 +15,20 @@ var auto_netlink_timer: Timer
 var auto_netlink_in_progress = false
 var netlink_status_response: Dictionary = {}
 
+# Shader effect variables
+var effect_rect: ColorRect
+var effect_material: ShaderMaterial
+var progress = 0.0
+
 func _ready():	
 	# Setup loading animation
 	setup_loading_animation()
 	
 	# Setup timeout fallback
 	setup_timeout_fallback()
+	
+	# Setup shader effect
+	#setup_shader_effect()
 	
 	# Connect to GlobalData settings loaded signal
 	var global_data = get_node("/root/GlobalData")
@@ -29,14 +37,19 @@ func _ready():
 		if global_data.settings_dict.size() > 0:
 			if not DEBUG_DISABLED:
 				print("[Splash] Settings already loaded, proceeding to main menu")
-			proceed_to_main_menu()
+			proceed_to_main_menu()  # Commented for testing
 		else:
 			# Wait for settings to load
 			global_data.settings_loaded.connect(_on_settings_loaded)
 	else:
 		if not DEBUG_DISABLED:
 			print("[Splash] GlobalData not found, proceeding anyway")
-		proceed_to_main_menu()
+		proceed_to_main_menu()  # Commented for testing
+
+func _process(delta):
+	if effect_material:
+		progress = fmod(progress + delta * 0.5, 1.0)
+		effect_material.set_shader_parameter("progress", progress)
 
 func setup_loading_animation():
 	loading_timer = Timer.new()
@@ -46,7 +59,7 @@ func setup_loading_animation():
 	add_child(loading_timer)
 	
 	# Initial text
-	loading_label.text = tr("loading")
+	#loading_label.text = tr("loading")
 
 func setup_timeout_fallback():
 	timeout_timer = Timer.new()
@@ -61,17 +74,17 @@ func _on_loading_timer_timeout():
 	var dots = ""
 	for i in range(dots_count):
 		dots += "."
-	loading_label.text = tr("loading") + dots
+	#loading_label.text = tr("loading") + dots
 
 func _on_settings_loaded():
 	if not DEBUG_DISABLED:
 		print("[Splash] Settings loaded signal received, proceeding to main menu")
-	proceed_to_main_menu()
+	proceed_to_main_menu()  # Commented for testing
 
 func _on_timeout():
 	if not DEBUG_DISABLED:
 		print("[Splash] Loading timeout reached, proceeding to main menu anyway")
-	loading_label.text = tr("timeout_loading")
+	#loading_label.text = tr("timeout_loading")
 	await get_tree().create_timer(1.0).timeout
 	proceed_to_main_menu()
 
@@ -157,11 +170,11 @@ func _on_auto_netlink_start_response(result, response_code, _headers, _body):
 
 func _transition_to_option():
 	"""
-	Transition to option.tscn
+	Transition to main_menu.tscn
 	"""
 	if not DEBUG_DISABLED:
-		print("[Splash] Transitioning to option.tscn")
-	get_tree().change_scene_to_file("res://scene/option/option.tscn")
+		print("[Splash] Transitioning to main_menu.tscn")
+	get_tree().change_scene_to_file("res://scene/main_menu/main_menu.tscn")  # Commented for testing
 
 # =============================================================================
 # PROVISION STATUS BROADCAST
@@ -215,7 +228,7 @@ func proceed_to_main_menu():
 	# First run not complete, proceed to onboarding
 	if not DEBUG_DISABLED:
 		print("[Splash] First run not complete, transitioning to onboarding")
-	get_tree().change_scene_to_file("res://scene/onboarding.tscn")
+	get_tree().change_scene_to_file("res://scene/onboarding.tscn")  # Commented for testing
 
 func _check_wifi_and_auto_netlink():
 	"""
@@ -238,7 +251,7 @@ func _on_netlink_status_check_response(result, response_code, _headers, body):
 	if not global_data:
 		if not DEBUG_DISABLED:
 			print("[Splash] GlobalData not found, transitioning to main menu")
-		get_tree().change_scene_to_file("res://scene/main_menu/main_menu.tscn")
+		get_tree().change_scene_to_file("res://scene/main_menu/main_menu.tscn")  # Commented for testing
 		return
 	
 	# Parse netlink status response
@@ -281,4 +294,4 @@ func _on_netlink_status_check_response(result, response_code, _headers, body):
 			print("[Splash] WiFi not connected (status: ", wifi_status, ", IP valid: ", ip_valid, "), transitioning to wifi_networks with provision broadcast")
 		global_data.auto_netlink_enabled = false
 		_start_provision_status_broadcast()
-		get_tree().change_scene_to_file("res://scene/wifi_networks.tscn")
+		get_tree().change_scene_to_file("res://scene/wifi_networks.tscn")  # Commented for testing

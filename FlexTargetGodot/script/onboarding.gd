@@ -18,6 +18,9 @@ var health_check_timer: Timer
 var ble_name: String = "..."
 
 func _ready():
+	# Set default locale to English for translations
+	TranslationServer.set_locale("en")
+	
 	# Initialize UI - hide normal state, show error container for health check
 	normal_state.visible = false
 	error_container.visible = true
@@ -46,10 +49,15 @@ func _ready():
 		global_data.netlink_status_loaded.connect(_on_netlink_status_loaded)
 		if global_data.netlink_status and global_data.netlink_status.has("bluetooth_name"):
 			_on_netlink_status_loaded()
+	
+	# 4. Connect to WebSocketListener for provision_step signal
+	var ws_listener = get_node_or_null("/root/WebSocketListener")
+	if ws_listener:
+		ws_listener.provision_step_received.connect(_on_provision_step_received)
 
 func _start_health_check():
 	# Display health check message in error container
-	error_label.text = "HEALTH CHECK IN PROGRESS ..."
+	error_label.text = tr("onboarding_health_check_progress")
 	error_label.visible_characters = -1  # Show all initially
 	
 	# Start animated dots for health check
@@ -73,12 +81,13 @@ func _start_health_check():
 
 func _on_health_check_dot_timeout():
 	# Animate dots for health check message
+	var base_text = tr("onboarding_health_check_progress").trim_suffix(" ...")
 	if error_label.text.ends_with("..."):
-		error_label.text = "HEALTH CHECK IN PROGRESS ."
+		error_label.text = base_text + " ."
 	elif error_label.text.ends_with(".."):
-		error_label.text = "HEALTH CHECK IN PROGRESS ..."
+		error_label.text = base_text + " ..."
 	else:
-		error_label.text = "HEALTH CHECK IN PROGRESS .."
+		error_label.text = base_text + " .."
 
 func _on_health_check_timeout():
 	# Show error message if BLE name was not received
@@ -87,7 +96,7 @@ func _on_health_check_timeout():
 		blinking_timer.queue_free()
 		blinking_timer = null
 	
-	error_label.text = "[color=orange]HEADS UP: A FAULT IS DETECTED, PLEASE POWER OFF AND POWER ON TO RECOVER.[/color]"
+	error_label.text = "[color=orange]" + tr("onboarding_health_check_fault") + "[/color]"
 	if not DEBUG_DISABLED:
 		print("[Onboarding] Health check timeout - major fault detected")
 
@@ -143,7 +152,7 @@ func _on_netlink_status_loaded():
 func _update_greeting():
 	# Use BBCode for rich text formatting
 	# Orange color for the BLE name
-	var greeting_text = "\"Hello, my name is [color=orange]%s[/color], as this is the first time we met, please scan the QR code to download a mobile APP to control me and explore what I can do for you. After you have the App installed, please use the APP to scan this QR code agian to connect me.\"" % ble_name
+	var greeting_text = tr("onboarding_main_greeting").replace("{ble_name}", ble_name)
 	greeting_label.text = greeting_text
 	_start_typing_animation()
 
@@ -162,6 +171,12 @@ func _on_typing_timer_timeout():
 		greeting_label.visible_characters += 1
 	else:
 		typing_timer.stop()
+		# Check if this is the WiFi connection greeting
+		if greeting_label.text == tr("onboarding_wifi_connection_greeting"):
+			# Transition immediately to WiFi networks scene
+			get_tree().change_scene_to_file("res://scene/wifi_networks.tscn")
+			if not DEBUG_DISABLED:
+				print("[Onboarding] Typing animation completed, transitioning to WiFi networks scene immediately")
 
 func _generate_qr(ble_name: String = ""):
 	var qr_url = QR_URL_BASE
@@ -187,5 +202,31 @@ func _complete_onboarding():
 		print("[Onboarding] Onboarding complete, transitioning to main menu in 3 seconds")
 	
 	# Transition after a short delay
-	await get_tree().create_timer(3.0).timeout
-	get_tree().change_scene_to_file("res://scene/main_menu/main_menu.tscn")
+	var complete_timer = Timer.new()
+	add_child(complete_timer)
+	complete_timer.wait_time = 3.0
+	complete_timer.one_shot = true
+	complete_timer.timeout.connect(func():
+		complete_timer.queue_free()
+		get_tree().change_scene_to_file("res://scene/main_menu/main_menu.tscn")
+	)
+	complete_timer.start()
+
+func _on_provision_step_received(step: String):
+	"""Handle provision step received from mobile app"""
+	if step == "wifi_connection":
+		if not DEBUG_DISABLED:
+			print("[Onboarding] Received wifi_connection provision step, preparing transition")
+		
+		# Update greeting text to indicate WiFi connection is needed
+		greeting_label.text = tr("onboarding_wifi_connection_greeting")
+		
+		# Stop typing animation if it's running
+		if typing_timer:
+			typing_timer.stop()
+		
+		# Start typing animation for the new greeting
+		_start_typing_animation()
+		
+		if not DEBUG_DISABLED:
+			print("[Onboarding] Starting typing animation for WiFi connection greeting")

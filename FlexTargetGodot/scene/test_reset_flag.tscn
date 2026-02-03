@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://bsr1shpkkbads" path="res://script/test_reset_flag.gd" id="1_test"]
 [ext_resource type="FontFile" uid="uid://bt41csp00hdy7" path="res://font/Inter/Inter-VariableFont_opsz,wght.ttf" id="2_font"]
-[ext_resource type="FontFile" path="res://fonts/TTNorms-Regular.ttf" id="3_tt_norm"]
+[ext_resource type="FontFile" uid="uid://bt41csp00hdy7" path="res://font/Inter/Inter-VariableFont_opsz,wght.ttf" id="3_tt_norm"]
 
 [node name="test_reset_flag" type="Control"]
 layout_mode = 3
