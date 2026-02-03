@@ -28,6 +28,9 @@ const SLIDER_MIN = 0
 const SLIDER_MAX = 700
 const THRESHOLD_MAX = 1460
 
+const QR_CODE_GENERATOR = preload("res://script/qrcode.gd")
+const QR_URL_BASE = "https://grwolf.com/pages/app-redirect"
+
 # Debug flag for controlling print statements
 # Uses the centralized GlobalDebug system
 # const DEBUG_DISABLED = true  # Removed - now using GlobalDebug.DEBUG_DISABLED
@@ -43,7 +46,8 @@ signal sfx_volume_changed(volume: int)
 
 # References to labels that need translation
 @onready var tab_container = $"VBoxContainer/MarginContainer/tab_container"
-@onready var description_label = $"VBoxContainer/MarginContainer/tab_container/About/HBoxContainer/Left/MarginContainer/DescriptionLabel"
+@onready var about_greeting_label = $"VBoxContainer/MarginContainer/tab_container/About/Left/GreetingContainer/GreetingLabel"
+@onready var about_qr_texture_rect = $"VBoxContainer/MarginContainer/tab_container/About/Left/QRContainer/QRTextureRect"
 @onready var copyright_label = $"CopyrightLabel"
 
 # References to drill button (single CheckButton)
@@ -72,11 +76,10 @@ signal sfx_volume_changed(volume: int)
 # Reference to background music
 @onready var background_music = $BackgroundMusic
 
-# Reference to upgrade button
-@onready var upgrade_button = $"VBoxContainer/MarginContainer/tab_container/About/MarginContainer/Button"
-
 # Reference to networking tab script
 @onready var networking_tab = preload("res://scene/option/networking_tab.gd").new()
+
+var about_ble_name: String = "..."
 
 func _ready():
 	# Show status bar when entering options
@@ -93,6 +96,7 @@ func _ready():
 	
 	# Update UI texts with current language
 	update_ui_texts()
+	_refresh_about_onboarding_preview()
 	
 	# Connect signals for language buttons
 	if chinese_button:
@@ -134,10 +138,14 @@ func _ready():
 	# Set tab_container focusable
 	if tab_container:
 		tab_container.focus_mode = Control.FOCUS_ALL
+		tab_container.tab_changed.connect(_on_tab_changed)
 
-	# Connect upgrade button pressed
-	if upgrade_button:
-		upgrade_button.pressed.connect(_on_upgrade_pressed)
+	# Connect to GlobalData for BLE name updates used in About tab
+	var global_data = get_node_or_null("/root/GlobalData")
+	if global_data and global_data.has_signal("netlink_status_loaded"):
+		global_data.netlink_status_loaded.connect(_on_netlink_status_loaded)
+		if global_data.netlink_status and global_data.netlink_status.has("bluetooth_name"):
+			_on_netlink_status_loaded()
 
 	# Connect sensitivity slider value_changed signal
 	if sensitivity_slider:
@@ -213,6 +221,7 @@ func _on_language_changed(language: String):
 	set_locale_from_language(language)
 	save_settings()
 	update_ui_texts()
+	_refresh_about_onboarding_preview()
 	if not GlobalDebug.DEBUG_DISABLED:
 		print("Language changed to: ", language)
 
@@ -405,8 +414,7 @@ func update_ui_texts():
 		tab_container.set_tab_title(1, tr("languages"))
 		tab_container.set_tab_title(2, tr("drill"))
 		tab_container.set_tab_title(3, tr("about"))
-	if description_label:
-		description_label.text = tr("about_description_intro") + "\n" + tr("about_description_features")
+	_update_about_greeting_text()
 	if copyright_label:
 		copyright_label.text = tr("copyright")
 	if random_sequence_check:
@@ -430,6 +438,51 @@ func update_ui_texts():
 		sfx_label.text = tr("sound_sfx")
 	if drill_note_label:
 		drill_note_label.text = tr("auto_restart_note")
+
+func _on_tab_changed(tab: int) -> void:
+	if tab == 3:
+		_refresh_about_onboarding_preview()
+
+func _on_netlink_status_loaded() -> void:
+	_refresh_about_onboarding_preview()
+
+func _refresh_about_onboarding_preview() -> void:
+	if not about_greeting_label and not about_qr_texture_rect:
+		return
+	var current_name = _get_current_ble_name()
+	if current_name != about_ble_name:
+		about_ble_name = current_name
+	_update_about_greeting_text()
+	_generate_about_qr(about_ble_name)
+
+func _get_current_ble_name() -> String:
+	var global_data = get_node_or_null("/root/GlobalData")
+	if global_data and global_data.netlink_status and global_data.netlink_status.has("bluetooth_name"):
+		var candidate = str(global_data.netlink_status["bluetooth_name"])
+		if not candidate.is_empty():
+			return candidate
+	return "..."
+
+func _update_about_greeting_text() -> void:
+	if not about_greeting_label:
+		return
+	var greeting_text = tr("onboarding_main_greeting").replace("{ble_name}", about_ble_name)
+	about_greeting_label.text = greeting_text
+	about_greeting_label.visible_characters = -1
+	about_greeting_label.visible_ratio = 1.0
+
+func _generate_about_qr(ble_name: String) -> void:
+	if not about_qr_texture_rect:
+		return
+	var qr_url = QR_URL_BASE
+	if not ble_name.is_empty() and ble_name != "...":
+		qr_url = "%s?ble_name=%s" % [QR_URL_BASE, ble_name]
+	var qr = QR_CODE_GENERATOR.new()
+	var image = qr.generate_image(qr_url, 8)
+	if image:
+		about_qr_texture_rect.texture = ImageTexture.create_from_image(image)
+	else:
+		about_qr_texture_rect.texture = null
 
 func save_settings():
 	# Save settings directly using current GlobalData
@@ -871,23 +924,6 @@ func switch_tab(direction: String):
 		_:
 			tab_container.grab_focus()
 	print("[Option] Switched to tab: ", tab_container.get_tab_title(current))
-
-func _on_upgrade_pressed():
-	var global_data = get_node_or_null("/root/GlobalData")
-	
-	# Navigate to software upgrade scene (only works in OTA mode)
-	if not GlobalDebug.DEBUG_DISABLED:
-		print("[Option] Navigating to software upgrade scene")
-	if is_inside_tree():
-		get_tree().change_scene_to_file("res://scene/option/software_upgrade.tscn")
-	else:
-		if not GlobalDebug.DEBUG_DISABLED:
-			print("[Option] Warning: Node not in tree, cannot change scene")
-
-func _on_upgrade_response(result, response_code, _headers, body):
-	var body_str = body.get_string_from_utf8()
-	if not GlobalDebug.DEBUG_DISABLED:
-		print("[Option] Upgrade engine HTTP response:", result, response_code, body_str)
 
 func _on_embedded_status_response(_result, _response_code, _headers, body):
 	"""Handle embedded system status response."""

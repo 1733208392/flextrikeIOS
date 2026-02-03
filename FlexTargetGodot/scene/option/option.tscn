@@ -5,8 +5,7 @@
 [ext_resource type="FontFile" uid="uid://bt41csp00hdy7" path="res://font/Inter/Inter-VariableFont_opsz,wght.ttf" id="3_a5ubv"]
 [ext_resource type="FontFile" uid="uid://cth4t0ug4hwm8" path="res://font/Inter/static/Inter_24pt-Black.ttf" id="4_1n7n1"]
 [ext_resource type="Theme" uid="uid://b1xuwasqtx311" path="res://theme/custom_button_theme.tres" id="5_ur50w"]
-[ext_resource type="Texture2D" uid="uid://bphdbktqgumws" path="res://asset/contact.png" id="6_jjy7b"]
-[ext_resource type="Texture2D" uid="uid://c2l6gc1ro012y" path="res://asset/SmallCntnrs3.png" id="7_686id"]
+[ext_resource type="FontFile" uid="uid://dklcxnp1ecpee" path="res://font/Inter/static/Inter_28pt-Medium.ttf" id="8_1n7n1"]
 [ext_resource type="PackedScene" uid="uid://bgnvqj8xi6u7e" path="res://scene/volumn.tscn" id="8_54dxg"]
 [ext_resource type="AudioStream" uid="uid://i6eh50aq5t66" path="res://audio/Final Battle - For Love.ogg" id="9_audio"]
 [ext_resource type="Script" uid="uid://dj7d1chuxn4fg" path="res://scene/option/networking_tab.gd" id="10_networking_tab"]
@@ -40,11 +39,11 @@ corner_radius_top_right = 4
 
 [sub_resource type="ButtonGroup" id="ButtonGroup_pause"]
 
-[sub_resource type="SystemFont" id="SystemFont_lkh8f"]
-font_names = PackedStringArray("SF Pro")
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ur50w"]
 
-[sub_resource type="SystemFont" id="SFPro"]
-font_names = PackedStringArray("SF Pro")
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_jjy7b"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_pm2y3"]
 
 [sub_resource type="SystemFont" id="SystemFont_i838a"]
 font_names = PackedStringArray("SF Pro")
@@ -413,72 +412,46 @@ layout_mode = 2
 max_value = 10.0
 value = 5.0
 
-[node name="About" type="VBoxContainer" parent="VBoxContainer/MarginContainer/tab_container"]
+[node name="About" type="CenterContainer" parent="VBoxContainer/MarginContainer/tab_container"]
 layout_mode = 2
 metadata/_tab_index = 3
 
-[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/MarginContainer/tab_container/About"]
-layout_mode = 2
-
-[node name="Right" type="VBoxContainer" parent="VBoxContainer/MarginContainer/tab_container/About/HBoxContainer"]
+[node name="Left" type="HBoxContainer" parent="VBoxContainer/MarginContainer/tab_container/About"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_constants/separation = 20
 
-[node name="top" type="MarginContainer" parent="VBoxContainer/MarginContainer/tab_container/About/HBoxContainer/Right"]
+[node name="space" type="Panel" parent="VBoxContainer/MarginContainer/tab_container/About/Left"]
+visible = false
+custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
-theme_override_constants/margin_left = 80
-theme_override_constants/margin_top = 200
-theme_override_constants/margin_right = 20
+theme_override_styles/panel = SubResource("StyleBoxEmpty_ur50w")
 
-[node name="Contact" type="TextureRect" parent="VBoxContainer/MarginContainer/tab_container/About/HBoxContainer/Right/top"]
+[node name="QRContainer" type="PanelContainer" parent="VBoxContainer/MarginContainer/tab_container/About/Left"]
+custom_minimum_size = Vector2(300, 300)
 layout_mode = 2
-texture = ExtResource("6_jjy7b")
+theme_override_styles/panel = SubResource("StyleBoxEmpty_jjy7b")
 
-[node name="Bottom" type="MarginContainer" parent="VBoxContainer/MarginContainer/tab_container/About/HBoxContainer/Right"]
+[node name="QRTextureRect" type="TextureRect" parent="VBoxContainer/MarginContainer/tab_container/About/Left/QRContainer"]
 layout_mode = 2
-theme_override_constants/margin_left = 80
-theme_override_constants/margin_right = 20
+size_flags_stretch_ratio = 0.0
+expand_mode = 1
+stretch_mode = 4
 
-[node name="SmallCntnrs3" type="TextureRect" parent="VBoxContainer/MarginContainer/tab_container/About/HBoxContainer/Right/Bottom"]
+[node name="GreetingContainer" type="PanelContainer" parent="VBoxContainer/MarginContainer/tab_container/About/Left"]
+custom_minimum_size = Vector2(300, 0)
 layout_mode = 2
-texture = ExtResource("7_686id")
+theme_override_styles/panel = SubResource("StyleBoxEmpty_pm2y3")
 
-[node name="EmailLabel" type="Label" parent="VBoxContainer/MarginContainer/tab_container/About/HBoxContainer/Right/Bottom"]
+[node name="GreetingLabel" type="RichTextLabel" parent="VBoxContainer/MarginContainer/tab_container/About/Left/GreetingContainer"]
 layout_mode = 2
-theme_override_fonts/font = SubResource("SystemFont_lkh8f")
-text = "kai.yang@grwolftactical.com"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="Left" type="VBoxContainer" parent="VBoxContainer/MarginContainer/tab_container/About/HBoxContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/MarginContainer/tab_container/About/HBoxContainer/Left"]
-layout_mode = 2
-theme_override_constants/margin_top = 200
-theme_override_constants/margin_right = 50
-
-[node name="DescriptionLabel" type="RichTextLabel" parent="VBoxContainer/MarginContainer/tab_container/About/HBoxContainer/Left/MarginContainer"]
-custom_minimum_size = Vector2(0, 500)
-layout_mode = 2
-size_flags_vertical = 3
-theme_override_fonts/normal_font = SubResource("SFPro")
-theme_override_font_sizes/normal_font_size = 18
+theme_override_fonts/normal_font = ExtResource("8_1n7n1")
+theme_override_font_sizes/normal_font_size = 28
 bbcode_enabled = true
-
-[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/MarginContainer/tab_container/About"]
-layout_mode = 2
-theme_override_constants/margin_left = 100
-theme_override_constants/margin_top = 40
-theme_override_constants/margin_right = 100
-theme_override_constants/margin_bottom = 0
-
-[node name="Button" type="Button" parent="VBoxContainer/MarginContainer/tab_container/About/MarginContainer"]
-layout_mode = 2
-theme = ExtResource("5_ur50w")
-disabled = true
-text = "System Upgrade"
+text = "\"Hello, my name is [color=orange]...[/color], As this is the first time we met, please scan the QR code to download a mobile APP to control me and explore what I can do for you.\""
+fit_content = true
+visible_characters = 0
+visible_ratio = 0.0
 
 [node name="CopyrightLabel" type="Label" parent="."]
 layout_mode = 1
