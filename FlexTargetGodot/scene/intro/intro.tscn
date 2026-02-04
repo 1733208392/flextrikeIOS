@@ -1,12 +1,16 @@
 [gd_scene load_steps=8 format=3 uid="uid://rtls33j2jr4q"]
 
 [ext_resource type="Script" uid="uid://bhvruqf68yix4" path="res://scene/intro/intro.gd" id="1_y6sgv"]
-[ext_resource type="LabelSettings" uid="uid://bw22f0mtic4xe" path="res://theme/target_title_tactical.tres" id="2_1kmu5"]
-[ext_resource type="Texture2D" uid="uid://beqbg7e01j16p" path="res://asset/dialog_cntnrs.png" id="3_48x57"]
+[ext_resource type="FontFile" uid="uid://w674bdq23bld" path="res://font/Inter/static/Inter_24pt-Bold.ttf" id="2_1kmu5"]
 [ext_resource type="FontFile" uid="uid://b6nrcit1qskc6" path="res://font/Inter/static/Inter_24pt-Light.ttf" id="4_s5wda"]
-[ext_resource type="Theme" uid="uid://b1xuwasqtx311" path="res://theme/custom_button_theme.tres" id="5_rvvlv"]
+[ext_resource type="Theme" uid="uid://cdynjfvdtavlt" path="res://scene/main_menu/main_menu_button_theme.tres" id="5_48x57"]
 [ext_resource type="PackedScene" uid="uid://bgnvqj8xi6u7e" path="res://scene/volumn.tscn" id="6_ncd3m"]
 [ext_resource type="AudioStream" uid="uid://cc4026ptu87nx" path="res://audio/13 - Decisive Battle 1 - Don't Be Afraid.ogg" id="7_1kmu5"]
+
+[sub_resource type="Theme" id="Theme_48x57"]
+default_font = ExtResource("2_1kmu5")
+default_font_size = 80
+Label/colors/font_color = Color(0.87058824, 0.21960784, 0.13725491, 1)
 
 [node name="intro" type="Control"]
 layout_mode = 3
@@ -16,7 +20,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_y6sgv")
-variant = "IDPA"
 
 [node name="Background" type="ColorRect" parent="."]
 layout_mode = 1
@@ -25,71 +28,68 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.0901961, 0.129412, 0.141176, 1)
+color = Color(0.03529412, 0.03529412, 0.03529412, 1)
 
 [node name="Title" type="Label" parent="."]
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -182.5
-offset_top = 40.0
-offset_right = 182.5
-offset_bottom = 77.0
+offset_left = -265.0
+offset_top = 80.0
+offset_right = 265.0
+offset_bottom = 178.0
 grow_horizontal = 2
-label_settings = ExtResource("2_1kmu5")
+theme = SubResource("Theme_48x57")
+text = " INTRO"
 horizontal_alignment = 1
-vertical_alignment = 1
 
 [node name="CenterContainer" type="CenterContainer" parent="."]
+clip_contents = true
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -300.0
-offset_top = -440.0
-offset_right = 300.0
-offset_bottom = 160.0
+offset_left = -250.0
+offset_top = -322.0
+offset_right = 250.0
+offset_bottom = 322.0
 grow_horizontal = 2
 grow_vertical = 2
-
-[node name="Border" type="TextureRect" parent="CenterContainer"]
-layout_mode = 2
-texture = ExtResource("3_48x57")
 
 [node name="ContentVBox" type="VBoxContainer" parent="CenterContainer"]
 custom_minimum_size = Vector2(500, 0)
 layout_mode = 2
 
-[node name="MainText" type="RichTextLabel" parent="CenterContainer/ContentVBox"]
-custom_minimum_size = Vector2(0, 450)
+[node name="Panel" type="Panel" parent="CenterContainer/ContentVBox"]
+custom_minimum_size = Vector2(500, 600)
 layout_mode = 2
+
+[node name="MainText" type="RichTextLabel" parent="CenterContainer/ContentVBox/Panel"]
+layout_mode = 0
+offset_right = 500.0
+offset_bottom = 600.0
 size_flags_vertical = 3
 theme_override_fonts/normal_font = ExtResource("4_s5wda")
 theme_override_font_sizes/normal_font_size = 22
 bbcode_enabled = true
 text = "
-[center][color=WHITE][b]SCORING RULES[/b][/color][/center]
-[color=WHITE][b]Target Zones:[/b][/color]
-• [color=WHITE]Alpha (A): 5 pts[/color]
-• [color=WHITE]Charlie (C): 2 pts[/color]
-• [color=WHITE]Delta (D): 1 pt[/color]
-• [color=WHITE]Miss: 1 pt[/color]
+[center][color=#de3832][b]SCORING RULES[/b][/color][/center]
+[color=#de3832][b]Target Zones:[/b][/color]
+• [color=#de3832]Alpha (A): 5 pts[/color]
+• [color=#de3832]Charlie (C): 2 pts[/color]
+• [color=#de3832]Delta (D): 1 pt[/color]
+• [color=#de3832]Miss: 1 pt[/color]
 
-[color=WHITE][b]Special Targets:[/b][/color]
-• [color=WHITE]Steel Plates: 5 pts[/color]
-• [color=WHITE]Paddles: 5 pts[/color]
-• [color=WHITE]No-Shoot: -10 pts[/color]"
+[color=#de3832][b]Special Targets:[/b][/color]
+• [color=#de3832]Steel Plates: 5 pts[/color]
+• [color=#de3832]Paddles: 5 pts[/color]
+• [color=#de3832]No-Shoot: -10 pts[/color]"
 fit_content = true
-
-[node name="HSeparator" type="HSeparator" parent="CenterContainer/ContentVBox"]
-layout_mode = 2
-
-[node name="Space" type="HSplitContainer" parent="CenterContainer/ContentVBox"]
-custom_minimum_size = Vector2(0, 120)
-layout_mode = 2
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="NavigationContainer" type="HBoxContainer" parent="CenterContainer/ContentVBox"]
 layout_mode = 2
@@ -98,7 +98,7 @@ alignment = 1
 [node name="PrevButton" type="Button" parent="CenterContainer/ContentVBox/NavigationContainer"]
 custom_minimum_size = Vector2(100, 40)
 layout_mode = 2
-theme = ExtResource("5_rvvlv")
+theme = ExtResource("5_48x57")
 disabled = true
 
 [node name="PageIndicator" type="Label" parent="CenterContainer/ContentVBox/NavigationContainer"]
@@ -109,7 +109,7 @@ vertical_alignment = 1
 [node name="NextButton" type="Button" parent="CenterContainer/ContentVBox/NavigationContainer"]
 custom_minimum_size = Vector2(100, 40)
 layout_mode = 2
-theme = ExtResource("5_rvvlv")
+theme = ExtResource("5_48x57")
 
 [node name="StartButton" type="Button" parent="."]
 layout_mode = 1
@@ -120,13 +120,13 @@ anchor_right = 0.5
 anchor_bottom = 1.0
 offset_left = -166.0
 offset_top = -180.0
-offset_right = 166.0
-offset_bottom = -126.0
+offset_right = 194.0
+offset_bottom = -60.0
 grow_horizontal = 2
 grow_vertical = 0
 size_flags_horizontal = 4
 size_flags_vertical = 3
-theme = ExtResource("5_rvvlv")
+theme = ExtResource("5_48x57")
 theme_override_font_sizes/font_size = 36
 
 [node name="Volume" parent="." instance=ExtResource("6_ncd3m")]

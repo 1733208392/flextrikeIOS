@@ -1,16 +1,15 @@
 extends Control
 
-const DEBUG_DISABLED = true  # Set to true to disable debug prints for production
+const DEBUG_DISABLED = false  # Set to true to disable debug prints for production
 
 @export var variant: String = "IPSC"  # Can be "IPSC" or "IDPA"
 
 @onready var start_button = $StartButton
-@onready var main_text = $CenterContainer/ContentVBox/MainText
+@onready var main_text = $CenterContainer/ContentVBox/Panel/MainText
 @onready var prev_button = $CenterContainer/ContentVBox/NavigationContainer/PrevButton
 @onready var next_button = $CenterContainer/ContentVBox/NavigationContainer/NextButton
 @onready var page_indicator = $CenterContainer/ContentVBox/NavigationContainer/PageIndicator
-@onready var title_label = $TitleLabel
-@onready var history_button = get_node_or_null("TopBar/HistoryButton")
+@onready var title_label = $Title
 @onready var background_music = $BackgroundMusic
 
 var current_page = 0
@@ -141,16 +140,19 @@ func extract_content_from_string(text: String) -> String:
 
 func update_ui_texts():
 	# Update button texts and title
-	if title_label:
-		title_label.text = tr("rules")
+	print("[Intro] update_ui_texts() called")
+	#if title_label:
+		#title_label.text = tr("rules")
+		#print("[Intro] Set title_label text to: ", title_label.text)
 	if prev_button:
 		prev_button.text = tr("prev")
+		print("[Intro] Set prev_button text to: ", prev_button.text)
 	if next_button:
 		next_button.text = tr("next")
+		print("[Intro] Set next_button text to: ", next_button.text)
 	if start_button:
 		start_button.text = tr("start")
-	if history_button:
-		history_button.text = tr("leaderboard")
+		print("[Intro] Set start_button text to: ", start_button.text)
 
 func _ready():
 	# Load and apply current language setting first
@@ -180,8 +182,8 @@ func _ready():
 	prev_button.pressed.connect(_on_prev_pressed)
 	next_button.pressed.connect(_on_next_pressed)
 	
-	# Set start button as default focus
-	start_button.grab_focus()
+	# Set start button as default focus (ensure it happens after UI is ready)
+	call_deferred("_set_start_button_focus")
 	
 	# Connect to WebSocketListener
 	var ws_listener = get_node_or_null("/root/WebSocketListener")
@@ -195,6 +197,34 @@ func _ready():
 	
 	# Add some visual polish
 	setup_ui_styles()
+
+func _set_start_button_focus():
+	"""Deferred function to set focus to start button after UI is fully ready"""
+	print("[Intro] _set_start_button_focus() called")
+	if start_button:
+		start_button.grab_focus()
+		_update_button_hover_styling()
+		print("[Intro] Start button focus set and hover styling applied")
+	else:
+		print("[Intro] ERROR: start_button is null!")
+
+func _update_button_hover_styling():
+	"""Update hover styling for all buttons based on current focus"""
+	var buttons = [prev_button, next_button, start_button]
+	
+	for button in buttons:
+		if button and button.has_focus():
+			# Apply hover styling to focused button
+			button.add_theme_stylebox_override("normal", button.get_theme_stylebox("hover"))
+			button.add_theme_color_override("font_color", button.get_theme_color("font_hover_color", "Button"))
+			button.add_theme_font_override("font", button.get_theme_font("font_hover", "Button"))
+			button.add_theme_color_override("icon_normal_color", button.get_theme_color("icon_hover_color", "Button"))
+		else:
+			# Remove hover styling from unfocused buttons
+			button.remove_theme_stylebox_override("normal")
+			button.remove_theme_color_override("font_color")
+			button.remove_theme_font_override("font")
+			button.remove_theme_color_override("icon_normal_color")
 
 func update_page_display():
 	# Safety check: ensure pages exist and current_page is valid
@@ -309,10 +339,17 @@ func _on_menu_control(directive: String):
 	if not DEBUG_DISABLED:
 		print("[Intro] Received menu_control signal with directive: ", directive)
 	match directive:
-		"up", "down", "left", "right":
+		"up", "down":
 			if not DEBUG_DISABLED:
-				print("[Intro] Navigation: ", directive)
-			navigate_buttons()
+				print("[Intro] Up/Down navigation")
+			navigate_up_down()
+			var menu_controller = get_node("/root/MenuController")
+			if menu_controller:
+				menu_controller.play_cursor_sound()
+		"left", "right":
+			if not DEBUG_DISABLED:
+				print("[Intro] Left/Right navigation")
+			navigate_left_right()
 			var menu_controller = get_node("/root/MenuController")
 			if menu_controller:
 				menu_controller.play_cursor_sound()
@@ -413,22 +450,39 @@ func has_visible_power_off_dialog() -> bool:
 			return true
 	return false
 
-func navigate_buttons():
-	# Enhanced navigation for prev/next and start buttons
+func navigate_up_down():
+	"""Toggle focus between navigation container (prev/next) and start button"""
+	if start_button.has_focus():
+		# From start button, move to navigation container (prev button)
+		prev_button.grab_focus()
+		_update_button_hover_styling()
+		if not DEBUG_DISABLED:
+			print("[Intro] Up/Down: Focus moved from start to prev button")
+	else:
+		# From navigation container (prev/next), move to start button
+		start_button.grab_focus()
+		_update_button_hover_styling()
+		if not DEBUG_DISABLED:
+			print("[Intro] Up/Down: Focus moved to start button")
+
+func navigate_left_right():
+	"""Toggle between prev and next buttons when navigation container has focus"""
 	if prev_button.has_focus():
 		next_button.grab_focus()
+		_update_button_hover_styling()
 		if not DEBUG_DISABLED:
-			print("[Intro] Focus moved to next button")
+			print("[Intro] Left/Right: Focus moved from prev to next button")
 	elif next_button.has_focus():
-		start_button.grab_focus()
-		if not DEBUG_DISABLED:
-			print("[Intro] Focus moved to start button")
-	elif start_button.has_focus():
 		prev_button.grab_focus()
+		_update_button_hover_styling()
 		if not DEBUG_DISABLED:
-			print("[Intro] Focus moved to prev button")
+			print("[Intro] Left/Right: Focus moved from next to prev button")
 	else:
+		# If neither prev nor next has focus, default to prev
 		prev_button.grab_focus()
+		_update_button_hover_styling()
+		if not DEBUG_DISABLED:
+			print("[Intro] Left/Right: Default focus to prev button")
 
 func _apply_sfx_volume(volume: int):
 	"""Apply SFX volume level to audio.

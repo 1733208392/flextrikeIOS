@@ -105,7 +105,7 @@ func _ready():
 	history_ipsc_button.pressed.connect(_on_history_ipsc_pressed)
 	history_idpa_button.pressed.connect(_on_history_idpa_pressed)
 
-	# Set initial focus on top-left button (index 0)
+	# Set initial focus on top-left button (index 0 - IPSC button)
 	focused_index = 0
 	print("[SubMenu] Setting initial focus to button index 0: ", ipsc_button.name)
 	_update_button_styles()
@@ -115,6 +115,7 @@ func _ready():
 
 func _update_button_styles():
 	for i in range(buttons.size()):
+		# Apply hover state only to the focused button
 		if i == focused_index:
 			buttons[i].add_theme_stylebox_override("normal", buttons[i].get_theme_stylebox("hover", "Button"))
 			buttons[i].add_theme_color_override("font_color", buttons[i].get_theme_color("font_hover_color", "Button"))
