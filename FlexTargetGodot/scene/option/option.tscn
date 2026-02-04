@@ -1,52 +1,21 @@
-[gd_scene load_steps=23 format=3 uid="uid://dus614khw11h2"]
+[gd_scene load_steps=13 format=3 uid="uid://dus614khw11h2"]
 
 [ext_resource type="Script" uid="uid://crika1mdfvjsw" path="res://scene/option/option.gd" id="1_o2t7p"]
 [ext_resource type="Texture2D" uid="uid://btbmgtdbgtpkm" path="res://asset/largeCntnrs1.png" id="2_pm2y3"]
-[ext_resource type="FontFile" uid="uid://bt41csp00hdy7" path="res://font/Inter/Inter-VariableFont_opsz,wght.ttf" id="3_a5ubv"]
 [ext_resource type="FontFile" uid="uid://cth4t0ug4hwm8" path="res://font/Inter/static/Inter_24pt-Black.ttf" id="4_1n7n1"]
-[ext_resource type="Theme" uid="uid://b1xuwasqtx311" path="res://theme/custom_button_theme.tres" id="5_ur50w"]
-[ext_resource type="FontFile" uid="uid://dklcxnp1ecpee" path="res://font/Inter/static/Inter_28pt-Medium.ttf" id="8_1n7n1"]
+[ext_resource type="ButtonGroup" uid="uid://btoc3s5jv1lk1" path="res://scene/option/option_button_group.tres" id="6_1n7n1"]
+[ext_resource type="Theme" uid="uid://cdynjfvdtavlt" path="res://scene/main_menu/main_menu_button_theme.tres" id="6_a5ubv"]
 [ext_resource type="PackedScene" uid="uid://bgnvqj8xi6u7e" path="res://scene/volumn.tscn" id="8_54dxg"]
 [ext_resource type="AudioStream" uid="uid://i6eh50aq5t66" path="res://audio/Final Battle - For Love.ogg" id="9_audio"]
 [ext_resource type="Script" uid="uid://dj7d1chuxn4fg" path="res://scene/option/networking_tab.gd" id="10_networking_tab"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBox_tab_unselected"]
-bg_color = Color(0, 0, 0, 0)
-corner_radius_top_left = 4
-corner_radius_top_right = 4
-
-[sub_resource type="StyleBoxFlat" id="StyleBox_tab_selected"]
-bg_color = Color(0.2, 0.2, 0.2, 0.5)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.956863, 0.521569, 0.007843, 1)
-corner_radius_top_left = 4
-corner_radius_top_right = 4
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_o2t7p"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pm2y3"]
-
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_a5ubv"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1n7n1"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ur50w"]
 
 [sub_resource type="ButtonGroup" id="ButtonGroup_language"]
 
 [sub_resource type="ButtonGroup" id="ButtonGroup_pause"]
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ur50w"]
-
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_jjy7b"]
-
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_pm2y3"]
-
-[sub_resource type="SystemFont" id="SystemFont_i838a"]
-font_names = PackedStringArray("SF Pro")
 
 [node name="option" type="Control"]
 layout_mode = 3
@@ -61,7 +30,7 @@ script = ExtResource("1_o2t7p")
 layout_mode = 0
 offset_right = 720.0
 offset_bottom = 1280.0
-color = Color(0.0901961, 0.129412, 0.141176, 1)
+color = Color(0.03137255, 0.03137255, 0.03137255, 1)
 
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
 layout_mode = 1
@@ -77,6 +46,7 @@ layout_mode = 2
 theme_override_constants/margin_top = 100
 
 [node name="border" type="TextureRect" parent="VBoxContainer/MarginContainer"]
+visible = false
 layout_mode = 2
 texture = ExtResource("2_pm2y3")
 stretch_mode = 2
@@ -84,11 +54,9 @@ stretch_mode = 2
 [node name="tab_container" type="TabContainer" parent="VBoxContainer/MarginContainer"]
 self_modulate = Color(1, 1, 1, 0)
 layout_mode = 2
-theme_override_constants/side_margin = 100
-theme_override_fonts/font = ExtResource("3_a5ubv")
-theme_override_font_sizes/font_size = 32
-theme_override_styles/tab_unselected = SubResource("StyleBox_tab_unselected")
-theme_override_styles/tab_selected = SubResource("StyleBox_tab_selected")
+theme = ExtResource("6_a5ubv")
+theme_override_constants/tab_separation = 48
+tab_alignment = 1
 current_tab = 3
 
 [node name="Networking" type="VBoxContainer" parent="VBoxContainer/MarginContainer/tab_container"]
@@ -102,73 +70,54 @@ theme_override_constants/margin_left = 50
 theme_override_constants/margin_top = 50
 theme_override_constants/margin_right = 50
 
-[node name="NetworkContainer" type="VBoxContainer" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer"]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="NetworkInfo" type="VBoxContainer" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkContainer"]
+[node name="NetworkInfo" type="VBoxContainer" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="Row1" type="HBoxContainer" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkContainer/NetworkInfo"]
+[node name="Row1" type="HBoxContainer" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkInfo"]
 layout_mode = 2
-alignment = 1
 
-[node name="Title1" type="Label" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkContainer/NetworkInfo/Row1"]
-custom_minimum_size = Vector2(200, 0)
-layout_mode = 2
-size_flags_horizontal = 0
-theme_override_fonts/font = ExtResource("4_1n7n1")
-theme_override_font_sizes/font_size = 18
-
-[node name="Content1" type="Label" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkContainer/NetworkInfo/Row1"]
+[node name="Title1" type="Label" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkInfo/Row1"]
 custom_minimum_size = Vector2(300, 0)
 layout_mode = 2
-theme_override_fonts/font = ExtResource("4_1n7n1")
-theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBoxFlat_o2t7p")
+theme = ExtResource("6_a5ubv")
+text = "Bluetooth Name"
 
-[node name="Content1BG" type="ColorRect" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkContainer/NetworkInfo/Row1"]
-layout_mode = 2
-color = Color(1, 0.541176, 0, 1)
-
-[node name="Row2" type="HBoxContainer" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkContainer/NetworkInfo"]
-layout_mode = 2
-alignment = 1
-
-[node name="Title2" type="Label" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkContainer/NetworkInfo/Row2"]
-custom_minimum_size = Vector2(200, 0)
-layout_mode = 2
-size_flags_horizontal = 0
-theme_override_fonts/font = ExtResource("4_1n7n1")
-theme_override_font_sizes/font_size = 18
-
-[node name="Content2" type="Label" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkContainer/NetworkInfo/Row2"]
+[node name="Content1" type="Label" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkInfo/Row1"]
 custom_minimum_size = Vector2(300, 0)
 layout_mode = 2
-theme_override_fonts/font = ExtResource("4_1n7n1")
-theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBoxFlat_pm2y3")
+horizontal_alignment = 2
 
-[node name="Content2BG" type="ColorRect" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkContainer/NetworkInfo/Row2"]
+[node name="Row2" type="HBoxContainer" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkInfo"]
+layout_mode = 2
+
+[node name="Title2" type="Label" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkInfo/Row2"]
+custom_minimum_size = Vector2(300, 0)
 layout_mode = 2
 size_flags_horizontal = 0
-color = Color(1, 0.541176, 0, 1)
+theme = ExtResource("6_a5ubv")
+text = "Device Name"
 
-[node name="Row3" type="HBoxContainer" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkContainer/NetworkInfo"]
+[node name="Content2" type="Label" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkInfo/Row2"]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+horizontal_alignment = 2
+
+[node name="Row3" type="HBoxContainer" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkInfo"]
 visible = false
 layout_mode = 2
 alignment = 1
 
-[node name="Title3" type="Label" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkContainer/NetworkInfo/Row3"]
+[node name="Title3" type="Label" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkInfo/Row3"]
 visible = false
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 size_flags_horizontal = 0
 theme_override_fonts/font = ExtResource("4_1n7n1")
 theme_override_font_sizes/font_size = 18
+vertical_alignment = 1
 
-[node name="Content3" type="Label" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkContainer/NetworkInfo/Row3"]
+[node name="Content3" type="Label" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkInfo/Row3"]
 visible = false
 custom_minimum_size = Vector2(300, 0)
 layout_mode = 2
@@ -177,118 +126,112 @@ theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("StyleBoxFlat_a5ubv")
 text = "Channel-11"
 
-[node name="Content3BG" type="ColorRect" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkContainer/NetworkInfo/Row3"]
+[node name="Content3BG" type="ColorRect" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkInfo/Row3"]
 visible = false
 layout_mode = 2
 size_flags_horizontal = 0
 color = Color(1, 0.541176, 0, 1)
 
-[node name="Row4" type="HBoxContainer" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkContainer/NetworkInfo"]
+[node name="Row4" type="HBoxContainer" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkInfo"]
 layout_mode = 2
-alignment = 1
 
-[node name="Title4" type="Label" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkContainer/NetworkInfo/Row4"]
-custom_minimum_size = Vector2(200, 0)
-layout_mode = 2
-size_flags_horizontal = 0
-theme_override_fonts/font = ExtResource("4_1n7n1")
-theme_override_font_sizes/font_size = 18
-
-[node name="Content4" type="Label" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkContainer/NetworkInfo/Row4"]
+[node name="Title4" type="Label" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkInfo/Row4"]
 custom_minimum_size = Vector2(300, 0)
 layout_mode = 2
-theme_override_fonts/font = ExtResource("4_1n7n1")
-theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBoxFlat_1n7n1")
-
-[node name="Content4BG" type="ColorRect" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkContainer/NetworkInfo/Row4"]
-layout_mode = 2
 size_flags_horizontal = 0
-color = Color(1, 0.541176, 0, 1)
+theme = ExtResource("6_a5ubv")
+text = "IP Adress"
 
-[node name="Row5" type="HBoxContainer" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkContainer/NetworkInfo"]
-layout_mode = 2
-alignment = 1
-
-[node name="Title5" type="Label" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkContainer/NetworkInfo/Row5"]
-custom_minimum_size = Vector2(200, 0)
-layout_mode = 2
-size_flags_horizontal = 0
-theme_override_fonts/font = ExtResource("4_1n7n1")
-theme_override_font_sizes/font_size = 18
-
-[node name="Content5" type="Label" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkContainer/NetworkInfo/Row5"]
+[node name="Content4" type="Label" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkInfo/Row4"]
 custom_minimum_size = Vector2(300, 0)
 layout_mode = 2
-theme_override_fonts/font = ExtResource("4_1n7n1")
-theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBoxFlat_ur50w")
+horizontal_alignment = 2
 
-[node name="Row6" type="HBoxContainer" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkContainer/NetworkInfo"]
+[node name="Row5" type="HBoxContainer" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkInfo"]
 layout_mode = 2
-alignment = 1
 
-[node name="Title6" type="Label" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkContainer/NetworkInfo/Row6"]
-custom_minimum_size = Vector2(200, 0)
-layout_mode = 2
-size_flags_horizontal = 0
-theme_override_fonts/font = ExtResource("4_1n7n1")
-theme_override_font_sizes/font_size = 18
-
-[node name="Content6" type="Label" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkContainer/NetworkInfo/Row6"]
+[node name="Title5" type="Label" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkInfo/Row5"]
 custom_minimum_size = Vector2(300, 0)
 layout_mode = 2
-theme_override_fonts/font = ExtResource("4_1n7n1")
-theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBoxFlat_ur50w")
+size_flags_horizontal = 0
+theme = ExtResource("6_a5ubv")
+text = "Working Mode"
 
-[node name="Control" type="Control" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkContainer/NetworkInfo"]
+[node name="Content5" type="Label" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkInfo/Row5"]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+horizontal_alignment = 2
+
+[node name="Row6" type="HBoxContainer" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkInfo"]
+layout_mode = 2
+
+[node name="Title6" type="Label" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkInfo/Row6"]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+theme = ExtResource("6_a5ubv")
+text = "Targetlink Status"
+
+[node name="Content6" type="Label" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkInfo/Row6"]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+horizontal_alignment = 2
+
+[node name="Control" type="Control" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkInfo"]
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 script = ExtResource("10_networking_tab")
 
-[node name="ButtonRow" type="VBoxContainer" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkContainer/NetworkInfo"]
+[node name="ButtonRow" type="VBoxContainer" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkInfo"]
 layout_mode = 2
 size_flags_horizontal = 4
 alignment = 1
 
-[node name="WifiButton" type="Button" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkContainer/NetworkInfo/ButtonRow"]
-custom_minimum_size = Vector2(300, 48)
+[node name="WifiButton" type="Button" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkInfo/ButtonRow"]
+custom_minimum_size = Vector2(360, 96)
 layout_mode = 2
-theme = ExtResource("5_ur50w")
-theme_override_fonts/font = ExtResource("4_1n7n1")
-theme_override_font_sizes/font_size = 24
+theme = ExtResource("6_a5ubv")
+toggle_mode = true
+button_group = ExtResource("6_1n7n1")
+text = "WiFi CONNECTION"
 
-[node name="Control" type="Control" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkContainer/NetworkInfo/ButtonRow"]
+[node name="Control" type="Control" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkInfo/ButtonRow"]
 custom_minimum_size = Vector2(0, 20)
 layout_mode = 2
 
-[node name="NetworkButton" type="Button" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkContainer/NetworkInfo/ButtonRow"]
-custom_minimum_size = Vector2(200, 48)
+[node name="NetworkButton" type="Button" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkInfo/ButtonRow"]
+custom_minimum_size = Vector2(360, 96)
 layout_mode = 2
-theme = ExtResource("5_ur50w")
-theme_override_fonts/font = ExtResource("4_1n7n1")
-theme_override_font_sizes/font_size = 24
+theme = ExtResource("6_a5ubv")
+toggle_mode = true
+button_group = ExtResource("6_1n7n1")
+text = "TARGETLINK CONFIG"
 
-[node name="space" type="Control" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkContainer/NetworkInfo/ButtonRow"]
+[node name="space" type="Control" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkInfo/ButtonRow"]
 custom_minimum_size = Vector2(0, 20)
 layout_mode = 2
 
-[node name="StartNetlinkButton" type="Button" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkContainer/NetworkInfo/ButtonRow"]
-custom_minimum_size = Vector2(200, 48)
+[node name="StartNetlinkButton" type="Button" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkInfo/ButtonRow"]
+custom_minimum_size = Vector2(200, 96)
 layout_mode = 2
-theme = ExtResource("5_ur50w")
-theme_override_fonts/font = ExtResource("4_1n7n1")
-theme_override_font_sizes/font_size = 24
+theme = ExtResource("6_a5ubv")
+toggle_mode = true
+button_group = ExtResource("6_1n7n1")
+text = "TOGGLE TARGETLINK"
 
-[node name="space2" type="Control" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkContainer/NetworkInfo/ButtonRow"]
+[node name="space2" type="Control" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkInfo/ButtonRow"]
 custom_minimum_size = Vector2(0, 20)
 layout_mode = 2
 
-[node name="StatusLabel" type="Label" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkContainer/NetworkInfo"]
+[node name="StatusLabel" type="Label" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkInfo"]
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 18
+
+[node name="NetworkContainer" type="Panel" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer"]
+visible = false
+layout_mode = 2
+theme = ExtResource("6_a5ubv")
 
 [node name="Languages" type="VBoxContainer" parent="VBoxContainer/MarginContainer/tab_container"]
 visible = false
@@ -312,33 +255,31 @@ layout_mode = 2
 theme_override_constants/separation = 12
 
 [node name="TraditionalChineseButton" type="CheckButton" parent="VBoxContainer/MarginContainer/tab_container/Languages/MarginContainer/LanguageContainer"]
+custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
-theme_override_fonts/font = ExtResource("4_1n7n1")
-theme_override_font_sizes/font_size = 24
+theme = ExtResource("6_a5ubv")
 button_group = SubResource("ButtonGroup_language")
-text = "繁体"
+text = "   繁体"
 
 [node name="SimplifiedChineseButton" type="CheckButton" parent="VBoxContainer/MarginContainer/tab_container/Languages/MarginContainer/LanguageContainer"]
+custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
-theme_override_fonts/font = ExtResource("4_1n7n1")
-theme_override_font_sizes/font_size = 24
 button_group = SubResource("ButtonGroup_language")
-text = "简体"
+text = "   简体"
 
 [node name="JapaneseButton" type="CheckButton" parent="VBoxContainer/MarginContainer/tab_container/Languages/MarginContainer/LanguageContainer"]
+custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
-theme_override_fonts/font = ExtResource("4_1n7n1")
-theme_override_font_sizes/font_size = 24
 button_group = SubResource("ButtonGroup_language")
-text = "日本語"
+text = "   日本語"
 
 [node name="EnglishButton" type="CheckButton" parent="VBoxContainer/MarginContainer/tab_container/Languages/MarginContainer/LanguageContainer"]
+custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
-theme_override_fonts/font = ExtResource("4_1n7n1")
-theme_override_font_sizes/font_size = 24
+theme = ExtResource("6_a5ubv")
 button_pressed = true
 button_group = SubResource("ButtonGroup_language")
-text = "English"
+text = "   English"
 
 [node name="Drills" type="VBoxContainer" parent="VBoxContainer/MarginContainer/tab_container"]
 visible = false
@@ -350,52 +291,51 @@ layout_mode = 2
 theme_override_constants/margin_left = 50
 theme_override_constants/margin_top = 50
 theme_override_constants/margin_right = 50
+theme_override_constants/margin_bottom = 50
 
 [node name="DrillContainer" type="VBoxContainer" parent="VBoxContainer/MarginContainer/tab_container/Drills/MarginContainer"]
 layout_mode = 2
 theme_override_constants/separation = 20
 
-[node name="EndingTargetButton" type="CheckButton" parent="VBoxContainer/MarginContainer/tab_container/Drills/MarginContainer/DrillContainer"]
+[node name="Label" type="Label" parent="VBoxContainer/MarginContainer/tab_container/Drills/MarginContainer/DrillContainer"]
 layout_mode = 2
-theme_override_fonts/font = ExtResource("4_1n7n1")
-theme_override_font_sizes/font_size = 24
+
+[node name="EndingTargetButton" type="CheckButton" parent="VBoxContainer/MarginContainer/tab_container/Drills/MarginContainer/DrillContainer"]
+visible = false
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
 
 [node name="RandomSequenceButton" type="CheckButton" parent="VBoxContainer/MarginContainer/tab_container/Drills/MarginContainer/DrillContainer"]
+custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
-theme_override_fonts/font = ExtResource("4_1n7n1")
-theme_override_font_sizes/font_size = 24
 text = "Random Sequence
 "
 
 [node name="AutoRestartButton" type="CheckButton" parent="VBoxContainer/MarginContainer/tab_container/Drills/MarginContainer/DrillContainer"]
+custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
-theme_override_fonts/font = ExtResource("4_1n7n1")
-theme_override_font_sizes/font_size = 24
 text = "Auto Restart
 "
 
 [node name="AutoRestartPauseContainer" type="VBoxContainer" parent="VBoxContainer/MarginContainer/tab_container/Drills/MarginContainer/DrillContainer"]
 layout_mode = 2
+theme_override_constants/separation = 20
 
 [node name="Pause5sButton" type="CheckButton" parent="VBoxContainer/MarginContainer/tab_container/Drills/MarginContainer/DrillContainer/AutoRestartPauseContainer"]
+custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 button_pressed = true
 button_group = SubResource("ButtonGroup_pause")
 text = "Pause 5s"
 
 [node name="Pause10sButton" type="CheckButton" parent="VBoxContainer/MarginContainer/tab_container/Drills/MarginContainer/DrillContainer/AutoRestartPauseContainer"]
+custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 button_group = SubResource("ButtonGroup_pause")
 text = "Pause 10s"
 
-[node name="Label" type="Label" parent="VBoxContainer/MarginContainer/tab_container/Drills/MarginContainer/DrillContainer"]
-layout_mode = 2
-horizontal_alignment = 1
-
 [node name="SensitivityLabel" type="Label" parent="VBoxContainer/MarginContainer/tab_container/Drills/MarginContainer/DrillContainer"]
 layout_mode = 2
-theme_override_fonts/font = ExtResource("4_1n7n1")
-theme_override_font_sizes/font_size = 24
 
 [node name="SensitivityHSlider" type="HSlider" parent="VBoxContainer/MarginContainer/tab_container/Drills/MarginContainer/DrillContainer"]
 layout_mode = 2
@@ -404,16 +344,18 @@ value = 1000.0
 
 [node name="SFX" type="Label" parent="VBoxContainer/MarginContainer/tab_container/Drills/MarginContainer/DrillContainer"]
 layout_mode = 2
-theme_override_fonts/font = ExtResource("4_1n7n1")
-theme_override_font_sizes/font_size = 24
 
 [node name="SFXVolumnHSlider" type="HSlider" parent="VBoxContainer/MarginContainer/tab_container/Drills/MarginContainer/DrillContainer"]
 layout_mode = 2
 max_value = 10.0
 value = 5.0
 
-[node name="About" type="CenterContainer" parent="VBoxContainer/MarginContainer/tab_container"]
+[node name="About" type="MarginContainer" parent="VBoxContainer/MarginContainer/tab_container"]
 layout_mode = 2
+theme_override_constants/margin_left = 50
+theme_override_constants/margin_top = 200
+theme_override_constants/margin_right = 50
+theme_override_constants/margin_bottom = 50
 metadata/_tab_index = 3
 
 [node name="Left" type="HBoxContainer" parent="VBoxContainer/MarginContainer/tab_container/About"]
@@ -421,16 +363,9 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 20
 
-[node name="space" type="Panel" parent="VBoxContainer/MarginContainer/tab_container/About/Left"]
-visible = false
-custom_minimum_size = Vector2(0, 50)
-layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxEmpty_ur50w")
-
 [node name="QRContainer" type="PanelContainer" parent="VBoxContainer/MarginContainer/tab_container/About/Left"]
 custom_minimum_size = Vector2(300, 300)
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxEmpty_jjy7b")
 
 [node name="QRTextureRect" type="TextureRect" parent="VBoxContainer/MarginContainer/tab_container/About/Left/QRContainer"]
 layout_mode = 2
@@ -445,8 +380,7 @@ theme_override_styles/panel = SubResource("StyleBoxEmpty_pm2y3")
 
 [node name="GreetingLabel" type="RichTextLabel" parent="VBoxContainer/MarginContainer/tab_container/About/Left/GreetingContainer"]
 layout_mode = 2
-theme_override_fonts/normal_font = ExtResource("8_1n7n1")
-theme_override_font_sizes/normal_font_size = 28
+theme = ExtResource("6_a5ubv")
 bbcode_enabled = true
 text = "\"Hello, my name is [color=orange]...[/color], As this is the first time we met, please scan the QR code to download a mobile APP to control me and explore what I can do for you.\""
 fit_content = true
@@ -462,8 +396,8 @@ anchor_bottom = 1.0
 offset_top = -50.0
 grow_horizontal = 2
 grow_vertical = 0
-theme_override_fonts/font = SubResource("SystemFont_i838a")
-text = "© 2025 FlexTarget IPSC@Grwolf.com"
+theme = ExtResource("6_a5ubv")
+text = "© 2025-2026 FlexTarget@grwolf.com"
 horizontal_alignment = 1
 
 [node name="VolumeControl" parent="." instance=ExtResource("8_54dxg")]

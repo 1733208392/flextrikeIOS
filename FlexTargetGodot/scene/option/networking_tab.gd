@@ -40,25 +40,25 @@ func _ready():
 	# Find nodes using get_node() from parent scene since script is added as child
 	var parent = get_parent()
 	if parent:
-		wifi_button = parent.get_node("VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkContainer/NetworkInfo/ButtonRow/WifiButton")
-		network_button = parent.get_node("VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkContainer/NetworkInfo/ButtonRow/NetworkButton")
-		start_netlink_button = parent.get_node("VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkContainer/NetworkInfo/ButtonRow/StartNetlinkButton")
+		wifi_button = parent.get_node("VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkInfo/ButtonRow/WifiButton")
+		network_button = parent.get_node("VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkInfo/ButtonRow/NetworkButton")
+		start_netlink_button = parent.get_node("VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkInfo/ButtonRow/StartNetlinkButton")
 		
-		content1_label = parent.get_node("VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkContainer/NetworkInfo/Row1/Content1")
-		content2_label = parent.get_node("VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkContainer/NetworkInfo/Row2/Content2")
-		content3_label = parent.get_node("VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkContainer/NetworkInfo/Row3/Content3")
-		content4_label = parent.get_node("VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkContainer/NetworkInfo/Row4/Content4")
-		content5_label = parent.get_node("VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkContainer/NetworkInfo/Row5/Content5")
-		content6_label = parent.get_node("VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkContainer/NetworkInfo/Row6/Content6")
+		content1_label = parent.get_node("VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkInfo/Row1/Content1")
+		content2_label = parent.get_node("VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkInfo/Row2/Content2")
+		content3_label = parent.get_node("VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkInfo/Row3/Content3")
+		content4_label = parent.get_node("VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkInfo/Row4/Content4")
+		content5_label = parent.get_node("VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer//NetworkInfo/Row5/Content5")
+		content6_label = parent.get_node("VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkInfo/Row6/Content6")
 		
-		title1_label = parent.get_node("VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkContainer/NetworkInfo/Row1/Title1")
-		title2_label = parent.get_node("VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkContainer/NetworkInfo/Row2/Title2")
-		title3_label = parent.get_node("VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkContainer/NetworkInfo/Row3/Title3")
-		title4_label = parent.get_node("VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkContainer/NetworkInfo/Row4/Title4")
-		title5_label = parent.get_node("VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkContainer/NetworkInfo/Row5/Title5")
-		title6_label = parent.get_node("VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkContainer/NetworkInfo/Row6/Title6")
+		title1_label = parent.get_node("VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkInfo/Row1/Title1")
+		title2_label = parent.get_node("VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkInfo/Row2/Title2")
+		title3_label = parent.get_node("VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkInfo/Row3/Title3")
+		title4_label = parent.get_node("VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkInfo/Row4/Title4")
+		title5_label = parent.get_node("VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkInfo/Row5/Title5")
+		title6_label = parent.get_node("VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkInfo/Row6/Title6")
 	
-		statusLabel = parent.get_node("VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkContainer/NetworkInfo/StatusLabel")
+		statusLabel = parent.get_node("VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkInfo/StatusLabel")
 	if title1_label:
 		title1_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	if title2_label:

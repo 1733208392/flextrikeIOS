@@ -1,8 +1,8 @@
 keys,en,zh_CN,ja,zh_TW
-languages,Locale,语言,言語,語言
-about,About,关于,約,關於
-drill,Control,参数,ドコントロール,參數
-random_sequence,"Random Sequence
+languages,LOCALE,语言,言語,語言
+about,ABOUT,关于,約,關於
+drill,CONTROL,参数,ドコントロール,參數
+random_sequence,"RANDOM SEQUENCE
 ",随机序列,ランダムシーケンス,隨機序列
 
 fixed_sequence,Fixed Sequence,固定序列,固定シーケンス,固定序列
@@ -586,7 +586,7 @@ shots,Shots,射击,ショット,射擊
 on_text,on,于,で,於
 target_text,Target,标靶,ターゲット,標靶
 navigate_instruction,▲ ▼ Browse bullet shots,▲ ▼ 浏览弹着点,▲ ▼ 弾丸射撃をナビゲート,▲ ▼ 瀏覽彈著點
-networking,Netlink,网络,ネットワーキング,網路
+networking,TARGETLINK,网络,ネットワーキング,網路
 auto_restart_in,Auto Restart in,自动重启倒计时,自動再起動まで,自動重新啟動倒數
 failed_open_settings,Failed to open settings.json,无法打开设置文件,設定ファイルを開けません,無法開啟設定檔案
 sending_save_request,Sending save request...,正在发送保存请求...,保存リクエストを送信中...,正在傳送儲存請求...
@@ -629,20 +629,20 @@ stopping_netlink,Stopping Netlink,正在停止网络连接,ネットリンク停
 stopping_netlink_failed,Stopping Netlink Failed,停止网络连接失败,ネットリンク停止失敗,停止網路連接失敗
 wifi_scan_timeout,WIFI Scan Timeout,WIFI扫描超时,WIFIスキャンタイムアウト,WIFI掃描超時
 wifi_scan_failed,WIFI Scan Failed,WIFI扫描失败,WIFIスキャン失敗,WIFI掃描失敗
-wifi_configure,WIFI Configure,WIFI配置,WIFI設定,WIFI配置
+wifi_configure,WiFi CONNECTION,WIFI配置,WIFI設定,WIFI配置
 already_connected,Already connected to {wifi_name},已连接到 {wifi_name},既に {wifi_name} に接続中,已連接到 {wifi_name}
-network_configure,Netlink Configure,网联配置,ネットワーク設定,網聯配置
-start_netlink,Start Netlink,启动网联,ネットリンク開始,啟動網聯
-stop_netlink,Stop Netlink,停止网联,ネットリンク停止,停止網聯
+network_configure,TARGETLINK CONFIG,网联配置,ネットワーク設定,網聯配置
+start_netlink,START TARGETLINK,启动网联,ネットリンク開始,啟動網聯
+stop_netlink,STOP TARGETLINK,停止网联,ネットリンク停止,停止網聯
 netlink_status,Netlink Status,网联状态,ネットリンクステータス,網聯狀態
 netlink_status_updating,Netlink Status Being Updated,网联状态正在更新,ネットリンクステータス更新中,網聯狀態正在更新
 started,Started,已启动,已開始,已啟動
 stopped,Stopped,已停止,已停止,已停止
-auto_restart,Auto Restart,自动重启,自動再起動,自動重新啟動
-ending_target,Ending Target,结束靶,エンディングターゲット,結束靶
-pause_5s,Pause 5s,暂停5秒,5秒一時停止,暫停5秒
-pause_10s,Pause 10s,暂停10秒,10秒一時停止,暫停10秒
-auto_restart_note,NOTE: This setting only applies to the Single Target IPSC Drill.,注意：以上设置仅适用于单靶IPSC训练。,注意：この設定はシングルターゲットIPSCドリルのみに適用されます。,注意：此設定僅適用於單靶IPSC訓練。
+auto_restart, AUTO RESTART,自动重启,自動再起動,自動重新啟動
+ending_target, ENDING TARGET,结束靶,エンディングターゲット,結束靶
+pause_5s, PAUSE 5s,暂停5秒,5秒一時停止,暫停5秒
+pause_10s, PAUSE 10s,暂停10秒,10秒一時停止,暫停10秒
+auto_restart_note,MINI STAGE SETTINGS,注意：以上设置仅适用于单靶IPSC训练。,注意：この設定はシングルターゲットIPSCドリルのみに適用されます。,注意：此設定僅適用於單靶IPSC訓練。
 net_config_status,Status,状态,ステータス,狀態
 net_config_channel,Channel,频道,チャンネル,頻道
 net_config_workmode,Workmode,工作模式,動作モード,工作模式
@@ -655,8 +655,8 @@ drill_repeat_ended,"Drill Repeat #%d Ended", #%d 轮训练结束,ドリルリピ
 drill_repeat_ends,"Drill Repeat Ends",训练重复结束,ドリルリピート終了,訓練重複結束
 unknown_device,"Unknown Device",未知设备,不明なデバイス,不明裝置
 power_off_alert,"Please manually turn off the device by flipping the power switch.","请通过电源开关手动关闭设备。","電源スイッチを反転させてデバイスを手動でオフにしてください。","請通過翻轉電源開關手動關閉設備。"
-sensor_sensitivity,"Sensor Sensitivity(15s Take Effect):","传感器灵敏度(15秒生效):","センサー感度(15秒で有効):","感應器敏感度(15秒生效):"
-sound_sfx,"Sound SFX:","声音 SFX:","サウンド SFX:","聲音 SFX:"
+sensor_sensitivity,"SENSOR SENSITIVITY(15s DELAY):","传感器灵敏度(15秒生效):","センサー感度(15秒で有効):","感應器敏感度(15秒生效):"
+sound_sfx,"SOUND SFX:","声音 SFX:","サウンド SFX:","聲音 SFX:"
 about_description_intro,"The Grwolf Smart Target is designed for shooting enthusiasts who want a convenient solution for practicing with airsoft or Laser Dry Fire at home, eliminating the hassle of going to the shooting range. Compared to the traditional target, the device has the following features,","Grwolf 智能射击训练系统是为射击爱好者设计，方便他们在家中或者专门的场地练习水弹和BB弹射击的方便解决方案。与传统靶相比，该设备具有以下功能，","Grwolf Smart Targetは、射撃愛好家向けに設計されており、自宅でエアソフトやレーザードライファイアを練習するための便利なソリューションを求めており、射撃場に行く手間を省きます。従来のターゲットと比較して、デバイスには以下の機能があります。","Grwolf 智能靶是為射擊愛好者設計的，他們希望在家中練習氣槍的方便解決方案。與傳統靶相比，該設備具有以下功能，"
 about_description_features,"* Real-time hit point display allows you to track and score your shots instantly.\n* Choose different drills with the same device, such as high-speed shooting and free shooting, to enhance your shooting experience.","* 实时命中点显示允许您立即跟踪和记录您的射击。\n* 选择不同的练习模式，包括自定义训练，各种自由射击靶子类型以及趣味小游戏，极大增强您的射击练习体验。","* リアルタイムのヒットポイント表示により、ショットを即座に追跡およびスコアリングできます。\n* 高速射撃や自由射撃など、同じデバイスで異なるドリルを選択して、射撃体験を向上させます。","* 實時命中點顯示允許您立即追蹤和記錄您的射擊。\n* 選擇不同的練習模式，如高速射擊和自由射擊，增強您的射擊體驗。"
 switch_targets_instruction,"Please Use Remote Control 'Left' and 'Right' Buttons to switch targets.","请使用遥控器的'左'和'右'按钮切换靶子。","リモコンの「左」ボタンと「右」ボタンを使用してターゲットを切り替えてください。","請使用遙控器的'左'和'右'按鈕切換靶子。"
