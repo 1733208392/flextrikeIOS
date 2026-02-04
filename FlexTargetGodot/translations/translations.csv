@@ -20,15 +20,13 @@ ipsc,IPSC Drill,IPSC场景,IPSCステージ,IPSC場景
 idpa,IDPA Drill,IDPA场景,IDPAステージ,IDPA場景
 stage,Mini Stage,迷你场景,ミニステージ,迷你场景
 standard_stage,Standard Stage,标准阶段,スタンダードステージ,標準階段
-stage_mini,Stage Mini,迷你阶段,ステージミニ,迷你階段
-stage_white,Stage White,白色阶段,ホワイトステージ,白色階段
 back_to_main,Back to Main Menu,返回主菜单,メインメニューに戻る,返回主選單
 network,Netlink Drill,多靶训练,マルチターゲットドリル,多靶訓練
 drills,My Drills,我的练习,カスタムドリル,客製訓練
-boot_camp,Boot Camp,自由射击,フリーシュート,自由射擊
+boot_camp,Targets,自由射击,フリーシュート,自由射擊
 leaderboard,Leaderboard,排行榜,リーダーボード,排行榜
-ipsc_leaderboard,Leaderboard(IPSC),排行榜(IPSC),リーダーボード(IPSC),排行榜(IPSC)
-idpa_leaderboard,Leaderboard(IDPA),排行榜(IDPA),リーダーボード(IDPA),排行榜(IDPA)
+ipsc_leaderboard,History(IPSC),历史记录(IPSC),歴史記録(IPSC),歷史記錄(IPSC)
+idpa_leaderboard,History(IDPA),历史记录(IDPA),歴史的記録(IDPA),歷史記錄(IDPA)
 games,Casual Games,休闲游戏,カジュアルゲーム,休閒遊戲
 fruitcatcher,Fruit Ninja,水果忍者,フルーツ忍者,水果忍者
 monkey_duel,Monkey Duel,猴子对决,モンキーデュエル,猴子對決
