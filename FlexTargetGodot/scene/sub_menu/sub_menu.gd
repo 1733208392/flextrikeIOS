@@ -1,14 +1,16 @@
 extends Control
 
-const DEBUG_DISABLED = true  # Set to true to disable debug prints for production
+const DEBUG_DISABLED = false  # Set to true to disable debug prints for production
 
 @onready var copyright_label = $Label
 @onready var background_music = $BackgroundMusic
-@onready var v_box_container = $VBoxContainer
+@onready var ipsc_button = $CenterContainer/GridContainer/IPSCButton
+@onready var idpa_button = $CenterContainer/GridContainer/IDPAButton
+@onready var history_ipsc_button = $CenterContainer/GridContainer/HistoryIPSCButton
+@onready var history_idpa_button = $CenterContainer/GridContainer/HistoryIDPAButton
 
 var focused_index
 var buttons = []
-var menu_config = {}  # Configuration for menu items
 
 func load_language_setting():
 	# Load language setting from GlobalData.settings_dict
@@ -49,19 +51,6 @@ func update_ui_texts():
 	if not DEBUG_DISABLED:
 		print("[SubMenu] UI texts updated")
 
-func set_menu_config(config: Dictionary):
-	"""Set the menu configuration. Config should have:
-	- title: String - The title for this sub menu
-	- items: Array of dictionaries, each with:
-		- text: String - Button text (can be translation key)
-		- action: String - Action to perform when pressed
-		- scene: String (optional) - Scene to load
-		- http_call: String (optional) - HTTP service method to call
-	"""
-	menu_config = config
-	if not DEBUG_DISABLED:
-		print("[SubMenu] Menu config set: ", config)
-
 func _ready():
 	# Show status bar when entering sub menu
 	var status_bars = get_tree().get_nodes_in_group("status_bar")
@@ -92,164 +81,128 @@ func _ready():
 		if not DEBUG_DISABLED:
 			print("[SubMenu] Playing background music")
 
-	# Create menu buttons based on configuration
-	_load_menu_config()
-	_create_menu_buttons()
+	# Initialize buttons array
+	focused_index = 0
+	buttons = [
+		ipsc_button,
+		idpa_button,
+		history_ipsc_button,
+		history_idpa_button
+	]
+
+	# Verify all buttons exist
+	if not ipsc_button or not idpa_button or not history_ipsc_button or not history_idpa_button:
+		print("[SubMenu] ERROR: One or more buttons not found in scene!")
+		print("[SubMenu] ipsc_button: ", ipsc_button)
+		print("[SubMenu] idpa_button: ", idpa_button)
+		print("[SubMenu] history_ipsc_button: ", history_ipsc_button)
+		print("[SubMenu] history_idpa_button: ", history_idpa_button)
+		return
+
+	# Connect button signals
+	ipsc_button.pressed.connect(_on_ipsc_pressed)
+	idpa_button.pressed.connect(_on_idpa_pressed)
+	history_ipsc_button.pressed.connect(_on_history_ipsc_pressed)
+	history_idpa_button.pressed.connect(_on_history_idpa_pressed)
+
+	# Set initial focus on top-left button (index 0)
+	focused_index = 0
+	print("[SubMenu] Setting initial focus to button index 0: ", ipsc_button.name)
+	_update_button_styles()
 
 	# Connect to WebSocket menu control signals (deferred to ensure WebSocketListener is ready)
 	call_deferred("_connect_to_websocket")
 
-func _load_menu_config():
-	"""Load menu configuration from GlobalData"""
-	var global_data = get_node_or_null("/root/GlobalData")
-	if global_data and global_data.sub_menu_config.size() > 0:
-		menu_config = global_data.sub_menu_config
-		if not DEBUG_DISABLED:
-			print("[SubMenu] Loaded menu config from GlobalData: ", menu_config)
-	else:
-		# Default configuration if none provided
-		menu_config = {
-			"title": "Sub Menu",
-			"items": []
-		}
-		if not DEBUG_DISABLED:
-			print("[SubMenu] Using default menu config")
-
-func _create_menu_buttons():
-	"""Create buttons dynamically based on menu_config"""
-	if not menu_config.has("items"):
-		if not DEBUG_DISABLED:
-			print("[SubMenu] No menu items in config")
-		return
-
-	var items = menu_config["items"]
-	focused_index = 0
-	buttons = []
-
-	for i in range(items.size()):
-		var item = items[i]
-		var button = Button.new()
-
-		# Set button properties similar to main menu
-		button.layout_mode = 2
-		button.size_flags_vertical = 0  # Don't expand, use custom size
-		button.custom_minimum_size = Vector2(0, 76)  # Same height as main menu buttons
-		button.set("theme_override_colors/font_color", Color(1, 0.5411765, 0, 1))
-		button.set("theme_override_colors/font_focus_color", Color(0.95, 0.95, 0.95, 1))
-		button.set("theme_override_font_sizes/font_size", 32)
-
-		# Create style boxes
-		var normal_style = StyleBoxTexture.new()
-		normal_style.texture = load("res://asset/start_button_back.png")
-		button.set("theme_override_styles/normal", normal_style)
-
-		var hover_style = StyleBoxTexture.new()
-		hover_style.texture = load("res://asset/start_button_back_hover.png")
-		hover_style.modulate_color = Color(1, 1, 1, 0.9)
-		button.set("theme_override_styles/hover", hover_style)
-
-		var focus_style = StyleBoxTexture.new()
-		focus_style.texture = load("res://asset/start_button_back_hover.png")
-		button.set("theme_override_styles/focus", focus_style)
-
-		var pressed_style = StyleBoxTexture.new()
-		pressed_style.texture = load("res://asset/start_button_back.png")
-		button.set("theme_override_styles/pressed", pressed_style)
-
-		# Set button text
-		button.text = tr(item.get("text", "Menu Item"))
-
-		# Store item data in button
-		button.set_meta("menu_item", item)
-
-		# Connect signal
-		button.pressed.connect(_on_menu_item_pressed.bind(button))
-
-		# Add to container and buttons array
-		v_box_container.add_child(button)
-		buttons.append(button)
-
-	# Set initial focus
-	if buttons.size() > 0:
-		var global_data = get_node_or_null("/root/GlobalData")
-		if global_data and global_data.has_meta("sub_menu_focused_index"):
-			focused_index = global_data.get_meta("sub_menu_focused_index")
-			if focused_index < 0 or focused_index >= buttons.size():
-				focused_index = 0
+func _update_button_styles():
+	for i in range(buttons.size()):
+		if i == focused_index:
+			buttons[i].add_theme_stylebox_override("normal", buttons[i].get_theme_stylebox("hover", "Button"))
+			buttons[i].add_theme_color_override("font_color", buttons[i].get_theme_color("font_hover_color", "Button"))
+			buttons[i].add_theme_font_override("font", buttons[i].get_theme_font("font_hover", "Button"))
+			buttons[i].add_theme_color_override("icon_normal_color", buttons[i].get_theme_color("icon_hover_color", "Button"))
 		else:
-			focused_index = 0
-		buttons[focused_index].grab_focus()
+			buttons[i].remove_theme_stylebox_override("normal")
+			buttons[i].remove_theme_color_override("font_color")
+			buttons[i].remove_theme_font_override("font")
+			buttons[i].remove_theme_color_override("icon_normal_color")
 
-func _on_menu_item_pressed(button: Button):
-	var item = button.get_meta("menu_item")
-	var action = item.get("action", "")
-
+func _on_ipsc_pressed():
 	if not DEBUG_DISABLED:
-		print("[SubMenu] Menu item pressed: ", item)
-
-	match action:
-		"load_scene":
-			var scene_path = item.get("scene", "")
-			if scene_path and is_inside_tree():
-				var global_data = get_node_or_null("/root/GlobalData")
-				if global_data:
-					global_data.set_meta("sub_menu_focused_index", focused_index)
-				get_tree().change_scene_to_file(scene_path)
-			else:
-				if not DEBUG_DISABLED:
-					print("[SubMenu] Warning: Invalid scene path or not in tree")
-		"http_call":
-			var http_method = item.get("http_call", "")
-			if http_method:
-				_call_http_service(http_method, item)
-		_:
-			if not DEBUG_DISABLED:
-				print("[SubMenu] Unknown action: ", action)
-
-func _call_http_service(method: String, item: Dictionary):
+		print("[SubMenu] IPSC button pressed")
+	# Call HTTP service to start IPSC game
 	var http_service = get_node("/root/HttpService")
 	if http_service:
 		if not DEBUG_DISABLED:
-			print("[SubMenu] Calling HTTP service method: ", method)
-		match method:
-			"start_game":
-				http_service.start_game(_on_http_response.bind(item))
-			_:
-				if not DEBUG_DISABLED:
-					print("[SubMenu] Unknown HTTP method: ", method)
+			print("[SubMenu] Calling start_game for IPSC...")
+		http_service.start_game(_on_ipsc_response)
 	else:
 		if not DEBUG_DISABLED:
-			print("[SubMenu] HttpService singleton not found!")
+			print("[SubMenu] HttpService not found!")
 
-func _on_http_response(result, response_code, _headers, body, item):
+func _on_ipsc_response(result, response_code, _headers, body):
 	var body_str = body.get_string_from_utf8()
 	if not DEBUG_DISABLED:
-		print("[SubMenu] HTTP response:", result, response_code, body_str)
+		print("[SubMenu] IPSC start_game response:", result, response_code, body_str)
 	var json = JSON.parse_string(body_str)
 	if typeof(json) == TYPE_DICTIONARY and json.has("code") and json.code == 0:
 		if not DEBUG_DISABLED:
-			print("[SubMenu] HTTP call success")
-		
-		# Store variant in GlobalData if present in item
-		if item.has("variant"):
-			var global_data = get_node_or_null("/root/GlobalData")
-			if global_data:
-				global_data.selected_variant = item.get("variant")
-				if not DEBUG_DISABLED:
-					print("[SubMenu] Stored variant in GlobalData: ", item.get("variant"))
-		
-		var scene_path = item.get("success_scene", "")
-		if scene_path and is_inside_tree():
-			var global_data = get_node_or_null("/root/GlobalData")
-			if global_data:
-				global_data.set_meta("sub_menu_focused_index", focused_index)
-			get_tree().change_scene_to_file(scene_path)
-		else:
-			if not DEBUG_DISABLED:
-				print("[SubMenu] No success scene specified")
+			print("[SubMenu] IPSC start game success, changing scene")
+		var global_data = get_node_or_null("/root/GlobalData")
+		if global_data:
+			global_data.selected_variant = "IPSC"
+		if is_inside_tree():
+			get_tree().change_scene_to_file("res://scene/intro/intro.tscn")
 	else:
 		if not DEBUG_DISABLED:
-			print("[SubMenu] HTTP call failed or invalid response.")
+			print("[SubMenu] IPSC start game failed")
+
+func _on_idpa_pressed():
+	if not DEBUG_DISABLED:
+		print("[SubMenu] IDPA button pressed")
+	# Call HTTP service to start IDPA game
+	var http_service = get_node("/root/HttpService")
+	if http_service:
+		if not DEBUG_DISABLED:
+			print("[SubMenu] Calling start_game for IDPA...")
+		http_service.start_game(_on_idpa_response)
+	else:
+		if not DEBUG_DISABLED:
+			print("[SubMenu] HttpService not found!")
+
+func _on_idpa_response(result, response_code, _headers, body):
+	var body_str = body.get_string_from_utf8()
+	if not DEBUG_DISABLED:
+		print("[SubMenu] IDPA start_game response:", result, response_code, body_str)
+	var json = JSON.parse_string(body_str)
+	if typeof(json) == TYPE_DICTIONARY and json.has("code") and json.code == 0:
+		if not DEBUG_DISABLED:
+			print("[SubMenu] IDPA start game success, changing scene")
+		var global_data = get_node_or_null("/root/GlobalData")
+		if global_data:
+			global_data.selected_variant = "IDPA"
+		if is_inside_tree():
+			get_tree().change_scene_to_file("res://scene/intro/intro.tscn")
+	else:
+		if not DEBUG_DISABLED:
+			print("[SubMenu] IDPA start game failed")
+
+func _on_history_ipsc_pressed():
+	if not DEBUG_DISABLED:
+		print("[SubMenu] History IPSC button pressed")
+	if is_inside_tree():
+		get_tree().change_scene_to_file("res://scene/history.tscn")
+	else:
+		if not DEBUG_DISABLED:
+			print("[SubMenu] Warning: Node not in tree, cannot change scene")
+
+func _on_history_idpa_pressed():
+	if not DEBUG_DISABLED:
+		print("[SubMenu] History IDPA button pressed")
+	if is_inside_tree():
+		get_tree().change_scene_to_file("res://scene/history_idpa.tscn")
+	else:
+		if not DEBUG_DISABLED:
+			print("[SubMenu] Warning: Node not in tree, cannot change scene")
 
 func power_off():
 	if not DEBUG_DISABLED:
@@ -278,50 +231,75 @@ func has_visible_power_off_dialog() -> bool:
 
 func _connect_to_websocket():
 	"""Connect to WebSocketListener signals (called deferred to ensure WebSocketListener is ready)"""
+	print("[SubMenu] _connect_to_websocket() called")
 	var ws_listener = get_node_or_null("/root/WebSocketListener")
 	if ws_listener:
+		print("[SubMenu] WebSocketListener found")
 		ws_listener.menu_control.connect(_on_menu_control)
-		if not DEBUG_DISABLED:
-			print("[SubMenu] Connected to WebSocketListener.menu_control signal")
+		print("[SubMenu] Connected to WebSocketListener.menu_control signal")
 	else:
-		if not DEBUG_DISABLED:
-			print("[SubMenu] WebSocketListener singleton not found!")
+		print("[SubMenu] ERROR: WebSocketListener singleton not found! Remote control will not work.")
 
 func _on_menu_control(directive: String):
+	print("[SubMenu] _on_menu_control called with directive: ", directive)
 	if has_visible_power_off_dialog():
+		print("[SubMenu] Power off dialog is visible, ignoring directive")
 		return
-	if not DEBUG_DISABLED:
-		print("[SubMenu] Received menu_control signal with directive: ", directive)
+	print("[SubMenu] Received menu_control signal with directive: ", directive, ", focused_index: ", focused_index)
 	match directive:
 		"up":
 			if not DEBUG_DISABLED:
-				print("[SubMenu] Moving focus up")
-			focused_index = (focused_index - 1) % buttons.size()
-			# Skip invisible buttons
-			while not buttons[focused_index].visible:
-				focused_index = (focused_index - 1) % buttons.size()
+				print("[SubMenu] Moving focus up in grid")
+			if focused_index == 2 and buttons[0].visible:
+				focused_index = 0
+			elif focused_index == 3 and buttons[1].visible:
+				focused_index = 1
+			# else stay
 			if not DEBUG_DISABLED:
-				print("[SubMenu] Focused index: ", focused_index, " Button: ", buttons[focused_index].name, " visible: ", buttons[focused_index].visible)
-				print("[SubMenu] Button has_focus before grab_focus: ", buttons[focused_index].has_focus())
-			buttons[focused_index].grab_focus()
-			if not DEBUG_DISABLED:
-				print("[SubMenu] Button has_focus after grab_focus: ", buttons[focused_index].has_focus())
+				print("[SubMenu] Focused index: ", focused_index, " Button: ", buttons[focused_index].name)
+			_update_button_styles()
 			var menu_controller = get_node("/root/MenuController")
 			if menu_controller:
 				menu_controller.play_cursor_sound()
 		"down":
 			if not DEBUG_DISABLED:
-				print("[SubMenu] Moving focus down")
-			focused_index = (focused_index + 1) % buttons.size()
-			# Skip invisible buttons
-			while not buttons[focused_index].visible:
-				focused_index = (focused_index + 1) % buttons.size()
+				print("[SubMenu] Moving focus down in grid")
+			if focused_index == 0 and buttons[2].visible:
+				focused_index = 2
+			elif focused_index == 1 and buttons[3].visible:
+				focused_index = 3
+			# else stay
 			if not DEBUG_DISABLED:
-				print("[SubMenu] Focused index: ", focused_index, " Button: ", buttons[focused_index].name, " visible: ", buttons[focused_index].visible)
-				print("[SubMenu] Button has_focus before grab_focus: ", buttons[focused_index].has_focus())
-			buttons[focused_index].grab_focus()
+				print("[SubMenu] Focused index: ", focused_index, " Button: ", buttons[focused_index].name)
+			_update_button_styles()
+			var menu_controller = get_node("/root/MenuController")
+			if menu_controller:
+				menu_controller.play_cursor_sound()
+		"left":
 			if not DEBUG_DISABLED:
-				print("[SubMenu] Button has_focus after grab_focus: ", buttons[focused_index].has_focus())
+				print("[SubMenu] Moving focus left in grid")
+			if focused_index == 1 and buttons[0].visible:
+				focused_index = 0
+			elif focused_index == 3 and buttons[2].visible:
+				focused_index = 2
+			# else stay
+			if not DEBUG_DISABLED:
+				print("[SubMenu] Focused index: ", focused_index, " Button: ", buttons[focused_index].name)
+			_update_button_styles()
+			var menu_controller = get_node("/root/MenuController")
+			if menu_controller:
+				menu_controller.play_cursor_sound()
+		"right":
+			if not DEBUG_DISABLED:
+				print("[SubMenu] Moving focus right in grid")
+			if focused_index == 0 and buttons[1].visible:
+				focused_index = 1
+			elif focused_index == 2 and buttons[3].visible:
+				focused_index = 3
+			# else stay
+			if not DEBUG_DISABLED:
+				print("[SubMenu] Focused index: ", focused_index, " Button: ", buttons[focused_index].name)
+			_update_button_styles()
 			var menu_controller = get_node("/root/MenuController")
 			if menu_controller:
 				menu_controller.play_cursor_sound()
@@ -339,17 +317,11 @@ func _on_menu_control(directive: String):
 		"back":
 			if not DEBUG_DISABLED:
 				print("[SubMenu] Back to main menu")
-			var global_data = get_node_or_null("/root/GlobalData")
-			if global_data:
-				global_data.set_meta("sub_menu_focused_index", 0)
 			if is_inside_tree():
 				get_tree().change_scene_to_file("res://scene/main_menu/main_menu.tscn")
 		"homepage":
 			if not DEBUG_DISABLED:
 				print("[SubMenu] Homepage to main menu")
-			var global_data = get_node_or_null("/root/GlobalData")
-			if global_data:
-				global_data.set_meta("sub_menu_focused_index", 0)
 			if is_inside_tree():
 				get_tree().change_scene_to_file("res://scene/main_menu/main_menu.tscn")
 		_:

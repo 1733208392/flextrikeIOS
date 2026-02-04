@@ -252,18 +252,12 @@ func on_stage_pressed():
 func _on_drills_pressed():
 	if upgrade_in_progress:
 		return
-	# Load the drills scene
+	# Load the mini stages sub menu scene
 	var global_data = get_node_or_null("/root/GlobalData")
 	if global_data:
 		global_data.return_source = "drills"
-	if not DEBUG_DISABLED:
-		print("[Menu] _on_drills_pressed called, is_inside_tree: ", is_inside_tree())
 	if is_inside_tree():
-		if not DEBUG_DISABLED:
-			print("[Menu] Attempting to change scene to: res://scene/drills_network/drills_network.tscn")
-		var result = get_tree().change_scene_to_file("res://scene/drills_network/drills_network.tscn")
-		if not DEBUG_DISABLED:
-			print("[Menu] change_scene_to_file result: ", result)
+		get_tree().change_scene_to_file("res://scene/sub_menu/sub_menu.tscn")
 	else:
 		if not DEBUG_DISABLED:
 			print("[Menu] Warning: Node not in tree, cannot change scene")
