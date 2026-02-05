@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c6q41kb2x6fwy"
-path="res://.godot/imported/tictactoe_icon_selected.png-a38f6094dbfc733c74bd389c6eddb320.ctex"
+uid="uid://bvvusjjn5o2j2"
+path="res://.godot/imported/mole-attach-selected.png-180dd575dd93302407e3a30cdd0503a2.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://asset/tictactoe_icon_selected.png"
-dest_files=["res://.godot/imported/tictactoe_icon_selected.png-a38f6094dbfc733c74bd389c6eddb320.ctex"]
+source_file="res://asset/games/game_menu/mole-attach-selected.png"
+dest_files=["res://.godot/imported/mole-attach-selected.png-180dd575dd93302407e3a30cdd0503a2.ctex"]
 
 [params]
 

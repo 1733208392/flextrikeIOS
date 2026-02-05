@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cee83gadtev5p"
-path="res://.godot/imported/monkey-menu-image.png-7ca8a08dd5b697a665a03988d70ace5f.ctex"
+uid="uid://ct23q30rggdys"
+path="res://.godot/imported/fruit-ninja.png-c8a9e2ff943e523655cbdec96082fcac.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://asset/monkey-menu-image.png"
-dest_files=["res://.godot/imported/monkey-menu-image.png-7ca8a08dd5b697a665a03988d70ace5f.ctex"]
+source_file="res://asset/games/game_menu/fruit-ninja.png"
+dest_files=["res://.godot/imported/fruit-ninja.png-c8a9e2ff943e523655cbdec96082fcac.ctex"]
 
 [params]
 

@@ -3,6 +3,7 @@ extends Node2D
 # Menu state
 var selected_option: int = 0  # Selected option
 var main_menu_options: Array = []  # Main menu buttons (FruitCatcher, Monkey Duel, Mole Attack)
+const COLS = 2
 
 # Node references
 var button_fruitcatcher: TextureButton
@@ -10,11 +11,11 @@ var button_monkeyduel: TextureButton
 var button_mole_attack: TextureButton
 var button_tictactoe: TextureButton
 var button_painter: TextureButton
-var fruitcatcher_label: Label
-var monkeyduel_label: Label
-var mole_attack_label: Label
-var tictactoe_label: Label
-var painter_label: Label
+var fruitcatcher_label: Button
+var monkeyduel_label: Button
+var mole_attack_label: Button
+var tictactoe_label: Button
+var painter_label: Button
 
 func _ready():
 	# Hide global status bar when entering games
@@ -24,18 +25,18 @@ func _ready():
 		print("[Games Menu] Hid global status bar: ", status_bar.name)
 	
 	# Get node references for game buttons
-	button_fruitcatcher = get_node("Panel/VBoxContainer2/HBoxContainer/1Player")
-	button_monkeyduel = get_node("Panel/VBoxContainer2/HBoxContainer2/2Players")
-	button_mole_attack = get_node("Panel/VBoxContainer2/HBoxContainer3/wackamole")
-	button_tictactoe = get_node("Panel/VBoxContainer2/HBoxContainer4/tictactoe")
-	button_painter  = get_node("Panel/VBoxContainer2/HBoxContainer5/painter")
+	button_fruitcatcher = get_node("Panel/GridContainer/VBoxContainer/1Player")
+	button_monkeyduel = get_node("Panel/GridContainer/VBoxContainer2/2Players")
+	button_mole_attack = get_node("Panel/GridContainer/VBoxContainer3/wackamole")
+	button_tictactoe = get_node("Panel/GridContainer/HBoxContainer4/tictactoe")
+	button_painter = get_node("Panel/GridContainer/HBoxContainer5/painter")
 
 	# Get game name labels
-	fruitcatcher_label = get_node("Panel/VBoxContainer2/HBoxContainer/Label")
-	monkeyduel_label = get_node("Panel/VBoxContainer2/HBoxContainer2/Label")
-	mole_attack_label = get_node("Panel/VBoxContainer2/HBoxContainer3/Label")
-	tictactoe_label = get_node("Panel/VBoxContainer2/HBoxContainer4/Label")
-	painter_label = get_node("Panel/VBoxContainer2/HBoxContainer5/Label")
+	fruitcatcher_label = get_node("Panel/GridContainer/VBoxContainer/Label")
+	monkeyduel_label = get_node("Panel/GridContainer/VBoxContainer2/Label")
+	mole_attack_label = get_node("Panel/GridContainer/VBoxContainer3/Label")
+	tictactoe_label = get_node("Panel/GridContainer/HBoxContainer4/Label")
+	painter_label = get_node("Panel/GridContainer/HBoxContainer5/Label")
 	
 	# Populate menu options arrays
 	main_menu_options = [button_fruitcatcher, button_monkeyduel, button_mole_attack, button_tictactoe, button_painter]
@@ -46,6 +47,13 @@ func _ready():
 	button_mole_attack.pressed.connect(_on_mole_attack_pressed)
 	button_tictactoe.pressed.connect(_on_tictactoe_pressed)
 	button_painter.pressed.connect(_on_painter_pressed)
+
+	# Connect label signals
+	fruitcatcher_label.pressed.connect(_on_fruitcatcher_pressed)
+	monkeyduel_label.pressed.connect(_on_monkeyduel_pressed)
+	mole_attack_label.pressed.connect(_on_mole_attack_pressed)
+	tictactoe_label.pressed.connect(_on_tictactoe_pressed)
+	painter_label.pressed.connect(_on_painter_pressed)
 
 	# Connect to remote control directives
 	var remote_control = get_node_or_null("/root/MenuController")
@@ -98,28 +106,49 @@ func _save_last_selection():
 
 func _on_remote_navigate(direction: String):
 	"""Handle navigation from remote control"""
+	var max_row = (main_menu_options.size() - 1) / COLS
+	var row = selected_option / COLS
+	var col = selected_option % COLS
 
 	if direction == "left":
-		selected_option -= 1
-		if selected_option < 0:
+		col -= 1
+		if col < 0:
+			col = COLS - 1
+			row -= 1
+			if row < 0:
+				row = max_row
+		selected_option = row * COLS + col
+		if selected_option >= main_menu_options.size():
 			selected_option = main_menu_options.size() - 1
 		_update_selection()
 
 	elif direction == "right":
-		selected_option += 1
+		col += 1
+		if col >= COLS:
+			col = 0
+			row += 1
+			if row > max_row:
+				row = 0
+		selected_option = row * COLS + col
 		if selected_option >= main_menu_options.size():
-			selected_option = 0
+			selected_option = main_menu_options.size() - 1
 		_update_selection()
 
 	elif direction == "down":
-		selected_option += 1
+		row += 1
+		if row > max_row:
+			row = 0
+		selected_option = row * COLS + col
 		if selected_option >= main_menu_options.size():
-			selected_option = 0
+			selected_option = main_menu_options.size() - 1
 		_update_selection()
 
 	elif direction == "up":
-		selected_option -= 1
-		if selected_option < 0:
+		row -= 1
+		if row < 0:
+			row = max_row
+		selected_option = row * COLS + col
+		if selected_option >= main_menu_options.size():
 			selected_option = main_menu_options.size() - 1
 		_update_selection()
 
@@ -153,6 +182,12 @@ func _update_selection():
 	"""Update the focus to the selected button"""
 	if selected_option >= 0 and selected_option < main_menu_options.size():
 		main_menu_options[selected_option].grab_focus()
+		# Set label pressed
+		fruitcatcher_label.button_pressed = (selected_option == 0)
+		monkeyduel_label.button_pressed = (selected_option == 1)
+		mole_attack_label.button_pressed = (selected_option == 2)
+		tictactoe_label.button_pressed = (selected_option == 3)
+		painter_label.button_pressed = (selected_option == 4)
 	print("[Menu] Selection updated to option: ", selected_option)
 
 func _on_fruitcatcher_pressed():

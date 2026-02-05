@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://mmbajunv7sm2"
-path="res://.godot/imported/painter-menu-image-selected.png-9cceb18f944d8c8f14c21a971ff87591.ctex"
+uid="uid://cgnuyhc3s1ddx"
+path="res://.godot/imported/tictactoe-selected.png-16d3a5b5241c3901193330694ef4fa50.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://asset/games/painter-menu-image-selected.png"
-dest_files=["res://.godot/imported/painter-menu-image-selected.png-9cceb18f944d8c8f14c21a971ff87591.ctex"]
+source_file="res://asset/games/game_menu/tictactoe-selected.png"
+dest_files=["res://.godot/imported/tictactoe-selected.png-16d3a5b5241c3901193330694ef4fa50.ctex"]
 
 [params]
 

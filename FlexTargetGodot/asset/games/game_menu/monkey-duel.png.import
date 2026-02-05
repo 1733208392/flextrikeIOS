@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b1agtylvcg63r"
-path="res://.godot/imported/mole-menu-button-selected.png-67210496a281e015c039c3448cafb9cb.ctex"
+uid="uid://cy2agjyj4du6r"
+path="res://.godot/imported/monkey-duel.png-7e7d64f323e5bb21cb5a55375b0344c4.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://asset/games/mole-menu-button-selected.png"
-dest_files=["res://.godot/imported/mole-menu-button-selected.png-67210496a281e015c039c3448cafb9cb.ctex"]
+source_file="res://asset/games/game_menu/monkey-duel.png"
+dest_files=["res://.godot/imported/monkey-duel.png-7e7d64f323e5bb21cb5a55375b0344c4.ctex"]
 
 [params]
 

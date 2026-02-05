@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://d0tr064yt51b1"
-path="res://.godot/imported/mole-menu-button-selected.png-8571bc3cd60343caae3db03b2ce259b3.ctex"
+uid="uid://hfi2yyc72cdl"
+path="res://.godot/imported/mole-attack.png-acf25ac24387674259602f8a659fb2e3.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://asset/games/wack-a-mole/GUI/mole-menu-button-selected.png"
-dest_files=["res://.godot/imported/mole-menu-button-selected.png-8571bc3cd60343caae3db03b2ce259b3.ctex"]
+source_file="res://asset/games/game_menu/mole-attack.png"
+dest_files=["res://.godot/imported/mole-attack.png-acf25ac24387674259602f8a659fb2e3.ctex"]
 
 [params]
 

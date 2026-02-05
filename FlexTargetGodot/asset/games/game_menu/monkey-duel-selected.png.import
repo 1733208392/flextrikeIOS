@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dacvtupxiuwjb"
-path="res://.godot/imported/tictactoe_icon.png-ee60993c2ac3202fe72cf33b47aac562.ctex"
+uid="uid://c0ol80i6gn77p"
+path="res://.godot/imported/monkey-duel-selected.png-cb51dc03e32e42e6786e4c9e12aafcfa.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://asset/tictactoe_icon.png"
-dest_files=["res://.godot/imported/tictactoe_icon.png-ee60993c2ac3202fe72cf33b47aac562.ctex"]
+source_file="res://asset/games/game_menu/monkey-duel-selected.png"
+dest_files=["res://.godot/imported/monkey-duel-selected.png-cb51dc03e32e42e6786e4c9e12aafcfa.ctex"]
 
 [params]
 
