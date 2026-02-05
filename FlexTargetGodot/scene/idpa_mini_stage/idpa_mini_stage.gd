@@ -739,7 +739,7 @@ func _on_menu_control(directive: String):
 		drill_complete_overlay = drill_ui.get_node_or_null("drill_complete_overlay")
 	
 	# Forward navigation commands to drill_complete_overlay if it's visible
-	if drill_complete_overlay and drill_complete_overlay.visible and directive in ["up", "down", "enter"]:
+	if drill_complete_overlay and drill_complete_overlay.visible and directive in ["left", "right", "enter"]:
 		if not DEBUG_DISABLED:
 			print("[IDPA] Forwarding navigation directive to drill_complete_overlay: ", directive)
 		

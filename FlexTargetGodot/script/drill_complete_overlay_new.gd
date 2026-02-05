@@ -2,7 +2,7 @@ extends Node2D
 
 # Performance optimization
 # NOTE: temporarily enable debug prints to diagnose overlay visibility issues
-const DEBUG_DISABLED = false  # Set to true to silence verbose debugging
+const DEBUG_DISABLED = true  # Set to true to silence verbose debugging
 
 # Bullet system
 @export var bullet_scene: PackedScene = preload("res://scene/bullet.tscn")
@@ -415,6 +415,7 @@ func update_drill_results(score: int, hit_factor: float, fastest_shot: float, sh
 	"""Update the drill completion display with results"""
 	var score_label = get_node_or_null("Background/CenterContainer/GridContainer/ScoreValue")
 	var factor_label = get_node_or_null("Background/CenterContainer/GridContainer/FactorValue")
+	var factor = get_node_or_null("Background/CenterContainer/GridContainer/Factor")
 	var split_label = get_node_or_null("Background/CenterContainer/GridContainer/SplitValue")
 	
 	# Check if this is an IDPA drill
@@ -431,13 +432,15 @@ func update_drill_results(score: int, hit_factor: float, fastest_shot: float, sh
 			print("[drill_complete_overlay] Updated score: %d" % score)
 	
 	if factor_label:
-		if show_hit_factor:
+		if show_hit_factor and not is_idpa:
 			factor_label.text = "%.1f" % hit_factor
 			factor_label.visible = true
+			factor.visible = true
 			if not DEBUG_DISABLED:
 				print("[drill_complete_overlay] Updated hit factor: %.2f" % hit_factor)
 		else:
 			factor_label.visible = false
+			factor.visible = false
 			if not DEBUG_DISABLED:
 				print("[drill_complete_overlay] Hit factor hidden")
 	
@@ -595,17 +598,17 @@ func handle_menu_control(directive: String):
 		print("[drill_complete_overlay] Received control directive: ", directive)
 	
 	match directive:
-		"up":
-			_navigate_up()
-		"down":
-			_navigate_down()
+		"right":
+			_navigate_left()
+		"left":
+			_navigate_right()
 		"enter":
 			_activate_focused_button()
 		_:
 			if not DEBUG_DISABLED:
 				print("[drill_complete_overlay] Unknown directive: ", directive)
 
-func _navigate_up():
+func _navigate_right():
 	"""Navigate to previous button"""
 	var focused_control = get_viewport().gui_get_focus_owner()
 	var current_restart_button = get_node_or_null("Background/HBoxContainer/RestartButton")
@@ -620,7 +623,7 @@ func _navigate_up():
 		if not DEBUG_DISABLED:
 			print("[drill_complete_overlay] Navigated up to RestartButton")
 
-func _navigate_down():
+func _navigate_left():
 	"""Navigate to next button"""
 	var focused_control = get_viewport().gui_get_focus_owner()
 	var current_restart_button = get_node_or_null("Background/HBoxContainer/RestartButton")

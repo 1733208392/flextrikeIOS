@@ -104,17 +104,17 @@ func _ready():
 		# Set focus based on return source
 		match source:
 			"drills":
-				focused_index = 2  # stages_button
+				focused_index = 1  # stages_button
 			"bootcamp":
 				focused_index = 0  # targets_button
 			"leaderboard":
-				focused_index = 1  # stage_button
+				focused_index = 1  # stages_button
 			"stage":
-				focused_index = 1  # stage_button
+				focused_index = 1  # stages_button
 			"games":
-				focused_index = 3  # games_button
+				focused_index = 2  # games_button
 			"options":
-				focused_index = 4  # option_button
+				focused_index = 3  # option_button
 			_:
 				focused_index = 0  # default
 		global_data.return_source = ""

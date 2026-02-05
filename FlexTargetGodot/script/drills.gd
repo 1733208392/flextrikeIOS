@@ -1149,33 +1149,31 @@ func _on_menu_control(directive: String):
 		drill_complete_overlay = drill_ui.get_node_or_null("drill_complete_overlay")
 	
 	# Forward navigation commands to drill_complete_overlay if it's visible
-	if drill_complete_overlay and drill_complete_overlay.visible and directive in ["up", "down", "enter"]:
+	if drill_complete_overlay and drill_complete_overlay.visible and directive in ["up", "down", "left", "right", "enter"]:
 		if not DEBUG_DISABLED:
 			print("[Drills] Forwarding navigation directive to drill_complete_overlay: ", directive)
 			print("[Drills] drill_complete_overlay script: ", drill_complete_overlay.get_script())
-			print("[Drills] drill_complete_overlay has method: ", drill_complete_overlay.has_method("_on_websocket_menu_control"))
+			print("[Drills] drill_complete_overlay has method: ", drill_complete_overlay.has_method("handle_menu_control"))
 		
-		if drill_complete_overlay.has_method("_on_websocket_menu_control"):
-			drill_complete_overlay._on_websocket_menu_control(directive)
+		if drill_complete_overlay.has_method("handle_menu_control"):
+			drill_complete_overlay.handle_menu_control(directive)
 		else:
 			# Fallback: Call the navigation methods directly if the main method is missing
 			if not DEBUG_DISABLED:
 				print("[Drills] Using fallback navigation methods")
 			match directive:
-				"up":
-					if drill_complete_overlay.has_method("_navigate_up"):
-						drill_complete_overlay._navigate_up()
+				"left":
+					if drill_complete_overlay.has_method("_navigate_left"):
+						drill_complete_overlay._navigate_left()
 					else:
 						if not DEBUG_DISABLED:
-							print("[Drills] _navigate_up method not found")
-						_manual_navigate_up(drill_complete_overlay)
-				"down":
-					if drill_complete_overlay.has_method("_navigate_down"):
-						drill_complete_overlay._navigate_down()
+							print("[Drills] _navigate_left method not found")
+				"right":
+					if drill_complete_overlay.has_method("_navigate_right"):
+						drill_complete_overlay._navigate_right()
 					else:
 						if not DEBUG_DISABLED:
-							print("[Drills] _navigate_down method not found")
-						_manual_navigate_down(drill_complete_overlay)
+							print("[Drills] _navigate_right method not found")
 				"enter":
 					if drill_complete_overlay.has_method("_activate_focused_button"):
 						drill_complete_overlay._activate_focused_button()
@@ -1249,6 +1247,10 @@ func _on_menu_control(directive: String):
 						print("[Drills] Shown status bar: ", status_bar.name)
 			
 				get_tree().change_scene_to_file("res://scene/main_menu/main_menu.tscn")
+		"left":
+			pass
+		"right":
+			pass
 		_:
 			if not DEBUG_DISABLED:
 				print("[Drills] Unknown directive: ", directive)
