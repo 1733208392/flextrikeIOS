@@ -1,8 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://dl7hsl4ovohf2"]
-
-[ext_resource type="PackedScene" uid="uid://wywxnhgy0f04" path="res://scene/targets/disguised_enemy_surrender.tscn" id="3_7g8re"]
-
-[node name="Node2D" type="Node2D"]
-
-[node name="Figure" parent="." instance=ExtResource("3_7g8re")]
-position = Vector2(386, 766)

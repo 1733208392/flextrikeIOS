@@ -1,8 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://um1c6ifqwor4"]
-
-[ext_resource type="PackedScene" uid="uid://cr8ffj6ipdayt" path="res://scene/targets/cqb_swing.tscn" id="1_1tiho"]
-
-[node name="Node2D" type="Node2D"]
-
-[node name="CQB" parent="." instance=ExtResource("1_1tiho")]
-position = Vector2(360, 640)
