@@ -6,19 +6,16 @@ const WIFI_IDLE := preload("res://asset/wifi.fill.idle.png")
 const WIFI_CONNECTED := preload("res://asset/wifi.fill.connect.png")
 const NET_IDLE := preload("res://asset/connectivity.idle.png")
 const NET_CONNECTED := preload("res://asset/connectivity.active.png")
-const BT_MASTER := preload("res://asset/bluetooth-icon.png")  # Placeholder, replace with actual Bluetooth master icon
 
 @onready var wifi_icon: TextureRect = get_node_or_null("Root/Panel/HBoxContainer/WifiIcon")
 @onready var network_icon: TextureRect = get_node_or_null("Root/Panel/HBoxContainer/ConnectivityIcon")
-@onready var bluetooth_icon: TextureRect = get_node_or_null("Root/Panel/HBoxContainer/BluetoothIcon")
 @onready var root_control: Control = get_node_or_null("Root")
 
 func _ready() -> void:
 	# print("StatusBar: _ready() called")
-	add_to_group("status_bar")
+	#add_to_group("status_bar")
 	_set_wifi_connected(false)
 	_set_network_started(false)
-	_set_bluetooth_master(false)
 	var signal_bus = get_node_or_null("/root/SignalBus")
 	if signal_bus:
 		if not signal_bus.wifi_connected.is_connected(_on_wifi_connected):
@@ -33,10 +30,6 @@ func _ready() -> void:
 			signal_bus.network_stopped.connect(_on_network_stopped)
 			# print("StatusBar: Connected to SignalBus network_stopped signal")
 	
-	# Update size after frame
-	call_deferred("_update_size")
-	get_viewport().size_changed.connect(_on_viewport_size_changed)
-
 	# Listen for netlink status updates so UI can reflect started state
 	var global_data = get_node_or_null("/root/GlobalData")
 	if global_data:
@@ -48,10 +41,6 @@ func _ready() -> void:
 	# Request netlink status after signal connections are established
 	# print("StatusBar: Requesting netlink status from HttpService")
 	HttpService.netlink_status(Callable(self, "_on_netlink_status_response"))
-
-	# Update size after frame
-	call_deferred("_update_size")
-	get_viewport().size_changed.connect(_on_viewport_size_changed)
 
 func _enter_tree() -> void:
 	# Called earlier than _ready, but we'll request netlink status in _ready instead
@@ -107,15 +96,6 @@ func _set_network_started(connected: bool) -> void:
 	if network_icon:
 		network_icon.texture = NET_CONNECTED if connected else NET_IDLE
 
-func _set_bluetooth_master(is_master: bool) -> void:
-	# print("StatusBar: _set_bluetooth_master called, is_master=", is_master)
-	if bluetooth_icon:
-		if is_master:
-			bluetooth_icon.texture = BT_MASTER
-			bluetooth_icon.visible = true
-		else:
-			bluetooth_icon.visible = false
-
 func _on_netlink_status_response(result, response_code, headers, body):
 	# print("StatusBar: netlink_status response - code:", response_code)
 	# Forward to GlobalData to parse and store
@@ -140,9 +120,3 @@ func _on_netlink_status_loaded():
 		var started = bool(s.get("started", false))
 		_set_network_started(started)
 		# print("StatusBar: netlink started=", started)
-		
-		# Set Bluetooth status based on work_mode field
-		var work_mode = str(s.get("work_mode", "slave")).to_lower()
-		var is_master = (work_mode == "master")
-		_set_bluetooth_master(is_master)
-		# print("StatusBar: work_mode=", work_mode, ", is_master=", is_master)
