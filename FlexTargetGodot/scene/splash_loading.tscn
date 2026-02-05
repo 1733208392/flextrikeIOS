@@ -27,7 +27,7 @@ script = ExtResource("1_splash")
 layout_mode = 0
 offset_right = 720.0
 offset_bottom = 1280.0
-color = Color(0.0901961, 0.129412, 0.141176, 1)
+color = Color(0.03137255, 0.03137255, 0.03137255, 1)
 
 [node name="CenterContainer" type="CenterContainer" parent="."]
 layout_mode = 1

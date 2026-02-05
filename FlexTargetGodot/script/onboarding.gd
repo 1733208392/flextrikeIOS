@@ -111,6 +111,8 @@ func _on_forward_timer_timeout():
 func _on_status_poll_timer_timeout():
 	# Explicitly request status to ensure we get BLE name as soon as possible
 	HttpService.netlink_status(func(_result, _response_code, _headers, _body):
+		if not is_instance_valid(self):
+			return
 		# No need to parse here, GlobalData will handle it via it's own polling or manual updates
 		# but since we want it faster, we can also parse it if we want.
 		# Actually GlobalData has its own timer (60s), so we poll faster here.

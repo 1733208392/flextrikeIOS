@@ -89,9 +89,6 @@ func _ready():
 		if not DEBUG_DISABLED:
 			print("[Menu] Playing background music")
 	
-	# Initially hide the drills button until network is started
-	#stages_button.visible = false
-	
 	# Connect button signals
 	focused_index = 0
 	buttons = [
@@ -147,11 +144,8 @@ func _ready():
 
 	# Connect to GlobalData netlink_status_loaded signal
 	if global_data:
-		global_data.netlink_status_loaded.connect(_on_netlink_status_loaded)
 		if not DEBUG_DISABLED:
 			print("[Menu] Connected to GlobalData.netlink_status_loaded signal")
-		# Check if drills network is already started
-		_check_network_button_visibility()
 	else:
 		if not DEBUG_DISABLED:
 			print("[Menu] GlobalData not found!")
@@ -486,31 +480,6 @@ func _on_ble_ready_command(content: Dictionary) -> void:
 	else:
 		if not DEBUG_DISABLED:
 			print("[Menu] Warning: Node not in tree, cannot change scene")
-
-func _on_network_started() -> void:
-	if not DEBUG_DISABLED:
-		print("[Menu] Network started, making drills button visible")
-	stages_button.visible = true
-
-func _on_netlink_status_loaded() -> void:
-	if not DEBUG_DISABLED:
-		print("[Menu] Netlink status loaded, checking network button visibility")
-	_check_network_button_visibility()
-
-func _check_network_button_visibility() -> void:
-	var global_data = get_node_or_null("/root/GlobalData")
-	if global_data and global_data.netlink_status.has("started"):
-		if global_data.netlink_status["started"] == true:
-			if not DEBUG_DISABLED:
-				print("[Menu] Network is started, making drills button visible")
-			stages_button.visible = true
-		else:
-			if not DEBUG_DISABLED:
-				print("[Menu] Network is not started, keeping drills button hidden")
-			stages_button.visible = false
-	else:
-		if not DEBUG_DISABLED:
-			print("[Menu] Netlink status not available or missing 'started' key")
 
 func _on_sfx_volume_changed(volume: int):
 	"""Handle SFX volume changes from Option scene.

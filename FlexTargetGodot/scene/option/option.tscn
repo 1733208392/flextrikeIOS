@@ -57,10 +57,9 @@ layout_mode = 2
 theme = ExtResource("6_a5ubv")
 theme_override_constants/tab_separation = 48
 tab_alignment = 1
-current_tab = 3
+current_tab = 0
 
 [node name="Networking" type="VBoxContainer" parent="VBoxContainer/MarginContainer/tab_container"]
-visible = false
 layout_mode = 2
 metadata/_tab_index = 0
 
@@ -188,7 +187,7 @@ size_flags_horizontal = 4
 alignment = 1
 
 [node name="WifiButton" type="Button" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkInfo/ButtonRow"]
-custom_minimum_size = Vector2(360, 96)
+custom_minimum_size = Vector2(360, 48)
 layout_mode = 2
 theme = ExtResource("6_a5ubv")
 toggle_mode = true
@@ -200,7 +199,7 @@ custom_minimum_size = Vector2(0, 20)
 layout_mode = 2
 
 [node name="NetworkButton" type="Button" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkInfo/ButtonRow"]
-custom_minimum_size = Vector2(360, 96)
+custom_minimum_size = Vector2(360, 48)
 layout_mode = 2
 theme = ExtResource("6_a5ubv")
 toggle_mode = true
@@ -212,7 +211,7 @@ custom_minimum_size = Vector2(0, 20)
 layout_mode = 2
 
 [node name="StartNetlinkButton" type="Button" parent="VBoxContainer/MarginContainer/tab_container/Networking/MarginContainer/NetworkInfo/ButtonRow"]
-custom_minimum_size = Vector2(200, 96)
+custom_minimum_size = Vector2(200, 48)
 layout_mode = 2
 theme = ExtResource("6_a5ubv")
 toggle_mode = true
@@ -339,6 +338,7 @@ layout_mode = 2
 
 [node name="SensitivityHSlider" type="HSlider" parent="VBoxContainer/MarginContainer/tab_container/Drills/MarginContainer/DrillContainer"]
 layout_mode = 2
+theme = ExtResource("6_a5ubv")
 max_value = 1470.0
 value = 1000.0
 
@@ -351,6 +351,7 @@ max_value = 10.0
 value = 5.0
 
 [node name="About" type="MarginContainer" parent="VBoxContainer/MarginContainer/tab_container"]
+visible = false
 layout_mode = 2
 theme_override_constants/margin_left = 50
 theme_override_constants/margin_top = 200

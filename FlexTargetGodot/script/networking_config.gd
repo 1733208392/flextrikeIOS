@@ -6,7 +6,7 @@ const QR_CODE_GENERATOR = preload("res://script/qrcode.gd")
 # Networking configuration UI for setting channel and target name
 # Features remote control navigation and onscreen keyboard for input
 
-@onready var status_label = $CenterContainer/VBoxContainer/StatusLabel
+@onready var status_label = $StatusLabel
 @onready var workmode_label = $CenterContainer/VBoxContainer/WorkMode
 @onready var name_label = $CenterContainer/VBoxContainer/NameLabel
 @onready var workmode_dropdown = $CenterContainer/VBoxContainer/WorkModeDropdown
@@ -132,13 +132,14 @@ func update_status_label():
 	if is_configuring or is_stopping:
 		return
 		
-	var text = tr("netlink_config")
+	#var text = tr("netlink_config")
+	var text = "..."
 	var global_data = get_node_or_null("/root/GlobalData")
 	if global_data and global_data.netlink_status:
 		if global_data.netlink_status.get("started", false):
-			text += " (" + tr("started") + ")"
+			text = " " + tr("started")
 		else:
-			text += " (" + tr("stopped") + ")"
+			text = " " + tr("stopped")
 	
 	status_label.text = text
 

@@ -3,7 +3,7 @@ shader_type canvas_item;
 uniform float radius = 150.0;
 uniform float circle_thickness = 8.0;
 uniform float dot_size = 12.0;
-uniform vec3 circle_color = vec3(1.0, 0.4, 0.2); // Orange color
+uniform vec3 circle_color = vec3(0.87, 0.22, 0.14); // Orange color
 uniform vec3 dot_color = vec3(1.0, 1.0, 1.0); // White color
 uniform float glow_intensity = 2.0;
 uniform float time_scale = 1.0;

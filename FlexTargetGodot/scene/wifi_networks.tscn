@@ -1,11 +1,9 @@
-[gd_scene load_steps=8 format=3 uid="uid://c3g1gp0reiltq"]
+[gd_scene load_steps=6 format=3 uid="uid://c3g1gp0reiltq"]
 
 [ext_resource type="Script" uid="uid://bag7v4s5v88jw" path="res://script/wifi_networks.gd" id="1_xtqbd"]
 [ext_resource type="Texture2D" uid="uid://d0egr702q86ln" path="res://asset/title-cntr-v3.png" id="2_hax0g"]
-[ext_resource type="LabelSettings" uid="uid://bw22f0mtic4xe" path="res://theme/target_title_tactical.tres" id="2_mdl3b"]
-[ext_resource type="Texture2D" uid="uid://vywd0k7tgm56" path="res://asset/largeCntnrs 2.png" id="2_oiug6"]
 [ext_resource type="Script" uid="uid://dxfujov7vai6f" path="res://addons/onscreenkeyboard/onscreen_keyboard.gd" id="2_xtqbd"]
-[ext_resource type="Theme" uid="uid://b1xuwasqtx311" path="res://theme/custom_button_theme.tres" id="4_custom_button_theme"]
+[ext_resource type="Theme" uid="uid://cdynjfvdtavlt" path="res://scene/main_menu/main_menu_button_theme.tres" id="3_mdl3b"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_hax0g"]
 texture = ExtResource("2_hax0g")
@@ -27,9 +25,22 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.078431375, 0.12941177, 0.14901961, 1)
+color = Color(0.03137255, 0.03137255, 0.03137255, 1)
+
+[node name="Title" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 100.0
+offset_bottom = 123.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.87058824, 0.21960784, 0.13725491, 1)
+theme_override_font_sizes/font_size = 60
+text = "Wi-Fi"
+horizontal_alignment = 1
 
 [node name="Panel" type="Panel" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
@@ -41,34 +52,27 @@ offset_bottom = 170.0
 grow_horizontal = 2
 theme_override_styles/panel = SubResource("StyleBoxTexture_hax0g")
 
-[node name="TitleLabel" type="Label" parent="Panel"]
+[node name="ScrollContainer" type="ScrollContainer" parent="."]
 layout_mode = 1
-anchors_preset = 10
-anchor_right = 1.0
-offset_bottom = 45.0
-grow_horizontal = 2
-text = "Wi-Fi"
-label_settings = ExtResource("2_mdl3b")
-horizontal_alignment = 1
-
-[node name="Frame" type="TextureRect" parent="."]
-layout_mode = 1
-anchors_preset = 7
+anchors_preset = 8
 anchor_left = 0.5
-anchor_top = 1.0
+anchor_top = 0.5
 anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -360.0
-offset_top = -1201.0
-offset_right = 360.0
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -360.5
+offset_right = 300.0
+offset_bottom = 439.5
 grow_horizontal = 2
-grow_vertical = 0
-size_flags_horizontal = 3
-size_flags_vertical = 3
-texture = ExtResource("2_oiug6")
-stretch_mode = 2
+grow_vertical = 2
+horizontal_scroll_mode = 0
 
-[node name="StatusContainer" type="VBoxContainer" parent="Frame"]
+[node name="NetworksVBox" type="VBoxContainer" parent="ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="StatusContainer" type="VBoxContainer" parent="."]
 z_index = 10
 layout_mode = 1
 anchors_preset = 12
@@ -81,44 +85,25 @@ grow_horizontal = 2
 grow_vertical = 0
 alignment = 1
 
-[node name="StatusLabel" type="Label" parent="Frame/StatusContainer"]
+[node name="StatusLabel" type="Label" parent="StatusContainer"]
 layout_mode = 2
+theme = ExtResource("3_mdl3b")
 text = "Scanning for networks"
 horizontal_alignment = 1
-modulate = Color(1, 0.647059, 0, 1)
 
-[node name="HBoxContainer" type="HBoxContainer" parent="Frame/StatusContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="StatusContainer"]
 layout_mode = 2
 alignment = 1
 
-[node name="disconnectButton" type="Button" parent="Frame/StatusContainer/HBoxContainer"]
+[node name="disconnectButton" type="Button" parent="StatusContainer/HBoxContainer"]
 layout_mode = 2
-theme = ExtResource("4_custom_button_theme")
+theme = ExtResource("3_mdl3b")
 text = "Disconnect Wi-Fi"
 
-[node name="RetryButton" type="Button" parent="Frame/StatusContainer/HBoxContainer"]
+[node name="RetryButton" type="Button" parent="StatusContainer/HBoxContainer"]
 layout_mode = 2
-theme = ExtResource("4_custom_button_theme")
+theme = ExtResource("3_mdl3b")
 text = "Retry Wi-Fi Scan"
-
-[node name="ScrollContainer" type="ScrollContainer" parent="Frame"]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -300.0
-offset_top = -400.0
-offset_right = 300.0
-offset_bottom = 400.0
-grow_horizontal = 2
-grow_vertical = 2
-horizontal_scroll_mode = 0
-
-[node name="NetworksVBox" type="VBoxContainer" parent="Frame/ScrollContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
 
 [node name="Overlay" type="PanelContainer" parent="."]
 visible = false

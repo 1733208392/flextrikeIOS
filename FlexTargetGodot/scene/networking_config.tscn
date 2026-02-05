@@ -1,14 +1,8 @@
-[gd_scene load_steps=8 format=3 uid="uid://6et1tlqxfrdx"]
+[gd_scene load_steps=4 format=3 uid="uid://6et1tlqxfrdx"]
 
 [ext_resource type="Script" uid="uid://bpdye6y5c5yaw" path="res://script/networking_config.gd" id="1_networking"]
 [ext_resource type="Script" uid="uid://dxfujov7vai6f" path="res://addons/onscreenkeyboard/onscreen_keyboard.gd" id="2_keyboard"]
-[ext_resource type="Texture2D" uid="uid://vywd0k7tgm56" path="res://asset/largeCntnrs 2.png" id="2_qb65s"]
-[ext_resource type="Theme" uid="uid://br4jdxsyx0xtu" path="res://theme/drill_data_theme.tres" id="3_bv066"]
-[ext_resource type="PackedScene" uid="uid://dturr8so8g8cw" path="res://scene/custom_button.tscn" id="3_qb65s"]
-[ext_resource type="LabelSettings" uid="uid://bw22f0mtic4xe" path="res://theme/target_title_tactical.tres" id="6_mxxne"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_gax0u"]
-bg_color = Color(0.996078, 0.541176, 0, 1)
+[ext_resource type="Theme" uid="uid://cdynjfvdtavlt" path="res://scene/main_menu/main_menu_button_theme.tres" id="3_mxxne"]
 
 [node name="NetworkingConfig" type="Control"]
 layout_mode = 3
@@ -26,29 +20,34 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.0784314, 0.129412, 0.14902, 1)
-
-[node name="BackgroundFrame" type="TextureRect" parent="."]
-layout_mode = 1
-anchors_preset = 12
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_top = -1201.0
-grow_horizontal = 2
-grow_vertical = 0
-texture = ExtResource("2_qb65s")
+color = Color(0.03137255, 0.03137255, 0.03137255, 1)
 
 [node name="TitleLabel" type="Label" parent="."]
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
 offset_top = 100.0
-offset_bottom = 145.0
+offset_bottom = 123.0
 grow_horizontal = 2
-text = "NETLINK"
-label_settings = ExtResource("6_mxxne")
+theme = ExtResource("3_mxxne")
+theme_override_font_sizes/font_size = 48
+text = "TARGETLINK"
 horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="StatusLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -360.0
+offset_top = 170.0
+offset_right = 360.0
+offset_bottom = 204.0
+grow_horizontal = 2
+theme = ExtResource("3_mxxne")
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="InstructionLabel" type="Label" parent="."]
 layout_mode = 1
@@ -60,7 +59,7 @@ offset_top = -89.0
 offset_bottom = -46.0
 grow_horizontal = 2
 grow_vertical = 0
-theme = ExtResource("3_bv066")
+theme = ExtResource("3_mxxne")
 text = "only_one_master_config"
 horizontal_alignment = 1
 
@@ -81,20 +80,14 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="StatusLabel" type="Label" parent="CenterContainer/VBoxContainer"]
-layout_mode = 2
-horizontal_alignment = 1
-
 [node name="WorkMode" type="Label" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2
+theme = ExtResource("3_mxxne")
 
 [node name="WorkModeDropdown" type="OptionButton" parent="CenterContainer/VBoxContainer"]
 custom_minimum_size = Vector2(24, 32)
 layout_mode = 2
-size_flags_vertical = 0
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_styles/normal = SubResource("StyleBoxFlat_gax0u")
-theme_override_styles/hover = SubResource("StyleBoxFlat_gax0u")
+theme = ExtResource("3_mxxne")
 
 [node name="Spacer3" type="Control" parent="CenterContainer/VBoxContainer"]
 custom_minimum_size = Vector2(0, 16)
@@ -102,13 +95,11 @@ layout_mode = 2
 
 [node name="NameLabel" type="Label" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2
+theme = ExtResource("3_mxxne")
 
 [node name="NameLineEdit" type="LineEdit" parent="CenterContainer/VBoxContainer"]
-custom_minimum_size = Vector2(24, 32)
 layout_mode = 2
-size_flags_vertical = 0
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_styles/normal = SubResource("StyleBoxFlat_gax0u")
+theme = ExtResource("3_mxxne")
 keep_editing_on_text_submit = true
 
 [node name="Spacer" type="Control" parent="CenterContainer/VBoxContainer"]
@@ -121,21 +112,6 @@ layout_mode = 2
 size_flags_horizontal = 4
 expand_mode = 1
 stretch_mode = 5
-
-[node name="HBoxContainer" type="HBoxContainer" parent="CenterContainer/VBoxContainer"]
-layout_mode = 2
-
-[node name="ConfirmButton" parent="CenterContainer/VBoxContainer/HBoxContainer" instance=ExtResource("3_qb65s")]
-visible = false
-layout_mode = 2
-size_flags_horizontal = 3
-text = "Confirm"
-
-[node name="DismissButton" parent="CenterContainer/VBoxContainer/HBoxContainer" instance=ExtResource("3_qb65s")]
-visible = false
-layout_mode = 2
-size_flags_horizontal = 3
-text = "Dismiss"
 
 [node name="BottomContainer" type="MarginContainer" parent="."]
 layout_mode = 1

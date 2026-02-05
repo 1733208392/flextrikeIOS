@@ -14,18 +14,19 @@ const WIFI_ICON = preload("res://asset/wifi.fill.idle.png")
 const WIFI_CONNECTED_ICON = preload("res://asset/wifi.fill.connect.png")
 const WIFI_ICON_NETWORK = preload("res://asset/wifi.blue.icon.png")
 const WIFI_BUTTON_THEME = preload("res://theme/wifi_button_theme.tres")
+const MAIN_MENU_BUTTON_THEME = preload("res://scene/main_menu/main_menu_button_theme.tres")
 
 # =============================================================================
 # NODE REFERENCES
 # =============================================================================
 
-@onready var status_container = $Frame/StatusContainer
-@onready var status_label = $Frame/StatusContainer/StatusLabel
-@onready var retry_button = $Frame/StatusContainer/HBoxContainer/RetryButton
-@onready var disconnect_button = $Frame/StatusContainer/HBoxContainer/disconnectButton
+@onready var status_container = $StatusContainer
+@onready var status_label = $StatusContainer/StatusLabel
+@onready var retry_button = $StatusContainer/HBoxContainer/RetryButton
+@onready var disconnect_button = $StatusContainer/HBoxContainer/disconnectButton
 
-@onready var scroll_container = $Frame/ScrollContainer
-@onready var list_vbox = $Frame/ScrollContainer/NetworksVBox
+@onready var scroll_container = $ScrollContainer
+@onready var list_vbox = $ScrollContainer/NetworksVBox
 
 @onready var overlay = $Overlay
 @onready var title_label = $Overlay/PanelContainer/VBoxContainer/Label
@@ -302,13 +303,14 @@ func _build_list():
 		button.icon = WIFI_ICON_NETWORK
 		button.focus_mode = Control.FOCUS_ALL
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		button.theme = WIFI_BUTTON_THEME
-		button.add_theme_font_size_override("font_size", 24)  # Increase SSID font size
+		button.theme = MAIN_MENU_BUTTON_THEME
+		button.add_theme_font_size_override("font_size", 32)  # Increase SSID font size
 		
 		# Highlight if this is the connected network
 		if net_name == connected_network:
-			button.icon = WIFI_CONNECTED_ICON
-			button.modulate = Color.from_string("#90EE90", Color.WHITE)  # Light green highlight
+			_update_button_styles()
+			# button.icon = WIFI_CONNECTED_ICON
+			# button.modulate = Color.from_string("#90EE90", Color.WHITE)  # Light green highlight
 			print("[WiFi Networks] Highlighting connected network: ", net_name)
 		
 		button.connect("pressed", Callable(self, "_on_network_selected").bind(net_name))
@@ -325,11 +327,13 @@ func _build_list():
 					network_buttons[focused_index].grab_focus()
 					print("[WiFi Networks] Focused connected network: ", connected_network)
 					_scroll_to_focused_button()
+					_update_button_styles()
 					return
 		
 		# Fallback to first button if no connected network found
 		focused_index = 0
 		network_buttons[focused_index].grab_focus()
+		_update_button_styles()
 
 func _set_connected_network(ssid: String):
 	"""
@@ -347,6 +351,22 @@ func _set_connected_network(ssid: String):
 	
 	# Show disconnect button if connected
 	disconnect_button.visible = (ssid != "")
+
+func _update_button_styles():
+	"""
+	Update button styles to apply hover state to the focused button
+	"""
+	for i in range(network_buttons.size()):
+		if i == focused_index:
+			network_buttons[i].add_theme_stylebox_override("normal", network_buttons[i].get_theme_stylebox("hover"))
+			network_buttons[i].add_theme_color_override("font_color", network_buttons[i].get_theme_color("font_hover_color", "Button"))
+			network_buttons[i].add_theme_font_override("font", network_buttons[i].get_theme_font("font_hover", "Button"))
+			network_buttons[i].add_theme_color_override("icon_normal_color", network_buttons[i].get_theme_color("icon_hover_color", "Button"))
+		else:
+			network_buttons[i].remove_theme_stylebox_override("normal")
+			network_buttons[i].remove_theme_color_override("font_color")
+			network_buttons[i].remove_theme_font_override("font")
+			network_buttons[i].remove_theme_color_override("icon_normal_color")
 
 # =============================================================================
 # PASSWORD INPUT AND KEYBOARD HANDLING
@@ -916,6 +936,7 @@ func _cancel_password(clear_text: bool = true):
 	list_vbox.visible = true
 	if network_buttons.size() > 0:
 		network_buttons[focused_index].grab_focus()
+		_update_button_styles()
 
 func navigate_buttons(direction: int):
 	"""
@@ -932,6 +953,8 @@ func navigate_buttons(direction: int):
 
 			# Scroll to ensure focused button is visible
 			_scroll_to_focused_button()
+
+			_update_button_styles()
 
 			print("[WiFi Networks] Focus moved to button ", focused_index)
 

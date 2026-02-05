@@ -620,9 +620,9 @@ bluetooth_name,Bluetooth Name,蓝牙名称,Bluetooth名,藍牙名稱
 device_name,Device Name,设备名称,デバイス名,設備名稱
 network_channel,Network Channel,网络频道,ネットワークチャンネル,網路頻道
 ip_address,IP Address,IP地址,IPアドレス,IP位址
-working_mode,Working Mode,工作模式,動作モード,工作模式
-netlink_config,Netlink Config,网联,ネットリンク,網聯
-netlink_config_progress,Netlink Config In Progress,网络配置进行中,ネットリンク設定進行中,網路配置進行中
+working_mode,WORKMODE,工作模式,動作モード,工作模式
+netlink_config,TARGETLINK,网联,ネットリンク,網聯
+netlink_config_progress,TARGET LINK CONFIG IN PROGRESS,网络配置进行中,ネットリンク設定進行中,網路配置進行中
 netlink_config_failed,Netlink Config Failed,网络配置失败,ネットリンク設定失敗,網路配置失敗
 netlink_config_timeout,Netlink Config Timeout,网络配置超时,ネットリンク設定タイムアウト,網路配置超時
 stopping_netlink,Stopping Netlink,正在停止网络连接,ネットリンク停止中,正在停止網路連接
@@ -636,8 +636,8 @@ start_netlink,START TARGETLINK,启动网联,ネットリンク開始,啟動網�
 stop_netlink,STOP TARGETLINK,停止网联,ネットリンク停止,停止網聯
 netlink_status,Netlink Status,网联状态,ネットリンクステータス,網聯狀態
 netlink_status_updating,Netlink Status Being Updated,网联状态正在更新,ネットリンクステータス更新中,網聯狀態正在更新
-started,Started,已启动,已開始,已啟動
-stopped,Stopped,已停止,已停止,已停止
+started,STARTED,已启动,已開始,已啟動
+stopped,STOPPED,已停止,已停止,已停止
 auto_restart, AUTO RESTART,自动重启,自動再起動,自動重新啟動
 ending_target, ENDING TARGET,结束靶,エンディングターゲット,結束靶
 pause_5s, PAUSE 5s,暂停5秒,5秒一時停止,暫停5秒
@@ -645,10 +645,10 @@ pause_10s, PAUSE 10s,暂停10秒,10秒一時停止,暫停10秒
 auto_restart_note,MINI STAGE SETTINGS,注意：以上设置仅适用于单靶IPSC训练。,注意：この設定はシングルターゲットIPSCドリルのみに適用されます。,注意：此設定僅適用於單靶IPSC訓練。
 net_config_status,Status,状态,ステータス,狀態
 net_config_channel,Channel,频道,チャンネル,頻道
-net_config_workmode,Workmode,工作模式,動作モード,工作模式
+net_config_workmode,WORKMODE,工作模式,動作モード,工作模式
 workmode_master,Master,主机,マスター,主機
 workmode_slave,Slave,从机,スレーブ,從機
-net_config_target_name,Target Name,设备名称,ターゲット名,標靶名稱
+net_config_target_name,TARGET NAME,设备名称,ターゲット名,標靶名稱
 net_config_done,Confirm,确认,完了,完成
 wifi_connecting,Connecting,连接中,接続中,連線中
 drill_repeat_ended,"Drill Repeat #%d Ended", #%d 轮训练结束,ドリルリピート #%d 終了,#%d 輪訓練結束
@@ -679,7 +679,7 @@ first_shot,"First Shot:","首发:","初弾:","首發:"
 idpa_drill_history,IDPA Drill History,IDPA 训练记录,IDPA 訓練履歴,IDPA 訓練記錄
 down_points,Downpts,扣分,減点,扣分
 dismiss,Dismiss,取消,キャンセル,取消
-only_one_master_config,Only One Master Can Be Configurated in Your Network,只能配置一个主设备在您的网络中,ネットワークで設定できるマスターは1つだけです,只能配置一個主設備在您的網路中
+only_one_master_config,ONLY ONE MASTER CAN BE CONFIGURED IN YOUR NETWORK,只能配置一个主设备在您的网络中,ネットワークで設定できるマスターは1つだけです,只能配置一個主設備在您的網路中
 level_cleared,Cleared!,通关！,クリア！,通關！
 level_failed,Failed!,失败！,失敗！,失敗！
 level_label,Level,关卡,レベル,關卡
