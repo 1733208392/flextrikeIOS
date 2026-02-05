@@ -285,6 +285,23 @@ func _finish_drill(success: bool):
 	drill_success = success
 	drill_duration = (Time.get_ticks_msec() / 1000.0) - drill_start_time
 	
+	# Stop the game session when drill finishes
+	if has_node("/root/HttpService"):
+		var http_service = get_node("/root/HttpService")
+		if http_service.has_method("stop_game"):
+			var callback = func(_result, response_code, _headers, _body):
+				if not DEBUG_DISABLED:
+					print("[Mozambique] Game stopped response - Code: ", response_code)
+			http_service.stop_game(callback)
+			if not DEBUG_DISABLED:
+				print("[Mozambique] Called HttpService.stop_game() at drill finish")
+		else:
+			if not DEBUG_DISABLED:
+				print("[Mozambique] HttpService does not have stop_game method")
+	else:
+		if not DEBUG_DISABLED:
+			print("[Mozambique] HttpService autoload not found")
+	
 	# Disable bullet spawning
 	# var ws_listener = get_node_or_null("/root/WebSocketListener")
 	# if ws_listener:
@@ -431,6 +448,23 @@ func _on_shot_timer_ready(delay: float):
 	if not DEBUG_DISABLED:
 		print("[Mozambique] Shot timer ready! Delay: %.2f seconds" % delay)
 	
+	# Start the game session when the beep sounds
+	if has_node("/root/HttpService"):
+		var http_service = get_node("/root/HttpService")
+		if http_service.has_method("start_game"):
+			var callback = func(_result, response_code, _headers, _body):
+				if not DEBUG_DISABLED:
+					print("[Mozambique] Game started response - Code: ", response_code)
+			http_service.start_game(callback)
+			if not DEBUG_DISABLED:
+				print("[Mozambique] Called HttpService.start_game()")
+		else:
+			if not DEBUG_DISABLED:
+				print("[Mozambique] HttpService does not have start_game method")
+	else:
+		if not DEBUG_DISABLED:
+			print("[Mozambique] HttpService autoload not found")
+	
 	# Activate drill (shot timer will be hidden when first shot is detected)
 	drill_in_progress = true
 	drill_active = true
@@ -495,6 +529,23 @@ func start_drill():
 	"""Start the mozambique drill"""
 	if not DEBUG_DISABLED:
 		print("[Mozambique] Starting drill...")
+	
+	# Stop any ongoing game session
+	if has_node("/root/HttpService"):
+		var http_service = get_node("/root/HttpService")
+		if http_service.has_method("stop_game"):
+			var callback = func(_result, response_code, _headers, _body):
+				if not DEBUG_DISABLED:
+					print("[Mozambique] Game stopped response - Code: ", response_code)
+			http_service.stop_game(callback)
+			if not DEBUG_DISABLED:
+				print("[Mozambique] Called HttpService.stop_game()")
+		else:
+			if not DEBUG_DISABLED:
+				print("[Mozambique] HttpService does not have stop_game method")
+	else:
+		if not DEBUG_DISABLED:
+			print("[Mozambique] HttpService autoload not found")
 	
 	shots_in_torso = 0
 	shots_in_head = 0

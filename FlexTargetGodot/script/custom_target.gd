@@ -137,12 +137,7 @@ func initialize_bullet_hole_pool():
 func load_bullet_hole_textures():
 	"""Load bullet hole textures used for MultiMesh instancing"""
 	bullet_hole_textures = [
-		load("res://asset/bullet_hole1.png"),
-		load("res://asset/bullet_hole2.png"),
-		load("res://asset/bullet_hole3.png"),
-		load("res://asset/bullet_hole4.png"),
-		load("res://asset/bullet_hole5.png"),
-		load("res://asset/bullet_hole6.png")
+		load("res://asset/blood-splatter.png")
 	]
 
 	# Verify all textures loaded (silently fail if missing)
@@ -198,10 +193,11 @@ func spawn_bullet_hole(local_position: Vector2):
 	# Reuse preallocated transform to avoid allocations
 	var t = _reusable_transform
 	var scale_factor = randf_range(0.6, 0.8)
-	# Uniform scale (no rotation)
-	t.x = Vector2(scale_factor, 0.0)
-	t.y = Vector2(0.0, scale_factor)
-	t.origin = local_position
+	var rotation = randf_range(0, 2 * PI)
+	
+	# Create transform with random rotation and scale
+	t = Transform2D(rotation, local_position)
+	t = t.scaled(Vector2(scale_factor, scale_factor))
 
 	multimesh.set_instance_transform_2d(current_count, t)
 	multimesh.visible_instance_count = current_count + 1

@@ -4,7 +4,7 @@ extends Node2D
 const DEBUG_DISABLED = false  # Set to true for verbose debugging
 
 # Target sequence for bootcamp cycling
-var target_sequence: Array[String] = ["bullseye","dueling_tree_composite","texas_start_composite","ipsc_mini","ipsc_mini_black_1", "ipsc_mini_black_2", "hostage", "2poppers", "3paddles", "ipsc_mini_rotate", "uspsa", "idpa", "idpa_ns", "idpa_hard_cover_1", "idpa_hard_cover_2", "mozambique", "double_tap", "custom_target"]
+var target_sequence: Array[String] = ["bullseye","dueling_tree_composite","texas_start_composite","ipsc_mini","ipsc_mini_black_1", "ipsc_mini_black_2", "hostage", "2poppers", "3paddles", "ipsc_mini_rotate", "uspsa", "idpa", "idpa_ns", "idpa_hard_cover_1", "idpa_hard_cover_2", "mozambique", "custom_target"]
 var current_target_index: int = 0
 var current_target_instance = null
 
@@ -27,7 +27,6 @@ var zoom_excluded_targets = ["ipsc_mini_rotate"]
 @onready var idpa_scene: PackedScene = preload("res://scene/targets/idpa.tscn")
 @onready var uspsa_scene: PackedScene = preload("res://scene/targets/uspsa.tscn")
 @onready var idpa_ns_scene: PackedScene = preload("res://scene/targets/idpa_ns.tscn")
-#@onready var idpa_rotate_scene: PackedScene = preload("res://scene/idpa_mini_rotation.tscn")
 @onready var idpa_hard_cover_1_scene: PackedScene = preload("res://scene/targets/idpa_hard_cover_1.tscn")
 @onready var idpa_hard_cover_2_scene: PackedScene = preload("res://scene/targets/idpa_hard_cover_2.tscn")
 
@@ -351,7 +350,7 @@ func _on_clear_pressed():
 	
 	# Check if current target is a popper or paddle (composition targets without bullet holes)
 	var target_type = target_sequence[current_target_index]
-	if target_type in ["2poppers", "3paddles", "mozambique", "double_tap"]:
+	if target_type in ["2poppers", "3paddles", "mozambique"]:
 		# For poppers, paddles, and specific drills, remove and respawn them
 		if current_target_instance and is_instance_valid(current_target_instance):
 			current_target_instance.queue_free()
@@ -813,10 +812,6 @@ func spawn_target_by_type(target_type: String):
 			canvas_layer.visible = false  # Hide shot intervals for mozambique
 			if not DEBUG_DISABLED:
 				print("[Bootcamp] Hidden CanvasLayers for mozambique (uses its own drill logic)")
-		elif target_type == "double_tap":
-			canvas_layer.visible = false  # Hide shot intervals for Double Tap
-			if not DEBUG_DISABLED:
-				print("[Bootcamp] Hidden CanvasLayers for Double Tap (uses its own drill logic)")
 		elif target_type == "dueling_tree_composite" or target_type == "texas_start_composite":
 			canvas_layer.visible = false  # Hide shot intervals for dueling tree composite (and Texas composite)
 			if not DEBUG_DISABLED:
@@ -828,7 +823,7 @@ func spawn_target_by_type(target_type: String):
 	
 	# Hide/show clear area based on target type
 	if clear_area:
-		if target_type == "mozambique" or target_type == "double_tap":
+		if target_type == "mozambique":
 			clear_area.visible = false  # Hide clear area for mozambique and double tap
 			if not DEBUG_DISABLED:
 				print("[Bootcamp] Hidden clear area for ", target_type)
