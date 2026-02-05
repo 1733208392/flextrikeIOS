@@ -34,7 +34,6 @@ var zoom_excluded_targets = ["ipsc_mini_rotate"]
 @onready var two_poppers_scene: PackedScene = preload("res://scene/targets/2poppers_simple.tscn")
 @onready var three_paddles_scene: PackedScene = preload("res://scene/targets/3paddles_simple.tscn")
 @onready var mozambique_scene: PackedScene = preload("res://scene/targets/mozambique.tscn")
-@onready var double_tap_scene: PackedScene = preload("res://scene/targets/double_tap.tscn")
 @onready var dueling_tree_scene: PackedScene = preload("res://scene/dueling_tree_composite.tscn")
 @onready var texas_start_composite_scene: PackedScene = preload("res://scene/targets/texas_start_composite.tscn")
 
@@ -881,8 +880,6 @@ func spawn_target_by_type(target_type: String):
 			target_scene = custom_target_scene
 		"mozambique":
 			target_scene = mozambique_scene
-		"double_tap":
-			target_scene = double_tap_scene
 		"dueling_tree_composite":
 			target_scene = dueling_tree_scene
 		"texas_start_composite":
