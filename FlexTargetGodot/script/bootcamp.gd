@@ -35,7 +35,7 @@ var zoom_excluded_targets = ["ipsc_mini_rotate"]
 @onready var three_paddles_scene: PackedScene = preload("res://scene/targets/3paddles_simple.tscn")
 @onready var mozambique_scene: PackedScene = preload("res://scene/targets/mozambique.tscn")
 @onready var double_tap_scene: PackedScene = preload("res://scene/targets/double_tap.tscn")
-@onready var dueling_tree_scene: PackedScene = preload("res://scene/test_dueling_tree_composite.tscn")
+@onready var dueling_tree_scene: PackedScene = preload("res://scene/dueling_tree_composite.tscn")
 @onready var texas_start_composite_scene: PackedScene = preload("res://scene/targets/texas_start_composite.tscn")
 
 @onready var custom_target_scene: PackedScene = preload("res://scene/custom_target.tscn")
