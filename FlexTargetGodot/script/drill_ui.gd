@@ -143,7 +143,7 @@ func _on_timeout_warning(remaining_seconds: float):
 func _on_target_title_update(target_index: int, total_targets: int):
 	"""Update the target title based on the current target number"""
 	var target_number = target_index + 1
-	target_type_title.text = tr("target") + " " + str(target_number) + "/" + str(total_targets)
+	target_type_title.text = tr("target") + " " + str(target_number)
 	if not DEBUG_DISABLED:
 		print("Updated title to: ", tr("target"), " ", target_number, "/", total_targets)
 
@@ -198,7 +198,7 @@ func _on_show_completion(final_time: float, fastest_time: float, final_score: in
 	if drill_complete_overlay.get_script() == null:
 		if not DEBUG_DISABLED:
 			print("[drill_ui] Script missing from drill_complete_overlay, attempting to reattach")
-		var script_path = "res://script/drill_complete_overlay.gd"
+		var script_path = "res://script/drill_complete_overlay_new.gd"
 		var script = load(script_path)
 		if script:
 			drill_complete_overlay.set_script(script)
@@ -225,14 +225,14 @@ func _on_show_completion(final_time: float, fastest_time: float, final_score: in
 			print("[drill_ui] Using fallback method to update overlay")
 		
 		# Update individual labels
-		var completion_score_label = drill_complete_overlay.get_node_or_null("VBoxContainer/MarginContainer/VBoxContainer/Score")
-		var hf_label = drill_complete_overlay.get_node_or_null("VBoxContainer/MarginContainer/VBoxContainer/HitFactor")
-		var fastest_shot_label = drill_complete_overlay.get_node_or_null("VBoxContainer/MarginContainer/VBoxContainer/FastestShot")
+		var completion_score_label = drill_complete_overlay.get_node_or_null("Background/CenterContainer/GridContainer/ScoreValue")
+		var hf_label = drill_complete_overlay.get_node_or_null("Background/CenterContainer/GridContainer/FactorValue")
+		var fastest_shot_label = drill_complete_overlay.get_node_or_null("Background/CenterContainer/GridContainer/SplitValue")
 		
 		if completion_score_label:
-			completion_score_label.text = "Score: %d points" % actual_total_score
+			completion_score_label.text = "%d" % actual_total_score
 		if hf_label:
-			hf_label.text = "Hit Factor: %.1f" % hit_factor
+			hf_label.text = "%.1f" % hit_factor
 		if fastest_shot_label:
 			var fastest_string = "%.2fs" % fastest_time if fastest_time < 999.0 else "--"
 			fastest_shot_label.text = "Fastest Shot: " + fastest_string
@@ -252,7 +252,6 @@ func _on_show_completion(final_time: float, fastest_time: float, final_score: in
 	if not DEBUG_DISABLED:
 		print("=== _on_show_completion FINISHED ===")
 		print("drill_complete_overlay visible final: ", drill_complete_overlay.visible)
-		print("drill_complete_overlay size final: ", drill_complete_overlay.size)
 
 func _on_show_completion_with_timeout(final_time: float, fastest_time: float, final_score: int, timed_out: bool, _show_hit_factor: bool):
 	"""Show the completion overlay with timeout message"""
@@ -282,7 +281,7 @@ func _on_show_completion_with_timeout(final_time: float, fastest_time: float, fi
 	if drill_complete_overlay.get_script() == null:
 		if not DEBUG_DISABLED:
 			print("[drill_ui] Script missing from drill_complete_overlay, attempting to reattach")
-		var script_path = "res://script/drill_complete_overlay.gd"
+		var script_path = "res://script/drill_complete_overlay_new.gd"
 		var script = load(script_path)
 		if script:
 			drill_complete_overlay.set_script(script)
@@ -303,10 +302,10 @@ func _on_show_completion_with_timeout(final_time: float, fastest_time: float, fi
 			print("[drill_ui] Using fallback method to update overlay with timeout")
 		
 		# Update individual labels
-		var title_label = drill_complete_overlay.get_node_or_null("VBoxContainer/MarginContainer/VBoxContainer/Title")
-		var completion_score_label = drill_complete_overlay.get_node_or_null("VBoxContainer/MarginContainer/VBoxContainer/Score")
-		var hf_label = drill_complete_overlay.get_node_or_null("VBoxContainer/MarginContainer/VBoxContainer/HitFactor")
-		var fastest_shot_label = drill_complete_overlay.get_node_or_null("VBoxContainer/MarginContainer/VBoxContainer/FastestShot")
+		var title_label = drill_complete_overlay.get_node_or_null("Background/Title")
+		var completion_score_label = drill_complete_overlay.get_node_or_null("Background/CenterContainer/GridContainer/ScoreValue")
+		var hf_label = drill_complete_overlay.get_node_or_null("Background/CenterContainer/GridContainer/FactorValue")
+		var fastest_shot_label = drill_complete_overlay.get_node_or_null("Background/CenterContainer/GridContainer/SplitValue")
 		
 		# Set timeout title in red
 		if title_label and timed_out:

@@ -2,7 +2,6 @@
 
 [ext_resource type="Script" uid="uid://bhvruqf68yix4" path="res://scene/intro/intro.gd" id="1_y6sgv"]
 [ext_resource type="FontFile" uid="uid://w674bdq23bld" path="res://font/Inter/static/Inter_24pt-Bold.ttf" id="2_1kmu5"]
-[ext_resource type="FontFile" uid="uid://b6nrcit1qskc6" path="res://font/Inter/static/Inter_24pt-Light.ttf" id="4_s5wda"]
 [ext_resource type="Theme" uid="uid://cdynjfvdtavlt" path="res://scene/main_menu/main_menu_button_theme.tres" id="5_48x57"]
 [ext_resource type="PackedScene" uid="uid://bgnvqj8xi6u7e" path="res://scene/volumn.tscn" id="6_ncd3m"]
 [ext_resource type="AudioStream" uid="uid://cc4026ptu87nx" path="res://audio/13 - Decisive Battle 1 - Don't Be Afraid.ogg" id="7_1kmu5"]
@@ -11,6 +10,8 @@
 default_font = ExtResource("2_1kmu5")
 default_font_size = 80
 Label/colors/font_color = Color(0.87058824, 0.21960784, 0.13725491, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_6sytt"]
 
 [node name="intro" type="Control"]
 layout_mode = 3
@@ -64,16 +65,16 @@ custom_minimum_size = Vector2(500, 0)
 layout_mode = 2
 
 [node name="Panel" type="Panel" parent="CenterContainer/ContentVBox"]
-custom_minimum_size = Vector2(500, 600)
+custom_minimum_size = Vector2(600, 600)
 layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxEmpty_6sytt")
 
 [node name="MainText" type="RichTextLabel" parent="CenterContainer/ContentVBox/Panel"]
 layout_mode = 0
-offset_right = 500.0
+offset_right = 600.0
 offset_bottom = 600.0
 size_flags_vertical = 3
-theme_override_fonts/normal_font = ExtResource("4_s5wda")
-theme_override_font_sizes/normal_font_size = 22
+theme = ExtResource("5_48x57")
 bbcode_enabled = true
 text = "
 [center][color=#de3832][b]SCORING RULES[/b][/color][/center]

@@ -36,7 +36,7 @@ shoot_painter,Shoot Painter,射击画师,シュートペインター,射擊畫�
 options,Options,选项,オプション,選項
 prev,Prev,上页,上页,上頁
 next,Next,下页,ページ,下頁
-start,Start,启动,起動,啟動
+start,START,启动,起動,啟動
 difficulty_level,Difficulty Level,难度等级,難易度レベル,難度等級
 duration,Duration,时长,期間,時長
 difficulty_easy,Easy,简单,イージー,簡單
@@ -57,12 +57,12 @@ high,High,高,高,高
 90_seconds,90s,90秒,90秒,90秒
 loading,Loading,加载中,ロード中,載入中
 rules,IPSC Rules,IPSC训练规则,IPSC接続,IPSC訓練規則
-target,Target,标靶,标靶,標靶
+target,TARGET,标靶,标靶,標靶
 complete,Drill Completed,训练结束,训练结束,訓練結束
 score,Score,得分,得分,得分
 hit_factor,Hit Factor,射击系数,射击系数,射擊係數
 fastest_shot,Fastest Interval,最快击发,最新の投稿,最快擊發
-restart,Restart,再来一局,再来一局,再來一局
+restart,RESTART,再来一局,再来一局,再來一局
 replay,Replay & Review,回放检查,再放检查,回放檢查
 clear,Clear Shots,清屏,清屏,清螢幕
 leaderboard,Leaderboard,排行榜,排行トレンド,排行榜

@@ -1,0 +1,182 @@
+[gd_scene load_steps=9 format=3 uid="uid://cuok70cwj1ush"]
+
+[ext_resource type="Theme" uid="uid://cdynjfvdtavlt" path="res://scene/main_menu/main_menu_button_theme.tres" id="1_q5rio"]
+[ext_resource type="Texture2D" uid="uid://coj4of2ebqmso" path="res://asset/play-icon.png" id="2_ox3d0"]
+[ext_resource type="Texture2D" uid="uid://dw8n5kwgpkbtl" path="res://asset/restart-icon.png" id="3_cy33c"]
+[ext_resource type="Script" uid="uid://cyt4hlr5baxbu" path="res://script/drill_complete_overlay_new.gd" id="4_script"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_q5rio"]
+content_margin_left = 10.0
+content_margin_top = 10.0
+content_margin_right = 10.0
+content_margin_bottom = 10.0
+bg_color = Color(0.09803922, 0.09803922, 0.09803922, 1)
+corner_radius_top_left = 32
+corner_radius_top_right = 32
+corner_radius_bottom_right = 32
+corner_radius_bottom_left = 32
+
+[sub_resource type="ButtonGroup" id="ButtonGroup_ox3d0"]
+
+[sub_resource type="ButtonGroup" id="ButtonGroup_cy33c"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_ox3d0"]
+radius = 130.0
+
+[node name="complete_overlay" type="Node2D"]
+script = ExtResource("4_script")
+
+[node name="Background" type="ColorRect" parent="."]
+custom_minimum_size = Vector2(720, 1280)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 720.0
+offset_bottom = 1280.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.03137255, 0.03137255, 0.03137255, 1)
+
+[node name="Title" type="Label" parent="Background"]
+custom_minimum_size = Vector2(720, 0)
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 100.0
+offset_bottom = 183.0
+grow_horizontal = 2
+theme = ExtResource("1_q5rio")
+theme_override_font_sizes/font_size = 80
+text = "DRILL COMPLETE"
+horizontal_alignment = 1
+
+[node name="CountdownLabel" type="Label" parent="Background"]
+visible = false
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -23.0
+offset_top = 200.0
+offset_right = 23.0
+offset_bottom = 310.0
+grow_horizontal = 2
+theme = ExtResource("1_q5rio")
+theme_override_font_sizes/font_size = 90
+text = "5"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CenterContainer" type="PanelContainer" parent="Background"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -300.0
+offset_right = 300.0
+offset_bottom = 200.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_q5rio")
+
+[node name="GridContainer" type="GridContainer" parent="Background/CenterContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_constants/h_separation = 100
+theme_override_constants/v_separation = 60
+columns = 2
+
+[node name="Score" type="Label" parent="Background/CenterContainer/GridContainer"]
+layout_mode = 2
+theme = ExtResource("1_q5rio")
+theme_override_font_sizes/font_size = 60
+text = "SCORE:"
+
+[node name="ScoreValue" type="Label" parent="Background/CenterContainer/GridContainer"]
+layout_mode = 2
+theme = ExtResource("1_q5rio")
+theme_override_font_sizes/font_size = 60
+text = "120"
+
+[node name="Factor" type="Label" parent="Background/CenterContainer/GridContainer"]
+layout_mode = 2
+theme = ExtResource("1_q5rio")
+theme_override_font_sizes/font_size = 60
+text = "FACTOR:"
+
+[node name="FactorValue" type="Label" parent="Background/CenterContainer/GridContainer"]
+layout_mode = 2
+theme = ExtResource("1_q5rio")
+theme_override_font_sizes/font_size = 60
+text = "18.8"
+
+[node name="Split" type="Label" parent="Background/CenterContainer/GridContainer"]
+layout_mode = 2
+theme = ExtResource("1_q5rio")
+theme_override_font_sizes/font_size = 60
+text = "FAST SPLIT:"
+
+[node name="SplitValue" type="Label" parent="Background/CenterContainer/GridContainer"]
+layout_mode = 2
+theme = ExtResource("1_q5rio")
+theme_override_font_sizes/font_size = 60
+text = "0.4"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Background"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -280.0
+offset_bottom = -80.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/separation = 48
+alignment = 1
+
+[node name="ReplayButton" type="Button" parent="Background/HBoxContainer"]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+theme = ExtResource("1_q5rio")
+theme_override_icons/icon = ExtResource("2_ox3d0")
+toggle_mode = true
+button_group = SubResource("ButtonGroup_ox3d0")
+text = "
+
+
+
+REPLAY"
+icon_alignment = 1
+
+[node name="RestartButton" type="Button" parent="Background/HBoxContainer"]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+theme = ExtResource("1_q5rio")
+toggle_mode = true
+button_group = SubResource("ButtonGroup_cy33c")
+text = "
+
+
+
+RESTART"
+icon = ExtResource("3_cy33c")
+icon_alignment = 1
+
+[node name="Area2DReplay2" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2DReplay2"]
+position = Vector2(216, 1090)
+shape = SubResource("CircleShape2D_ox3d0")
+
+[node name="Area2DRestart" type="Area2D" parent="."]
+visible = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2DRestart"]
+visible = false
+position = Vector2(497, 1092)
+shape = SubResource("CircleShape2D_ox3d0")

@@ -13,7 +13,7 @@ const DEBUG_DISABLED = true  # Set to true for verbose debugging
 var total_segments: int
 
 # Colors for progress states
-const ACTIVE_COLOR = Color(1.0, 0.6, 0.0, 1.0)  # Orange
+const ACTIVE_COLOR = Color("de3823ff")  # Orange
 const INACTIVE_COLOR = Color(0.3, 0.3, 0.3, 1.0)  # Dark gray
 
 func _ready():

@@ -128,7 +128,7 @@ func start_timer_sequence():
 	
 	# Show STANDBY text
 	standby_label.text = get_standby_text()
-	standby_label.label_settings.font_color = Color.YELLOW
+	#standby_label.label_settings.font_color = Color.YELLOW
 	standby_label.visible = true
 	
 	# Play standby sound
@@ -178,7 +178,7 @@ func _on_timer_timeout():
 	
 	# Update visual feedback
 	standby_label.text = tr("shoot_command")
-	standby_label.label_settings.font_color = Color.GREEN
+	#standby_label.label_settings.font_color = Color.GREEN
 	
 	# Stop pulsing animation and start flash animation
 	animation_player.stop()
@@ -211,7 +211,7 @@ func reset_timer():
 	
 	# Reset visual elements and hide them
 	standby_label.text = get_standby_text()
-	standby_label.label_settings.font_color = Color.YELLOW
+	#standby_label.label_settings.font_color = Color.YELLOW
 	standby_label.visible = false  # Hide until explicitly started
 	standby_label.scale = Vector2.ONE
 	standby_label.modulate = Color.WHITE

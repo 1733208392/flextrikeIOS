@@ -1,11 +1,16 @@
-[gd_scene load_steps=8 format=3 uid="uid://unm5ps1c30g"]
+[gd_scene load_steps=7 format=3 uid="uid://unm5ps1c30g"]
 
-[ext_resource type="Texture2D" uid="uid://coyf4yn5drgki" path="res://asset/modalCntnrs.png" id="1_8fjpi"]
 [ext_resource type="PackedScene" uid="uid://dturr8so8g8cw" path="res://scene/custom_button.tscn" id="1_o6736"]
 [ext_resource type="Script" uid="uid://cemltlpw7rf20" path="res://script/drill_complete_overlay.gd" id="1_script"]
 [ext_resource type="Texture2D" uid="uid://d34m0mqmlp1qq" path="res://asset/crosshair.png" id="2_m5n5t"]
-[ext_resource type="LabelSettings" uid="uid://codb57trfq77w" path="res://theme/target_title_competitive.tres" id="2_o6736"]
-[ext_resource type="LabelSettings" uid="uid://cuf6m18dwphgd" path="res://theme/target_title_ipsc.tres" id="3_m5n5t"]
+[ext_resource type="Theme" uid="uid://cdynjfvdtavlt" path="res://scene/main_menu/main_menu_button_theme.tres" id="5_sj0l1"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_o6736"]
+bg_color = Color(0.09803922, 0.09803922, 0.09803922, 1)
+corner_radius_top_left = 32
+corner_radius_top_right = 32
+corner_radius_bottom_right = 32
+corner_radius_bottom_left = 32
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_m5n5t"]
 radius = 100.0
@@ -34,68 +39,63 @@ offset_bottom = 352.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="ReviewReplayButton" parent="VBoxContainer" instance=ExtResource("1_o6736")]
-custom_minimum_size = Vector2(200, 48)
+[node name="TextureRect" type="TextureRect" parent="VBoxContainer"]
+visible = false
 layout_mode = 2
-size_flags_horizontal = 4
-theme_override_font_sizes/font_size = 36
-text = "Review Replay"
-
-[node name="TextureRect" type="TextureRect" parent="VBoxContainer/ReviewReplayButton"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
 texture = ExtResource("2_m5n5t")
 expand_mode = 1
 stretch_mode = 3
 
-[node name="AreaReplay" type="Area2D" parent="VBoxContainer/ReviewReplayButton"]
-collision_layer = 7
-collision_mask = 8
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="VBoxContainer/ReviewReplayButton/AreaReplay"]
-position = Vector2(124, 27)
-shape = SubResource("CircleShape2D_m5n5t")
+[node name="ReviewReplayButton" parent="VBoxContainer" instance=ExtResource("1_o6736")]
+custom_minimum_size = Vector2(200, 48)
+layout_mode = 2
+size_flags_horizontal = 4
+theme = ExtResource("5_sj0l1")
+theme_override_font_sizes/font_size = 36
+text = "REVIEW"
 
 [node name="MarginContainer" type="CenterContainer" parent="VBoxContainer"]
 layout_mode = 2
 
-[node name="TextureRect" type="TextureRect" parent="VBoxContainer/MarginContainer"]
+[node name="Pannel" type="Panel" parent="VBoxContainer/MarginContainer"]
+custom_minimum_size = Vector2(600, 600)
 layout_mode = 2
-texture = ExtResource("1_8fjpi")
-stretch_mode = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_o6736")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/MarginContainer"]
 layout_mode = 2
 
-[node name="Title" type="Label" parent="VBoxContainer/MarginContainer/VBoxContainer"]
+[node name="Title" type="RichTextLabel" parent="VBoxContainer/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(600, 0)
 layout_mode = 2
-text = "Drill Completed"
-label_settings = ExtResource("2_o6736")
-horizontal_alignment = 1
+theme = ExtResource("5_sj0l1")
+text = "Congratulations. 
+You’ve successfully completed this training drill.
+Your performance data has been recorded for analysis. Here are your key metrics:"
+fit_content = true
 vertical_alignment = 1
 
 [node name="Score" type="Label" parent="VBoxContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
-text = "Score: 0 points"
-label_settings = ExtResource("3_m5n5t")
+theme = ExtResource("5_sj0l1")
+theme_override_font_sizes/font_size = 32
+text = "SCORE: 0 points"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="HitFactor" type="Label" parent="VBoxContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
-text = "Hit Factor: 0.00"
-label_settings = ExtResource("3_m5n5t")
+theme = ExtResource("5_sj0l1")
+theme_override_font_sizes/font_size = 32
+text = "FACTOR: 0.00"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="FastestShot" type="Label" parent="VBoxContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
-text = "Fastest Shot: 0.18s"
-label_settings = ExtResource("3_m5n5t")
+theme = ExtResource("5_sj0l1")
+theme_override_font_sizes/font_size = 32
+text = "FAST SPLIT: 0.18s"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -103,10 +103,12 @@ vertical_alignment = 1
 custom_minimum_size = Vector2(200, 48)
 layout_mode = 2
 size_flags_horizontal = 4
+theme = ExtResource("5_sj0l1")
 theme_override_font_sizes/font_size = 36
-text = "Restart"
+text = "RESTART"
 
 [node name="TextureRect" type="TextureRect" parent="VBoxContainer/RestartButton"]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -117,10 +119,20 @@ texture = ExtResource("2_m5n5t")
 expand_mode = 1
 stretch_mode = 3
 
-[node name="AreaRestart" type="Area2D" parent="VBoxContainer/RestartButton"]
+[node name="AreaRestart" type="Area2D" parent="VBoxContainer"]
+position = Vector2(240, 662)
 collision_layer = 7
 collision_mask = 8
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="VBoxContainer/RestartButton/AreaRestart"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="VBoxContainer/AreaRestart"]
 position = Vector2(100, 24)
+shape = SubResource("CircleShape2D_m5n5t")
+
+[node name="AreaReplay" type="Area2D" parent="VBoxContainer"]
+position = Vector2(213, 4)
+collision_layer = 7
+collision_mask = 8
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="VBoxContainer/AreaReplay"]
+position = Vector2(124, 27)
 shape = SubResource("CircleShape2D_m5n5t")

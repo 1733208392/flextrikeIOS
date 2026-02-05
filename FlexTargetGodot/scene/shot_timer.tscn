@@ -1,15 +1,10 @@
-[gd_scene load_steps=8 format=3 uid="uid://bvmw1s06twfav"]
+[gd_scene load_steps=9 format=3 uid="uid://bvmw1s06twfav"]
 
 [ext_resource type="Script" uid="uid://clfaksioumf4c" path="res://script/shot_timer.gd" id="1_shot_timer_script"]
+[ext_resource type="Theme" uid="uid://cdynjfvdtavlt" path="res://scene/main_menu/main_menu_button_theme.tres" id="2_pkdhb"]
 [ext_resource type="AudioStream" uid="uid://b7v3qngslfsqw" path="res://audio/synthetic-shot-timer.wav" id="2_timer_beep"]
 [ext_resource type="AudioStream" uid="uid://don0vj400vxgd" path="res://audio/standby.mp3" id="3_cetwe"]
-[ext_resource type="AudioStream" uid="uid://ck6m5j4f2s7i4" path="res://audio/ready.mp3" id="4_ready"]
-
-[sub_resource type="LabelSettings" id="LabelSettings_standby"]
-font_size = 120
-font_color = Color(1, 1, 0, 1)
-outline_size = 8
-outline_color = Color(0, 0, 0, 1)
+[ext_resource type="AudioStream" uid="uid://bleougnruycoc" path="res://audio/ready.mp3" id="4_ready"]
 
 [sub_resource type="Animation" id="Animation_ready_flash"]
 resource_name = "ready_flash"
@@ -68,7 +63,8 @@ grow_vertical = 2
 
 [node name="StandbyLabel" type="Label" parent="CenterContainer"]
 layout_mode = 2
-label_settings = SubResource("LabelSettings_standby")
+theme = ExtResource("2_pkdhb")
+theme_override_font_sizes/font_size = 120
 horizontal_alignment = 1
 vertical_alignment = 1
 
