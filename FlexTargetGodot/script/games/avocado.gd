@@ -42,13 +42,16 @@ func _on_bullet_hit(hit_pos: Vector2, a: int = 0, t: int = 0):
 	# Convert hit_pos to local coordinates of the avocado
 	var local_hit_pos = to_local(hit_pos)
 	
-	# Check if hit is within the circle collision shape
+	# Check if hit is within the capsule collision shape
 	var hit_detected = false
 	
-	if collision_shape.shape is CircleShape2D:
-		var circle = collision_shape.shape as CircleShape2D
-		var distance = local_hit_pos.length()
-		if distance <= circle.radius:
+	if collision_shape.shape is CapsuleShape2D:
+		var capsule = collision_shape.shape as CapsuleShape2D
+		var half_height = capsule.height / 2.0
+		var clamped_y = clamp(local_hit_pos.y, -half_height + capsule.radius, half_height - capsule.radius)
+		var axis_point = Vector2(0, clamped_y)
+		var distance = local_hit_pos.distance_to(axis_point)
+		if distance <= capsule.radius:
 			hit_detected = true
 	
 	if hit_detected:

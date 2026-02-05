@@ -1,11 +1,12 @@
 [gd_scene load_steps=11 format=3 uid="uid://b5vb074nroscf"]
 
 [ext_resource type="Texture2D" uid="uid://ctafu0ug0bifb" path="res://asset/games/lemon.png" id="1_726da"]
-[ext_resource type="AudioStream" uid="uid://k3did0ku0n0" path="res://audio/SE-Collision_08C.ogg" id="3_ivft1"]
+[ext_resource type="AudioStream" uid="uid://drh4biwvweegn" path="res://audio/SE-Collision_08C.ogg" id="3_ivft1"]
 [ext_resource type="Script" uid="uid://crm80k347tsg7" path="res://script/games/lemon.gd" id="4_script"]
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_urfhf"]
-radius = 50.0
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_kx8cu"]
+radius = 53.0
+height = 177.76
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_urfhf"]
 atlas = ExtResource("1_726da")
@@ -56,7 +57,7 @@ gravity_scale = 0.04
 script = ExtResource("4_script")
 
 [node name="CollisionShape" type="CollisionShape2D" parent="."]
-shape = SubResource("CircleShape2D_urfhf")
+shape = SubResource("CapsuleShape2D_kx8cu")
 
 [node name="Sprite" type="AnimatedSprite2D" parent="."]
 scale = Vector2(2.5, 2.5)

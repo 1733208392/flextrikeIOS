@@ -1,4 +1,4 @@
-[gd_resource type="Theme" load_steps=19 format=3 uid="uid://cdynjfvdtavlt"]
+[gd_resource type="Theme" load_steps=21 format=3 uid="uid://cdynjfvdtavlt"]
 
 [sub_resource type="SystemFont" id="SystemFont_lt21p"]
 
@@ -103,6 +103,12 @@ bg_color = Color(0.87058824, 0.21960784, 0.13725491, 1)
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_x2556"]
 bg_color = Color(0.09803922, 0.09803922, 0.09803922, 1)
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dn4f5"]
+bg_color = Color(0.09803922, 0.09803922, 0.09803922, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_w2mps"]
+bg_color = Color(0.87058824, 0.21960784, 0.13725491, 1)
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mn8xp"]
 content_margin_left = 8.0
 content_margin_top = 8.0
@@ -164,6 +170,8 @@ PopupMenu/colors/font_hover_color = Color(0.09803922, 0.09803922, 0.09803922, 1)
 PopupMenu/font_sizes/font_size = 24
 PopupMenu/styles/hover = SubResource("StyleBoxFlat_x8d24")
 PopupMenu/styles/panel = SubResource("StyleBoxFlat_x2556")
+ProgressBar/styles/background = SubResource("StyleBoxFlat_dn4f5")
+ProgressBar/styles/fill = SubResource("StyleBoxFlat_w2mps")
 RichTextLabel/colors/default_color = Color(0.87058824, 0.21960784, 0.13725491, 1)
 RichTextLabel/font_sizes/normal_font_size = 24
 RichTextLabel/styles/normal = SubResource("StyleBoxFlat_mn8xp")

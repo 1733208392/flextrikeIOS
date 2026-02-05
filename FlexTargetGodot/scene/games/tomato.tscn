@@ -1,11 +1,12 @@
 [gd_scene load_steps=11 format=3 uid="uid://cvgqhpv2lsbhn"]
 
 [ext_resource type="Texture2D" uid="uid://dgl16xsbd8urv" path="res://asset/games/tomato.png" id="1_pjj58"]
-[ext_resource type="AudioStream" uid="uid://k3did0ku0n0" path="res://audio/SE-Collision_08C.ogg" id="3_362f4"]
+[ext_resource type="AudioStream" uid="uid://drh4biwvweegn" path="res://audio/SE-Collision_08C.ogg" id="3_362f4"]
 [ext_resource type="Script" uid="uid://bgrgfo1rn5o84" path="res://script/games/tomato.gd" id="4_script"]
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_1ldso"]
-radius = 50.0
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_kv3fh"]
+radius = 45.72
+height = 177.77
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_6bkyw"]
 atlas = ExtResource("1_pjj58")
@@ -56,7 +57,7 @@ gravity_scale = 0.04
 script = ExtResource("4_script")
 
 [node name="CollisionShape" type="CollisionShape2D" parent="."]
-shape = SubResource("CircleShape2D_1ldso")
+shape = SubResource("CapsuleShape2D_kv3fh")
 
 [node name="Sprite" type="AnimatedSprite2D" parent="."]
 scale = Vector2(2.5, 2.5)

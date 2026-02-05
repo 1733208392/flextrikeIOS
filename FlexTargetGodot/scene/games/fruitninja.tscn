@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://wwvh3ttlvgdl" path="res://script/games/game.gd" id="1_sycdm"]
 [ext_resource type="PackedScene" uid="uid://bvtdvj3rleh6v" path="res://scene/games/status_bar.tscn" id="2_foicq"]
 [ext_resource type="Texture2D" uid="uid://bv51qwpstdia2" path="res://asset/games/orig.png" id="3_pnp74"]
-[ext_resource type="PackedScene" path="res://scene/games/truck.tscn" id="4_jx5mp"]
+[ext_resource type="PackedScene" uid="uid://cfqgpe6axmbbi" path="res://scene/games/truck.tscn" id="4_jx5mp"]
 [ext_resource type="FontFile" uid="uid://d2eub6rd80tjp" path="res://asset/games/soupofjustice.ttf" id="5_128vo"]
 
 [sub_resource type="Animation" id="Animation_kvpfn"]
@@ -94,6 +94,7 @@ shape = SubResource("RectangleShape2D_kuqtn")
 
 [node name="GameOverLayer" type="CanvasLayer" parent="."]
 layer = 100
+visible = false
 
 [node name="GameOverPanel" type="Panel" parent="GameOverLayer"]
 anchors_preset = 15

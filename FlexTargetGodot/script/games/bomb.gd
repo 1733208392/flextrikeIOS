@@ -102,8 +102,27 @@ func _on_bullet_hit(hit_position: Vector2, a: int = 0, t: int = 0):
 	if is_hit:
 		return
 	
-	var distance = global_position.distance_to(hit_position)
-	if distance < 50:  # Hit radius
+	# Get the bomb's collision shape
+	var collision_shape = get_node("CollisionShape2D")
+	if collision_shape == null:
+		return
+	
+	# Convert hit_position to local coordinates of the bomb
+	var local_hit_pos = to_local(hit_position)
+	
+	# Check if hit is within the capsule collision shape
+	var hit_detected = false
+	
+	if collision_shape.shape is CapsuleShape2D:
+		var capsule = collision_shape.shape as CapsuleShape2D
+		var half_height = capsule.height / 2.0
+		var clamped_y = clamp(local_hit_pos.y, -half_height + capsule.radius, half_height - capsule.radius)
+		var axis_point = Vector2(0, clamped_y)
+		var distance = local_hit_pos.distance_to(axis_point)
+		if distance <= capsule.radius:
+			hit_detected = true
+	
+	if hit_detected:
 		bullet_hit()
 
 func _on_body_entered(body: Node):

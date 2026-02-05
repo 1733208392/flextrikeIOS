@@ -2,10 +2,11 @@
 
 [ext_resource type="Script" uid="uid://56hral5w5ido" path="res://script/games/banana.gd" id="1_1ldso"]
 [ext_resource type="Texture2D" uid="uid://wn5es5xoydf" path="res://asset/games/banana.png" id="2_m5p4s"]
-[ext_resource type="AudioStream" uid="uid://k3did0ku0n0" path="res://audio/SE-Collision_08C.ogg" id="3_362f4"]
+[ext_resource type="AudioStream" uid="uid://drh4biwvweegn" path="res://audio/SE-Collision_08C.ogg" id="3_362f4"]
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_36b2i"]
-radius = 60.0
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_b2qx2"]
+radius = 69.54
+height = 252.19
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_6bkyw"]
 atlas = ExtResource("2_m5p4s")
@@ -77,7 +78,7 @@ gravity_scale = 0.04
 script = ExtResource("1_1ldso")
 
 [node name="CollisionShape" type="CollisionShape2D" parent="."]
-shape = SubResource("CircleShape2D_36b2i")
+shape = SubResource("CapsuleShape2D_b2qx2")
 
 [node name="Sprite" type="AnimatedSprite2D" parent="."]
 scale = Vector2(4, 4)

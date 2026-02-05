@@ -48,6 +48,11 @@ func _ready():
 	# Enable input processing
 	set_process_input(true)
 	
+	# Hide the global status bar for fruit ninja game
+	var global_status_bar = get_node_or_null("/root/StatusBar")
+	if global_status_bar:
+		global_status_bar.visible = false
+	
 	# Load language setting from GlobalData (like option.gd does)
 	var global_data = get_node_or_null("/root/GlobalData")
 	if global_data and global_data.settings_dict.has("language"):
@@ -320,6 +325,7 @@ func spawn_random_fruit():
 	var fruit_scene = fruit_scenes[random_index]
 	var fruit = fruit_scene.instantiate()
 	add_child(fruit)
+
 	# Position fruit at random horizontal position at the top of the screen
 	var viewport_size = get_viewport_rect().size
 	var random_x = randf_range(100, viewport_size.x - 100)
@@ -611,3 +617,9 @@ func _trigger_game_over():
 	
 	# Show leaderboard
 	_show_leaderboard()
+
+func _exit_tree():
+	# Show the global status bar back when leaving the game
+	var global_status_bar = get_node_or_null("/root/StatusBar")
+	if global_status_bar:
+		global_status_bar.visible = true

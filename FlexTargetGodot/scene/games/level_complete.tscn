@@ -1,13 +1,12 @@
-[gd_scene load_steps=12 format=3 uid="uid://c54l65vxgegbc"]
+[gd_scene load_steps=11 format=3 uid="uid://c54l65vxgegbc"]
 
 [ext_resource type="Script" uid="uid://ordo5ki61n0a" path="res://script/games/level_complete.gd" id="1_1e78d"]
 [ext_resource type="Texture2D" uid="uid://bt7v22nd4vwar" path="res://asset/games/trophy.png" id="1_ph5xr"]
 [ext_resource type="Texture2D" uid="uid://dkihqlectndyi" path="res://asset/games/level-accomplised.png" id="1_rovvh"]
 [ext_resource type="Texture2D" uid="uid://xl4mfebm2k2w" path="res://asset/games/coin.png" id="2_6xvfp"]
 [ext_resource type="FontFile" uid="uid://d2eub6rd80tjp" path="res://asset/games/soupofjustice.ttf" id="3_4n79r"]
-[ext_resource type="PackedScene" path="res://scene/games/back_button.tscn" id="5_r8ohr"]
-[ext_resource type="PackedScene" path="res://scene/games/next_button.tscn" id="6_1r4r6"]
-[ext_resource type="PackedScene" path="res://scene/games/coin_particles.tscn" id="7_1r4r6"]
+[ext_resource type="Theme" uid="uid://cdynjfvdtavlt" path="res://scene/main_menu/main_menu_button_theme.tres" id="6_8j562"]
+[ext_resource type="PackedScene" uid="uid://benwj6w5un0vk" path="res://scene/games/coin_particles.tscn" id="7_1r4r6"]
 [ext_resource type="AudioStream" uid="uid://dxpul16876qad" path="res://audio/victory-chime.mp3" id="8_jv7kj"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel_bg"]
@@ -171,16 +170,22 @@ layout_mode = 2
 size_flags_vertical = 2
 alignment = 1
 
-[node name="BackButton" parent="Control/VBoxContainer/Panel/PanelContent/ButtonsContainer" instance=ExtResource("5_r8ohr")]
+[node name="BackButton" type="Button" parent="Control/VBoxContainer/Panel/PanelContent/ButtonsContainer"]
+custom_minimum_size = Vector2(120, 0)
 layout_mode = 2
+theme = ExtResource("6_8j562")
+text = "BACK"
 
 [node name="HSpacer" type="Control" parent="Control/VBoxContainer/Panel/PanelContent/ButtonsContainer"]
 custom_minimum_size = Vector2(15, 0)
 layout_mode = 2
 size_flags_horizontal = 2
 
-[node name="NextButton" parent="Control/VBoxContainer/Panel/PanelContent/ButtonsContainer" instance=ExtResource("6_1r4r6")]
+[node name="NextButton" type="Button" parent="Control/VBoxContainer/Panel/PanelContent/ButtonsContainer"]
+custom_minimum_size = Vector2(120, 0)
 layout_mode = 2
+theme = ExtResource("6_8j562")
+text = "NEXT"
 
 [node name="CoinParticles" parent="Control" instance=ExtResource("7_1r4r6")]
 position = Vector2(360, 700)

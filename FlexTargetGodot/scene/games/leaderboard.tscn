@@ -2,7 +2,7 @@
 
 [ext_resource type="FontFile" uid="uid://d2eub6rd80tjp" path="res://asset/games/soupofjustice.ttf" id="1"]
 [ext_resource type="Script" uid="uid://dg8ahru04ysxg" path="res://script/games/leaderboard.gd" id="2"]
-[ext_resource type="PackedScene" uid="uid://dturr8so8g8cw" path="res://scene/custom_button.tscn" id="3_1vd1g"]
+[ext_resource type="Theme" uid="uid://cdynjfvdtavlt" path="res://scene/main_menu/main_menu_button_theme.tres" id="3_1vd1g"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
 bg_color = Color(0, 0, 0, 0.8)
@@ -43,6 +43,7 @@ layout_mode = 2
 
 [node name="TitleLabel" type="Label" parent="Control/Panel/VBoxContainer"]
 layout_mode = 2
+theme = ExtResource("3_1vd1g")
 theme_override_fonts/font = ExtResource("1")
 theme_override_font_sizes/font_size = 48
 text = "Leaderboard"
@@ -53,71 +54,81 @@ layout_mode = 2
 size_flags_vertical = 3
 alignment = 1
 
-[node name="Panel_VBoxContainer_ScoresContainer#Score1" type="Label" parent="Control/Panel/VBoxContainer/ScoresContainer"]
+[node name="Score1" type="Label" parent="Control/Panel/VBoxContainer/ScoresContainer"]
 layout_mode = 2
+theme = ExtResource("3_1vd1g")
 theme_override_fonts/font = ExtResource("1")
 theme_override_font_sizes/font_size = 32
 text = "1. --"
 horizontal_alignment = 1
 
-[node name="Panel_VBoxContainer_ScoresContainer#Score2" type="Label" parent="Control/Panel/VBoxContainer/ScoresContainer"]
+[node name="Score2" type="Label" parent="Control/Panel/VBoxContainer/ScoresContainer"]
 layout_mode = 2
+theme = ExtResource("3_1vd1g")
 theme_override_fonts/font = ExtResource("1")
 theme_override_font_sizes/font_size = 32
 text = "2. --"
 horizontal_alignment = 1
 
-[node name="Panel_VBoxContainer_ScoresContainer#Score3" type="Label" parent="Control/Panel/VBoxContainer/ScoresContainer"]
+[node name="Score3" type="Label" parent="Control/Panel/VBoxContainer/ScoresContainer"]
 layout_mode = 2
+theme = ExtResource("3_1vd1g")
 theme_override_fonts/font = ExtResource("1")
 theme_override_font_sizes/font_size = 32
 text = "3. --"
 horizontal_alignment = 1
 
-[node name="Panel_VBoxContainer_ScoresContainer#Score4" type="Label" parent="Control/Panel/VBoxContainer/ScoresContainer"]
+[node name="Score4" type="Label" parent="Control/Panel/VBoxContainer/ScoresContainer"]
 layout_mode = 2
+theme = ExtResource("3_1vd1g")
 theme_override_fonts/font = ExtResource("1")
 theme_override_font_sizes/font_size = 32
 text = "4. --"
 horizontal_alignment = 1
 
-[node name="Panel_VBoxContainer_ScoresContainer#Score5" type="Label" parent="Control/Panel/VBoxContainer/ScoresContainer"]
+[node name="Score5" type="Label" parent="Control/Panel/VBoxContainer/ScoresContainer"]
 layout_mode = 2
+theme = ExtResource("3_1vd1g")
 theme_override_fonts/font = ExtResource("1")
 theme_override_font_sizes/font_size = 32
 text = "5. --"
 horizontal_alignment = 1
 
-[node name="Panel_VBoxContainer_ScoresContainer#Score6" type="Label" parent="Control/Panel/VBoxContainer/ScoresContainer"]
+[node name="Score6" type="Label" parent="Control/Panel/VBoxContainer/ScoresContainer"]
 layout_mode = 2
+theme = ExtResource("3_1vd1g")
 theme_override_fonts/font = ExtResource("1")
 theme_override_font_sizes/font_size = 32
 text = "6. --"
 horizontal_alignment = 1
 
-[node name="Panel_VBoxContainer_ScoresContainer#Score7" type="Label" parent="Control/Panel/VBoxContainer/ScoresContainer"]
+[node name="Score7" type="Label" parent="Control/Panel/VBoxContainer/ScoresContainer"]
 layout_mode = 2
+theme = ExtResource("3_1vd1g")
 theme_override_fonts/font = ExtResource("1")
 theme_override_font_sizes/font_size = 32
 text = "7. --"
 horizontal_alignment = 1
 
-[node name="Panel_VBoxContainer_ScoresContainer#Score8" type="Label" parent="Control/Panel/VBoxContainer/ScoresContainer"]
+[node name="Score8" type="Label" parent="Control/Panel/VBoxContainer/ScoresContainer"]
 layout_mode = 2
+theme = ExtResource("3_1vd1g")
 theme_override_fonts/font = ExtResource("1")
 theme_override_font_sizes/font_size = 32
 text = "8. --"
 horizontal_alignment = 1
 
-[node name="Panel_VBoxContainer_ScoresContainer#Score9" type="Label" parent="Control/Panel/VBoxContainer/ScoresContainer"]
+[node name="Score9" type="Label" parent="Control/Panel/VBoxContainer/ScoresContainer"]
 layout_mode = 2
+theme = ExtResource("3_1vd1g")
 theme_override_fonts/font = ExtResource("1")
 theme_override_font_sizes/font_size = 32
 text = "9. --"
 horizontal_alignment = 1
 
-[node name="Panel_VBoxContainer_ScoresContainer#Score10" type="Label" parent="Control/Panel/VBoxContainer/ScoresContainer"]
+[node name="Score10" type="Label" parent="Control/Panel/VBoxContainer/ScoresContainer"]
 layout_mode = 2
+theme = ExtResource("3_1vd1g")
 theme_override_fonts/font = ExtResource("1")
 theme_override_font_sizes/font_size = 32
 text = "10. --"
@@ -125,6 +136,7 @@ horizontal_alignment = 1
 
 [node name="YourScoreLabel" type="Label" parent="Control/Panel/VBoxContainer"]
 layout_mode = 2
+theme = ExtResource("3_1vd1g")
 theme_override_fonts/font = ExtResource("1")
 theme_override_font_sizes/font_size = 36
 text = "Your Score: 0"
@@ -147,10 +159,16 @@ grow_vertical = 0
 theme_override_constants/separation = 32
 alignment = 1
 
-[node name="Back" parent="Control/HBoxContainer" instance=ExtResource("3_1vd1g")]
+[node name="Back" type="Button" parent="Control/HBoxContainer"]
+custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
-text = "Back"
+theme = ExtResource("3_1vd1g")
+theme_override_font_sizes/font_size = 32
+text = "BACK"
 
-[node name="Replay" parent="Control/HBoxContainer" instance=ExtResource("3_1vd1g")]
+[node name="Replay" type="Button" parent="Control/HBoxContainer"]
+custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
-text = "Replay"
+theme = ExtResource("3_1vd1g")
+theme_override_font_sizes/font_size = 32
+text = "REPLAY"
