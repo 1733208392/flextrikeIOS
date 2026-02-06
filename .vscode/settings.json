@@ -13,5 +13,8 @@
   "extensions.autoUpdate": false,
   "editor.codeActionsOnSave": {},
   "editor.lightbulb.enabled": "off",
-  "godotTools.editorPath.godot4": "/Applications/Godot_gd.app"
+  "godotTools.editorPath.godot4": "/Applications/Godot_gd.app",
+  "chat.tools.terminal.autoApprove": {
+    "git commit": true
+  }
 }

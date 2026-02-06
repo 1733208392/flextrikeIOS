@@ -34,6 +34,11 @@ var _suppress_play_mode_toggled: bool = false
 
 
 func _ready():
+	# Hide global status bar
+	var global_status_bar = get_node_or_null("/root/StatusBar")
+	if global_status_bar:
+		global_status_bar.hide()
+	
 	for cell_count in range(9):
 		var cell = Cell.instantiate()
 		cell.main = self
@@ -118,7 +123,7 @@ func _apply_play_mode(mode: String) -> void:
 	_play_mode_focus_index = _play_mode_index_for_mode(mode)
 	_update_difficulty_controls()
 	_apply_play_mode_toggles(mode)
-	_focus_section = FOCUS_SECTION_PLAY_MODE
+	_focus_section = FOCUS_SECTION_DIFFICULTY if mode == "AI" else FOCUS_SECTION_PLAY_MODE
 	_update_difficulty_visibility_by_focus()
 	call_deferred("_apply_focus")
 
@@ -246,7 +251,7 @@ func _notification(what: int) -> void:
 func _translate_restart_button() -> void:
 	var restart_btn = get_node_or_null("RestartButton")
 	if restart_btn and restart_btn is Button:
-		restart_btn.text = tr("restart")
+		restart_btn.text = "SHOOT HERE TO RESTART"
 
 func _apply_focus() -> void:
 	if _focus_section == FOCUS_SECTION_DIFFICULTY and play_with == "AI" and _difficulty_buttons.size() > 0:
