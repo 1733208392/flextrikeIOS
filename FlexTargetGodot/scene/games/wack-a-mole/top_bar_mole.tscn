@@ -1,8 +1,8 @@
 [gd_scene load_steps=5 format=3 uid="uid://b7xxmkj4ycdi3"]
 
 [ext_resource type="PackedScene" uid="uid://dvqfglgeqcxw5" path="res://scene/games/wack-a-mole/mole_progress_bar.tscn" id="1_orpai"]
-[ext_resource type="Texture2D" uid="uid://c55e2ghwmvqda" path="res://asset/games/wack-a-mole/GUI/star-coin.png" id="2_nfi1u"]
-[ext_resource type="FontFile" uid="uid://d2eub6rd80tjp" path="res://asset/games/soupofjustice.ttf" id="2_p50fc"]
+[ext_resource type="Theme" uid="uid://cdynjfvdtavlt" path="res://scene/main_menu/main_menu_button_theme.tres" id="2_2a212"]
+[ext_resource type="Texture2D" uid="uid://cf5mwxx8au2rv" path="res://asset/bitcoin-icon.png" id="3_2a212"]
 [ext_resource type="Script" uid="uid://2ljrmsr5wy81" path="res://script/games/top_bar_mole.gd" id="3_script"]
 
 [node name="TopBarMole" type="Node2D"]
@@ -23,7 +23,7 @@ layout_mode = 2
 [node name="Score" type="Label" parent="VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(240, 0)
 layout_mode = 2
-theme_override_fonts/font = ExtResource("2_p50fc")
+theme = ExtResource("2_2a212")
 theme_override_font_sizes/font_size = 32
 text = "score: 33330"
 horizontal_alignment = 1
@@ -32,7 +32,7 @@ vertical_alignment = 1
 [node name="Level" type="Label" parent="VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(240, 0)
 layout_mode = 2
-theme_override_fonts/font = ExtResource("2_p50fc")
+theme = ExtResource("2_2a212")
 theme_override_font_sizes/font_size = 32
 text = "Level 01"
 horizontal_alignment = 1
@@ -46,12 +46,12 @@ alignment = 1
 [node name="StarCoinIcon" type="TextureRect" parent="VBoxContainer/HBoxContainer/StarContainer"]
 custom_minimum_size = Vector2(32, 32)
 layout_mode = 2
-texture = ExtResource("2_nfi1u")
-expand_mode = 1
+texture = ExtResource("3_2a212")
+expand_mode = 3
 
 [node name="StarLabel" type="Label" parent="VBoxContainer/HBoxContainer/StarContainer"]
 layout_mode = 2
-theme_override_fonts/font = ExtResource("2_p50fc")
+theme = ExtResource("2_2a212")
 theme_override_font_sizes/font_size = 32
 text = "1220"
 vertical_alignment = 2
@@ -70,8 +70,8 @@ alignment = 1
 
 [node name="TimerLabel" type="Label" parent="VBoxContainer/TimerContainer"]
 layout_mode = 2
-theme_override_fonts/font = ExtResource("2_p50fc")
-theme_override_font_sizes/font_size = 32
+theme = ExtResource("2_2a212")
+theme_override_font_sizes/font_size = 48
 text = "00:30"
 horizontal_alignment = 1
 vertical_alignment = 1

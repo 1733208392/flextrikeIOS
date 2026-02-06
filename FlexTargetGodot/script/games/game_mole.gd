@@ -99,6 +99,14 @@ func _ready() -> void:
 	# Enable input processing
 	set_process_input(true)
 	
+	# Hide global status bar when playing the game
+	var global_status_bar = get_node_or_null("/root/StatusBar")
+	if global_status_bar:
+		global_status_bar.hide()
+		print("[GameMole] Global status bar hidden")
+	else:
+		print("[GameMole] Global status bar not found")
+	
 	# Get MenuController
 	remote_control = get_node_or_null("/root/MenuController")
 	if remote_control:
@@ -368,6 +376,11 @@ func _on_homepage_pressed():
 
 func _return_to_menu():
 	print("[GameMole] Returning to menu scene")
+	# Show global status bar when leaving the game
+	var global_status_bar = get_node_or_null("/root/StatusBar")
+	if global_status_bar:
+		global_status_bar.show()
+		print("[GameMole] Global status bar shown")
 	var error = get_tree().change_scene_to_file("res://scene/games/menu/menu.tscn")
 	if error != OK:
 		print("[GameMole] Failed to change scene: ", error)

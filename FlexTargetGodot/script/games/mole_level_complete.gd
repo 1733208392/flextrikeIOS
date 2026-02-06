@@ -3,18 +3,18 @@ extends CanvasLayer
 var back_button: Button
 var next_button: Button
 var replay_button: Button
-@onready var level_label = $Control/VBoxContainer/HeaderCircle/CircleContent/LevelLabel
-@onready var level_number = $Control/VBoxContainer/HeaderCircle/CircleContent/LevelNumber
-@onready var score_label = $Control/VBoxContainer/Content/PanelContent/ScoreContainer/ScoreLabel
-@onready var score_value = $Control/VBoxContainer/Content/PanelContent/ScoreContainer/ScoreValue
-@onready var coin_label = $Control/VBoxContainer/Content/PanelContent/CoinContainer/CoinLabel
-@onready var coin_value = $Control/VBoxContainer/Content/PanelContent/CoinContainer/CoinValue
-@onready var bonus_label = $Control/VBoxContainer/Content/PanelContent/BonusContainer/BonusLabel
-@onready var star1 = $Control/VBoxContainer/HeaderCircle/StarsContainer/Star1
-@onready var star2 = $Control/VBoxContainer/HeaderCircle/StarsContainer/Star2
-@onready var star3 = $Control/VBoxContainer/HeaderCircle/StarsContainer/Star3
+@onready var level_label = $Control/VBoxContainer/LevelLabel
+@onready var level_number = $Control/VBoxContainer/LevelNumber
+@onready var score_label = $Control/VBoxContainer/ScoreContainer/ScoreLabel
+@onready var score_value = $Control/VBoxContainer/ScoreContainer/ScoreValue
+@onready var coin_label = $Control/VBoxContainer/CoinContainer/CoinLabel
+@onready var coin_value = $Control/VBoxContainer/CoinContainer/CoinValue
+@onready var bonus_label = null
+@onready var star1 = null
+@onready var star2 = null
+@onready var star3 = null
 @onready var coin_particles = $Control/CoinParticles
-@onready var cleared_label = $Control/VBoxContainer/Content/PanelContent/ClearedLabel
+@onready var cleared_label = $Control/VBoxContainer/ClearedLabel
 @onready var audio_player = $Control/AudioStreamPlayer2D
 
 var bonus_value: Label = null  # Optional - may not exist in scene
@@ -33,9 +33,9 @@ func _ready():
 	print_tree_pretty()
 	
 	# Get button references using get_node_or_null with correct paths
-	back_button = get_node_or_null("Control/VBoxContainer/Content/PanelContent/ButtonsContainer/BackButton")
-	next_button = get_node_or_null("Control/VBoxContainer/Content/PanelContent/ButtonsContainer/NextButton")
-	replay_button = get_node_or_null("Control/VBoxContainer/Content/PanelContent/ButtonsContainer/ReplayButton")
+	back_button = get_node_or_null("Control/VBoxContainer/ButtonsContainer/BackButton")
+	next_button = get_node_or_null("Control/VBoxContainer/ButtonsContainer/NextButton")
+	replay_button = get_node_or_null("Control/VBoxContainer/ButtonsContainer/ReplayButton")
 	
 	# Debug: Print button references
 	print("Back button: ", back_button)
@@ -146,33 +146,12 @@ func show_level_complete(level: int, score: int, coins: int = 0, bonus: int = 0,
 			coin_particles.emitting = false
 		if audio_player:
 			audio_player.stop()
-	
-	# Update stars display
-	_update_stars_display()
-	
+
 	# Show the panel
 	visible = true
 	set_process_input(true)
 	
 	print("[MoleLevelComplete] Showing level %d with score %d, coins %d, bonus %d and %d stars (passed: %s)" % [level, score, coins, bonus, stars, level_passed])
-
-func _update_stars_display():
-	"""Update the star display based on stars_earned"""
-	# Fade out stars that weren't earned
-	if stars_earned >= 1:
-		star1.modulate.a = 1.0
-	else:
-		star1.modulate.a = 0.3
-	
-	if stars_earned >= 2:
-		star2.modulate.a = 1.0
-	else:
-		star2.modulate.a = 0.3
-	
-	if stars_earned >= 3:
-		star3.modulate.a = 1.0
-	else:
-		star3.modulate.a = 0.3
 
 func _on_enter_pressed():
 	"""Handle enter directive from remote control"""

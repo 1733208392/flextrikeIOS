@@ -5,7 +5,7 @@ void fragment() {
 	float dist = length(uv);
 	
 	if (dist <= 0.5) {
-		COLOR = vec4(1.0, 0.2, 0.2, 1.0);  // Red circle
+		COLOR = vec4(0.87, 0.22, 0.14, 1.0);  // Red circle
 	} else {
 		COLOR.a = 0.0;  // Transparent outside circle
 	}

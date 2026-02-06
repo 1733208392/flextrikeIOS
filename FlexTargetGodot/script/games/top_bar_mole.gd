@@ -9,7 +9,7 @@ extends Node2D
 var star_count: int = 0
 
 func _ready() -> void:
-	score_label.text = "score: 0"
+	score_label.text = "SCORE: 0"
 	star_label.text = "0"
 	
 	# Initialize progress bar to 0
@@ -22,19 +22,19 @@ func _ready() -> void:
 	
 	# Initialize level label
 	if level_label:
-		level_label.text = "Level 1"
+		level_label.text = "LEVEL 1"
 		print("Level label initialized to: ", level_label.text)
 	else:
 		print("Warning: level_label not found at path $VBoxContainer/HBoxContainer/LevelLabel")
 
 func update_score(new_score: int) -> void:
-	score_label.text = "score: %d" % new_score
+	score_label.text = "SCORE: %d" % new_score
 
 func update_level(new_level: int) -> void:
 	"""Update the level number display"""
 	print("update_level called with level: ", new_level)
 	if level_label:
-		level_label.text = "Level %d" % new_level
+		level_label.text = "LEVEL %d" % new_level
 		print("Level label updated to: ", level_label.text)
 	else:
 		print("Warning: level_label is null, cannot update")

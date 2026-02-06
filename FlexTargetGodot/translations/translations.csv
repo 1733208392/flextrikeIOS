@@ -34,8 +34,8 @@ mole_attack,MOLE ATTACK,鼹鼠攻击,モグラアタック,鼴鼠攻擊
 tictactoe,TICTACTOE,井字游戏,三目並べ,井字遊戲
 shoot_painter,Shoot Painter,射击画师,シュートペインター,射擊畫師
 options,Options,选项,オプション,選項
-prev,Prev,上页,上页,上頁
-next,Next,下页,ページ,下頁
+prev,PREV,上页,上页,上頁
+next,NEXT,下页,ページ,下頁
 start,START,启动,起動,啟動
 difficulty_level,DIFFICULT LEVEL,难度等级,難易度レベル,難度等級
 duration,DURATION,时长,期間,時長
@@ -63,7 +63,7 @@ score,Score,得分,得分,得分
 hit_factor,Hit Factor,射击系数,射击系数,射擊係數
 fastest_shot,Fastest Interval,最快击发,最新の投稿,最快擊發
 restart,RESTART,再来一局,再来一局,再來一局
-replay,Replay & Review,回放检查,再放检查,回放檢查
+replay,REPLAY & REVIEW,回放检查,再放检查,回放檢查
 clear,Clear Shots,清屏,清屏,清螢幕
 leaderboard,Leaderboard,排行榜,排行トレンド,排行榜
 no,No.,序号,序号,序號
@@ -615,7 +615,7 @@ total_shots,Total Shots:,总射击数:,合計ショット数:,總射擊數:
 average_time,Average Time:,平均时间:,平均時間:,平均時間:
 accuracy,Accuracy:,准确度:,精度:,準確度:
 points_scored,Points Scored:,得分:,得点:,得分:
-back_button,Back,返回,戻る,返回
+back_button,BACK,返回,戻る,返回
 bluetooth_name,Bluetooth Name,蓝牙名称,Bluetooth名,藍牙名稱
 device_name,Device Name,设备名称,デバイス名,設備名稱
 network_channel,Network Channel,网络频道,ネットワークチャンネル,網路頻道
@@ -683,9 +683,9 @@ only_one_master_config,ONLY ONE MASTER CAN BE CONFIGURED IN YOUR NETWORK,只能�
 level_cleared,CLEARD!,通关！,クリア！,通關！
 level_failed,FAILED!,失败！,失敗！,失敗！
 level_label,LEVEL,关卡,レベル,關卡
-coin_label,Coin,金币,コイン,金幣
-bonus_label,Bonus,奖励,ボーナス,獎勵
-replay_button,Replay,重玩,リプレイ,重玩
+coin_label,COIN,金币,コイン,金幣
+bonus_label,BONUS,奖励,ボーナス,獎勵
+replay_button,REPL,重玩,リプレイ,重玩
 software_upgrade,Software Upgrade,软件升级,ソフトウェアのアップグレード,軟體升級
 wifi_status_unknown,"WiFi Status: Unknown","WiFi 状态：未知","WiFi ステータス: 不明","WiFi 狀態：未知"
 wifi_connected,"✓ WiFi Connected (%s)","✓ WiFi 已连接 (%s)","✓ WiFi 接続済み (%s)","✓ WiFi 已連線 (%s)"
