@@ -91,11 +91,15 @@ func _ready():
 	
 	# Connect button signals
 	focused_index = 0
-	buttons = [
-		targets_button,
-		stages_button,
-		games_button,
-		option_button]
+	buttons = []
+	if targets_button:
+		buttons.append(targets_button)
+	if stages_button:
+		buttons.append(stages_button)
+	if games_button:
+		buttons.append(games_button)
+	if option_button:
+		buttons.append(option_button)
 		
 	# Check return source and set focus accordingly
 	var global_data = get_node_or_null("/root/GlobalData")
@@ -349,6 +353,10 @@ func has_visible_power_off_dialog() -> bool:
 
 func _update_button_styles():
 	for i in range(buttons.size()):
+		if buttons[i] == null:
+			if not DEBUG_DISABLED:
+				print("[Menu] Warning: Button at index ", i, " is null, skipping style update")
+			continue
 		if i == focused_index:
 			buttons[i].add_theme_stylebox_override("normal", buttons[i].get_theme_stylebox("hover"))
 			buttons[i].add_theme_color_override("font_color", buttons[i].get_theme_color("font_hover_color", "Button"))
