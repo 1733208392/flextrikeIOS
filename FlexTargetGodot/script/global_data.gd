@@ -1,7 +1,7 @@
 extends Node
 
 const DEBUG_DISABLED = true  # Set to true to disable debug prints for production
-const VERSION = "1.0.1"  # Software version for BLE query response
+const VERSION = "1.0.2"  # Software version for BLE query response
 const OTA_USERAPP_DIR = "/srv/www/userapp"  # Directory for OTA mode and file downloads
 #const OTA_USERAPP_DIR = "/Users/kai/otatest"  # Directory for OTA mode and file downloads
 
