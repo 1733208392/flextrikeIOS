@@ -15,7 +15,7 @@ config/version="1.0"
 run/main_scene="uid://d0r0jmdp4nky3"
 config/features=PackedStringArray("4.5", "GL Compatibility")
 run/max_fps=60
-boot_splash/image="uid://6e1rciduyw52"
+boot_splash/image="uid://c5yiyhtu53guh"
 config/icon="uid://df7hy2vqfeny8"
 
 [audio]
@@ -36,6 +36,7 @@ StatusBar="*res://scene/StatusBar.tscn"
 
 window/size/viewport_width=720
 window/size/viewport_height=1280
+window/size/mode=3
 window/size/resizable=false
 window/stretch/mode="viewport"
 window/handheld/orientation=1

@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://dqgyq41g481x7"]
+[gd_scene load_steps=11 format=3 uid="uid://dqgyq41g481x7"]
 
 [ext_resource type="Script" uid="uid://kb26w28c7sl8" path="res://scene/sub_menu/sub_menu.gd" id="1_vny3a"]
 [ext_resource type="Theme" uid="uid://cdynjfvdtavlt" path="res://scene/main_menu/main_menu_button_theme.tres" id="2_8cfuc"]
@@ -7,7 +7,6 @@
 [ext_resource type="Texture2D" uid="uid://dfjbc3ilirl4q" path="res://asset/ipsc-icon.png" id="4_8cfuc"]
 [ext_resource type="Texture2D" uid="uid://bf21nuas7q0y2" path="res://asset/idpa-icon.png.png" id="5_8cfuc"]
 [ext_resource type="Texture2D" uid="uid://114du5j7n7a5" path="res://asset/drill-history-icon.png" id="6_8cfuc"]
-[ext_resource type="FontFile" uid="uid://bt41csp00hdy7" path="res://font/Inter/Inter-VariableFont_opsz,wght.ttf" id="7_lt21p"]
 [ext_resource type="PackedScene" uid="uid://bgnvqj8xi6u7e" path="res://scene/volumn.tscn" id="8_kvq8n"]
 [ext_resource type="AudioStream" uid="uid://i6eh50aq5t66" path="res://audio/Final Battle - For Love.ogg" id="9_audio"]
 
@@ -168,15 +167,16 @@ text = "IDPA DRILL HISTORY"
 
 [node name="Label" type="Label" parent="."]
 layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.5
+anchors_preset = 12
 anchor_top = 1.0
-anchor_right = 0.5
+anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -200.0
-offset_top = -50.0
-offset_right = 200.0
-theme_override_fonts/font = ExtResource("7_lt21p")
+offset_top = -60.0
+offset_bottom = -26.0
+grow_horizontal = 2
+grow_vertical = 0
+theme = ExtResource("2_8cfuc")
+theme_override_font_sizes/font_size = 24
 horizontal_alignment = 1
 vertical_alignment = 2
 

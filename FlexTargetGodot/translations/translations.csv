@@ -66,9 +66,9 @@ restart,RESTART,再来一局,再来一局,再來一局
 replay,REPLAY & REVIEW,回放检查,再放检查,回放檢查
 clear,Clear Shots,清屏,清屏,清螢幕
 leaderboard,Leaderboard,排行榜,排行トレンド,排行榜
-no,No.,序号,序号,序號
+no,NO.,序号,序号,序號
 your_score,Your Score:,你的分数：,あなたのスコア：,你的分數：
-time,Time,时长,時間長,時長
+time,TIME,时长,時間長,時長
 
 custom_target_instruction,Please use the mobile App to send your own target image.,请使用手机应用上传自定义靶图像。,モバイルアプリを使用して独自のターゲット画像を送信してください。,請使用手機應用上傳自訂靶圖像。
 
@@ -676,8 +676,8 @@ points_down,"Points Down", "失分", "ポイントダウン", "失分"
 SUCCESS,"SUCCESS","成功","成功","成功"
 FAILURE,"FAILURE","失败","失敗","失敗"
 first_shot,"FIRST SHOT","首发:","初弾:","首發:"
-idpa_drill_history,IDPA Drill History,IDPA 训练记录,IDPA 訓練履歴,IDPA 訓練記錄
-down_points,Downpts,扣分,減点,扣分
+idpa_drill_history,IDPA DRILL HIST,IDPA 训练记录,IDPA 訓練履歴,IDPA 訓練記錄
+down_points,DOWNPTS,扣分,減点,扣分
 dismiss,Dismiss,取消,キャンセル,取消
 only_one_master_config,ONLY ONE MASTER CAN BE CONFIGURED IN YOUR NETWORK,只能配置一个主设备在您的网络中,ネットワークで設定できるマスターは1つだけです,只能配置一個主設備在您的網路中
 level_cleared,CLEARD,通关！,クリア！,通關！

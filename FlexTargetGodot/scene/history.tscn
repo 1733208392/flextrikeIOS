@@ -28,6 +28,8 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_top = 80.0
+offset_bottom = 80.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/margin_left = 20
@@ -48,7 +50,7 @@ theme_override_constants/separation = 10
 layout_mode = 2
 theme = ExtResource("3_cer4d")
 theme_override_font_sizes/font_size = 48
-text = "Drill History"
+text = "IPSC DRILL HIST"
 horizontal_alignment = 1
 vertical_alignment = 1
 

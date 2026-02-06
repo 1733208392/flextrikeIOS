@@ -2,6 +2,7 @@ extends Control
 
 # Performance optimization - disable debug prints in production
 const DEBUG_PRINTS = false
+const MAIN_MENU_BUTTON_THEME = preload("res://scene/main_menu/main_menu_button_theme.tres")
 
 @onready var list_container = $MarginContainer/VBoxContainer/ScrollContainer/ListContainer
 @onready var back_button = $MarginContainer/VBoxContainer/BackButton
@@ -388,6 +389,7 @@ func populate_list():
 		no_label.size_flags_horizontal = 3
 		no_label.text = str(i + 1)  # Use sorted position: 1, 2, 3, etc.
 		no_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		no_label.theme = MAIN_MENU_BUTTON_THEME
 		no_label.add_theme_font_size_override("font_size", 24)
 		item.add_child(no_label)
 
@@ -402,6 +404,7 @@ func populate_list():
 		time_label.size_flags_horizontal = 3
 		time_label.text = data["raw_time"]
 		time_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		time_label.theme = MAIN_MENU_BUTTON_THEME
 		time_label.add_theme_font_size_override("font_size", 24)
 		item.add_child(time_label)
 
@@ -416,6 +419,7 @@ func populate_list():
 		points_label.size_flags_horizontal = 3
 		points_label.text = data["down_points"]
 		points_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		points_label.theme = MAIN_MENU_BUTTON_THEME
 		points_label.add_theme_font_size_override("font_size", 24)
 		item.add_child(points_label)
 
@@ -430,6 +434,7 @@ func populate_list():
 		fast_label.size_flags_horizontal = 3
 		fast_label.text = data["fastest_shot"]
 		fast_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		fast_label.theme = MAIN_MENU_BUTTON_THEME
 		fast_label.add_theme_font_size_override("font_size", 24)
 		item.add_child(fast_label)
 
@@ -444,6 +449,7 @@ func populate_list():
 		score_label.size_flags_horizontal = 3
 		score_label.text = data["total_score"] + "↑"
 		score_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		score_label.theme = MAIN_MENU_BUTTON_THEME
 		score_label.add_theme_font_size_override("font_size", 24)
 		item.add_child(score_label)
 
@@ -575,29 +581,48 @@ func _on_item_hover_enter(item: HBoxContainer):
 	item.move_child(panel, 0)  # Move to back
 	# Size the panel to cover the entire item
 	call_deferred("_size_panel", panel, item)
+	
+	# Apply hover styles to labels
+	for child in item.get_children():
+		if child is Label:
+			child.add_theme_color_override("font_color", child.get_theme_color("font_hover_color", "Button"))
+			child.add_theme_font_override("font", child.get_theme_font("font_hover", "Button"))
+			child.add_theme_color_override("icon_normal_color", child.get_theme_color("icon_hover_color", "Button"))
 
 func _on_item_hover_exit(item: HBoxContainer):
 	# Remove visual feedback when not hovering
 	var panel = item.get_node_or_null("HighlightPanel")
 	if panel:
 		panel.queue_free()
+	
+	# Remove hover styles from labels
+	for child in item.get_children():
+		if child is Label:
+			child.remove_theme_color_override("font_color")
+			child.remove_theme_font_override("font")
+			child.remove_theme_color_override("icon_normal_color")
 
 func _on_item_focus_enter(item: HBoxContainer):
 	# Add visual feedback when focusing on items
 	var panel = Panel.new()
 	panel.name = "FocusPanel"
-	var style = StyleBoxFlat.new()
-	style.bg_color = Color(0.4, 0.4, 0.4, 0.7)  # Semi-transparent darker background for focus
-	style.border_width_left = 3
-	style.border_width_right = 3
-	style.border_width_top = 3
-	style.border_width_bottom = 3
-	style.border_color = Color(1.0, 1.0, 1.0, 1.0)  # White border for focus
-	style.corner_radius_top_left = 5
-	style.corner_radius_top_right = 5
-	style.corner_radius_bottom_left = 5
-	style.corner_radius_bottom_right = 5
-	panel.add_theme_stylebox_override("panel", style)
+	var style = MAIN_MENU_BUTTON_THEME.get_stylebox("hover", "Button")
+	if style:
+		panel.add_theme_stylebox_override("panel", style)
+	else:
+		# Fallback to default style if theme doesn't have hover
+		var fallback_style = StyleBoxFlat.new()
+		fallback_style.bg_color = Color(0.4, 0.4, 0.4, 0.7)
+		fallback_style.border_width_left = 3
+		fallback_style.border_width_right = 3
+		fallback_style.border_width_top = 3
+		fallback_style.border_width_bottom = 3
+		fallback_style.border_color = Color(1.0, 1.0, 1.0, 1.0)
+		fallback_style.corner_radius_top_left = 5
+		fallback_style.corner_radius_top_right = 5
+		fallback_style.corner_radius_bottom_left = 5
+		fallback_style.corner_radius_bottom_right = 5
+		panel.add_theme_stylebox_override("panel", fallback_style)
 	
 	# Remove existing focus highlight if any
 	var existing_panel = item.get_node_or_null("FocusPanel")
@@ -608,12 +633,26 @@ func _on_item_focus_enter(item: HBoxContainer):
 	item.move_child(panel, 0)  # Move to back
 	# Size the panel to cover the entire item
 	call_deferred("_size_panel", panel, item)
+	
+	# Apply hover styles to labels
+	for child in item.get_children():
+		if child is Label:
+			child.add_theme_color_override("font_color", child.get_theme_color("font_hover_color", "Button"))
+			child.add_theme_font_override("font", child.get_theme_font("font_hover", "Button"))
+			child.add_theme_color_override("icon_normal_color", child.get_theme_color("icon_hover_color", "Button"))
 
 func _on_item_focus_exit(item: HBoxContainer):
 	# Remove visual feedback when not focusing
 	var panel = item.get_node_or_null("FocusPanel")
 	if panel:
 		panel.queue_free()
+	
+	# Remove hover styles from labels
+	for child in item.get_children():
+		if child is Label:
+			child.remove_theme_color_override("font_color")
+			child.remove_theme_font_override("font")
+			child.remove_theme_color_override("icon_normal_color")
 
 func _on_item_resized(item: HBoxContainer):
 	# Update panel sizes when item is resized

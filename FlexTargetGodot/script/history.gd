@@ -900,7 +900,7 @@ func get_localized_title_text() -> String:
 		"ja":
 			return "訓練履歴"
 		_:
-			return "Drill History"
+			return "IPSC DRILL HIST"
 
 func get_localized_no_text() -> String:
 	# Create localized text for "No" based on locale
@@ -913,7 +913,7 @@ func get_localized_no_text() -> String:
 		"ja":
 			return "番号"
 		_:
-			return "No"
+			return "NO"
 
 func get_localized_fastest_shot_text() -> String:
 	# Create localized short text for "Fastest Shot" based on locale
@@ -926,7 +926,7 @@ func get_localized_fastest_shot_text() -> String:
 		"ja":
 			return "最速"
 		_:
-			return "F'Shot"
+			return "F'SPLIT"
 
 func get_localized_back_text() -> String:
 	# Create localized text for "Back" based on locale
