@@ -80,10 +80,10 @@ _data = {
 }
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_knpln"]
-radius = 79.00633
+radius = 123.32072
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_s8c5b"]
-size = Vector2(319, 519)
+size = Vector2(360, 541)
 
 [node name="Mosambique" type="Area2D"]
 collision_layer = 7
@@ -106,7 +106,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="TargetSprite" type="Sprite2D" parent="."]
-scale = Vector2(1.5, 1.5)
+scale = Vector2(1.7, 1.7)
 texture = ExtResource("2_tqo6r")
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
@@ -115,17 +115,18 @@ libraries = {
 }
 
 [node name="head" type="CollisionShape2D" parent="."]
-position = Vector2(-29, -314)
+position = Vector2(-41, -388)
 shape = SubResource("CircleShape2D_knpln")
 
 [node name="torso" type="CollisionShape2D" parent="."]
-position = Vector2(-24.5, 36.5)
+position = Vector2(-34, 25.5)
 shape = SubResource("RectangleShape2D_s8c5b")
 
 [node name="ShotTimer" parent="." instance=ExtResource("3_s8c5b")]
 visible = false
 
 [node name="drill_complete_overlay" parent="." instance=ExtResource("4_u875l")]
+offset_top = 320.0
 offset_right = 0.0
-offset_bottom = 0.0
+offset_bottom = 320.0
 pivot_offset = Vector2(-102, 186)

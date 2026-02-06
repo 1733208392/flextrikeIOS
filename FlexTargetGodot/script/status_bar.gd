@@ -6,11 +6,9 @@ const WIFI_IDLE := preload("res://asset/wifi.fill.idle.png")
 const WIFI_CONNECTED := preload("res://asset/wifi.fill.connect.png")
 const NET_IDLE := preload("res://asset/connectivity.idle.png")
 const NET_CONNECTED := preload("res://asset/connectivity.active.png")
-const BT_MASTER := preload("res://asset/bluetooth-icon.png")  # Placeholder, replace with actual Bluetooth master icon
 
 @onready var wifi_icon: TextureRect = get_node_or_null("Root/Panel/HBoxContainer/WifiIcon")
 @onready var network_icon: TextureRect = get_node_or_null("Root/Panel/HBoxContainer/ConnectivityIcon")
-@onready var bluetooth_icon: TextureRect = get_node_or_null("Root/Panel/HBoxContainer/BluetoothIcon")
 @onready var root_control: Control = get_node_or_null("Root")
 
 func _ready() -> void:
@@ -18,7 +16,7 @@ func _ready() -> void:
 	add_to_group("status_bar")
 	_set_wifi_connected(false)
 	_set_network_started(false)
-	_set_bluetooth_master(false)
+
 	var signal_bus = get_node_or_null("/root/SignalBus")
 	if signal_bus:
 		if not signal_bus.wifi_connected.is_connected(_on_wifi_connected):
@@ -107,15 +105,6 @@ func _set_network_started(connected: bool) -> void:
 	if network_icon:
 		network_icon.texture = NET_CONNECTED if connected else NET_IDLE
 
-func _set_bluetooth_master(is_master: bool) -> void:
-	# print("StatusBar: _set_bluetooth_master called, is_master=", is_master)
-	if bluetooth_icon:
-		if is_master:
-			bluetooth_icon.texture = BT_MASTER
-			bluetooth_icon.visible = true
-		else:
-			bluetooth_icon.visible = false
-
 func _on_netlink_status_response(result, response_code, headers, body):
 	# print("StatusBar: netlink_status response - code:", response_code)
 	# Forward to GlobalData to parse and store
@@ -141,8 +130,4 @@ func _on_netlink_status_loaded():
 		_set_network_started(started)
 		# print("StatusBar: netlink started=", started)
 		
-		# Set Bluetooth status based on work_mode field
-		var work_mode = str(s.get("work_mode", "slave")).to_lower()
-		var is_master = (work_mode == "master")
-		_set_bluetooth_master(is_master)
-		# print("StatusBar: work_mode=", work_mode, ", is_master=", is_master)
+

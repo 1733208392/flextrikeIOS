@@ -220,18 +220,20 @@ func _spawn_bullet_hole(local_position: Vector2):
 			print("[Mozambique] MultiMesh instance pool exhausted; skipping blood splatter spawn")
 		return
 	
-	# Create transform with random rotation and scale (like custom_target)
+	# Create transform with random rotation and scale
 	var t = _reusable_transform
 	var scale_factor = randf_range(0.5, 1.2)  # Same range as before
 	var rotation = randf() * 2 * PI  # Full 360° rotation
 	
-	# Create transform with random rotation and scale
-	t = Transform2D(rotation, local_position)
-	t = t.scaled(Vector2(scale_factor, scale_factor))
+	# Build transform properly: rotation matrix with scale, then set origin
+	var cos_r = cos(rotation)
+	var sin_r = sin(rotation)
+	t.x = Vector2(cos_r * scale_factor, sin_r * scale_factor)
+	t.y = Vector2(-sin_r * scale_factor, cos_r * scale_factor)
 	
-	# Add random position offset
+	# Add random position offset to the local position
 	var offset = Vector2(randf_range(-10, 10), randf_range(-10, 10))
-	t.origin += offset
+	t.origin = local_position + offset
 	
 	# Set the instance transform
 	bullet_hole_multimesh.multimesh.set_instance_transform_2d(active_instance_count, t)
@@ -272,13 +274,21 @@ func _check_drill_completion():
 			drill_complete = true
 			success = false
 	elif total_shots == 3:
-		# Third shot must be in head
+		# Third shot must be in head (pattern: 2 torso + 1 head)
 		if shots_in_head == 1 and shots_in_torso == 2:
 			# Perfect sequence - SUCCESS
 			drill_complete = true
 			success = true
+		elif shots_in_head == 0 and shots_in_torso == 3:
+			# All three shots in torso - FAILURE
+			if not DEBUG_DISABLED:
+				print("[Mozambique] FAILURE: All 3 shots in torso (expected 2 torso + 1 head)")
+			drill_complete = true
+			success = false
 		else:
-			# Third shot not in head or wrong pattern - FAILURE
+			# Any other pattern - FAILURE
+			if not DEBUG_DISABLED:
+				print("[Mozambique] FAILURE: Invalid pattern (head: ", shots_in_head, " torso: ", shots_in_torso, ")")
 			drill_complete = true
 			success = false
 	
@@ -292,23 +302,6 @@ func _finish_drill(success: bool):
 	drill_success = success
 	drill_duration = (Time.get_ticks_msec() / 1000.0) - drill_start_time
 	
-	# Stop the game session when drill finishes
-	if has_node("/root/HttpService"):
-		var http_service = get_node("/root/HttpService")
-		if http_service.has_method("stop_game"):
-			var callback = func(_result, response_code, _headers, _body):
-				if not DEBUG_DISABLED:
-					print("[Mozambique] Game stopped response - Code: ", response_code)
-			http_service.stop_game(callback)
-			if not DEBUG_DISABLED:
-				print("[Mozambique] Called HttpService.stop_game() at drill finish")
-		else:
-			if not DEBUG_DISABLED:
-				print("[Mozambique] HttpService does not have stop_game method")
-	else:
-		if not DEBUG_DISABLED:
-			print("[Mozambique] HttpService autoload not found")
-	
 	# Disable bullet spawning
 	# var ws_listener = get_node_or_null("/root/WebSocketListener")
 	# if ws_listener:
@@ -316,6 +309,9 @@ func _finish_drill(success: bool):
 	
 	if not DEBUG_DISABLED:
 		print("[Mozambique] Drill finished! Success: ", success, " Duration: ", drill_duration)
+	
+	# Wait a frame to allow bullet visual effects to render before showing overlay
+	await get_tree().process_frame
 	
 	# Show stats overlay
 	_show_stats_overlay()
@@ -332,6 +328,9 @@ func _finish_drill(success: bool):
 
 func _show_stats_overlay():
 	"""Display the stats overlay with drill results"""
+	if not DEBUG_DISABLED:
+		print("[Mozambique] _show_stats_overlay called - drill_success: ", drill_success)
+	
 	if not drill_complete_overlay:
 		if not DEBUG_DISABLED:
 			print("[Mozambique] ERROR: drill_complete_overlay not found")
@@ -339,31 +338,52 @@ func _show_stats_overlay():
 	
 	if drill_success:
 		# Show success with detailed stats
-		var result_label = drill_complete_overlay.get_node_or_null("MarginContainer/VBoxContainer/ResultLabel")
+		if not DEBUG_DISABLED:
+			print("[Mozambique] Showing SUCCESS overlay with stats")
+		var result_label = drill_complete_overlay.get_node_or_null("MarginContainer/VBoxContainer/HBoxContainer/ResultLabel")
 		var duration_label = drill_complete_overlay.get_node_or_null("MarginContainer/VBoxContainer/DurationLabel")
 		var first_shot_label = drill_complete_overlay.get_node_or_null("MarginContainer/VBoxContainer/FirstShotLabel")
 		var fastest_shot_label = drill_complete_overlay.get_node_or_null("MarginContainer/VBoxContainer/FastestShotLabel")
 		
 		if result_label:
 			result_label.text = tr("SUCCESS")
+			result_label.visible = true
 		
 		if duration_label:
 			duration_label.text = tr("duration") + ": %.2f s" % drill_duration
+			duration_label.visible = true
 		
 		if first_shot_label:
 			var first_shot_delay = first_shot_time - drill_start_time
 			first_shot_label.text = tr("first_shot") + ": %.2f s" % first_shot_delay
+			first_shot_label.visible = true
 		
 		if fastest_shot_label:
 			if fastest_shot_interval < 999.0:
 				fastest_shot_label.text = tr("fastest_shot") + ": %.2f s" % fastest_shot_interval
 			else:
 				fastest_shot_label.text = tr("fastest_shot") + ": N/A"
+			fastest_shot_label.visible = true
 	else:
 		# Show failure - no detailed stats
-		var result_label = drill_complete_overlay.get_node_or_null("MarginContainer/VBoxContainer/ResultLabel")
+		if not DEBUG_DISABLED:
+			print("[Mozambique] Showing FAILURE overlay")
+		var result_label = drill_complete_overlay.get_node_or_null("MarginContainer/VBoxContainer/HBoxContainer/ResultLabel")
 		if result_label:
 			result_label.text = tr("FAILURE")
+			result_label.visible = true
+		
+		# Hide the stats labels on failure
+		var duration_label = drill_complete_overlay.get_node_or_null("MarginContainer/VBoxContainer/DurationLabel")
+		var first_shot_label = drill_complete_overlay.get_node_or_null("MarginContainer/VBoxContainer/FirstShotLabel")
+		var fastest_shot_label = drill_complete_overlay.get_node_or_null("MarginContainer/VBoxContainer/FastestShotLabel")
+		
+		if duration_label:
+			duration_label.visible = false
+		if first_shot_label:
+			first_shot_label.visible = false
+		if fastest_shot_label:
+			fastest_shot_label.visible = false
 	
 	# Set overlay z_index to render on top of bullet holes
 	drill_complete_overlay.z_index = 2
@@ -403,7 +423,7 @@ func _restart_drill():
 
 func _start_countdown_display():
 	"""Start displaying countdown on overlay"""
-	var countdown_label = drill_complete_overlay.get_node_or_null("MarginContainer/VBoxContainer/CountdownLabel")
+	var countdown_label = drill_complete_overlay.get_node_or_null("MarginContainer/VBoxContainer/HBoxContainer/CountdownLabel")
 	if not countdown_label:
 		if not DEBUG_DISABLED:
 			print("[Mozambique] CountdownLabel not found in overlay")
@@ -454,23 +474,6 @@ func _on_shot_timer_ready(delay: float):
 	"""Handle shot timer ready signal - delay is the random delay in seconds"""
 	if not DEBUG_DISABLED:
 		print("[Mozambique] Shot timer ready! Delay: %.2f seconds" % delay)
-	
-	# Start the game session when the beep sounds
-	if has_node("/root/HttpService"):
-		var http_service = get_node("/root/HttpService")
-		if http_service.has_method("start_game"):
-			var callback = func(_result, response_code, _headers, _body):
-				if not DEBUG_DISABLED:
-					print("[Mozambique] Game started response - Code: ", response_code)
-			http_service.start_game(callback)
-			if not DEBUG_DISABLED:
-				print("[Mozambique] Called HttpService.start_game()")
-		else:
-			if not DEBUG_DISABLED:
-				print("[Mozambique] HttpService does not have start_game method")
-	else:
-		if not DEBUG_DISABLED:
-			print("[Mozambique] HttpService autoload not found")
 	
 	# Activate drill (shot timer will be hidden when first shot is detected)
 	drill_in_progress = true
@@ -566,23 +569,6 @@ func start_drill():
 	"""Start the mozambique drill"""
 	if not DEBUG_DISABLED:
 		print("[Mozambique] Starting drill...")
-	
-	# Stop any ongoing game session
-	if has_node("/root/HttpService"):
-		var http_service = get_node("/root/HttpService")
-		if http_service.has_method("stop_game"):
-			var callback = func(_result, response_code, _headers, _body):
-				if not DEBUG_DISABLED:
-					print("[Mozambique] Game stopped response - Code: ", response_code)
-			http_service.stop_game(callback)
-			if not DEBUG_DISABLED:
-				print("[Mozambique] Called HttpService.stop_game()")
-		else:
-			if not DEBUG_DISABLED:
-				print("[Mozambique] HttpService does not have stop_game method")
-	else:
-		if not DEBUG_DISABLED:
-			print("[Mozambique] HttpService autoload not found")
 	
 	shots_in_torso = 0
 	shots_in_head = 0
