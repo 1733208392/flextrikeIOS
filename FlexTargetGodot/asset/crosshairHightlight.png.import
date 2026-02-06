@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c5yiyhtu53guh"
-path="res://.godot/imported/splash.png-b848420bfaf32d81b2e8525b755ac186.ctex"
+uid="uid://de4ygt8o4xskl"
+path="res://.godot/imported/crosshairHightlight.png-3b3406a6f7c19445b7ab4f04ea24430a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://asset/splash.png"
-dest_files=["res://.godot/imported/splash.png-b848420bfaf32d81b2e8525b755ac186.ctex"]
+source_file="res://asset/crosshairHightlight.png"
+dest_files=["res://.godot/imported/crosshairHightlight.png-3b3406a6f7c19445b7ab4f04ea24430a.ctex"]
 
 [params]
 

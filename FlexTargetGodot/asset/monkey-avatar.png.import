@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c5yiyhtu53guh"
-path="res://.godot/imported/splash.png-b848420bfaf32d81b2e8525b755ac186.ctex"
+uid="uid://c8bqp3fcyjeo1"
+path="res://.godot/imported/monkey-avatar.png-731c15109163b9f3ab602f7b8bed72e2.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://asset/splash.png"
-dest_files=["res://.godot/imported/splash.png-b848420bfaf32d81b2e8525b755ac186.ctex"]
+source_file="res://asset/monkey-avatar.png"
+dest_files=["res://.godot/imported/monkey-avatar.png-731c15109163b9f3ab602f7b8bed72e2.ctex"]
 
 [params]
 

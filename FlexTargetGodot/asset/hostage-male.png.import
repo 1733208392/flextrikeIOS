@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c5yiyhtu53guh"
-path="res://.godot/imported/splash.png-b848420bfaf32d81b2e8525b755ac186.ctex"
+uid="uid://8tsjq12byejl"
+path="res://.godot/imported/hostage-male.png-c87f439bed4c667a9347ec2e88335b9c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://asset/splash.png"
-dest_files=["res://.godot/imported/splash.png-b848420bfaf32d81b2e8525b755ac186.ctex"]
+source_file="res://asset/hostage-male.png"
+dest_files=["res://.godot/imported/hostage-male.png-c87f439bed4c667a9347ec2e88335b9c.ctex"]
 
 [params]
 

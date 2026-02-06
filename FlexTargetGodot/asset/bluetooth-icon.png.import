@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c5yiyhtu53guh"
-path="res://.godot/imported/splash.png-b848420bfaf32d81b2e8525b755ac186.ctex"
+uid="uid://c08kv7n12txx5"
+path="res://.godot/imported/bluetooth-icon.png-9cddd1df29e1b9983b28db6647e5b45c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://asset/splash.png"
-dest_files=["res://.godot/imported/splash.png-b848420bfaf32d81b2e8525b755ac186.ctex"]
+source_file="res://asset/bluetooth-icon.png"
+dest_files=["res://.godot/imported/bluetooth-icon.png-9cddd1df29e1b9983b28db6647e5b45c.ctex"]
 
 [params]
 

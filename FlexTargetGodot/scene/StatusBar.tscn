@@ -1,7 +1,8 @@
-[gd_scene load_steps=4 format=3 uid="uid://01k74eejvx3c"]
+[gd_scene load_steps=5 format=3 uid="uid://01k74eejvx3c"]
 
 [ext_resource type="Texture2D" uid="uid://be3d6krkhtcf2" path="res://asset/wifi.fill.idle.png" id="1"]
 [ext_resource type="Texture2D" uid="uid://b2xtcro40awy8" path="res://asset/connectivity.idle.png" id="2"]
+[ext_resource type="Texture2D" uid="uid://c08kv7n12txx5" path="res://asset/bluetooth-icon.png" id="2_omxcs"]
 [ext_resource type="Script" uid="uid://u33sfhovnmc6" path="res://script/status_bar.gd" id="3"]
 
 [node name="StatusBar" type="CanvasLayer"]
@@ -36,6 +37,12 @@ offset_bottom = -12.0
 grow_horizontal = 2
 grow_vertical = 2
 alignment = 2
+
+[node name="BluetoothIcon" type="TextureRect" parent="Root/Panel/HBoxContainer"]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+texture = ExtResource("2_omxcs")
+stretch_mode = 3
 
 [node name="WifiIcon" type="TextureRect" parent="Root/Panel/HBoxContainer"]
 custom_minimum_size = Vector2(48, 48)
