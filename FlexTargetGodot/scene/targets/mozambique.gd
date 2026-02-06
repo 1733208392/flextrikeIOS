@@ -2,28 +2,28 @@ extends Area2D
 
 const DEBUG_DISABLED = false
 
+# Bullet system - GPU instanced MultiMesh system (like custom_target)
+var bullet_hole_multimesh: MultiMeshInstance2D = null
+var bullet_hole_texture: Texture2D = null
+var max_instances: int = 12
+var active_instance_count: int = 0
+
+# Reusable Transform2D to avoid allocating a new Transform each shot
+var _reusable_transform: Transform2D = Transform2D()
+
+# Bullet hole texture for Mozambique (blood splatter)
+const BULLET_HOLE_TEXTURE_PATH = "res://asset/blood-splatter.png"
+
+# Bullet visual effect
+const BulletScene = preload("res://scene/bullet.tscn")
+
+# Sound throttling for impact SFX
+var last_sound_time: float = 0.0
+var sound_cooldown: float = 0.05
+
 # Animation state tracking
 var is_disappearing: bool = false
 var last_click_frame = -1
-
-# Bullet system
-const BulletScene = preload("res://scene/bullet.tscn")
-const BulletHoleScene = preload("res://scene/bullet_hole.tscn")
-
-# Bullet hole pool for performance optimization
-var bullet_hole_pool: Array[Node] = []
-var pool_size: int = 12
-var active_bullet_holes: Array[Node] = []
-
-# Effect throttling for performance optimization
-var last_sound_time: float = 0.0
-var last_smoke_time: float = 0.0
-var last_impact_time: float = 0.0
-var sound_cooldown: float = 0.05
-var smoke_cooldown: float = 0.08
-var impact_cooldown: float = 0.06
-var max_concurrent_sounds: int = 1
-var active_sounds: int = 0
 
 # Scoring system
 var total_score: int = 0
@@ -53,8 +53,8 @@ func _ready():
 	# Connect the input_event signal to detect mouse clicks
 	input_event.connect(_on_input_event)
 	
-	# Initialize bullet hole pool
-	initialize_bullet_hole_pool()
+	# Initialize GPU-instanced MultiMesh bullet hole system
+	initialize_bullet_hole_multimesh()
 	
 	# Connect to WebSocket bullet hit signal
 	var ws_listener = get_node_or_null("/root/WebSocketListener")
@@ -208,31 +208,38 @@ func _is_point_in_torso(point: Vector2) -> bool:
 	return false
 
 func _spawn_bullet_hole(local_position: Vector2):
-	"""Spawn a bullet hole at the specified local position using object pool"""
-	var bullet_hole = _get_bullet_hole_from_pool()
-	if bullet_hole and bullet_hole.has_method("set_hole_position"):
-		bullet_hole.set_hole_position(local_position)
-		bullet_hole.visible = true
-		bullet_hole.z_index = 1
-		
-		if bullet_hole not in active_bullet_holes:
-			active_bullet_holes.append(bullet_hole)
-		
+	"""Spawn a blood splatter at the specified local position using GPU instancing"""
+	if not bullet_hole_multimesh or not bullet_hole_multimesh.multimesh:
 		if not DEBUG_DISABLED:
-			print("[Mozambique] Bullet hole spawned at local position: ", local_position)
-
-func _get_bullet_hole_from_pool() -> Node:
-	"""Get a bullet hole from the pool or create new if pool is empty"""
-	if bullet_hole_pool.size() > 0:
-		var hole = bullet_hole_pool.pop_back()
-		return hole
-	else:
+			print("[Mozambique] MultiMesh not initialized; skipping blood splatter spawn")
+		return
+	
+	# Check if we have room for another instance
+	if active_instance_count >= max_instances:
 		if not DEBUG_DISABLED:
-			print("[Mozambique] Pool exhausted, creating new bullet hole")
-		var bullet_hole = BulletHoleScene.instantiate()
-		add_child(bullet_hole)
-		bullet_hole.z_index = 1
-		return bullet_hole
+			print("[Mozambique] MultiMesh instance pool exhausted; skipping blood splatter spawn")
+		return
+	
+	# Create transform with random rotation and scale (like custom_target)
+	var t = _reusable_transform
+	var scale_factor = randf_range(0.5, 1.2)  # Same range as before
+	var rotation = randf() * 2 * PI  # Full 360° rotation
+	
+	# Create transform with random rotation and scale
+	t = Transform2D(rotation, local_position)
+	t = t.scaled(Vector2(scale_factor, scale_factor))
+	
+	# Add random position offset
+	var offset = Vector2(randf_range(-10, 10), randf_range(-10, 10))
+	t.origin += offset
+	
+	# Set the instance transform
+	bullet_hole_multimesh.multimesh.set_instance_transform_2d(active_instance_count, t)
+	bullet_hole_multimesh.multimesh.visible_instance_count = active_instance_count + 1
+	active_instance_count += 1
+	
+	if not DEBUG_DISABLED:
+		print("[Mozambique] Blood splatter spawned at local position: ", local_position, " (instance ", active_instance_count, ")")
 
 func _check_drill_completion():
 	"""Check if drill is complete and display results"""
@@ -354,7 +361,7 @@ func _show_stats_overlay():
 				fastest_shot_label.text = tr("fastest_shot") + ": N/A"
 	else:
 		# Show failure - no detailed stats
-		var result_label = drill_complete_overlay.get_node_or_null("VBoxContainer/MarginContainer/VBoxContainer/ResultLabel")
+		var result_label = drill_complete_overlay.get_node_or_null("MarginContainer/VBoxContainer/ResultLabel")
 		if result_label:
 			result_label.text = tr("FAILURE")
 	
@@ -396,7 +403,7 @@ func _restart_drill():
 
 func _start_countdown_display():
 	"""Start displaying countdown on overlay"""
-	var countdown_label = drill_complete_overlay.get_node_or_null("VBoxContainer/MarginContainer/VBoxContainer/CountdownLabel")
+	var countdown_label = drill_complete_overlay.get_node_or_null("MarginContainer/VBoxContainer/CountdownLabel")
 	if not countdown_label:
 		if not DEBUG_DISABLED:
 			print("[Mozambique] CountdownLabel not found in overlay")
@@ -486,44 +493,74 @@ func _on_websocket_bullet_hit(pos: Vector2, a: int = 0, t: int = 0):
 	handle_websocket_bullet_hit_fast(pos)
 
 func _reset_bullet_hole_pool():
-	"""Reset the bullet hole pool by hiding all active holes"""
-	for hole in active_bullet_holes:
-		if is_instance_valid(hole):
-			hole.visible = false
-			bullet_hole_pool.append(hole)
-	
-	active_bullet_holes.clear()
+	"""Reset the MultiMesh instance count"""
+	if bullet_hole_multimesh and bullet_hole_multimesh.multimesh:
+		bullet_hole_multimesh.multimesh.visible_instance_count = 0
+		active_instance_count = 0
 	
 	if not DEBUG_DISABLED:
-		print("[Mozambique] Bullet hole pool reset")
+		print("[Mozambique] MultiMesh instances reset")
 
-func initialize_bullet_hole_pool():
-	"""Pre-instantiate bullet holes for performance optimization"""
-	if not DEBUG_DISABLED:
-		print("[Mozambique] Initializing bullet hole pool with size: ", pool_size)
+func initialize_bullet_hole_multimesh():
+	"""Initialize GPU-instanced MultiMesh bullet hole system"""
 	
-	if not BulletHoleScene:
+	# Load blood splatter texture
+	bullet_hole_texture = load(BULLET_HOLE_TEXTURE_PATH)
+	if not bullet_hole_texture:
 		if not DEBUG_DISABLED:
-			print("[Mozambique] ERROR: BulletHoleScene not found for pool initialization!")
+			print("[Mozambique] ERROR: Failed to load blood splatter texture!")
 		return
 	
-	# Clear existing pool
-	for hole in bullet_hole_pool:
-		if is_instance_valid(hole):
-			hole.queue_free()
-	bullet_hole_pool.clear()
-	active_bullet_holes.clear()
+	# Create MultiMeshInstance2D
+	bullet_hole_multimesh = MultiMeshInstance2D.new()
+	add_child(bullet_hole_multimesh)
+	bullet_hole_multimesh.z_index = 1
 	
-	# Pre-instantiate bullet holes
-	for i in range(pool_size):
-		var bullet_hole = BulletHoleScene.instantiate()
-		add_child(bullet_hole)
-		bullet_hole.visible = false
-		bullet_hole.z_index = 1
-		bullet_hole_pool.append(bullet_hole)
+	# Create and configure MultiMesh
+	var multimesh = MultiMesh.new()
+	multimesh.transform_format = MultiMesh.TRANSFORM_2D
+	multimesh.instance_count = max_instances
+	multimesh.visible_instance_count = 0
+	
+	# Create mesh with blood splatter texture
+	var mesh = create_bullet_hole_mesh(bullet_hole_texture)
+	multimesh.mesh = mesh
+	
+	bullet_hole_multimesh.multimesh = multimesh
+	
+	# Try to propagate material/texture to the instance for compatibility across engine versions
+	if mesh and mesh.material:
+		for prop in bullet_hole_multimesh.get_property_list():
+			if prop.name == "material":
+				bullet_hole_multimesh.material = mesh.material
+				if bullet_hole_multimesh.material is ShaderMaterial:
+					bullet_hole_multimesh.material.set_shader_parameter("texture_albedo", bullet_hole_texture)
+				break
+	
+	# Some engine versions expose a `texture` property on MultiMeshInstance2D
+	for p in bullet_hole_multimesh.get_property_list():
+		if p.name == "texture":
+			bullet_hole_multimesh.set("texture", bullet_hole_texture)
+			break
+	
+	active_instance_count = 0
 	
 	if not DEBUG_DISABLED:
-		print("[Mozambique] Bullet hole pool initialized with ", bullet_hole_pool.size(), " holes")
+		print("[Mozambique] MultiMesh bullet hole system initialized with ", max_instances, " instances")
+
+func create_bullet_hole_mesh(texture: Texture2D) -> QuadMesh:
+	"""Create a QuadMesh with a shader material for the provided texture"""
+	var mesh = QuadMesh.new()
+	mesh.size = texture.get_size()
+	
+	var shader_material = ShaderMaterial.new()
+	var shader = load("res://shader/bullet_hole_instanced.gdshader")
+	if shader:
+		shader_material.shader = shader
+		shader_material.set_shader_parameter("texture_albedo", texture)
+	
+	mesh.material = shader_material
+	return mesh
 
 func start_drill():
 	"""Start the mozambique drill"""
