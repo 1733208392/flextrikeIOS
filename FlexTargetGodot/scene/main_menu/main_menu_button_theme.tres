@@ -1,6 +1,6 @@
 [gd_resource type="Theme" load_steps=21 format=3 uid="uid://cdynjfvdtavlt"]
 
-[sub_resource type="SystemFont" id="SystemFont_lt21p"]
+[ext_resource type="FontFile" uid="uid://bvkyxdlc40uyg" path="res://font/TT-Norms-Bold.otf" id="1_usyo2"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_usyo2"]
 content_margin_left = 10.0
@@ -145,7 +145,7 @@ Button/colors/icon_hover_pressed_color = Color(0.09803922, 0.09803922, 0.0980392
 Button/colors/icon_normal_color = Color(0.87058824, 0.21960784, 0.13725491, 1)
 Button/colors/icon_pressed_color = Color(0.09803922, 0.09803922, 0.09803922, 1)
 Button/font_sizes/font_size = 28
-Button/fonts/font = SubResource("SystemFont_lt21p")
+Button/fonts/font = ExtResource("1_usyo2")
 Button/styles/focus = SubResource("StyleBoxFlat_usyo2")
 Button/styles/hover = SubResource("StyleBoxFlat_lt21p")
 Button/styles/hover_pressed = SubResource("StyleBoxFlat_wbtty")
@@ -155,11 +155,13 @@ CheckButton/font_sizes/font_size = 24
 CheckButton/styles/focus = SubResource("StyleBoxFlat_v3wh0")
 Label/colors/font_color = Color(0.87058824, 0.21960784, 0.13725491, 1)
 Label/font_sizes/font_size = 24
+Label/fonts/font = ExtResource("1_usyo2")
 LineEdit/colors/font_color = Color(0.87058824, 0.21960784, 0.13725491, 1)
 LineEdit/colors/font_selected_color = Color(0.09803922, 0.09803922, 0.09803922, 1)
 LineEdit/font_sizes/font_size = 32
 LineEdit/styles/focus = SubResource("StyleBoxFlat_lg8ue")
 LineEdit/styles/normal = SubResource("StyleBoxFlat_f4gaw")
+OptionButton/fonts/font = ExtResource("1_usyo2")
 OptionButton/styles/focus = SubResource("StyleBoxFlat_4wik7")
 OptionButton/styles/hover = SubResource("StyleBoxFlat_2phdg")
 OptionButton/styles/normal = SubResource("StyleBoxFlat_3rji6")
@@ -168,6 +170,7 @@ Panel/styles/panel = SubResource("StyleBoxFlat_y2l7y")
 PopupMenu/colors/font_color = Color(0.87058824, 0.21960784, 0.13725491, 1)
 PopupMenu/colors/font_hover_color = Color(0.09803922, 0.09803922, 0.09803922, 1)
 PopupMenu/font_sizes/font_size = 24
+PopupMenu/fonts/font = ExtResource("1_usyo2")
 PopupMenu/styles/hover = SubResource("StyleBoxFlat_x8d24")
 PopupMenu/styles/panel = SubResource("StyleBoxFlat_x2556")
 ProgressBar/styles/background = SubResource("StyleBoxFlat_dn4f5")

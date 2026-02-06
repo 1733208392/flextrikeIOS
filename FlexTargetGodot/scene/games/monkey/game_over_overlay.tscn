@@ -1,10 +1,12 @@
-[gd_scene load_steps=7 format=3 uid="uid://dxhw3r7t4daxm"]
+[gd_scene load_steps=9 format=3 uid="uid://dxhw3r7t4daxm"]
 
 [ext_resource type="Texture2D" uid="uid://xoqil48qkl7d" path="res://asset/games/jiong-avatar.png" id="1"]
-[ext_resource type="FontFile" uid="uid://d2eub6rd80tjp" path="res://asset/games/soupofjustice.ttf" id="2_ghm7o"]
+[ext_resource type="Theme" uid="uid://cdynjfvdtavlt" path="res://scene/main_menu/main_menu_button_theme.tres" id="2_i7y7c"]
 [ext_resource type="Texture2D" uid="uid://bt7v22nd4vwar" path="res://asset/games/trophy.png" id="3_um74f"]
 [ext_resource type="AudioStream" uid="uid://dxpul16876qad" path="res://audio/victory-chime.mp3" id="4_hefvv"]
 [ext_resource type="PackedScene" uid="uid://dturr8so8g8cw" path="res://scene/custom_button.tscn" id="4_wo8hs"]
+[ext_resource type="Texture2D" uid="uid://cqkwytntfgrv" path="res://asset/back-icon.png" id="5_vjs5b"]
+[ext_resource type="Texture2D" uid="uid://dw8n5kwgpkbtl" path="res://asset/restart-icon.png" id="6_52riw"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
 bg_color = Color(0, 0, 0, 0.8)
@@ -46,10 +48,11 @@ stretch_mode = 4
 
 [node name="NameLabel" type="Label" parent="Panel/HBoxContainerAvatars/LeftSide"]
 layout_mode = 2
-theme_override_fonts/font = ExtResource("2_ghm7o")
+theme = ExtResource("2_i7y7c")
 theme_override_font_sizes/font_size = 32
-text = "Jiong"
+text = "JIONG"
 horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="RightSide" type="VBoxContainer" parent="Panel/HBoxContainerAvatars"]
 layout_mode = 2
@@ -58,16 +61,17 @@ size_flags_vertical = 4
 alignment = 1
 
 [node name="AvatarSprite" type="TextureRect" parent="Panel/HBoxContainerAvatars/RightSide"]
+custom_minimum_size = Vector2(200, 200)
 layout_mode = 2
 texture = ExtResource("3_um74f")
-expand_mode = 4
 
 [node name="ResultLabel" type="Label" parent="Panel/HBoxContainerAvatars/RightSide"]
 layout_mode = 2
-theme_override_fonts/font = ExtResource("2_ghm7o")
+theme = ExtResource("2_i7y7c")
 theme_override_font_sizes/font_size = 32
-text = "         Winer         "
+text = "WINNER"
 horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="HBoxContainerButtons" type="HBoxContainer" parent="Panel"]
 layout_mode = 1
@@ -84,12 +88,21 @@ alignment = 1
 
 [node name="BackButton" parent="Panel/HBoxContainerButtons" instance=ExtResource("4_wo8hs")]
 layout_mode = 2
-text = "Back"
+theme = ExtResource("2_i7y7c")
+text = "BACK"
+icon = ExtResource("5_vjs5b")
+expand_icon = true
+script = null
 
 [node name="ReplayButton" parent="Panel/HBoxContainerButtons" instance=ExtResource("4_wo8hs")]
 layout_mode = 2
-text = "Replay
+theme = ExtResource("2_i7y7c")
+text = "REPY
 "
+icon = ExtResource("6_52riw")
+icon_alignment = 2
+expand_icon = true
+script = null
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
 process_mode = 3

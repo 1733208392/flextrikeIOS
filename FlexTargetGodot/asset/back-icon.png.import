@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://vrouu6ea73t6"
-path="res://.godot/imported/level_accomplished.png-e717755d42aff12eb21ff41953f7821e.ctex"
+uid="uid://cqkwytntfgrv"
+path="res://.godot/imported/back-icon.png-bf8e10495f3c6cd1038f3d5af4774698.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://asset/games/level_accomplished.png"
-dest_files=["res://.godot/imported/level_accomplished.png-e717755d42aff12eb21ff41953f7821e.ctex"]
+source_file="res://asset/back-icon.png"
+dest_files=["res://.godot/imported/back-icon.png-bf8e10495f3c6cd1038f3d5af4774698.ctex"]
 
 [params]
 

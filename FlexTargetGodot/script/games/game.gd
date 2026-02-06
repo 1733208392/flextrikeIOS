@@ -18,7 +18,8 @@ var bullet_impact_scene = preload("res://scene/games/bullet_impact.tscn")
 var coin_anim_scene = preload("res://scene/games/coin_anim.tscn")
 var bomb_scene = preload("res://scene/games/bomb.tscn")
 var coin_collection_sound = preload("res://audio/SE-Collision_08C.ogg")
-var leaderboard_scene = preload("res://scene/games/leaderboard.tscn")
+var level_complete_scene = preload("res://scene/games/level_complete.tscn")
+var http_service: Node
 var spawn_timer = 0.0
 var spawn_interval = 2.0  # Base spawn interval (gets divided by spawn_speed_multiplier)
 var fruit_scenes = []  # Array to hold all fruit scenes
@@ -47,6 +48,9 @@ func _ready():
 	
 	# Enable input processing
 	set_process_input(true)
+	
+	# Get http service for leaderboard
+	http_service = get_node("/root/HttpService")
 	
 	# Hide the global status bar for fruit ninja game
 	var global_status_bar = get_node_or_null("/root/StatusBar")
@@ -86,7 +90,7 @@ func _ready():
 	var top_bar = get_node("StatusBar/TopBar")
 	score_label = top_bar.get_node("Score")
 	level_label = top_bar.get_node("Level")
-	level_label.text = "Level " + str(current_level)
+	level_label.text = "LEVEL " + str(current_level)
 	progress_bar = top_bar.get_node("ProgressBar")
 	progress_bar.max_value = score_target
 	progress_bar.value = score
@@ -208,6 +212,9 @@ func _trigger_level_complete():
 	print("[Game] Level Complete! Score: ", score)
 	game_over = true
 	
+	# Save score if it qualifies for top 10
+	_save_score_if_top_10(total_score)
+	
 	# Play truck run animation and background animation
 	_play_truck_run_animation()
 
@@ -231,13 +238,14 @@ func _play_truck_run_animation():
 		if sprite:
 			var anim_player = sprite.get_node_or_null("AnimationPlayer")
 			if anim_player:
-				anim_player.play("moving")	# Show the new level complete screen
-	var level_complete_scene = preload("res://scene/games/level_complete.tscn")
+				anim_player.play("moving")
+	
+	# Show the new level complete screen
 	var level_complete = level_complete_scene.instantiate()
 	add_child(level_complete)
 	
-	# Show level complete with current level, current score, and 3 stars
-	level_complete.show_level_complete(current_level, score, 3)
+	# Show level complete with current level, current score, and passed=true
+	level_complete.show_level_complete(current_level, score, true)
 	
 	# Freeze all dropping fruits and bombs
 	for child in get_children():
@@ -479,7 +487,7 @@ func restart_level():
 	print("[Game] Level restarted successfully")
 
 func _on_truck_crashed():
-	"""Handle truck crashed signal - trigger game over"""
+	"""Handle truck crashed signal - trigger game over with failed level complete screen"""
 	print("[Game] Received truck_crashed signal")
 	truck_crashed = true
 	game_over = true
@@ -487,34 +495,72 @@ func _on_truck_crashed():
 	# Freeze all dropping fruits and bombs
 	_freeze_all_physics_bodies()
 	
-	# Show leaderboard
-	_show_leaderboard()
+	# Show level complete screen with failure
+	var level_complete = level_complete_scene.instantiate()
+	add_child(level_complete)
+	level_complete.show_level_complete(current_level, score, false)
 
-func _show_leaderboard():
-	"""Load and display the leaderboard"""
-	var leaderboard = leaderboard_scene.instantiate()
-	add_child(leaderboard)
-	leaderboard.connect("leaderboard_loaded", Callable(self, "_on_leaderboard_loaded").bind(leaderboard))
-	# Connect replay action from leaderboard to default restart (reload main game scene)
-	if not leaderboard.is_connected("replay_pressed", Callable(self, "_on_leaderboard_replay_pressed")):
-		leaderboard.connect("replay_pressed", Callable(self, "_on_leaderboard_replay_pressed"))
-	leaderboard.load_leaderboard(total_score)
+func _save_score_if_top_10(score: int):
+	"""Check if score qualifies for top 10 and save it"""
+	if http_service:
+		http_service.load_game(Callable(self, "_on_leaderboard_loaded_for_save"), "fruitblast_leaderboard")
 
-func _on_leaderboard_loaded(is_new: bool, leaderboard: CanvasLayer):
-	"""Callback when leaderboard is loaded"""
-	if not is_new:
-		leaderboard.update_leaderboard_with_score(total_score)
+func _on_leaderboard_loaded_for_save(result, response_code, _headers, body):
+	"""Load leaderboard and check if current score qualifies for top 10"""
+	var leaderboard_data = []
+	
+	if result == HTTPRequest.RESULT_SUCCESS and response_code == 200:
+		var body_str = body.get_string_from_utf8()
+		var json_result = JSON.parse_string(body_str)
+		if json_result != null:
+			var response_data = json_result
+			var code = response_data.get("code", -1)
+			
+			if code == 0:
+				var data = response_data.get("data", {})
+				if typeof(data) == TYPE_STRING:
+					var parsed_data = JSON.parse_string(data)
+					if parsed_data != null:
+						if typeof(parsed_data) == TYPE_DICTIONARY:
+							leaderboard_data = parsed_data.get("content", [])
+						elif typeof(parsed_data) == TYPE_ARRAY:
+							leaderboard_data = parsed_data
+				else:
+					leaderboard_data = data.get("content", [])
+	
+	# Ensure it's an array of dicts with total_score
+	for i in range(leaderboard_data.size()):
+		if typeof(leaderboard_data[i]) != TYPE_DICTIONARY or not leaderboard_data[i].has("total_score"):
+			leaderboard_data[i] = {"total_score": 0}
+	
+	# Check if score qualifies for top 10
+	var inserted = false
+	for i in range(leaderboard_data.size()):
+		if total_score > leaderboard_data[i]["total_score"]:
+			leaderboard_data.insert(i, {"total_score": total_score})
+			inserted = true
+			break
+	
+	if not inserted and leaderboard_data.size() < 10:
+		leaderboard_data.append({"total_score": total_score})
+		inserted = true
+	
+	if inserted:
+		# Keep only top 10
+		if leaderboard_data.size() > 10:
+			leaderboard_data.resize(10)
+		
+		# Save updated leaderboard
+		if http_service:
+			var leaderboard_json = JSON.stringify(leaderboard_data)
+			http_service.save_game(Callable(self, "_on_leaderboard_saved_for_score"), "fruitblast_leaderboard", leaderboard_json)
 
-func _on_leaderboard_replay_pressed() -> void:
-	"""Default handler for leaderboard replay: reload the main game scene file"""
-	print("[Game] Leaderboard requested replay - restarting level in-place")
-	# Remove leaderboard overlay if present
-	var lb = get_node_or_null("Leaderboard")
-	if lb:
-		lb.queue_free()
-
-	# Call restart_level to reset game state without reloading the scene
-	restart_level()
+func _on_leaderboard_saved_for_score(result, response_code, _headers, _body):
+	"""Callback after saving score to leaderboard"""
+	if result == HTTPRequest.RESULT_SUCCESS and response_code == 200:
+		print("[Game] Score saved to leaderboard successfully")
+	else:
+		print("[Game] Failed to save score to leaderboard")
 
 func _play_lightning_effect():
 	"""Play a lightning bolt animation across the sky"""
@@ -601,7 +647,7 @@ func _freeze_truck_contents(truck: Node):
 			_freeze_truck_contents(child)
 
 func _trigger_game_over():
-	"""Set game over flag and show game over panel"""
+	"""Set game over flag and show level complete screen with failure"""
 	print("Game Over!")
 
 	# Freeze all floating fruits immediately
@@ -615,8 +661,10 @@ func _trigger_game_over():
 	# Set game over flag
 	game_over = true
 	
-	# Show leaderboard
-	_show_leaderboard()
+	# Show level complete screen with failure
+	var level_complete = level_complete_scene.instantiate()
+	add_child(level_complete)
+	level_complete.show_level_complete(current_level, score, false)
 
 func _exit_tree():
 	# Show the global status bar back when leaving the game

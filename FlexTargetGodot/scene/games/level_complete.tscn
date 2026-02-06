@@ -1,12 +1,10 @@
 [gd_scene load_steps=11 format=3 uid="uid://c54l65vxgegbc"]
 
 [ext_resource type="Script" uid="uid://ordo5ki61n0a" path="res://script/games/level_complete.gd" id="1_1e78d"]
-[ext_resource type="Texture2D" uid="uid://bt7v22nd4vwar" path="res://asset/games/trophy.png" id="1_ph5xr"]
-[ext_resource type="Texture2D" uid="uid://dkihqlectndyi" path="res://asset/games/level-accomplised.png" id="1_rovvh"]
-[ext_resource type="Texture2D" uid="uid://xl4mfebm2k2w" path="res://asset/games/coin.png" id="2_6xvfp"]
-[ext_resource type="FontFile" uid="uid://d2eub6rd80tjp" path="res://asset/games/soupofjustice.ttf" id="3_4n79r"]
+[ext_resource type="FontFile" uid="uid://bvkyxdlc40uyg" path="res://font/TT-Norms-Bold.otf" id="4_m6ebe"]
 [ext_resource type="Theme" uid="uid://cdynjfvdtavlt" path="res://scene/main_menu/main_menu_button_theme.tres" id="6_8j562"]
-[ext_resource type="PackedScene" uid="uid://benwj6w5un0vk" path="res://scene/games/coin_particles.tscn" id="7_1r4r6"]
+[ext_resource type="Texture2D" uid="uid://cqkwytntfgrv" path="res://asset/back-icon.png" id="6_m6ebe"]
+[ext_resource type="Texture2D" uid="uid://box7db6n1q8lx" path="res://asset/next-icon.png" id="7_od6v4"]
 [ext_resource type="AudioStream" uid="uid://dxpul16876qad" path="res://audio/victory-chime.mp3" id="8_jv7kj"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel_bg"]
@@ -17,6 +15,10 @@ corner_radius_bottom_right = 30
 corner_radius_bottom_left = 30
 
 [sub_resource type="Theme" id="Theme_labels"]
+
+[sub_resource type="ButtonGroup" id="ButtonGroup_rfi1m"]
+
+[sub_resource type="ButtonGroup" id="ButtonGroup_efq80"]
 
 [node name="LevelCompletePanel" type="CanvasLayer"]
 layer = 20
@@ -37,7 +39,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.6)
+color = Color(0.03137255, 0.03137255, 0.03137255, 0.87058824)
 
 [node name="VBoxContainer" type="VBoxContainer" parent="Control"]
 layout_mode = 1
@@ -59,20 +61,11 @@ custom_minimum_size = Vector2(300, 560)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel_bg")
 
-[node name="LevelAccomplished" type="Sprite2D" parent="Control/VBoxContainer/Panel"]
-position = Vector2(150.5, 288)
-scale = Vector2(0.93526787, 1)
-texture = ExtResource("1_rovvh")
-
 [node name="PanelContent" type="VBoxContainer" parent="Control/VBoxContainer/Panel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 30.0
-offset_top = 30.0
-offset_right = -30.0
-offset_bottom = -30.0
 grow_horizontal = 2
 grow_vertical = 2
 theme = SubResource("Theme_labels")
@@ -86,50 +79,17 @@ size_flags_vertical = 2
 [node name="LevelLabel" type="Label" parent="Control/VBoxContainer/Panel/PanelContent"]
 layout_mode = 2
 size_flags_vertical = 2
-theme_override_colors/font_color = Color(0.000417689, 0.000417689, 0.000417689, 0.47843137)
-theme_override_fonts/font = ExtResource("3_4n79r")
+theme = ExtResource("6_8j562")
+theme_override_fonts/font = ExtResource("4_m6ebe")
 theme_override_font_sizes/font_size = 36
-text = "Level 007"
+text = "LEVEL 07"
 horizontal_alignment = 1
 
-[node name="VSpacer2" type="Control" parent="Control/VBoxContainer/Panel/PanelContent"]
-custom_minimum_size = Vector2(0, 15)
+[node name="LevelLabel2" type="Label" parent="Control/VBoxContainer/Panel/PanelContent"]
 layout_mode = 2
 size_flags_vertical = 2
-
-[node name="StarsContainer" type="HBoxContainer" parent="Control/VBoxContainer/Panel/PanelContent"]
-layout_mode = 2
-alignment = 1
-
-[node name="Star1" type="TextureRect" parent="Control/VBoxContainer/Panel/PanelContent/StarsContainer"]
-custom_minimum_size = Vector2(100, 100)
-layout_mode = 2
-texture = ExtResource("1_ph5xr")
-expand_mode = 2
-
-[node name="Star2" type="TextureRect" parent="Control/VBoxContainer/Panel/PanelContent/StarsContainer"]
-custom_minimum_size = Vector2(50, 50)
-layout_mode = 2
-texture = ExtResource("1_ph5xr")
-expand_mode = 2
-
-[node name="Star3" type="TextureRect" parent="Control/VBoxContainer/Panel/PanelContent/StarsContainer"]
-custom_minimum_size = Vector2(50, 50)
-layout_mode = 2
-texture = ExtResource("1_ph5xr")
-expand_mode = 2
-
-[node name="VSpacer3" type="Control" parent="Control/VBoxContainer/Panel/PanelContent"]
-custom_minimum_size = Vector2(0, 20)
-layout_mode = 2
-size_flags_vertical = 2
-
-[node name="ScoreLabelText" type="Label" parent="Control/VBoxContainer/Panel/PanelContent"]
-layout_mode = 2
-size_flags_vertical = 2
-theme_override_fonts/font = ExtResource("3_4n79r")
-theme_override_font_sizes/font_size = 28
-text = "You just earned"
+theme = ExtResource("6_8j562")
+text = "CLEARED"
 horizontal_alignment = 1
 
 [node name="VSpacer4" type="Control" parent="Control/VBoxContainer/Panel/PanelContent"]
@@ -137,33 +97,20 @@ custom_minimum_size = Vector2(0, 10)
 layout_mode = 2
 size_flags_vertical = 2
 
-[node name="ScoreContainer" type="HBoxContainer" parent="Control/VBoxContainer/Panel/PanelContent"]
+[node name="ScoreValue" type="Label" parent="Control/VBoxContainer/Panel/PanelContent"]
 layout_mode = 2
-size_flags_vertical = 2
-alignment = 1
-
-[node name="CoinIcon" type="TextureRect" parent="Control/VBoxContainer/Panel/PanelContent/ScoreContainer"]
-custom_minimum_size = Vector2(40, 40)
-layout_mode = 2
-texture = ExtResource("2_6xvfp")
-expand_mode = 2
-
-[node name="HSpacer" type="Control" parent="Control/VBoxContainer/Panel/PanelContent/ScoreContainer"]
-visible = false
-custom_minimum_size = Vector2(10, 0)
-layout_mode = 2
-size_flags_horizontal = 2
-
-[node name="ScoreValue" type="Label" parent="Control/VBoxContainer/Panel/PanelContent/ScoreContainer"]
-layout_mode = 2
-theme_override_fonts/font = ExtResource("3_4n79r")
-theme_override_font_sizes/font_size = 48
+theme = ExtResource("6_8j562")
+theme_override_font_sizes/font_size = 60
 text = "120"
+horizontal_alignment = 1
 
-[node name="VSpacer5" type="Control" parent="Control/VBoxContainer/Panel/PanelContent"]
-custom_minimum_size = Vector2(0, 25)
+[node name="BestScoreValue" type="Label" parent="Control/VBoxContainer/Panel/PanelContent"]
 layout_mode = 2
 size_flags_vertical = 2
+theme = ExtResource("6_8j562")
+theme_override_colors/font_color = Color(1, 1, 0, 1)
+text = "BEST 435"
+horizontal_alignment = 1
 
 [node name="ButtonsContainer" type="HBoxContainer" parent="Control/VBoxContainer/Panel/PanelContent"]
 layout_mode = 2
@@ -171,10 +118,14 @@ size_flags_vertical = 2
 alignment = 1
 
 [node name="BackButton" type="Button" parent="Control/VBoxContainer/Panel/PanelContent/ButtonsContainer"]
-custom_minimum_size = Vector2(120, 0)
+custom_minimum_size = Vector2(120, 80)
 layout_mode = 2
 theme = ExtResource("6_8j562")
+toggle_mode = true
+button_group = SubResource("ButtonGroup_rfi1m")
 text = "BACK"
+icon = ExtResource("6_m6ebe")
+expand_icon = true
 
 [node name="HSpacer" type="Control" parent="Control/VBoxContainer/Panel/PanelContent/ButtonsContainer"]
 custom_minimum_size = Vector2(15, 0)
@@ -185,10 +136,12 @@ size_flags_horizontal = 2
 custom_minimum_size = Vector2(120, 0)
 layout_mode = 2
 theme = ExtResource("6_8j562")
+toggle_mode = true
+button_group = SubResource("ButtonGroup_efq80")
 text = "NEXT"
-
-[node name="CoinParticles" parent="Control" instance=ExtResource("7_1r4r6")]
-position = Vector2(360, 700)
+icon = ExtResource("7_od6v4")
+icon_alignment = 2
+expand_icon = true
 
 [node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="Control"]
 stream = ExtResource("8_jv7kj")

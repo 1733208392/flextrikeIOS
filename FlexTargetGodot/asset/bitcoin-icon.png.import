@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c8hrqefoivjnl"
-path="res://.godot/imported/target.png-2667dd4354be85d129752e593fce3c44.ctex"
+uid="uid://cf5mwxx8au2rv"
+path="res://.godot/imported/bitcoin-icon.png-ddff54c69e8f8e1cfb0822e22e3f1cdd.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://target.png"
-dest_files=["res://.godot/imported/target.png-2667dd4354be85d129752e593fce3c44.ctex"]
+source_file="res://asset/bitcoin-icon.png"
+dest_files=["res://.godot/imported/bitcoin-icon.png-ddff54c69e8f8e1cfb0822e22e3f1cdd.ctex"]
 
 [params]
 

@@ -4,7 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://cyf2xs324gfje" path="res://asset/games/monkey/4-Hit/Hit.png" id="1_o8sfm"]
 [ext_resource type="Texture2D" uid="uid://jwe1uk7hy0br" path="res://asset/games/monkey/3-Jump/Jump.png" id="1_pf1ht"]
 [ext_resource type="Texture2D" uid="uid://cm8fbbhsj0e86" path="res://asset/games/monkey/1-Idle/Idle.png" id="2_i44in"]
-[ext_resource type="AudioStream" uid="uid://dhxwgvj1lh2e" path="res://audio/monkey-noise-sound-effect.mp3" id="5_ltwat"]
+[ext_resource type="AudioStream" uid="uid://2wsj201hp1e7" path="res://audio/monkey-noise-sound-effect.mp3" id="5_ltwat"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_6wqmx"]
 atlas = ExtResource("1_o8sfm")
@@ -193,8 +193,8 @@ animations = [{
 }]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_03m2d"]
-radius = 42.0
-height = 136.0
+radius = 59.86
+height = 171.72
 
 [node name="Monkey" type="Area2D"]
 script = ExtResource("1_monkey")
@@ -210,4 +210,3 @@ shape = SubResource("CapsuleShape2D_03m2d")
 
 [node name="HitSound" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("5_ltwat")
-bus = &"Master"

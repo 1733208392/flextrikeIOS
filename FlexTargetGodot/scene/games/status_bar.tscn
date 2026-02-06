@@ -1,8 +1,7 @@
-[gd_scene load_steps=4 format=3 uid="uid://bvtdvj3rleh6v"]
+[gd_scene load_steps=3 format=3 uid="uid://bvtdvj3rleh6v"]
 
 [ext_resource type="Texture2D" uid="uid://xl4mfebm2k2w" path="res://asset/games/coin.png" id="1_coin"]
 [ext_resource type="Theme" uid="uid://cdynjfvdtavlt" path="res://scene/main_menu/main_menu_button_theme.tres" id="1_hl5n2"]
-[ext_resource type="FontFile" uid="uid://d2eub6rd80tjp" path="res://asset/games/soupofjustice.ttf" id="2_font"]
 
 [node name="GameStatusBar" type="CanvasLayer"]
 
@@ -31,9 +30,10 @@ offset_left = 310.0
 offset_top = 19.0
 offset_right = 410.0
 offset_bottom = 51.0
-theme_override_fonts/font = ExtResource("2_font")
+theme = ExtResource("1_hl5n2")
 theme_override_font_sizes/font_size = 32
 horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="CoinIcon" type="Sprite2D" parent="TopBar"]
 visible = false

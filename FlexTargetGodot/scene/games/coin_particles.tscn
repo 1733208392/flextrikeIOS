@@ -1,6 +1,6 @@
 [gd_scene load_steps=4 format=3 uid="uid://benwj6w5un0vk"]
 
-[ext_resource type="Texture2D" uid="uid://xl4mfebm2k2w" path="res://asset/games/coin.png" id="1_a1x2p"]
+[ext_resource type="Texture2D" uid="uid://cf5mwxx8au2rv" path="res://asset/bitcoin-icon.png" id="1_gfijw"]
 
 [sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_nl12v"]
 particles_animation = true
@@ -22,7 +22,7 @@ anim_speed_max = 1.0
 material = SubResource("CanvasItemMaterial_nl12v")
 emitting = false
 amount = 30
-texture = ExtResource("1_a1x2p")
+texture = ExtResource("1_gfijw")
 lifetime = 3.0
 one_shot = true
 explosiveness = 0.5

@@ -1,10 +1,11 @@
-[gd_scene load_steps=13 format=3 uid="uid://b7ptio4d6kqh4"]
+[gd_scene load_steps=14 format=3 uid="uid://b7ptio4d6kqh4"]
 
 [ext_resource type="Script" uid="uid://clk687odfmnw" path="res://script/games/game_monkey.gd" id="1_cqg8j"]
 [ext_resource type="Texture2D" uid="uid://dsmp0g7fmay4t" path="res://asset/games/fruitblast-background.png" id="1_mnm2d"]
 [ext_resource type="PackedScene" uid="uid://iutkhax33s2e" path="res://scene/games/monkey/vine_horizontal.tscn" id="2_5qubs"]
 [ext_resource type="PackedScene" uid="uid://cjv0rr75domcd" path="res://scene/games/monkey/vine_left.tscn" id="2_nbvh4"]
 [ext_resource type="Texture2D" uid="uid://d4imqxr41c7mh" path="res://asset/games/woodlog.png" id="3_ftrqu"]
+[ext_resource type="Theme" uid="uid://cdynjfvdtavlt" path="res://scene/main_menu/main_menu_button_theme.tres" id="3_pyosr"]
 [ext_resource type="PackedScene" uid="uid://28k7ayds2psb" path="res://scene/games/monkey/vine_right.tscn" id="4_cotjv"]
 [ext_resource type="PackedScene" uid="uid://cojbyh3nmp67k" path="res://scene/games/monkey/player1.tscn" id="4_kaqtb"]
 [ext_resource type="PackedScene" uid="uid://csf1xvhgjc0d5" path="res://scene/games/monkey/player2.tscn" id="5_nbvh4"]
@@ -29,8 +30,8 @@ offset_top = 135.0
 offset_right = 400.0
 offset_bottom = 180.0
 grow_horizontal = 2
-theme_override_fonts/font = ExtResource("10_ycl44")
-theme_override_font_sizes/font_size = 48
+theme = ExtResource("3_pyosr")
+theme_override_font_sizes/font_size = 60
 text = "00:00"
 horizontal_alignment = 1
 
@@ -85,7 +86,7 @@ offset_top = 200.0
 offset_right = 100.0
 offset_bottom = 400.0
 grow_horizontal = 2
-theme_override_fonts/font = ExtResource("10_ycl44")
+theme = ExtResource("3_pyosr")
 theme_override_font_sizes/font_size = 200
 text = "5"
 horizontal_alignment = 1
