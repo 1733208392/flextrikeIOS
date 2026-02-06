@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://bywkb3gjgcap0" path="res://scene/targets/mozambique.gd" id="1_tqo6r"]
 [ext_resource type="Texture2D" uid="uid://bulikg7fe0w3h" path="res://asset/mosambique.png" id="2_tqo6r"]
-[ext_resource type="Theme" uid="uid://dmg3xu7opmvt1" path="res://theme/drill_title_theme.tres" id="2_upr8q"]
+[ext_resource type="Theme" uid="uid://cdynjfvdtavlt" path="res://scene/main_menu/main_menu_button_theme.tres" id="2_upr8q"]
 [ext_resource type="PackedScene" uid="uid://bvmw1s06twfav" path="res://scene/shot_timer.tscn" id="3_s8c5b"]
 [ext_resource type="PackedScene" uid="uid://56tkisbqcuaf" path="res://scene/mozambique_drill_complete_overlay.tscn" id="4_u875l"]
 
@@ -80,10 +80,10 @@ _data = {
 }
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_knpln"]
-radius = 81.3019
+radius = 79.00633
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_s8c5b"]
-size = Vector2(319, 492)
+size = Vector2(319, 519)
 
 [node name="Mosambique" type="Area2D"]
 collision_layer = 7
@@ -100,7 +100,8 @@ offset_right = 360.0
 offset_bottom = 600.0
 grow_horizontal = 2
 theme = ExtResource("2_upr8q")
-text = "Mozambique Drill"
+theme_override_font_sizes/font_size = 60
+text = "MOZAMBIQUE DRILL"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -118,11 +119,13 @@ position = Vector2(-29, -314)
 shape = SubResource("CircleShape2D_knpln")
 
 [node name="torso" type="CollisionShape2D" parent="."]
-position = Vector2(-24.5, 26)
+position = Vector2(-24.5, 36.5)
 shape = SubResource("RectangleShape2D_s8c5b")
 
 [node name="ShotTimer" parent="." instance=ExtResource("3_s8c5b")]
 visible = false
 
 [node name="drill_complete_overlay" parent="." instance=ExtResource("4_u875l")]
-visible = false
+offset_right = 0.0
+offset_bottom = 0.0
+pivot_offset = Vector2(-102, 186)

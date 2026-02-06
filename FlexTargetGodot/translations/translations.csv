@@ -59,9 +59,9 @@ loading,Loading,加载中,ロード中,載入中
 rules,IPSC Rules,IPSC训练规则,IPSC接続,IPSC訓練規則
 target,TARGET,标靶,标靶,標靶
 complete,Drill Completed,训练结束,训练结束,訓練結束
-score,Score,得分,得分,得分
+score,SCORE,得分,得分,得分
 hit_factor,Hit Factor,射击系数,射击系数,射擊係數
-fastest_shot,Fastest Interval,最快击发,最新の投稿,最快擊發
+fastest_shot,FAST SPLIT,最快击发,最新の投稿,最快擊發
 restart,RESTART,再来一局,再来一局,再來一局
 replay,REPLAY & REVIEW,回放检查,再放检查,回放檢查
 clear,Clear Shots,清屏,清屏,清螢幕
@@ -609,7 +609,7 @@ enter_password,Enter Password for {wifi_name},输入 {wifi_name} 的密码,{wifi
 password_placeholder,Password,密码,パスワード,密碼
 target_details,Target Details,目标详情,ターゲット詳細,標靶詳情
 statistics,Statistics,统计,統計,統計
-fastest_shot,Fastest Shot:,最快击发:,最速ショット:,最快擊發:
+fastest_shot, FAST SPLIT,最快击发:,最速ショット:,最快擊發:
 total_time,Total Time:,总时间:,合計時間:,總時間:
 total_shots,Total Shots:,总射击数:,合計ショット数:,總射擊數:
 average_time,Average Time:,平均时间:,平均時間:,平均時間:
@@ -660,7 +660,7 @@ sound_sfx,"SOUND SFX:","声音 SFX:","サウンド SFX:","聲音 SFX:"
 about_description_intro,"The Grwolf Smart Target is designed for shooting enthusiasts who want a convenient solution for practicing with airsoft or Laser Dry Fire at home, eliminating the hassle of going to the shooting range. Compared to the traditional target, the device has the following features,","Grwolf 智能射击训练系统是为射击爱好者设计，方便他们在家中或者专门的场地练习水弹和BB弹射击的方便解决方案。与传统靶相比，该设备具有以下功能，","Grwolf Smart Targetは、射撃愛好家向けに設計されており、自宅でエアソフトやレーザードライファイアを練習するための便利なソリューションを求めており、射撃場に行く手間を省きます。従来のターゲットと比較して、デバイスには以下の機能があります。","Grwolf 智能靶是為射擊愛好者設計的，他們希望在家中練習氣槍的方便解決方案。與傳統靶相比，該設備具有以下功能，"
 about_description_features,"* Real-time hit point display allows you to track and score your shots instantly.\n* Choose different drills with the same device, such as high-speed shooting and free shooting, to enhance your shooting experience.","* 实时命中点显示允许您立即跟踪和记录您的射击。\n* 选择不同的练习模式，包括自定义训练，各种自由射击靶子类型以及趣味小游戏，极大增强您的射击练习体验。","* リアルタイムのヒットポイント表示により、ショットを即座に追跡およびスコアリングできます。\n* 高速射撃や自由射撃など、同じデバイスで異なるドリルを選択して、射撃体験を向上させます。","* 實時命中點顯示允許您立即追蹤和記錄您的射擊。\n* 選擇不同的練習模式，如高速射擊和自由射擊，增強您的射擊體驗。"
 switch_targets_instruction,"Please Use Remote Control 'Left' and 'Right' Buttons to switch targets.","请使用遥控器的'左'和'右'按钮切换靶子。","リモコンの「左」ボタンと「右」ボタンを使用してターゲットを切り替えてください。","請使用遙控器的'左'和'右'按鈕切換靶子。"
-shoot_to_reset,"SHOOT TO RESET","射击此区清靶纸","シュートしてリセット","射擊此區清靶紙"
+shoot_to_reset,"SHOOT HERE TO RESET","射击此区清靶纸","シュートしてリセット","射擊此區清靶紙"
 work_mode_master,Master,主机,マスター,主機
 work_mode_slave,Slave,从机,スレーブ,從機
 stats_a_zone,"A:%.1f%%","A:%.1f%%","A:%.1f%%","A:%.1f%%"
@@ -668,19 +668,19 @@ stats_c_zone,"C:%.1f%%","C:%.1f%%","C:%.1f%%","C:%.1f%%"
 stats_d_zone,"D:%.1f%%","D:%.1f%%","D:%.1f%%","D:%.1f%%"
 stats_miss,"Miss:%.1f%%","脱靶:%.1f%%","ミス:%.1f%%","脱靶:%.1f%%"
 stats_count,"Count:%d","弹数:%d","カウント:%d","彈數:%d"
-stats_fastest,"Fastest:%.2fs","最快:%.2fs","最速:%.2fs","最快:%.2fs"
+stats_fastest,"FAST SPLIT:%.2fs","最快:%.2fs","最速:%.2fs","最快:%.2fs"
 stats_average,"Average:%.2fs","平均:%.2fs","平均:%.2fs","平均:%.2fs"
 stats_fastest_no_data,"Fastest:--","最快:--","最速:--","最快:--"
 stats_average_no_data,"Average:--","平均:--","平均:--","平均:--"
 points_down,"Points Down", "失分", "ポイントダウン", "失分"
 SUCCESS,"SUCCESS","成功","成功","成功"
 FAILURE,"FAILURE","失败","失敗","失敗"
-first_shot,"First Shot:","首发:","初弾:","首發:"
+first_shot,"FIRST SHOT","首发:","初弾:","首發:"
 idpa_drill_history,IDPA Drill History,IDPA 训练记录,IDPA 訓練履歴,IDPA 訓練記錄
 down_points,Downpts,扣分,減点,扣分
 dismiss,Dismiss,取消,キャンセル,取消
 only_one_master_config,ONLY ONE MASTER CAN BE CONFIGURED IN YOUR NETWORK,只能配置一个主设备在您的网络中,ネットワークで設定できるマスターは1つだけです,只能配置一個主設備在您的網路中
-level_cleared,CLEARD!,通关！,クリア！,通關！
+level_cleared,CLEARD,通关！,クリア！,通關！
 level_failed,FAILED!,失败！,失敗！,失敗！
 level_label,LEVEL,关卡,レベル,關卡
 coin_label,COIN,金币,コイン,金幣

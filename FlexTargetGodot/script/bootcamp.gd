@@ -135,8 +135,8 @@ func _ready():
 	# Ensure the background texture is preloaded and not processing
 	_prepare_background()
 	
-	# Set clear button as default focus
-	clear_button.grab_focus()
+	## Set clear button as default focus
+	#clear_button.grab_focus()
 	
 	# Connect to WebSocketListener
 	var ws_listener = get_node_or_null("/root/WebSocketListener")

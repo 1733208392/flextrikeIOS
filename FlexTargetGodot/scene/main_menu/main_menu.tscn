@@ -1,7 +1,6 @@
-[gd_scene load_steps=13 format=3 uid="uid://cjkeemu421bdp"]
+[gd_scene load_steps=11 format=3 uid="uid://cjkeemu421bdp"]
 
 [ext_resource type="Script" uid="uid://dthf7l17t1uuo" path="res://scene/main_menu/main_menu.gd" id="1_vny3a"]
-[ext_resource type="FontFile" uid="uid://w674bdq23bld" path="res://font/Inter/static/Inter_24pt-Bold.ttf" id="2_eo5a4"]
 [ext_resource type="Theme" uid="uid://cdynjfvdtavlt" path="res://scene/main_menu/main_menu_button_theme.tres" id="2_kvq8n"]
 [ext_resource type="Texture2D" uid="uid://bhfksmwkbyokj" path="res://asset/target.png" id="3_kvq8n"]
 [ext_resource type="ButtonGroup" uid="uid://dp07g88ksxgao" path="res://scene/main_menu/main_menu_button_group.tres" id="3_lt21p"]
@@ -11,11 +10,6 @@
 [ext_resource type="Texture2D" uid="uid://dgj6gqxjtlu0a" path="res://asset/gear.png" id="7_tm7m5"]
 [ext_resource type="PackedScene" uid="uid://bgnvqj8xi6u7e" path="res://scene/volumn.tscn" id="8_kvq8n"]
 [ext_resource type="AudioStream" uid="uid://ci4xowhem06dc" path="res://audio/radar-beeping.mp3" id="12_bj3ug"]
-
-[sub_resource type="Theme" id="Theme_lt21p"]
-default_font = ExtResource("2_eo5a4")
-default_font_size = 80
-Label/colors/font_color = Color(0.87058824, 0.21960784, 0.13725491, 1)
 
 [node name="main_menu" type="Control"]
 layout_mode = 3
@@ -42,7 +36,7 @@ offset_top = 100.0
 offset_right = 159.0
 offset_bottom = 178.0
 grow_horizontal = 2
-theme = SubResource("Theme_lt21p")
+theme = ExtResource("2_kvq8n")
 text = "FLEX TARGET"
 
 [node name="CenterContainer" type="CenterContainer" parent="."]
@@ -110,7 +104,8 @@ text = "
 
 
 
-GAMEs"
+
+GAMES"
 icon = ExtResource("6_cta3x")
 icon_alignment = 1
 
@@ -121,6 +116,7 @@ theme = ExtResource("2_kvq8n")
 toggle_mode = true
 button_group = ExtResource("3_lt21p")
 text = "
+
 
 
 

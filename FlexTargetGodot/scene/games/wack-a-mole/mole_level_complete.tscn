@@ -54,7 +54,6 @@ horizontal_alignment = 1
 [node name="ClearedLabel" type="Label" parent="Control/VBoxContainer"]
 layout_mode = 2
 theme = ExtResource("2_8ci02")
-theme_override_constants/outline_size = 12
 text = "CLEARED"
 horizontal_alignment = 1
 

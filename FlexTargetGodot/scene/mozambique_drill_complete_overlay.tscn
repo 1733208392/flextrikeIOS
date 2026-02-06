@@ -1,74 +1,93 @@
 [gd_scene load_steps=4 format=3 uid="uid://56tkisbqcuaf"]
 
-[ext_resource type="Texture2D" uid="uid://coyf4yn5drgki" path="res://asset/modalCntnrs.png" id="4_k5r6b"]
-[ext_resource type="LabelSettings" uid="uid://codb57trfq77w" path="res://theme/target_title_competitive.tres" id="5_jwbrr"]
-[ext_resource type="LabelSettings" uid="uid://cuf6m18dwphgd" path="res://theme/target_title_ipsc.tres" id="6_o7stp"]
+[ext_resource type="Theme" uid="uid://cdynjfvdtavlt" path="res://scene/main_menu/main_menu_button_theme.tres" id="2_cu16f"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_rwqts"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_cu16f"]
 
 [node name="mozambique_drill_complete_overlay" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_right = -720.0
+offset_bottom = -1280.0
 grow_horizontal = 2
 grow_vertical = 2
+pivot_offset = Vector2(665, 611)
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
-custom_minimum_size = Vector2(680, 640)
+[node name="MarginContainer" type="CenterContainer" parent="."]
+custom_minimum_size = Vector2(600, 600)
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -340.0
-offset_top = -352.0
-offset_right = 340.0
-offset_bottom = 352.0
+offset_left = -300.0
+offset_top = -300.0
+offset_right = 300.0
+offset_bottom = 300.0
 grow_horizontal = 2
 grow_vertical = 2
+pivot_offset = Vector2(157, 448)
 
-[node name="MarginContainer" type="CenterContainer" parent="VBoxContainer"]
+[node name="Panel" type="Panel" parent="MarginContainer"]
+custom_minimum_size = Vector2(600, 600)
 layout_mode = 2
+theme = ExtResource("2_cu16f")
 
-[node name="TextureRect" type="TextureRect" parent="VBoxContainer/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
 layout_mode = 2
-texture = ExtResource("4_k5r6b")
-stretch_mode = 3
+theme_override_constants/separation = 20
 
-[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/MarginContainer"]
+[node name="ResultLabel" type="Label" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
-
-[node name="ResultLabel" type="Label" parent="VBoxContainer/MarginContainer/VBoxContainer"]
-layout_mode = 2
-text = "Success"
-label_settings = ExtResource("5_jwbrr")
+theme = ExtResource("2_cu16f")
+theme_override_font_sizes/font_size = 80
+text = "SUCCESS"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="DurationLabel" type="Label" parent="VBoxContainer/MarginContainer/VBoxContainer"]
+[node name="space" type="Panel" parent="MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxEmpty_rwqts")
+
+[node name="DurationLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme = ExtResource("2_cu16f")
+theme_override_font_sizes/font_size = 48
 text = "--"
-label_settings = ExtResource("6_o7stp")
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="FirstShotLabel" type="Label" parent="VBoxContainer/MarginContainer/VBoxContainer"]
+[node name="FirstShotLabel" type="Label" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
+theme = ExtResource("2_cu16f")
+theme_override_font_sizes/font_size = 48
 text = "--"
-label_settings = ExtResource("6_o7stp")
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="FastestShotLabel" type="Label" parent="VBoxContainer/MarginContainer/VBoxContainer"]
+[node name="FastestShotLabel" type="Label" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
+theme = ExtResource("2_cu16f")
+theme_override_font_sizes/font_size = 48
 text = "--"
-label_settings = ExtResource("6_o7stp")
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="CountdownLabel" type="Label" parent="VBoxContainer/MarginContainer/VBoxContainer"]
+[node name="space2" type="Panel" parent="MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
-text = "--"
-label_settings = ExtResource("5_jwbrr")
+theme_override_styles/panel = SubResource("StyleBoxEmpty_cu16f")
+
+[node name="CountdownLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme = ExtResource("2_cu16f")
+theme_override_font_sizes/font_size = 80
+text = "10"
 horizontal_alignment = 1
 vertical_alignment = 1

@@ -332,10 +332,10 @@ func _show_stats_overlay():
 	
 	if drill_success:
 		# Show success with detailed stats
-		var result_label = drill_complete_overlay.get_node_or_null("VBoxContainer/MarginContainer/VBoxContainer/ResultLabel")
-		var duration_label = drill_complete_overlay.get_node_or_null("VBoxContainer/MarginContainer/VBoxContainer/DurationLabel")
-		var first_shot_label = drill_complete_overlay.get_node_or_null("VBoxContainer/MarginContainer/VBoxContainer/FirstShotLabel")
-		var fastest_shot_label = drill_complete_overlay.get_node_or_null("VBoxContainer/MarginContainer/VBoxContainer/FastestShotLabel")
+		var result_label = drill_complete_overlay.get_node_or_null("MarginContainer/VBoxContainer/ResultLabel")
+		var duration_label = drill_complete_overlay.get_node_or_null("MarginContainer/VBoxContainer/DurationLabel")
+		var first_shot_label = drill_complete_overlay.get_node_or_null("MarginContainer/VBoxContainer/FirstShotLabel")
+		var fastest_shot_label = drill_complete_overlay.get_node_or_null("MarginContainer/VBoxContainer/FastestShotLabel")
 		
 		if result_label:
 			result_label.text = tr("SUCCESS")

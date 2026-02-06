@@ -95,7 +95,11 @@ content_margin_bottom = 8.0
 bg_color = Color(0.09803922, 0.09803922, 0.09803922, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_y2l7y"]
-bg_color = Color(0.24658787, 0.2465879, 0.24658787, 1)
+bg_color = Color(0.09803922, 0.09803922, 0.09803922, 0.88235295)
+corner_radius_top_left = 32
+corner_radius_top_right = 32
+corner_radius_bottom_right = 32
+corner_radius_bottom_left = 32
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_x8d24"]
 bg_color = Color(0.87058824, 0.21960784, 0.13725491, 1)
