@@ -26,6 +26,11 @@ func _ready() -> void:
 		_spawn_stem(i)
 	set_process(true)
 	_setup_cartoon_splat_player()
+	
+	# Hide global status bar
+	var global_status_bar = get_node_or_null("/root/StatusBar")
+	if global_status_bar:
+		global_status_bar.hide()
 
 func _process(delta: float) -> void:
 	for data in stems:
@@ -124,3 +129,9 @@ func _play_cartoon_splat() -> void:
 		return
 	cartoon_splat_player.stop()
 	cartoon_splat_player.play()
+
+func _exit_tree() -> void:
+	# Show global status bar when exiting
+	var global_status_bar = get_node_or_null("/root/StatusBar")
+	if global_status_bar:
+		global_status_bar.show()

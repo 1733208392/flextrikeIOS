@@ -1,10 +1,11 @@
-[gd_scene load_steps=7 format=3 uid="uid://dby28s2it8dj7"]
+[gd_scene load_steps=8 format=3 uid="uid://dby28s2it8dj7"]
 
 [ext_resource type="Texture2D" uid="uid://dixwhgg0qg6ud" path="res://asset/games/Background_1.png" id="1_r5kur"]
 [ext_resource type="Script" uid="uid://clfkslwk142a8" path="res://games/shoot-painter/script/stem_manager.gd" id="2_omiao"]
 [ext_resource type="Script" uid="uid://iur200exsdc7" path="res://script/screenshot_manager.gd" id="2_r5kur"]
 [ext_resource type="AudioStream" uid="uid://d3g1qmoe8bedm" path="res://audio/cartoon-splat.mp3" id="3_fw0ma"]
 [ext_resource type="Script" uid="uid://wrjfqv7g68uk" path="res://games/shoot-painter/script/splat_spawner.gd" id="3_yd2mb"]
+[ext_resource type="FontFile" uid="uid://bvkyxdlc40uyg" path="res://font/TT-Norms-Bold.otf" id="6_fw0ma"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_omiao"]
 bg_color = Color(1, 1, 1, 1)
@@ -76,7 +77,7 @@ offset_right = 720.0
 offset_bottom = 1280.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.9882353, 0.53333336, 0.06666667, 1)
+color = Color(0.87058824, 0.21960784, 0.13725491, 1)
 
 [node name="Label" type="Label" parent="CaptureManager/Overlay/UI/ClearArea"]
 layout_mode = 1
@@ -91,8 +92,10 @@ offset_right = 84.0
 offset_bottom = 33.5
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_colors/font_color = Color(0.09803922, 0.09803922, 0.09803922, 1)
+theme_override_fonts/font = ExtResource("6_fw0ma")
 theme_override_font_sizes/font_size = 48
-text = "Restart"
+text = "RESTART"
 horizontal_alignment = 1
 vertical_alignment = 1
 
