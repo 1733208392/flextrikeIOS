@@ -482,18 +482,28 @@ func _on_ble_ready_command(content: Dictionary) -> void:
 			if result == HTTPRequest.RESULT_SUCCESS and response_code == 200:
 				if not DEBUG_DISABLED:
 					print("[Menu] ACK for ready command sent successfully")
+				# Defer scene change to ensure ACK is fully processed
+				call_deferred("_jump_to_drills_network")
 			else:
 				if not DEBUG_DISABLED:
 					print("[Menu] Failed to send ACK for ready command")
+				# Still jump to drills network even if ACK failed
+				call_deferred("_jump_to_drills_network")
 		, ack_data)
 	else:
 		if not DEBUG_DISABLED:
 			print("[Menu] HttpService not available; cannot send ACK")
+		# Jump to drills network even if HttpService unavailable
+		call_deferred("_jump_to_drills_network")
 
+func _jump_to_drills_network():
+	"""Jump to drills network scene (deferred call)"""
 	if is_inside_tree():
 		var global_data = get_node_or_null("/root/GlobalData")
 		if global_data:
 			global_data.return_source = "drills"
+		if not DEBUG_DISABLED:
+			print("[Menu] Jumping to drills_network scene")
 		get_tree().change_scene_to_file("res://scene/drills_network/drills_network.tscn")
 	else:
 		if not DEBUG_DISABLED:
