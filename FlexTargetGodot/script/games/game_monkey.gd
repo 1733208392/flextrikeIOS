@@ -219,7 +219,7 @@ func _show_game_over(winner_id: int):
 		var result_label = game_over_overlay.get_node("Panel/HBoxContainerAvatars/RightSide/ResultLabel")
 		
 		if result_label:
-			result_label.text = "WINNDER"
+			result_label.text = "WINNER"
 		
 		if winner_id == 1:
 			if name_label:

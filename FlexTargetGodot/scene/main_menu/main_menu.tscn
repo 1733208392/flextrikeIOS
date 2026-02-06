@@ -70,15 +70,25 @@ theme = ExtResource("2_kvq8n")
 toggle_mode = true
 button_group = ExtResource("3_lt21p")
 text = "
-
-
-
-
-
-TARGETS
 "
 icon = ExtResource("3_kvq8n")
 icon_alignment = 1
+
+[node name="Label" type="Label" parent="CenterContainer/GridContainer/TargetsButton"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -56.0
+offset_top = -50.0
+offset_right = 56.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 0
+theme = ExtResource("2_kvq8n")
+text = "TARGETS"
 
 [node name="StagesButton" type="Button" parent="CenterContainer/GridContainer"]
 custom_minimum_size = Vector2(300, 300)
@@ -86,15 +96,24 @@ layout_mode = 2
 theme = ExtResource("2_kvq8n")
 toggle_mode = true
 button_group = ExtResource("3_lt21p")
-text = "
-
-
-
-
-
-STAGES"
 icon = ExtResource("5_wbtty")
 icon_alignment = 1
+
+[node name="Label" type="Label" parent="CenterContainer/GridContainer/StagesButton"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -56.0
+offset_top = -50.0
+offset_right = 56.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 0
+theme = ExtResource("2_kvq8n")
+text = "STAGES"
 
 [node name="GamesButton" type="Button" parent="CenterContainer/GridContainer"]
 custom_minimum_size = Vector2(300, 300)
@@ -102,15 +121,24 @@ layout_mode = 2
 theme = ExtResource("2_kvq8n")
 toggle_mode = true
 button_group = ExtResource("3_lt21p")
-text = "
-
-
-
-
-
-GAMES"
 icon = ExtResource("6_cta3x")
 icon_alignment = 1
+
+[node name="Label" type="Label" parent="CenterContainer/GridContainer/GamesButton"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -56.0
+offset_top = -50.0
+offset_right = 56.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 0
+theme = ExtResource("2_kvq8n")
+text = "GAMES"
 
 [node name="OptionsButton" type="Button" parent="CenterContainer/GridContainer"]
 custom_minimum_size = Vector2(300, 300)
@@ -118,15 +146,24 @@ layout_mode = 2
 theme = ExtResource("2_kvq8n")
 toggle_mode = true
 button_group = ExtResource("3_lt21p")
-text = "
-
-
-
-
-
-OPTIONS"
 icon = ExtResource("7_tm7m5")
 icon_alignment = 1
+
+[node name="Label" type="Label" parent="CenterContainer/GridContainer/OptionsButton"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -56.0
+offset_top = -50.0
+offset_right = 56.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 0
+theme = ExtResource("2_kvq8n")
+text = "OPTIONS"
 
 [node name="Label" type="Label" parent="."]
 layout_mode = 1

@@ -3,7 +3,7 @@ extends Control
 const Cell = preload("res://scene/games/tictactoe/cell.tscn")
 
 @export_enum("Human", "AI") var play_with : String = "AI"
-@export_enum("Easy", "Medium", "Hard") var ai_difficulty : String = "Hard"
+var ai_difficulty : String = "Medium"
 
 var cells : Array = []
 var turn : int = 0
@@ -11,23 +11,11 @@ var turn : int = 0
 var is_game_end : bool = false
 @onready var btn_ai = $PlayModeContainer/AI
 @onready var btn_human = $PlayModeContainer/Human
-@onready var difficulty_row = $HBoxContainerDifficultLevel
 
-# Difficulty buttons for remote focus navigation
-@onready var btn_easy = $HBoxContainerDifficultLevel/Easy
-@onready var btn_medium = $HBoxContainerDifficultLevel/Medium
-@onready var btn_hard = $HBoxContainerDifficultLevel/Hard
-var _difficulty_buttons: Array = []
-var _focus_index: int = 0  # 0 = Easy, 1 = Medium, 2 = Hard
-var _difficulty_modes: Array = ["Easy", "Medium", "Hard"]
-const _difficulty_label_keys: Array = ["difficulty_easy", "difficulty_medium", "difficulty_hard"]
 const _play_mode_label_keys: Dictionary = {
 	"AI": "play_mode_ai",
 	"Human": "play_mode_human"
 }
-const FOCUS_SECTION_PLAY_MODE: int = 0
-const FOCUS_SECTION_DIFFICULTY: int = 1
-var _focus_section: int = FOCUS_SECTION_PLAY_MODE
 var _play_mode_buttons: Array = []
 var _play_mode_focus_index: int = 0  # 0 = AI, 1 = Human
 var _suppress_play_mode_toggled: bool = false
@@ -46,9 +34,6 @@ func _ready():
 		cells.append(cell)
 		cell.cell_updated.connect(_on_cell_updated)
 	_setup_play_mode_buttons()
-	_difficulty_buttons = [btn_easy, btn_medium, btn_hard]
-	_focus_index = 0
-	_set_difficulty_button_states()
 	_apply_play_mode(play_with)
 
 	# Connect to WebSocket bullet hits if available so physical shots can update the board
@@ -65,8 +50,6 @@ func _ready():
 	# Load persisted difficulty (if any). If HttpService is present this is async
 	# and the load callback will call _apply_focus; otherwise the sync fallback
 	# will call _apply_focus immediately.
-	_load_difficulty_setting()
-	_translate_difficulty_buttons()
 	_translate_play_mode_buttons()
 	_translate_restart_button()
 
@@ -81,12 +64,6 @@ func _ready():
 		if menu_controller.has_signal("homepage_pressed"):
 			menu_controller.homepage_pressed.connect(Callable(self, "_on_menu_back_pressed"))
 		print("[TicTacToe] Connected to MenuController.navigate for remote directives")
-
-	# Connect difficulty buttons to change AI difficulty when pressed
-	for i in range(_difficulty_buttons.size()):
-		var b = _difficulty_buttons[i]
-		if is_instance_valid(b) and b.has_signal("pressed"):
-			b.pressed.connect(Callable(self, "_on_difficulty_button_pressed_focus").bind(i))
 
 	# Notify HttpService that this mini-game has started (mirrors the main game implementation)
 	var http_service = get_node_or_null("/root/HttpService")
@@ -105,16 +82,12 @@ func _setup_play_mode_buttons() -> void:
 		btn_human.toggled.connect(Callable(self, "_on_play_mode_button_toggled").bind("Human"))
 
 func _update_difficulty_controls() -> void:
-	var ai_active = play_with == "AI"
-	for btn in _difficulty_buttons:
-		if is_instance_valid(btn):
-			btn.disabled = not ai_active
+	# Difficulty controls removed - ai_difficulty is now fixed to "Medium"
+	pass
 
 func _update_difficulty_visibility_by_focus() -> void:
-	if not is_instance_valid(difficulty_row):
-		return
-	var should_show = play_with == "AI" and (_focus_section == FOCUS_SECTION_DIFFICULTY or (_focus_section == FOCUS_SECTION_PLAY_MODE and _play_mode_focus_index == 0))
-	difficulty_row.visible = should_show
+	# Difficulty visibility removed - difficulty buttons are hidden
+	pass
 
 func _apply_play_mode(mode: String) -> void:
 	if mode != "AI" and mode != "Human":
@@ -123,7 +96,6 @@ func _apply_play_mode(mode: String) -> void:
 	_play_mode_focus_index = _play_mode_index_for_mode(mode)
 	_update_difficulty_controls()
 	_apply_play_mode_toggles(mode)
-	_focus_section = FOCUS_SECTION_DIFFICULTY if mode == "AI" else FOCUS_SECTION_PLAY_MODE
 	_update_difficulty_visibility_by_focus()
 	call_deferred("_apply_focus")
 
@@ -226,16 +198,18 @@ func _on_websocket_bullet_hit(pos: Vector2, a: int = 0, t: int = 0) -> void:
 	print("[TicTacToe] WebSocket hit did not match any cell rect: %s" % pos)
 
 func _translate_difficulty_buttons() -> void:
-	for i in range(_difficulty_buttons.size()):
-		var btn = _difficulty_buttons[i]
-		if btn and btn is Button and i < _difficulty_label_keys.size():
-			btn.text = tr(_difficulty_label_keys[i])
+	# Difficulty buttons are hidden - no translation needed
+	pass
 
 func _set_difficulty_button_states() -> void:
-	for i in range(_difficulty_buttons.size()):
-		var btn = _difficulty_buttons[i]
+	# Difficulty button states are no longer managed - difficulty is fixed to Medium
+	pass
+
+func _update_play_mode_button_states() -> void:
+	for i in range(_play_mode_buttons.size()):
+		var btn = _play_mode_buttons[i]
 		if btn and btn is Button:
-			btn.set_pressed(i == _focus_index)
+			btn.set_pressed(i == _play_mode_focus_index)
 
 func _translate_play_mode_buttons() -> void:
 	if is_instance_valid(btn_ai):
@@ -254,17 +228,7 @@ func _translate_restart_button() -> void:
 		restart_btn.text = "SHOOT HERE TO RESTART"
 
 func _apply_focus() -> void:
-	if _focus_section == FOCUS_SECTION_DIFFICULTY and play_with == "AI" and _difficulty_buttons.size() > 0:
-		_focus_index = clamp(_focus_index, 0, _difficulty_buttons.size() - 1)
-		var difficulty_btn = _difficulty_buttons[_focus_index]
-		if is_instance_valid(difficulty_btn) and difficulty_btn.has_method("grab_focus"):
-			difficulty_btn.grab_focus()
-			print("[TicTacToe] Difficulty focus set to index %d" % _focus_index)
-			_update_difficulty_visibility_by_focus()
-		return
-
-	# Fallback focus stays on the play mode buttons
-	_focus_section = FOCUS_SECTION_PLAY_MODE
+	# Focus is now only on play mode buttons
 	if _play_mode_buttons.size() == 0:
 		return
 	_play_mode_focus_index = clamp(_play_mode_focus_index, 0, _play_mode_buttons.size() - 1)
@@ -272,191 +236,61 @@ func _apply_focus() -> void:
 	if is_instance_valid(play_mode_btn) and play_mode_btn.has_method("grab_focus"):
 		play_mode_btn.grab_focus()
 		print("[TicTacToe] Play mode button focused")
-	_update_difficulty_visibility_by_focus()
 
 func _on_difficulty_button_pressed_focus(index: int) -> void:
-	# Local mouse/touch press should set focus to the button index row
-	_focus_section = FOCUS_SECTION_DIFFICULTY
-	_focus_index = index
-	_set_difficulty_button_states()
-	_apply_focus()
-	print("[TicTacToe] Difficulty button focused by local press, index= %d" % index)
+	# Difficulty button selection removed - difficulty is fixed to Medium
+	pass
 
 func _on_menu_enter() -> void:
-	if _focus_section == FOCUS_SECTION_PLAY_MODE:
-		var mode = "AI" if _play_mode_focus_index == 0 else "Human"
-		_apply_play_mode(mode)
-		return
-	_apply_selected_difficulty()
+	# Only play mode selection via remote
+	var mode = "AI" if _play_mode_focus_index == 0 else "Human"
+	_apply_play_mode(mode)
 
 func _apply_selected_difficulty() -> void:
-	if _difficulty_buttons.size() == 0:
-		return
-	var focus_owner = get_viewport().gui_get_focus_owner()
-	var index = _focus_index
-	for i in range(_difficulty_buttons.size()):
-		if is_instance_valid(_difficulty_buttons[i]) and _difficulty_buttons[i] == focus_owner:
-			index = i
-			break
-	index = clamp(index, 0, _difficulty_buttons.size() - 1)
-	match index:
-		0:
-			ai_difficulty = "Easy"
-		1:
-			ai_difficulty = "Medium"
-		2:
-			ai_difficulty = "Hard"
-	print("[TicTacToe] Remote Enter applied difficulty: %s (index %d)" % [ai_difficulty, index])
-	_focus_index = index
-	_set_difficulty_button_states()
-	_save_difficulty_setting()
-	_on_restart_button_pressed()
+	# Difficulty selection removed - difficulty is fixed to Medium
+	pass
 
 func _difficulty_index_from_string(d: String) -> int:
-	match d:
-		"Easy":
-			return 0
-		"Medium":
-			return 1
-		"Hard":
-			return 2
-	return 2
+	# Difficulty indexing no longer needed - difficulty is fixed
+	return 0
 
 func _apply_saved_difficulty(entry: Dictionary) -> bool:
-	if typeof(entry) != TYPE_DICTIONARY:
-		return false
-	if not entry.has("ai_difficulty"):
-		return false
-	ai_difficulty = str(entry["ai_difficulty"])
-	_focus_index = _difficulty_index_from_string(ai_difficulty)
-	_set_difficulty_button_states()
-	print("[TicTacToe] Restored difficulty from GlobalData: %s (focus index %d)" % [ai_difficulty, _focus_index])
-	call_deferred("_apply_focus")
-	return true
+	# Difficulty loading removed - difficulty is fixed to Medium
+	return false
 
 func _save_difficulty_setting() -> void:
-	var global_data = get_node_or_null("/root/GlobalData")
-	if not global_data:
-		print("[TicTacToe] Warning: GlobalData not available, cannot save difficulty")
-		return
-
-	var tictactoe_entry = {}
-	if global_data.settings_dict.has("tictactoe"):
-		var existing = global_data.settings_dict.get("tictactoe")
-		if typeof(existing) == TYPE_DICTIONARY:
-			tictactoe_entry = existing.duplicate(true)
-
-	tictactoe_entry["ai_difficulty"] = ai_difficulty
-	global_data.settings_dict["tictactoe"] = tictactoe_entry
-
-	var http = get_node_or_null("/root/HttpService")
-	if http and http.has_method("save_game"):
-		var settings_snapshot = global_data.settings_dict.duplicate(true)
-		var content = JSON.stringify(settings_snapshot)
-		http.save_game(Callable(self, "_on_http_save_game_result"), "settings", content)
-	else:
-		print("[TicTacToe] Warning: HttpService.save_game not available, difficulty persisted only in GlobalData")
+	# Difficulty saving removed - difficulty is fixed to Medium
+	pass
 
 func _load_difficulty_setting() -> void:
-	var global_data = get_node_or_null("/root/GlobalData")
-	if global_data and global_data.settings_dict.has("tictactoe"):
-		var entry = global_data.settings_dict.get("tictactoe")
-		if _apply_saved_difficulty(entry):
-			return
-
-	# Prefer HttpService.load_game to read settings.json when GlobalData entry is missing
-	var http = get_node_or_null("/root/HttpService")
-	if http and http.has_method("load_game"):
-		http.load_game(Callable(self, "_on_http_load_game_result"), "settings")
-		# Async; callback will call _apply_focus when loaded (or on failure)
-		return
-
-	# Nothing else available, fall back to defaults
-	_focus_index = 0
-	call_deferred("_apply_focus")
+	# Difficulty loading removed - difficulty is fixed to Medium
+	pass
 
 func _on_http_load_game_result(result, response_code, _headers, body) -> void:
-	# Callback for HttpService.load_game
-	if response_code != 200 or result != HTTPRequest.RESULT_SUCCESS:
-		print("[TicTacToe] HttpService.load_game failed, code= %s, result= %s" % [str(response_code), str(result)])
-		# On failure, ensure default focus is Easy
-		_focus_index = 0
-		call_deferred("_apply_focus")
-		return
-	var body_str = body.get_string_from_utf8()
-	var json = JSON.parse_string(body_str)
-	if not json:
-		print("[TicTacToe] HttpService.load_game: JSON parse failed")
-		_focus_index = 0
-		call_deferred("_apply_focus")
-		return
-	if not json.has("data"):
-		print("[TicTacToe] HttpService.load_game: no data field")
-		_focus_index = 0
-		call_deferred("_apply_focus")
-		return
-	var data = json["data"]
-	var parsed = null
-	if typeof(data) == TYPE_STRING:
-		parsed = JSON.parse_string(data)
-		if not parsed:
-			parsed = null
-	elif typeof(data) == TYPE_DICTIONARY:
-		parsed = data
-	if parsed and typeof(parsed) == TYPE_DICTIONARY and parsed.has("tictactoe"):
-		var t = parsed["tictactoe"]
-		if typeof(t) == TYPE_DICTIONARY and t.has("ai_difficulty"):
-			ai_difficulty = str(t["ai_difficulty"])
-			_focus_index = _difficulty_index_from_string(ai_difficulty)
-			print("[TicTacToe] Loaded persisted difficulty from HttpService: %s (focus index %d)" % [ai_difficulty, _focus_index])
-			var global_data = get_node_or_null("/root/GlobalData")
-			if global_data:
-				global_data.settings_dict["tictactoe"] = t
-			# Now that we have loaded the persisted setting, apply focus to that button
-			call_deferred("_apply_focus")
-			return
-	# No valid persisted difficulty found — default to Easy
-	_focus_index = 0
-	call_deferred("_apply_focus")
+	# HTTP load game result removed - difficulty is fixed to Medium
+	pass
 
 func _on_http_save_game_result(result, response_code, _headers, _body) -> void:
-	# Callback for HttpService.save_game
-	if response_code != 200 or result != HTTPRequest.RESULT_SUCCESS:
-		print("[TicTacToe] HttpService.save_game failed, code= %s, result= %s" % [str(response_code), str(result)])
-	else:
-		print("[TicTacToe] Difficulty persisted to HttpService settings")
+	# HTTP save game result removed - difficulty is fixed to Medium
+	pass
 
 func _on_menu_navigate(direction: String) -> void:
 	match direction:
-		"up":
-			if _focus_section == FOCUS_SECTION_DIFFICULTY:
-				_focus_section = FOCUS_SECTION_PLAY_MODE
-				_apply_focus()
-		"down":
-			if _focus_section == FOCUS_SECTION_PLAY_MODE and play_with == "AI" and difficulty_row.visible:
-				_focus_section = FOCUS_SECTION_DIFFICULTY
-				_apply_focus()
 		"left", "right":
-			if _focus_section == FOCUS_SECTION_PLAY_MODE:
-				_navigate_play_mode(direction)
-			elif _focus_section == FOCUS_SECTION_DIFFICULTY:
-				_navigate_difficulty(direction)
+			_navigate_play_mode(direction)
 
 func _navigate_play_mode(direction: String) -> void:
 	if _play_mode_buttons.size() == 0:
 		return
 	var step = -1 if direction == "left" else 1
 	_play_mode_focus_index = (_play_mode_focus_index + step + _play_mode_buttons.size()) % _play_mode_buttons.size()
+	_update_play_mode_button_states()
 	_apply_focus()
 	_play_cursor_sound()
 
 func _navigate_difficulty(direction: String) -> void:
-	if _difficulty_buttons.size() == 0:
-		return
-	var step = -1 if direction == "left" else 1
-	_focus_index = (_focus_index + step + _difficulty_buttons.size()) % _difficulty_buttons.size()
-	_apply_focus()
-	_play_cursor_sound()
+	# Difficulty navigation removed - difficulty is fixed to Medium
+	pass
 
 func _play_cursor_sound() -> void:
 	var menu_controller = get_node_or_null("/root/MenuController")

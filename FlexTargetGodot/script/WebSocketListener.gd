@@ -1,8 +1,8 @@
 extends Node
 
 const DEBUG_DISABLED = true
-const WEBSOCKET_URL = "ws://127.0.0.1/websocket"
-#const WEBSOCKET_URL = "ws://192.168.0.122/websocket"
+#const WEBSOCKET_URL = "ws://127.0.0.1/websocket"
+const WEBSOCKET_URL = "ws://192.168.0.122/websocket"
 
 signal data_received(data)
 signal bullet_hit(pos: Vector2, a: int, t: int)

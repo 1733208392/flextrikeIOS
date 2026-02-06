@@ -77,22 +77,11 @@ func _ready():
 	if painter_label:
 		painter_label.text = tr("shoot_painter")
 
-	# Load last pressed selection from GlobalData if available, otherwise default to first button
-	var global_data = get_node_or_null("/root/GlobalData")
-	if global_data and global_data.settings_dict.has("last_games_menu_selection"):
-		selected_option = int(global_data.settings_dict.get("last_games_menu_selection", 0))
-		# Clamp to valid range
-		if selected_option < 0 or selected_option >= main_menu_options.size():
-			selected_option = 0
-		# Apply focus to the saved option
-		_update_selection()
-		print("[Menu] Restored last menu selection from GlobalData: ", selected_option)
-	else:
-		# Default to FruitCatcher
-		if button_fruitcatcher:
-			button_fruitcatcher.grab_focus()
-			selected_option = 0
-			print("[Menu] FruitCatcher button has focus by default")
+	# Default to FruitNinja (FruitCatcher at index 0)
+	selected_option = 0
+	if button_fruitcatcher:
+		button_fruitcatcher.grab_focus()
+		print("[Menu] FruitNinja button has focus by default")
 
 
 func _save_last_selection():

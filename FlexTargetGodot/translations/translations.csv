@@ -42,8 +42,8 @@ duration,DURATION,时长,期間,時長
 difficulty_easy,EASY,简单,イージー,簡單
 difficulty_medium,MEDIUM,中等,ミディアム,中等
 difficulty_hard,HARD,困难,ハード,困難
-play_mode_ai,AI,AI,AI,AI
-play_mode_human,Human,人类,人間,人類
+play_mode_ai,VS AI,AI,AI,AI
+play_mode_human,VS HUAMN,人类,人間,人類
 Easy,Easy,简单,イージー,簡單
 Medium,Medium,中等,ミディアム,中等
 Hard,Hard,困难,ハード,困難
@@ -646,8 +646,8 @@ auto_restart_note,MINI STAGE SETTINGS,注意：以上设置仅适用于单靶IPS
 net_config_status,Status,状态,ステータス,狀態
 net_config_channel,Channel,频道,チャンネル,頻道
 net_config_workmode,WORKMODE,工作模式,動作モード,工作模式
-workmode_master,Master,主机,マスター,主機
-workmode_slave,Slave,从机,スレーブ,從機
+workmode_master,MASTER,主机,マスター,主機
+workmode_slave,SLAVE,从机,スレーブ,從機
 net_config_target_name,TARGET NAME,设备名称,ターゲット名,標靶名稱
 net_config_done,Confirm,确认,完了,完成
 wifi_connecting,Connecting,连接中,接続中,連線中
@@ -661,8 +661,8 @@ about_description_intro,"The Grwolf Smart Target is designed for shooting enthus
 about_description_features,"* Real-time hit point display allows you to track and score your shots instantly.\n* Choose different drills with the same device, such as high-speed shooting and free shooting, to enhance your shooting experience.","* 实时命中点显示允许您立即跟踪和记录您的射击。\n* 选择不同的练习模式，包括自定义训练，各种自由射击靶子类型以及趣味小游戏，极大增强您的射击练习体验。","* リアルタイムのヒットポイント表示により、ショットを即座に追跡およびスコアリングできます。\n* 高速射撃や自由射撃など、同じデバイスで異なるドリルを選択して、射撃体験を向上させます。","* 實時命中點顯示允許您立即追蹤和記錄您的射擊。\n* 選擇不同的練習模式，如高速射擊和自由射擊，增強您的射擊體驗。"
 switch_targets_instruction,"Please Use Remote Control 'Left' and 'Right' Buttons to switch targets.","请使用遥控器的'左'和'右'按钮切换靶子。","リモコンの「左」ボタンと「右」ボタンを使用してターゲットを切り替えてください。","請使用遙控器的'左'和'右'按鈕切換靶子。"
 shoot_to_reset,"SHOOT HERE TO RESET","射击此区清靶纸","シュートしてリセット","射擊此區清靶紙"
-work_mode_master,Master,主机,マスター,主機
-work_mode_slave,Slave,从机,スレーブ,從機
+work_mode_master,MASTER,主机,マスター,主機
+work_mode_slave,SLAVE,从机,スレーブ,從機
 stats_a_zone,"A:%.1f%%","A:%.1f%%","A:%.1f%%","A:%.1f%%"
 stats_c_zone,"C:%.1f%%","C:%.1f%%","C:%.1f%%","C:%.1f%%"
 stats_d_zone,"D:%.1f%%","D:%.1f%%","D:%.1f%%","D:%.1f%%"

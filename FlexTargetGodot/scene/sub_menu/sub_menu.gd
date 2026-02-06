@@ -126,6 +126,16 @@ func _update_button_styles():
 			buttons[i].remove_theme_color_override("font_color")
 			buttons[i].remove_theme_font_override("font")
 			buttons[i].remove_theme_color_override("icon_normal_color")
+		
+		# Update child label color based on button selection status
+		var label = buttons[i].get_node_or_null("Label")
+		if label:
+			if i == focused_index:
+				# Button is selected: change label color to #191919
+				label.add_theme_color_override("font_color", Color("#191919"))
+			else:
+				# Button is unselected: change label color to #de3823
+				label.add_theme_color_override("font_color", Color("#de3823"))
 
 func _on_ipsc_pressed():
 	if not DEBUG_DISABLED:

@@ -1,8 +1,5 @@
 extends Node2D
 
-enum GameState { RUNNING, PAUSED }
-
-var current_state = GameState.RUNNING
 var current_level: int = 1  # Track current level
 var velocity_bonus: float = 0.0  # Velocity bonus per level (+0.5 per level)
 var spawn_speed_multiplier: float = 1.0  # Spawn speed multiplier (30% faster per level)
@@ -39,7 +36,6 @@ var fruits_in_trunk: int = 0
 var truck_full: bool = false
 var max_fruits_in_trunk: int = 10
 var counted_fruits: Dictionary = {}  # Track fruits that have been counted to avoid duplicates
-var pause_overlay: CanvasLayer
 var score_target: int = 120  # Base target score for level 1 (increases 30% per level)
 
 func _ready():
@@ -111,21 +107,10 @@ func _ready():
 		print("Game started - Result: ", result, ", Response Code: ", response_code)
 	)
 	
-	# Get pause overlay
-	pause_overlay = get_node_or_null("PauseOverlay")
-	if not pause_overlay:
-		print("[Game] Warning: PauseOverlay not found!")
-	else:
-		pause_overlay.visible = false
-		var play_button = pause_overlay.get_node("Control/PlayButton")
-		if play_button:
-			play_button.connect("pressed", _resume_game)
-	
 	# Connect to remote control directives
 	var remote_control = get_node_or_null("/root/MenuController")
 	if remote_control:
 		print("[Game] Connected to MenuController signals")
-		remote_control.enter_pressed.connect(_on_enter_pressed)
 		remote_control.back_pressed.connect(_on_remote_back_pressed)
 	else:
 		print("[Game] MenuController autoload not found!")
@@ -147,8 +132,8 @@ func set_locale_from_language(language: String):
 	spawn_random_fruit()
 
 func _process(delta):
-	# Don't spawn fruits if game is over, truck is full, or game is paused
-	if game_over or truck_full or current_state == GameState.PAUSED:
+	# Don't spawn fruits if game is over or truck is full
+	if game_over or truck_full:
 		return
 	
 	# Spawn a new fruit at intervals (faster with higher spawn_speed_multiplier)
@@ -166,14 +151,9 @@ func _input(event):
 			WebSocketListener.bullet_hit.emit(click_pos, 0, 0)
 		print("Mouse click at: ", click_pos)
 	
-	# Handle keyboard input for pause/resume and back
+	# Handle keyboard input for back
 	if event is InputEventKey and event.pressed:
-		if event.keycode == KEY_ENTER:
-			if current_state == GameState.RUNNING:
-				_pause_game()
-			elif current_state == GameState.PAUSED:
-				_resume_game()
-		elif event.keycode == KEY_BACK or event.keycode == KEY_HOME:
+		if event.keycode == KEY_BACK or event.keycode == KEY_HOME:
 			_return_to_menu()
 
 # Collision detection now handled by truck - this function is no longer used
@@ -377,44 +357,6 @@ func spawn_bomb():
 	
 	print("Spawned bomb from the sky at z_index=10")
 
-func _on_enter_pressed():
-	# Don't handle pause/resume if level complete screen is visible
-	var level_complete = get_node_or_null("LevelCompletePanel")
-	if level_complete and level_complete.visible:
-		return
-		
-	if current_state == GameState.RUNNING:
-		_pause_game()
-	elif current_state == GameState.PAUSED:
-		_resume_game()
-
-func _pause_game():
-	if pause_overlay:
-		pause_overlay.visible = true
-	current_state = GameState.PAUSED
-	
-	# Freeze all existing fruits and bombs
-	for child in get_children():
-		if child is RigidBody2D and (child.get("is_fruit") == true or child.name.begins_with("Bomb")):
-			child.freeze = true
-			child.linear_velocity = Vector2.ZERO
-			child.angular_velocity = 0.0
-	
-	print("[Game] Game paused")
-
-func _resume_game():
-	if pause_overlay:
-		pause_overlay.visible = false
-	current_state = GameState.RUNNING
-	
-	# Unfreeze all existing fruits and bombs only if game is not over
-	if not game_over:
-		for child in get_children():
-			if child is RigidBody2D and (child.get("is_fruit") == true or child.name.begins_with("Bomb")):
-				child.freeze = false
-				# Don't restore gravity_scale here - fruits should have their original gravity
-	
-	print("[Game] Game resumed")
 
 func _on_remote_back_pressed():
 	"""Handle back/home directive from remote control to return to menu"""
