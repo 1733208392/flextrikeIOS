@@ -84,7 +84,7 @@ custom_target_status_error_decode_image,Error: Failed to decode image,错误：�
 custom_target_status_error_load_code,Error: Failed to load image (code: %d),错误：加载图像失败（代码：%d）,エラー：画像の読み込みに失敗しました（コード：%d）,錯誤：載入影像失敗（代碼：%d）
 custom_target_status_image_received,Image received: %s (%dx%d),已接收图像：%s (%dx%d),画像を受信しました：%s (%dx%d),已接收圖像：%s (%dx%d)
 
-fastest_t,Fastest,最快,一番嬉しい,最快
+fastest_t,SPLIT,最快,一番嬉しい,最快
 hit_factor_t,HF,系数,システム数,係數
 timeout,TIMEOUT!,超时了，继续努力！,タイムアウト,超時了，繼續努力！
 score_rule,"{""title"": ""SCORING RULES"",
@@ -582,10 +582,10 @@ Competitor Ranking:
 • 每個階段單獨計分
 • 整個比賽 = 所有階段點數的平均值
 • 最高分獲勝""}"
-shots,Shots,射击,ショット,射擊
-on_text,on,于,で,於
-target_text,Target,标靶,ターゲット,標靶
-navigate_instruction,▲ ▼ Browse bullet shots,▲ ▼ 浏览弹着点,▲ ▼ 弾丸射撃をナビゲート,▲ ▼ 瀏覽彈著點
+shots,SHOTS,射击,ショット,射擊
+on_text,ON,于,で,於
+target_text,TARGET,标靶,ターゲット,標靶
+navigate_instruction,▲ ▼ BROWSE SHOTS,▲ ▼ 浏览弹着点,▲ ▼ 弾丸射撃をナビゲート,▲ ▼ 瀏覽彈著點
 networking,TARGETLINK,网络,ネットワーキング,網路
 auto_restart_in,Auto Restart in,自动重启倒计时,自動再起動まで,自動重新啟動倒數
 failed_open_settings,Failed to open settings.json,无法打开设置文件,設定ファイルを開けません,無法開啟設定檔案
@@ -668,9 +668,9 @@ stats_c_zone,"C:%.1f%%","C:%.1f%%","C:%.1f%%","C:%.1f%%"
 stats_d_zone,"D:%.1f%%","D:%.1f%%","D:%.1f%%","D:%.1f%%"
 stats_miss,"Miss:%.1f%%","脱靶:%.1f%%","ミス:%.1f%%","脱靶:%.1f%%"
 stats_count,"Count:%d","弹数:%d","カウント:%d","彈數:%d"
-stats_fastest,"Fast Split:%.2fs","最快:%.2fs","最速:%.2fs","最快:%.2fs"
+stats_fastest,"FASTSPLIT:%.2fs","最快:%.2fs","最速:%.2fs","最快:%.2fs"
 stats_average,"Average:%.2fs","平均:%.2fs","平均:%.2fs","平均:%.2fs"
-stats_fastest_no_data,"Fastest:--","最快:--","最速:--","最快:--"
+stats_fastest_no_data,"FASTSPLIT:--","最快:--","最速:--","最快:--"
 stats_average_no_data,"Average:--","平均:--","平均:--","平均:--"
 points_down,"Points Down", "失分", "ポイントダウン", "失分"
 SUCCESS,"SUCCESS","成功","成功","成功"
@@ -720,5 +720,5 @@ auto_netlink_config_failed,"Netlink configuration failed","网络配置失败","
 auto_netlink_start_failed,"Netlink start failed","网络启动失败","ネットリンク開始失敗","網路啟動失敗"
 onboarding_health_check_progress,"HEALTH CHECK IN PROGRESS ...","健康检查进行中...","ヘルスチェック進行中...","健康檢查進行中..."
 onboarding_health_check_fault,"HEADS UP: A FAULT IS DETECTED, PLEASE POWER OFF AND POWER ON TO RECOVER.","警告：检测到故障，请关闭电源然后重新打开以恢复。","警告：障害が検出されました。デバイスの電源を切ってから再度オンにして復旧してください。","警告：偵測到故障，請關閉電源然後重新打開以復原。"
-onboarding_main_greeting,"I am [color=orange]{ble_name}[/color], please scan this QR code to download the App. If you already have the App installed, please scan the QR code to connect.","你好，我叫[color=orange]{ble_name}[/color]，这是我们第一次见面，请扫描二维码下载移动应用来控制我和探索我能为你做什么。安装应用后，请使用应用扫描此二维码再次连接我。","こんにちは、私の名前は[color=orange]{ble_name}[/color]です。初めて会いましたね。モバイルアプリをダウンロードするためにQRコードをスキャンして、私を制御したり、私ができることを探索してください。アプリをインストール後、このQRコードをアプリでスキャンして、再度私に接続してください。","你好，我叫[color=orange]{ble_name}[/color]，這是我們第一次見面，請掃描二維碼下載行動應用來控制我和探索我能為你做什麼。安裝應用後，請使用應用掃描此二維碼再次連接我。"
+onboarding_main_greeting,"HELLO, MY NAME IS [color=orange]{ble_name}[/color],PLEASE SCAN THE QR CODE TO DOWNLOAD THE APP OR SCAN TO CONNECT IF YOU ALREADY HAVE THE APP INSTALLED.","你好，我叫[color=orange]{ble_name}[/color]，这是我们第一次见面，请扫描二维码下载移动应用来控制我和探索我能为你做什么。安装应用后，请使用应用扫描此二维码再次连接我。","こんにちは、私の名前は[color=orange]{ble_name}[/color]です。初めて会いましたね。モバイルアプリをダウンロードするためにQRコードをスキャンして、私を制御したり、私ができることを探索してください。アプリをインストール後、このQRコードをアプリでスキャンして、再度私に接続してください。","你好，我叫[color=orange]{ble_name}[/color]，這是我們第一次見面，請掃描二維碼下載行動應用來控制我和探索我能為你做什麼。安裝應用後，請使用應用掃描此二維碼再次連接我。"
 onboarding_wifi_connection_greeting,"Great, I am connected to the Mobile App, now please help me connect your WiFi network...","太棒了，我已连接到移动应用，现在请帮助我连接你的WiFi网络...","素晴らしい、モバイルアプリに接続しました。次は、WiFiネットワークに接続するのを手伝ってください...","太棒了，我已連接到行動應用，現在請幫助我連接你的WiFi網路..."

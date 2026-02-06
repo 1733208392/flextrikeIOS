@@ -531,7 +531,7 @@ func add_bullet_hole_for_record(index):
 	var seq_label = Label.new()
 	seq_label.text = str(index + 1)  # Global sequence number (1-based)
 	seq_label.add_theme_font_size_override("font_size", 24)  # Increased from 14 to 18
-	seq_label.add_theme_color_override("font_color", Color.YELLOW)
+	seq_label.add_theme_color_override("font_color", Color.ORANGE_RED)
 	seq_label.add_theme_color_override("font_shadow_color", Color.BLACK)
 	seq_label.add_theme_constant_override("shadow_offset_x", 2)  # Increased shadow for better visibility
 	seq_label.add_theme_constant_override("shadow_offset_y", 2)

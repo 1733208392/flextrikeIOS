@@ -1,5 +1,8 @@
 extends Node2D
 
+enum GameState { SETTINGS, COUNTDOWN, RUNNING, PAUSED, GAME_OVER }
+
+var current_state = GameState.RUNNING
 var current_level: int = 1  # Track current level
 var velocity_bonus: float = 0.0  # Velocity bonus per level (+0.5 per level)
 var spawn_speed_multiplier: float = 1.0  # Spawn speed multiplier (30% faster per level)
@@ -418,10 +421,6 @@ func restart_level():
 	
 	# Reset game state
 	current_state = GameState.RUNNING
-	
-	# Ensure pause overlay is hidden
-	if pause_overlay:
-		pause_overlay.visible = false
 	
 	# Spawn first fruit
 	spawn_random_fruit()

@@ -57,9 +57,10 @@ layout_mode = 2
 theme = ExtResource("6_a5ubv")
 theme_override_constants/tab_separation = 48
 tab_alignment = 1
-current_tab = 0
+current_tab = 3
 
 [node name="Networking" type="VBoxContainer" parent="VBoxContainer/MarginContainer/tab_container"]
+visible = false
 layout_mode = 2
 metadata/_tab_index = 0
 
@@ -351,7 +352,6 @@ max_value = 10.0
 value = 5.0
 
 [node name="About" type="MarginContainer" parent="VBoxContainer/MarginContainer/tab_container"]
-visible = false
 layout_mode = 2
 theme_override_constants/margin_left = 50
 theme_override_constants/margin_top = 200
@@ -375,7 +375,7 @@ expand_mode = 1
 stretch_mode = 4
 
 [node name="GreetingContainer" type="PanelContainer" parent="VBoxContainer/MarginContainer/tab_container/About/Left"]
-custom_minimum_size = Vector2(300, 0)
+custom_minimum_size = Vector2(400, 0)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxEmpty_pm2y3")
 
@@ -383,7 +383,7 @@ theme_override_styles/panel = SubResource("StyleBoxEmpty_pm2y3")
 layout_mode = 2
 theme = ExtResource("6_a5ubv")
 bbcode_enabled = true
-text = "\"Hello, my name is [color=orange]...[/color], As this is the first time we met, please scan the QR code to download a mobile APP to control me and explore what I can do for you.\""
+text = "\"HELLO, MY NAME IS [color=orange]...[/color],PLEASE SCAN THE QR CODE TO DOWNLOAD THE APP OR SCAN TO CONNECT IF YOU ALREADY HAVE THE APP INSTALLED.\""
 fit_content = true
 visible_characters = 0
 visible_ratio = 0.0
