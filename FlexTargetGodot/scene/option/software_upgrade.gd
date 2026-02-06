@@ -7,8 +7,8 @@ const DEBUG_DISABLED = false
 @onready var version_label = $VBoxContainer/VersionLabel
 @onready var progress_bar = $VBoxContainer/ProgressBar
 @onready var wifi_status_label = $VBoxContainer/WiFiStatusLabel
-@onready var retry_button = $VBoxContainer/RetryButton
-@onready var back_button = $VBoxContainer/BackButton
+@onready var retry_button = $VBoxContainer/HBoxContainer/RetryButton
+@onready var back_button = $VBoxContainer/HBoxContainer/BackButton
 
 var ws_listener
 var http_service
@@ -84,7 +84,6 @@ func _ready():
 	# Show initial status
 	status_label.text = tr("waiting_upgrade_command")
 	retry_button.visible = false
-	progress_bar.visible = false
 	version_label.text = ""
 	
 	# Send initial notification to mobile app that device is in OTA mode and ready to download
@@ -143,7 +142,7 @@ func _update_wifi_status():
 				is_wifi_connected = false
 	
 	if is_wifi_connected and wifi_ip != "":
-		wifi_status_label.text = tr("wifi_connected") % wifi_ip
+		wifi_status_label.text = tr("wifi_connected")
 		wifi_status_label.add_theme_color_override("font_color", Color.GREEN)
 	else:
 		wifi_status_label.text = tr("wifi_not_connected")

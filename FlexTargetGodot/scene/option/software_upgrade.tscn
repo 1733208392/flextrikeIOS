@@ -1,8 +1,9 @@
 [gd_scene load_steps=4 format=3 uid="uid://bjsri43gjoagv"]
 
 [ext_resource type="Script" uid="uid://50rpug01iipb" path="res://scene/option/software_upgrade.gd" id="1"]
-[ext_resource type="Texture2D" uid="uid://btbmgtdbgtpkm" path="res://asset/largeCntnrs1.png" id="2_evxea"]
-[ext_resource type="Theme" uid="uid://dmg3xu7opmvt1" path="res://theme/drill_title_theme.tres" id="3_n8jrn"]
+[ext_resource type="Theme" uid="uid://cdynjfvdtavlt" path="res://scene/main_menu/main_menu_button_theme.tres" id="3_n8jrn"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_evxea"]
 
 [node name="SoftwareUpgrade" type="Control"]
 layout_mode = 3
@@ -11,21 +12,14 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+pivot_offset = Vector2(155, 208)
 script = ExtResource("1")
 
 [node name="background" type="ColorRect" parent="."]
 layout_mode = 0
 offset_right = 720.0
 offset_bottom = 1280.0
-color = Color(0.0901961, 0.129412, 0.141176, 1)
-
-[node name="border" type="TextureRect" parent="."]
-layout_mode = 0
-offset_top = 284.0
-offset_right = 720.0
-offset_bottom = 1184.0
-texture = ExtResource("2_evxea")
-stretch_mode = 2
+color = Color(0.03137255, 0.03137255, 0.03137255, 1)
 
 [node name="TitleLabel" type="Label" parent="."]
 layout_mode = 1
@@ -37,8 +31,9 @@ offset_top = 165.0
 offset_right = 310.0
 offset_bottom = 225.0
 grow_horizontal = 2
+pivot_offset = Vector2(529, 482)
 theme = ExtResource("3_n8jrn")
-theme_override_font_sizes/font_size = 32
+theme_override_font_sizes/font_size = 60
 text = "software_upgrade"
 horizontal_alignment = 1
 
@@ -57,35 +52,53 @@ alignment = 1
 
 [node name="WiFiStatusLabel" type="Label" parent="VBoxContainer"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
+theme = ExtResource("3_n8jrn")
+theme_override_font_sizes/font_size = 32
 text = "wifi_status_unknown"
 horizontal_alignment = 1
 
 [node name="StatusLabel" type="Label" parent="VBoxContainer"]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
+theme = ExtResource("3_n8jrn")
+theme_override_font_sizes/font_size = 32
 text = "waiting_upgrade_command"
 horizontal_alignment = 1
 autowrap_mode = 3
 
 [node name="VersionLabel" type="Label" parent="VBoxContainer"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
+theme = ExtResource("3_n8jrn")
+theme_override_font_sizes/font_size = 32
+text = "1.0.1"
+horizontal_alignment = 1
 
 [node name="ProgressBar" type="ProgressBar" parent="VBoxContainer"]
-visible = false
+custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
+theme = ExtResource("3_n8jrn")
 step = 1.0
 
-[node name="RetryButton" type="Button" parent="VBoxContainer"]
-visible = false
+[node name="Panel" type="Panel" parent="VBoxContainer"]
+custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = "retry"
+theme_override_styles/panel = SubResource("StyleBoxEmpty_evxea")
 
-[node name="BackButton" type="Button" parent="VBoxContainer"]
-visible = false
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
+theme_override_constants/separation = 40
+alignment = 1
+
+[node name="RetryButton" type="Button" parent="VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(200, 80)
+layout_mode = 2
+theme = ExtResource("3_n8jrn")
+theme_override_font_sizes/font_size = 32
+text = "RETRY"
+
+[node name="BackButton" type="Button" parent="VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(200, 100)
+layout_mode = 2
+theme = ExtResource("3_n8jrn")
+theme_override_font_sizes/font_size = 32
 text = "back_to_options"

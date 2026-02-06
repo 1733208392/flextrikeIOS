@@ -686,14 +686,14 @@ level_label,LEVEL,关卡,レベル,關卡
 coin_label,COIN,金币,コイン,金幣
 bonus_label,BONUS,奖励,ボーナス,獎勵
 replay_button,REPL,重玩,リプレイ,重玩
-software_upgrade,Software Upgrade,软件升级,ソフトウェアのアップグレード,軟體升級
+software_upgrade,SOFTWARE UPGRADE,软件升级,ソフトウェアのアップグレード,軟體升級
 wifi_status_unknown,"WiFi Status: Unknown","WiFi 状态：未知","WiFi ステータス: 不明","WiFi 狀態：未知"
-wifi_connected,"✓ WiFi Connected (%s)","✓ WiFi 已连接 (%s)","✓ WiFi 接続済み (%s)","✓ WiFi 已連線 (%s)"
-wifi_not_connected,"✗ WiFi Not Connected",✗ WiFi 未连接,✗ WiFi 未接続,✗ WiFi 未連線
-waiting_upgrade_command,"Waiting for upgrade command from mobile app...","正在等待来自移动应用的升级指令...","モバイルアプリからのアップグレードコマンドを待機中...","正在等待來自行動應用的升級指令..."
-downloading_software,Downloading Software...,正在下载软件...,ソフトウェアをダウンロード中...,正在下載軟體...
+wifi_connected,"WiFi CONNECTION OK","✓ WiFi 已连接 (%s)","✓ WiFi 接続済み (%s)","✓ WiFi 已連線 (%s)"
+wifi_not_connected,"✗ WiFi NOT READY","✗ WiFi 未连接","✗ WiFi 未接続","✗ WiFi 未連線"
+waiting_upgrade_command,"WAITING FOR MOBILE APP ...","正在等待来自移动应用的升级指令...","モバイルアプリからのアップグレードコマンドを待機中...","正在等待來自行動應用的升級指令..."
+downloading_software,DOWNLOADING ...,正在下载软件...,ソフトウェアをダウンロード中...,正在下載軟體...
 version,"Version: ","版本: ","バージョン: ","版本: "
-upgrade_success,"Upgrade completed successfully!
+upgrade_success,"UPGRADE COMPLETED!
 
 Please restart the application via the mobile app.","升级成功完成！
 
@@ -704,7 +704,7 @@ Please restart the application via the mobile app.","升级成功完成！
 請透過行動應用重啟應用程式。"
 upgrade_failed,"Upgrade failed. Please check your WiFi connection and try again.","升级失败。请检查您的 WiFi 连接并重试。","アップグレードに失敗しました。WiFi 接続を確認して、もう一度お試しください。","升級失敗。請檢查您的 WiFi 連線並重試。"
 retry,Retry,重试,再試行,重試
-back_to_options,Back to Options,返回选项,オプションに戻る,返回選項
+back_to_options,BACK,返回选项,オプションに戻る,返回選項
 wifi_not_connected_error,"WiFi not connected. Please connect to WiFi and try again.","WiFi 未连接。请连接到 WiFi 并重试。","WiFi が接続されていません。WiFi に接続して、もう一度お試しください。","WiFi 未連線。請連線到 WiFi 並重試。"
 download_in_progress,"Download in progress. Please wait...","正在下载，请稍候...","ダウンロード中です。お待ちください...","正在下載，請稍候..."
 shot_1,Shot 1,第一发,ショット 1,第一發
