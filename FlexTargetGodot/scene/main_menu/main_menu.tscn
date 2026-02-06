@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://cjkeemu421bdp"]
+[gd_scene load_steps=10 format=3 uid="uid://cjkeemu421bdp"]
 
 [ext_resource type="Script" uid="uid://dthf7l17t1uuo" path="res://scene/main_menu/main_menu.gd" id="1_vny3a"]
 [ext_resource type="Theme" uid="uid://cdynjfvdtavlt" path="res://scene/main_menu/main_menu_button_theme.tres" id="2_kvq8n"]
@@ -6,7 +6,6 @@
 [ext_resource type="ButtonGroup" uid="uid://dp07g88ksxgao" path="res://scene/main_menu/main_menu_button_group.tres" id="3_lt21p"]
 [ext_resource type="Texture2D" uid="uid://17lqhonty0kd" path="res://asset/stack.target.png" id="5_wbtty"]
 [ext_resource type="Texture2D" uid="uid://d8ndtq26ms0q" path="res://asset/gamecontroller.png" id="6_cta3x"]
-[ext_resource type="FontFile" uid="uid://bt41csp00hdy7" path="res://font/Inter/Inter-VariableFont_opsz,wght.ttf" id="7_lt21p"]
 [ext_resource type="Texture2D" uid="uid://dgj6gqxjtlu0a" path="res://asset/gear.png" id="7_tm7m5"]
 [ext_resource type="PackedScene" uid="uid://bgnvqj8xi6u7e" path="res://scene/volumn.tscn" id="8_kvq8n"]
 [ext_resource type="AudioStream" uid="uid://ci4xowhem06dc" path="res://audio/radar-beeping.mp3" id="12_bj3ug"]
@@ -31,13 +30,17 @@ layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -159.0
+offset_left = -273.5
 offset_top = 100.0
-offset_right = 159.0
-offset_bottom = 178.0
+offset_right = 273.5
+offset_bottom = 195.0
 grow_horizontal = 2
+pivot_offset = Vector2(499.5, 884)
 theme = ExtResource("2_kvq8n")
+theme_override_font_sizes/font_size = 80
 text = "FLEX TARGET"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="CenterContainer" type="CenterContainer" parent="."]
 custom_minimum_size = Vector2(600, 600)
@@ -133,12 +136,13 @@ anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
 offset_left = -200.0
-offset_top = -50.0
+offset_top = -80.0
 offset_right = 200.0
+offset_bottom = -30.0
 grow_horizontal = 2
 grow_vertical = 0
-theme_override_colors/font_color = Color(0.87058824, 0.21960784, 0.13725491, 1)
-theme_override_fonts/font = ExtResource("7_lt21p")
+pivot_offset = Vector2(86, -676)
+theme = ExtResource("2_kvq8n")
 horizontal_alignment = 1
 vertical_alignment = 2
 

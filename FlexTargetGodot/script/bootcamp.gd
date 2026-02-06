@@ -251,7 +251,7 @@ func _on_bullseye_time_diff(time_diff: float, hit_position: Vector2):
 			shot_speeds.append(time_diff)
 			_update_shot_list("+%.2fs" % time_diff)
 		else:
-			_update_shot_list("First shot")
+			_update_shot_list("--")
 	
 	# Update statistics display
 	update_statistics_display()

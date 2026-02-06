@@ -152,6 +152,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+pivot_offset = Vector2(309, 139)
 
 [node name="ShotIntervalsOverlay" type="VBoxContainer" parent="CanvasLayer/Control"]
 layout_mode = 1
@@ -161,10 +162,11 @@ anchor_top = 0.5
 anchor_right = 1.0
 anchor_bottom = 0.5
 offset_left = -86.0
-offset_top = 85.0
-offset_bottom = 484.0
+offset_top = 210.0
+offset_bottom = 609.0
 grow_horizontal = 0
 grow_vertical = 2
+pivot_offset = Vector2(-9, 136)
 
 [node name="Shot1" type="Label" parent="CanvasLayer/Control/ShotIntervalsOverlay"]
 layout_mode = 2
