@@ -11,6 +11,21 @@ struct QRScannerView: View {
     var onQRScanned: ((String) -> Void)?
     var hideBackButton: Bool = false
     
+    /// Extract device ID from QR code URL format "baseurl?a={device_id}"
+    /// Returns BLE name in format "GR-WOLF ET {device_id}"
+    private func extractBLENameFromQRCode(_ qrCode: String) -> String {
+        // Try to extract device ID from URL parameter format: baseurl?a={device_id}
+        if let urlComponents = URLComponents(string: qrCode),
+           let queryItems = urlComponents.queryItems,
+           let deviceIDItem = queryItems.first(where: { $0.name == "a" }),
+           let deviceID = deviceIDItem.value, !deviceID.isEmpty {
+            // Return BLE name format: "GR-WOLF ET {device_id}"
+            return "GR-WOLF ET \(deviceID)"
+        }
+        // If parsing fails, return the original code (fallback)
+        return qrCode
+    }
+    
     var body: some View {
         GeometryReader { geometry in
             let scanFrameWidth = geometry.size.width * 0.75
@@ -22,7 +37,9 @@ struct QRScannerView: View {
                     if !showResult {
                         scannedText = code
                         showResult = true
-                        onQRScanned?(code)
+                        // Extract BLE name from QR code and pass it
+                        let bleName = extractBLENameFromQRCode(code)
+                        onQRScanned?(bleName)
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)

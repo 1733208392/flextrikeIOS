@@ -44,6 +44,29 @@ import androidx.compose.foundation.layout.statusBars
 
 private const val TAG = "QRScannerView"
 
+/**
+ * Extract device ID from QR code URL format "baseurl?a={device_id}"
+ * Returns BLE name in format "GR-WOLF ET {device_id}"
+ */
+fun extractBLENameFromQRCode(qrCode: String): String {
+    return try {
+        // Try to parse as URL and extract device ID from query parameter "a"
+        val uri = android.net.Uri.parse(qrCode)
+        val deviceID = uri.getQueryParameter("a")
+        if (!deviceID.isNullOrEmpty()) {
+            // Return BLE name format: "GR-WOLF ET {device_id}"
+            "GR-WOLF ET $deviceID"
+        } else {
+            // If parameter "a" not found, return original code (fallback)
+            qrCode
+        }
+    } catch (e: Exception) {
+        Log.w(TAG, "Failed to parse QR code: $qrCode", e)
+        // On parsing error, return original code (fallback)
+        qrCode
+    }
+}
+
 @Composable
 fun QRScannerView(
     onQRScanned: (String) -> Unit,
@@ -91,7 +114,9 @@ fun QRScannerView(
                     if (!showResult) {
                         scannedText = code
                         showResult = true
-                        onQRScanned(code)
+                        // Extract BLE name from QR code and pass it
+                        val bleName = extractBLENameFromQRCode(code)
+                        onQRScanned(bleName)
                     }
                 },
                 scanY = scanY
