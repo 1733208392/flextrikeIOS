@@ -124,10 +124,10 @@ func _on_settings_loaded(_result, response_code, _headers, body):
 				else:
 					settings_dict = data
 				# Ensure max_index is always an integer
-				if settings_dict.has("max_index"):
+				if settings_dict.has("max_index") and settings_dict["max_index"] != null:
 					settings_dict["max_index"] = int(settings_dict["max_index"])
 				# Ensure channel is always an integer
-				if settings_dict.has("channel"):
+				if settings_dict.has("channel") and settings_dict["channel"] != null:
 					settings_dict["channel"] = int(settings_dict["channel"])
 				
 				# Ensure new auto restart fields have defaults
@@ -193,8 +193,8 @@ func update_netlink_status_from_response(_result, response_code, _headers, body)
 				else:
 					netlink_status = data_field
 				
-				# Ensure channel is always an integer if present
-				if netlink_status.has("channel"):
+				# Ensure channel is always an integer if present and not null
+				if netlink_status.has("channel") and netlink_status["channel"] != null:
 					netlink_status["channel"] = int(netlink_status["channel"])
 				# print("GlobalData: netlink_status updated: ", netlink_status)
 				# Emit signal to notify listeners that netlink status is available

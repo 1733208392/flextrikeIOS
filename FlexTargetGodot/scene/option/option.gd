@@ -29,7 +29,7 @@ const SLIDER_MAX = 700
 const THRESHOLD_MAX = 1460
 
 const QR_CODE_GENERATOR = preload("res://script/qrcode.gd")
-const QR_URL_BASE = "https://grwolf.com/pages/app-redirect"
+const QR_URL_BASE = "https://grwolf.com/pages/app"
 
 # Debug flag for controlling print statements
 # Uses the centralized GlobalDebug system
@@ -476,7 +476,12 @@ func _generate_about_qr(ble_name: String) -> void:
 		return
 	var qr_url = QR_URL_BASE
 	if not ble_name.is_empty() and ble_name != "...":
-		qr_url = "%s?ble_name=%s" % [QR_URL_BASE, ble_name]
+		# Extract only the device ID (last part after space, e.g., "5F0430" from "GR-WOLF ET 5F0430")
+		var device_id = ble_name
+		if " " in ble_name:
+			var parts = ble_name.split(" ")
+			device_id = parts[-1]  # Get the last part
+		qr_url = "%s?a=%s" % [QR_URL_BASE, device_id]
 	var qr = QR_CODE_GENERATOR.new()
 	var image = qr.generate_image(qr_url, 8)
 	if image:

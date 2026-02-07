@@ -181,9 +181,14 @@ func _on_typing_timer_timeout():
 				print("[Onboarding] Typing animation completed, transitioning to WiFi networks scene immediately")
 
 func _generate_qr(ble_name: String = ""):
-	var qr_url = QR_URL_BASE
+	var qr_url = "https://grwolf.com/pages/app"
 	if not ble_name.is_empty():
-		qr_url = "%s?ble_name=%s" % [QR_URL_BASE, ble_name]
+		# Extract only the device ID (last part after space, e.g., "5F0430" from "GR-WOLF ET 5F0430")
+		var device_id = ble_name
+		if " " in ble_name:
+			var parts = ble_name.split(" ")
+			device_id = parts[-1]  # Get the last part
+		qr_url = "%s?a=%s" % [qr_url, device_id]
 	
 	var qr = QR_CODE_GENERATOR.new()
 	var image = qr.generate_image(qr_url, 8) # Bigger module size for big QR
