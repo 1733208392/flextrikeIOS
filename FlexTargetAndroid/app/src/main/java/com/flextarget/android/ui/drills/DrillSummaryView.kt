@@ -879,12 +879,12 @@ private fun getMetricsForSummary(summary: DrillRepeatSummary, drillSetup: DrillS
         ),
         SummaryMetric(
             icon = Icons.Filled.ElectricBolt,
-            label = "Fastest",
+            label = "Best Split",
             value = formatTime(summary.fastest)
         ),
         SummaryMetric(
             icon = Icons.Outlined.Schedule,
-            label = "First Shot",
+            label = "1st Shot",
             value = formatTime(summary.firstShot)
         ),
         SummaryMetric(

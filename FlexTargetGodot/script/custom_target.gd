@@ -195,9 +195,15 @@ func spawn_bullet_hole(local_position: Vector2):
 	var scale_factor = randf_range(0.6, 0.8)
 	var rotation = randf_range(0, 2 * PI)
 	
-	# Create transform with random rotation and scale
-	t = Transform2D(rotation, local_position)
-	t = t.scaled(Vector2(scale_factor, scale_factor))
+	# Build transform properly: rotation matrix with scale, then set origin
+	var cos_r = cos(rotation)
+	var sin_r = sin(rotation)
+	t.x = Vector2(cos_r * scale_factor, sin_r * scale_factor)
+	t.y = Vector2(-sin_r * scale_factor, cos_r * scale_factor)
+	
+	# Add random position offset to the local position
+	var offset = Vector2(randf_range(-10, 10), randf_range(-10, 10))
+	t.origin = local_position + offset
 
 	multimesh.set_instance_transform_2d(current_count, t)
 	multimesh.visible_instance_count = current_count + 1

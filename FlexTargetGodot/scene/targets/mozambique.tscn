@@ -126,7 +126,7 @@ shape = SubResource("RectangleShape2D_s8c5b")
 visible = false
 
 [node name="drill_complete_overlay" parent="." instance=ExtResource("4_u875l")]
-offset_top = 320.0
+offset_top = 300.0
 offset_right = 0.0
-offset_bottom = 320.0
+offset_bottom = 300.0
 pivot_offset = Vector2(-102, 186)

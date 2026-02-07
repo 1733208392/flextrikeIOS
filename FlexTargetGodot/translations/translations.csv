@@ -70,7 +70,7 @@ no,NO.,序号,序号,序號
 your_score,Your Score:,你的分数：,あなたのスコア：,你的分數：
 time,TIME,时长,時間長,時長
 
-custom_target_instruction,Please use the mobile App to send your own target image.,请使用手机应用上传自定义靶图像。,モバイルアプリを使用して独自のターゲット画像を送信してください。,請使用手機應用上傳自訂靶圖像。
+custom_target_instruction,PLEASE USE MOBILE APP TO UPLOAD YOUR OWN TARGET IMAGE.,请使用手机应用上传自定义靶图像。,モバイルアプリを使用して独自のターゲット画像を送信してください。,請使用手機應用上傳自訂靶圖像。
 
 custom_target_status_waiting,Waiting for image...,正在等待图像...,画像を待っています...,正在等待圖像...
 custom_target_status_ready,Ready to receive image,准备接收图像,画像の受信準備ができました,準備接收圖像
@@ -616,10 +616,10 @@ average_time,Average Time:,平均时间:,平均時間:,平均時間:
 accuracy,Accuracy:,准确度:,精度:,準確度:
 points_scored,Points Scored:,得分:,得点:,得分:
 back_button,BACK,返回,戻る,返回
-bluetooth_name,Bluetooth Name,蓝牙名称,Bluetooth名,藍牙名稱
-device_name,Device Name,设备名称,デバイス名,設備名稱
-network_channel,Network Channel,网络频道,ネットワークチャンネル,網路頻道
-ip_address,IP Address,IP地址,IPアドレス,IP位址
+bluetooth_name,BLUETOOTH NAME,蓝牙名称,Bluetooth名,藍牙名稱
+device_name,DEVICE NAME,设备名称,デバイス名,設備名稱
+network_channel,NETWORK CHANNEL,网络频道,ネットワークチャンネル,網路頻道
+ip_address,IP ADDRESS,IP地址,IPアドレス,IP位址
 working_mode,WORKMODE,工作模式,動作モード,工作模式
 netlink_config,TARGETLINK,网联,ネットリンク,網聯
 netlink_config_progress,TARGET LINK CONFIG IN PROGRESS,网络配置进行中,ネットリンク設定進行中,網路配置進行中
@@ -634,7 +634,7 @@ already_connected,Already connected to {wifi_name},已连接到 {wifi_name},既�
 network_configure,TARGETLINK CONFIG,网联配置,ネットワーク設定,網聯配置
 start_netlink,START TARGETLINK,启动网联,ネットリンク開始,啟動網聯
 stop_netlink,STOP TARGETLINK,停止网联,ネットリンク停止,停止網聯
-netlink_status,Netlink Status,网联状态,ネットリンクステータス,網聯狀態
+netlink_status,TARGETLINK STATUS,网联状态,ネットリンクステータス,網聯狀態
 netlink_status_updating,Netlink Status Being Updated,网联状态正在更新,ネットリンクステータス更新中,網聯狀態正在更新
 started,STARTED,已启动,已開始,已啟動
 stopped,STOPPED,已停止,已停止,已停止
@@ -649,8 +649,8 @@ net_config_workmode,WORKMODE,工作模式,動作モード,工作模式
 workmode_master,MASTER,主机,マスター,主機
 workmode_slave,SLAVE,从机,スレーブ,從機
 net_config_target_name,TARGET NAME,设备名称,ターゲット名,標靶名稱
-net_config_done,Confirm,确认,完了,完成
-wifi_connecting,Connecting,连接中,接続中,連線中
+net_config_done,CONFIRM,确认,完了,完成
+wifi_connecting,CONNECTING,连接中,接続中,連線中
 drill_repeat_ended,"Drill Repeat #%d Ended", #%d 轮训练结束,ドリルリピート #%d 終了,#%d 輪訓練結束
 drill_repeat_ends,"Drill Repeat Ends",训练重复结束,ドリルリピート終了,訓練重複結束
 unknown_device,"Unknown Device",未知设备,不明なデバイス,不明裝置
@@ -668,9 +668,9 @@ stats_c_zone,"C:%.1f%%","C:%.1f%%","C:%.1f%%","C:%.1f%%"
 stats_d_zone,"D:%.1f%%","D:%.1f%%","D:%.1f%%","D:%.1f%%"
 stats_miss,"Miss:%.1f%%","脱靶:%.1f%%","ミス:%.1f%%","脱靶:%.1f%%"
 stats_count,"Count:%d","弹数:%d","カウント:%d","彈數:%d"
-stats_fastest,"FASTSPLIT:%.2fs","最快:%.2fs","最速:%.2fs","最快:%.2fs"
+stats_fastest,"BestSplit:%.2fs","最快:%.2fs","最速:%.2fs","最快:%.2fs"
 stats_average,"Average:%.2fs","平均:%.2fs","平均:%.2fs","平均:%.2fs"
-stats_fastest_no_data,"FASTSPLIT:--","最快:--","最速:--","最快:--"
+stats_fastest_no_data,"BestSplit:--","最快:--","最速:--","最快:--"
 stats_average_no_data,"Average:--","平均:--","平均:--","平均:--"
 points_down,"Points Down", "失分", "ポイントダウン", "失分"
 SUCCESS,"SUCCESS","成功","成功","成功"
@@ -712,13 +712,13 @@ shot_2,Shot 2,第二发,ショット 2,第二發
 total,Total,合计,合計,合計
 split,Split,分段,スプリット,分段
 wifi_connection_failed,"Connection failed: {error}","连接失败：{error}","接続失敗：{error}","連線失敗：{error}"
-requesting_mobile_password,"Please input password either from mobile App or with the On Screen Keyboard","请通过移动应用或屏幕键盘输入密码","モバイルアプリまたはオンスクリーンキーボードのいずれかでパスワードを入力してください","請通過行動應用或螢幕鍵盤輸入密碼"
+requesting_mobile_password,"USE EITHER MOBILE APP OR ON SCREEN KEYBOARD TO ENTER PASSWORD","请通过移动应用或屏幕键盘输入密码","モバイルアプリまたはオンスクリーンキーボードのいずれかでパスワードを入力してください","請通過行動應用或螢幕鍵盤輸入密碼"
 failed_mobile_password_request,"Failed to request password from mobile app","从移动应用请求密码失败","モバイルアプリからのパスワードリクエスト失敗","從行動應用請求密碼失敗"
-waiting_for_ip,"Waiting for IP address...","等待获取IP地址...","IP アドレスを取得待機中...","等候取得IP位址..."
-wifi_ip_timeout,"Timeout waiting for IP address","获取IP地址超时","IP アドレス取得タイムアウト","取得IP位址超時"
-auto_netlink_config_failed,"Netlink configuration failed","网络配置失败","ネットリンク設定失敗","網路配置失敗"
-auto_netlink_start_failed,"Netlink start failed","网络启动失败","ネットリンク開始失敗","網路啟動失敗"
+waiting_for_ip,"WAITING FOR IP ADDRESS...","等待获取IP地址...","IP アドレスを取得待機中...","等候取得IP位址..."
+wifi_ip_timeout,"TIMEOUT WAITING FOR IP ADDRESS","获取IP地址超时","IP アドレス取得タイムアウト","取得IP位址超時"
+auto_netlink_config_failed,"TARGETLINK CONFIGURATION FAILED","网络配置失败","ネットリンク設定失敗","網路配置失敗"
+auto_netlink_start_failed,"TARGETLINK START FAILED","网络启动失败","ネットリンク開始失敗","網路啟動失敗"
 onboarding_health_check_progress,"HEALTH CHECK IN PROGRESS ...","健康检查进行中...","ヘルスチェック進行中...","健康檢查進行中..."
 onboarding_health_check_fault,"HEADS UP: A FAULT IS DETECTED, PLEASE POWER OFF AND POWER ON TO RECOVER.","警告：检测到故障，请关闭电源然后重新打开以恢复。","警告：障害が検出されました。デバイスの電源を切ってから再度オンにして復旧してください。","警告：偵測到故障，請關閉電源然後重新打開以復原。"
 onboarding_main_greeting,"HELLO, MY NAME IS [color=orange]{ble_name}[/color],PLEASE SCAN THE QR CODE TO DOWNLOAD THE APP OR SCAN TO CONNECT IF YOU ALREADY HAVE THE APP INSTALLED.","你好，我叫[color=orange]{ble_name}[/color]，这是我们第一次见面，请扫描二维码下载移动应用来控制我和探索我能为你做什么。安装应用后，请使用应用扫描此二维码再次连接我。","こんにちは、私の名前は[color=orange]{ble_name}[/color]です。初めて会いましたね。モバイルアプリをダウンロードするためにQRコードをスキャンして、私を制御したり、私ができることを探索してください。アプリをインストール後、このQRコードをアプリでスキャンして、再度私に接続してください。","你好，我叫[color=orange]{ble_name}[/color]，這是我們第一次見面，請掃描二維碼下載行動應用來控制我和探索我能為你做什麼。安裝應用後，請使用應用掃描此二維碼再次連接我。"
-onboarding_wifi_connection_greeting,"Great, I am connected to the Mobile App, now please help me connect your WiFi network...","太棒了，我已连接到移动应用，现在请帮助我连接你的WiFi网络...","素晴らしい、モバイルアプリに接続しました。次は、WiFiネットワークに接続するのを手伝ってください...","太棒了，我已連接到行動應用，現在請幫助我連接你的WiFi網路..."
+onboarding_wifi_connection_greeting,"GREAT, I AM CONNECTED TO THE MOBILE APP, NOW PLEASE HELP ME CONNECT YOUR WIFI NETWORK...","太棒了，我已连接到移动应用，现在请帮助我连接你的WiFi网络...","素晴らしい、モバイルアプリに接続しました。次は、WiFiネットワークに接続するのを手伝ってください...","太棒了，我已連接到行動應用，現在請幫助我連接你的WiFi網路..."
