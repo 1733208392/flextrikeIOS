@@ -11,11 +11,13 @@ var button_monkeyduel: TextureButton
 var button_mole_attack: TextureButton
 var button_tictactoe: TextureButton
 var button_painter: TextureButton
+var button_chimptest: TextureButton
 var fruitcatcher_label: Button
 var monkeyduel_label: Button
 var mole_attack_label: Button
 var tictactoe_label: Button
 var painter_label: Button
+var chimptest_label: Button
 
 func _ready():
 	# Hide global status bar when entering games
@@ -30,6 +32,7 @@ func _ready():
 	button_mole_attack = get_node("Panel/GridContainer/VBoxContainer3/wackamole")
 	button_tictactoe = get_node("Panel/GridContainer/HBoxContainer4/tictactoe")
 	button_painter = get_node("Panel/GridContainer/HBoxContainer5/painter")
+	button_chimptest = get_node("Panel/GridContainer/HBoxContainer6/chimptest")
 
 	# Get game name labels
 	fruitcatcher_label = get_node("Panel/GridContainer/VBoxContainer/Label")
@@ -37,9 +40,10 @@ func _ready():
 	mole_attack_label = get_node("Panel/GridContainer/VBoxContainer3/Label")
 	tictactoe_label = get_node("Panel/GridContainer/HBoxContainer4/Label")
 	painter_label = get_node("Panel/GridContainer/HBoxContainer5/Label")
+	chimptest_label = get_node("Panel/GridContainer/HBoxContainer6/Label")
 	
 	# Populate menu options arrays
-	main_menu_options = [button_fruitcatcher, button_monkeyduel, button_mole_attack, button_tictactoe, button_painter]
+	main_menu_options = [button_fruitcatcher, button_monkeyduel, button_mole_attack, button_tictactoe, button_painter, button_chimptest]
 
 	# Connect button signals
 	button_fruitcatcher.pressed.connect(_on_fruitcatcher_pressed)
@@ -47,6 +51,7 @@ func _ready():
 	button_mole_attack.pressed.connect(_on_mole_attack_pressed)
 	button_tictactoe.pressed.connect(_on_tictactoe_pressed)
 	button_painter.pressed.connect(_on_painter_pressed)
+	button_chimptest.pressed.connect(_on_chimptest_pressed)
 
 	# Connect label signals
 	fruitcatcher_label.pressed.connect(_on_fruitcatcher_pressed)
@@ -54,6 +59,7 @@ func _ready():
 	mole_attack_label.pressed.connect(_on_mole_attack_pressed)
 	tictactoe_label.pressed.connect(_on_tictactoe_pressed)
 	painter_label.pressed.connect(_on_painter_pressed)
+	chimptest_label.pressed.connect(_on_chimptest_pressed)
 
 	# Connect to remote control directives
 	var remote_control = get_node_or_null("/root/MenuController")
@@ -76,6 +82,8 @@ func _ready():
 		tictactoe_label.text = tr("tictactoe")
 	if painter_label:
 		painter_label.text = tr("shoot_painter")
+	if chimptest_label:
+		chimptest_label.text = tr("chimp_test")
 
 	# Default to FruitNinja (FruitCatcher at index 0)
 	selected_option = 0
@@ -154,6 +162,8 @@ func _on_remote_enter():
 		_on_tictactoe_pressed()
 	elif selected_option == 4:
 		_on_painter_pressed()
+	elif selected_option == 5:
+		_on_chimptest_pressed()
 
 func _on_remote_back_pressed():
 	"""Handle back press from remote control to return to main menu"""
@@ -214,3 +224,10 @@ func _on_painter_pressed():
 	selected_option = 4
 	_save_last_selection()
 	get_tree().change_scene_to_file("res://games/shoot-painter/scene/painter.tscn")
+
+func _on_chimptest_pressed():
+	"""Handle chimp test button press"""
+	print("[Menu] Chimp Test selected")
+	selected_option = 5
+	_save_last_selection()
+	get_tree().change_scene_to_file("res://scene/benchmark/chimp_test.tscn")

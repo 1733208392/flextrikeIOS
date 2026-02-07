@@ -722,3 +722,10 @@ onboarding_health_check_progress,"HEALTH CHECK IN PROGRESS ...","健康检查进
 onboarding_health_check_fault,"HEADS UP: A FAULT IS DETECTED, PLEASE POWER OFF AND POWER ON TO RECOVER.","警告：检测到故障，请关闭电源然后重新打开以恢复。","警告：障害が検出されました。デバイスの電源を切ってから再度オンにして復旧してください。","警告：偵測到故障，請關閉電源然後重新打開以復原。"
 onboarding_main_greeting,"HELLO, MY NAME IS [color=orange]{ble_name}[/color],PLEASE SCAN THE QR CODE TO DOWNLOAD THE APP OR SCAN TO CONNECT IF YOU ALREADY HAVE THE APP INSTALLED.","你好，我叫[color=orange]{ble_name}[/color]，这是我们第一次见面，请扫描二维码下载移动应用来控制我和探索我能为你做什么。安装应用后，请使用应用扫描此二维码再次连接我。","こんにちは、私の名前は[color=orange]{ble_name}[/color]です。初めて会いましたね。モバイルアプリをダウンロードするためにQRコードをスキャンして、私を制御したり、私ができることを探索してください。アプリをインストール後、このQRコードをアプリでスキャンして、再度私に接続してください。","你好，我叫[color=orange]{ble_name}[/color]，這是我們第一次見面，請掃描二維碼下載行動應用來控制我和探索我能為你做什麼。安裝應用後，請使用應用掃描此二維碼再次連接我。"
 onboarding_wifi_connection_greeting,"GREAT, I AM CONNECTED TO THE MOBILE APP, NOW PLEASE HELP ME CONNECT YOUR WIFI NETWORK...","太棒了，我已连接到移动应用，现在请帮助我连接你的WiFi网络...","素晴らしい、モバイルアプリに接続しました。次は、WiFiネットワークに接続するのを手伝ってください...","太棒了，我已連接到行動應用，現在請幫助我連接你的WiFi網路..."
+chimp_watch_sequence,WATCH THE SEQUENCE,观看序列,シーケンスを見る,觀看序列
+chimp_shoot_order,SHOOT IN ORDER,按顺序射击,順番に撃つ,按順序射擊
+chimp_game_complete,GAME COMPLETE!,游戏完成！,ゲーム完了！,遊戲完成！
+chimp_your_iq,YOUR IQ IS ,你的智商是 ,あなたのIQは ,你的智商是 
+chimp_level,LEVEL ,关卡 ,レベル ,關卡 
+chimp_status,STATUS,状态,ステータス,狀態
+chimp_test,CHIMP TEST,猩猩测试,チンパンジーテスト,猩猩測試

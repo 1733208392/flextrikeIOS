@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://cgosfq33rfilf"]
+[gd_scene load_steps=16 format=3 uid="uid://cgosfq33rfilf"]
 
 [ext_resource type="Script" uid="uid://csw1htde5tl1j" path="res://script/games/menu.gd" id="1_8nwqc"]
 [ext_resource type="Texture2D" uid="uid://dd7g7gcxb7pif" path="res://asset/games/game_menu/fruit-ninja-selected.png" id="2_lira2"]
@@ -12,6 +12,8 @@
 [ext_resource type="Texture2D" uid="uid://cgnuyhc3s1ddx" path="res://asset/games/game_menu/tictactoe-selected.png" id="9_2klep"]
 [ext_resource type="Texture2D" uid="uid://botln28fneryg" path="res://asset/games/game_menu/painter.png" id="10_lpr6s"]
 [ext_resource type="Texture2D" uid="uid://lntlls7iw60t" path="res://asset/games/game_menu/painter-selected.png" id="11_lira2"]
+[ext_resource type="Texture2D" uid="uid://40wdlde6rfoh" path="res://asset/games/game_menu/chimp-test.png" id="13_68t83"]
+[ext_resource type="Texture2D" uid="uid://kbclcpus4isr" path="res://asset/games/game_menu/chimp-test-selected.png" id="14_mb7bb"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_68t83"]
 bg_color = Color(0.03137255, 0.03137255, 0.03137255, 1)
@@ -133,6 +135,23 @@ layout_mode = 2
 theme = ExtResource("4_2klep")
 toggle_mode = true
 text = "SHOOT PAINTER"
+
+[node name="HBoxContainer6" type="VBoxContainer" parent="Panel/GridContainer"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="chimptest" type="TextureButton" parent="Panel/GridContainer/HBoxContainer6"]
+layout_mode = 2
+texture_normal = ExtResource("13_68t83")
+texture_pressed = ExtResource("14_mb7bb")
+texture_hover = ExtResource("14_mb7bb")
+texture_focused = ExtResource("14_mb7bb")
+
+[node name="Label" type="Button" parent="Panel/GridContainer/HBoxContainer6"]
+layout_mode = 2
+theme = ExtResource("4_2klep")
+toggle_mode = true
+text = "CHIMP TEST"
 
 [node name="VBoxContainer2" type="VBoxContainer" parent="Panel"]
 visible = false
