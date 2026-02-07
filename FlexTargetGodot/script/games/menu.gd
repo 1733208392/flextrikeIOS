@@ -187,6 +187,7 @@ func _update_selection():
 		mole_attack_label.button_pressed = (selected_option == 2)
 		tictactoe_label.button_pressed = (selected_option == 3)
 		painter_label.button_pressed = (selected_option == 4)
+		chimptest_label.button_pressed = (selected_option == 5)
 	print("[Menu] Selection updated to option: ", selected_option)
 
 func _on_fruitcatcher_pressed():

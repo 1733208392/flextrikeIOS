@@ -4,8 +4,12 @@ const ChimpCell = preload("res://scene/benchmark/chimp_cell.tscn")
 
 @export var rows: int = 6
 @export var columns: int = 4
+@export var base_reveal_time: float = 1.0
+@export var reveal_time_per_item: float = 3
+@export var max_reveal_time: float = 20.0
 
 var cells: Array = []
+var reveal_countdown_time: float = 0.0
 var sequence: Array = []
 var current_sequence_index: int = 0
 var is_sequence_phase: bool = true
@@ -13,7 +17,7 @@ var sequence_length: int = 1
 
 @onready var grid_container: GridContainer = $CenterContainer/GridContainer
 @onready var flash_timer: Timer = $FlashTimer
-@onready var status_label: Label = $StatusLabel
+@onready var status_label: Label = $HBoxContainer/StatusLabel
 @onready var delay_timer: Timer = $DelayTimer
 @onready var title_label: Label = $TitleLabel
 @onready var gameover_overlay: Panel = $GameoverOverly
@@ -23,8 +27,10 @@ var sequence_length: int = 1
 @onready var level_complete_result_label: Label = $LevelCompleteOverlay/VBoxContainer/Result
 @onready var level_complete_countdown_label: Label = $LevelCompleteOverlay/VBoxContainer/CountDown
 @onready var level_complete_timer: Timer = $LevelCompleteTimer
+@onready var reveal_countdown_label: Label = $HBoxContainer/RevealCountdownLabel
 
 var countdown_time: int = 5
+var reveal_timer: SceneTreeTimer
 var level_complete_countdown_time: int = 5
 var ws_listener: Node
 var remote_button_sound: AudioStream = preload("res://audio/remote_button_sound.mp3")
@@ -72,10 +78,22 @@ func start_sequence_phase():
 		var cell_index = sequence[i]
 		var cell = cells[cell_index]
 		cell.show_number(i + 1)
-	var reveal_timer = get_tree().create_timer(5.0)
+	
+	# Calculate reveal time using sublinear scaling: base_time + scale_factor * sqrt(sequence_length)
+	# This provides more time for longer sequences without making them trivial
+	var calculated_reveal_time = base_reveal_time + (reveal_time_per_item * sqrt(float(sequence_length)))
+	reveal_countdown_time = minf(calculated_reveal_time, max_reveal_time)
+	
+	# Show and start countdown timer for visual feedback
+	reveal_countdown_label.text = "(%.1fs)" % reveal_countdown_time
+	reveal_countdown_label.visible = true
+	
+	# Create timer for hiding sequence
+	reveal_timer = get_tree().create_timer(reveal_countdown_time)
 	reveal_timer.timeout.connect(func():
 		for cell_index in sequence:
 			cells[cell_index].hide_number()
+		reveal_countdown_label.visible = false
 		transition_to_input_phase()
 	)
 

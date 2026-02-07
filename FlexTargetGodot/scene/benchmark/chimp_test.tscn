@@ -23,16 +23,10 @@ grow_vertical = 2
 color = Color(0.03137255, 0.03137255, 0.03137255, 1)
 
 [node name="TitleLabel" type="Label" parent="."]
-layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -200.0
-offset_top = 60.0
-offset_right = 200.0
-offset_bottom = 132.0
-grow_horizontal = 2
-grow_vertical = 0
+layout_mode = 0
+offset_top = 38.0
+offset_right = 720.0
+offset_bottom = 110.0
 theme = ExtResource("3_s6qob")
 theme_override_font_sizes/font_size = 60
 horizontal_alignment = 1
@@ -153,22 +147,31 @@ layout_mode = 2
 custom_minimum_size = Vector2(160, 160)
 layout_mode = 2
 
-[node name="StatusLabel" type="Label" parent="."]
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
 layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
+anchors_preset = 12
 anchor_top = 1.0
-anchor_right = 0.5
+anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -200.0
-offset_top = -80.0
-offset_right = 200.0
-offset_bottom = -30.0
+offset_top = -134.0
 grow_horizontal = 2
 grow_vertical = 0
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="StatusLabel" type="Label" parent="HBoxContainer"]
+layout_mode = 2
 theme = ExtResource("3_s6qob")
 theme_override_font_sizes/font_size = 48
 text = "STATUS"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="RevealCountdownLabel" type="Label" parent="HBoxContainer"]
+layout_mode = 2
+theme = ExtResource("3_s6qob")
+theme_override_font_sizes/font_size = 48
+text = "0.0"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -181,6 +184,7 @@ one_shot = true
 [node name="CountdownTimer" type="Timer" parent="."]
 
 [node name="GameoverOverly" type="Panel" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -220,6 +224,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="LevelCompleteOverlay" type="Panel" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
