@@ -1,6 +1,8 @@
-[gd_scene load_steps=2 format=3 uid="uid://chimptest"]
+[gd_scene load_steps=4 format=3 uid="uid://chimptest"]
 
 [ext_resource type="Script" uid="uid://pp8u8easmgc4" path="res://scene/benchmark/chimp_test.gd" id="1_test"]
+[ext_resource type="PackedScene" uid="uid://chimpcell" path="res://scene/benchmark/chimp_cell.tscn" id="2_ce3vg"]
+[ext_resource type="Theme" uid="uid://cdynjfvdtavlt" path="res://scene/main_menu/main_menu_button_theme.tres" id="3_s6qob"]
 
 [node name="ChimpTest" type="Control"]
 layout_mode = 3
@@ -11,34 +13,164 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_test")
 
-[node name="GridContainer" type="GridContainer" parent="."]
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.03137255, 0.03137255, 0.03137255, 1)
+
+[node name="TitleLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -200.0
+offset_top = 60.0
+offset_right = 200.0
+offset_bottom = 132.0
+grow_horizontal = 2
+grow_vertical = 0
+theme = ExtResource("3_s6qob")
+theme_override_font_sizes/font_size = 60
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+custom_minimum_size = Vector2(600, 1000)
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -354.0
-offset_top = -400.0
-offset_right = 346.0
-offset_bottom = 400.0
+offset_left = -300.0
+offset_top = -500.0
+offset_right = 300.0
+offset_bottom = 500.0
 grow_horizontal = 2
 grow_vertical = 2
+
+[node name="GridContainer" type="GridContainer" parent="CenterContainer"]
+layout_mode = 2
 columns = 4
+
+[node name="ChimpCell" parent="CenterContainer/GridContainer" instance=ExtResource("2_ce3vg")]
+custom_minimum_size = Vector2(160, 160)
+layout_mode = 2
+
+[node name="ChimpCell2" parent="CenterContainer/GridContainer" instance=ExtResource("2_ce3vg")]
+custom_minimum_size = Vector2(160, 160)
+layout_mode = 2
+
+[node name="ChimpCell3" parent="CenterContainer/GridContainer" instance=ExtResource("2_ce3vg")]
+custom_minimum_size = Vector2(160, 160)
+layout_mode = 2
+
+[node name="ChimpCell4" parent="CenterContainer/GridContainer" instance=ExtResource("2_ce3vg")]
+custom_minimum_size = Vector2(160, 160)
+layout_mode = 2
+
+[node name="ChimpCell5" parent="CenterContainer/GridContainer" instance=ExtResource("2_ce3vg")]
+custom_minimum_size = Vector2(160, 160)
+layout_mode = 2
+
+[node name="ChimpCell6" parent="CenterContainer/GridContainer" instance=ExtResource("2_ce3vg")]
+custom_minimum_size = Vector2(160, 160)
+layout_mode = 2
+
+[node name="ChimpCell7" parent="CenterContainer/GridContainer" instance=ExtResource("2_ce3vg")]
+custom_minimum_size = Vector2(160, 160)
+layout_mode = 2
+
+[node name="ChimpCell8" parent="CenterContainer/GridContainer" instance=ExtResource("2_ce3vg")]
+custom_minimum_size = Vector2(160, 160)
+layout_mode = 2
+
+[node name="ChimpCell9" parent="CenterContainer/GridContainer" instance=ExtResource("2_ce3vg")]
+custom_minimum_size = Vector2(160, 160)
+layout_mode = 2
+
+[node name="ChimpCell10" parent="CenterContainer/GridContainer" instance=ExtResource("2_ce3vg")]
+custom_minimum_size = Vector2(160, 160)
+layout_mode = 2
+
+[node name="ChimpCell11" parent="CenterContainer/GridContainer" instance=ExtResource("2_ce3vg")]
+custom_minimum_size = Vector2(160, 160)
+layout_mode = 2
+
+[node name="ChimpCell12" parent="CenterContainer/GridContainer" instance=ExtResource("2_ce3vg")]
+custom_minimum_size = Vector2(160, 160)
+layout_mode = 2
+
+[node name="ChimpCell13" parent="CenterContainer/GridContainer" instance=ExtResource("2_ce3vg")]
+custom_minimum_size = Vector2(160, 160)
+layout_mode = 2
+
+[node name="ChimpCell14" parent="CenterContainer/GridContainer" instance=ExtResource("2_ce3vg")]
+custom_minimum_size = Vector2(160, 160)
+layout_mode = 2
+
+[node name="ChimpCell15" parent="CenterContainer/GridContainer" instance=ExtResource("2_ce3vg")]
+custom_minimum_size = Vector2(160, 160)
+layout_mode = 2
+
+[node name="ChimpCell16" parent="CenterContainer/GridContainer" instance=ExtResource("2_ce3vg")]
+custom_minimum_size = Vector2(160, 160)
+layout_mode = 2
+
+[node name="ChimpCell17" parent="CenterContainer/GridContainer" instance=ExtResource("2_ce3vg")]
+custom_minimum_size = Vector2(160, 160)
+layout_mode = 2
+
+[node name="ChimpCell18" parent="CenterContainer/GridContainer" instance=ExtResource("2_ce3vg")]
+custom_minimum_size = Vector2(160, 160)
+layout_mode = 2
+
+[node name="ChimpCell19" parent="CenterContainer/GridContainer" instance=ExtResource("2_ce3vg")]
+custom_minimum_size = Vector2(160, 160)
+layout_mode = 2
+
+[node name="ChimpCell20" parent="CenterContainer/GridContainer" instance=ExtResource("2_ce3vg")]
+custom_minimum_size = Vector2(160, 160)
+layout_mode = 2
+
+[node name="ChimpCell21" parent="CenterContainer/GridContainer" instance=ExtResource("2_ce3vg")]
+custom_minimum_size = Vector2(160, 160)
+layout_mode = 2
+
+[node name="ChimpCell22" parent="CenterContainer/GridContainer" instance=ExtResource("2_ce3vg")]
+custom_minimum_size = Vector2(160, 160)
+layout_mode = 2
+
+[node name="ChimpCell23" parent="CenterContainer/GridContainer" instance=ExtResource("2_ce3vg")]
+custom_minimum_size = Vector2(160, 160)
+layout_mode = 2
+
+[node name="ChimpCell24" parent="CenterContainer/GridContainer" instance=ExtResource("2_ce3vg")]
+custom_minimum_size = Vector2(160, 160)
+layout_mode = 2
 
 [node name="StatusLabel" type="Label" parent="."]
 layout_mode = 1
-anchors_preset = 5
+anchors_preset = 7
 anchor_left = 0.5
+anchor_top = 1.0
 anchor_right = 0.5
+anchor_bottom = 1.0
 offset_left = -200.0
-offset_top = 20.0
+offset_top = -80.0
 offset_right = 200.0
-offset_bottom = 70.0
+offset_bottom = -30.0
 grow_horizontal = 2
-theme_override_font_sizes/font_size = 32
-text = "Status"
+grow_vertical = 0
+theme = ExtResource("3_s6qob")
+theme_override_font_sizes/font_size = 48
+text = "STATUS"
 horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="FlashTimer" type="Timer" parent="."]
 one_shot = true
@@ -46,5 +178,89 @@ one_shot = true
 [node name="DelayTimer" type="Timer" parent="."]
 one_shot = true
 
+[node name="CountdownTimer" type="Timer" parent="."]
+
+[node name="GameoverOverly" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("3_s6qob")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="GameoverOverly"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Result" type="Label" parent="GameoverOverly/VBoxContainer"]
+layout_mode = 2
+theme = ExtResource("3_s6qob")
+theme_override_font_sizes/font_size = 80
+text = "GAME OVER"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CountDown" type="Label" parent="GameoverOverly/VBoxContainer"]
+layout_mode = 2
+theme = ExtResource("3_s6qob")
+theme_override_font_sizes/font_size = 120
+text = "5"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="LevelCompleteOverlay" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("3_s6qob")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="LevelCompleteOverlay"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -100.0
+offset_right = 200.0
+offset_bottom = 100.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Result" type="Label" parent="LevelCompleteOverlay/VBoxContainer"]
+layout_mode = 2
+theme = ExtResource("3_s6qob")
+theme_override_font_sizes/font_size = 80
+text = "PASS"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CountDown" type="Label" parent="LevelCompleteOverlay/VBoxContainer"]
+layout_mode = 2
+theme = ExtResource("3_s6qob")
+theme_override_font_sizes/font_size = 120
+text = "5"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="LevelCompleteTimer" type="Timer" parent="."]
+
 [connection signal="timeout" from="FlashTimer" to="." method="_on_flash_timer_timeout"]
 [connection signal="timeout" from="DelayTimer" to="." method="_on_delay_timeout"]
+[connection signal="timeout" from="CountdownTimer" to="." method="_on_countdown_timer_timeout"]
+[connection signal="timeout" from="LevelCompleteTimer" to="." method="_on_level_complete_timer_timeout"]
