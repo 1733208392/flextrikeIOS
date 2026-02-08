@@ -286,9 +286,6 @@ func update_device_name_label():
 	else:
 		# Slave mode: don't show bluetooth_name
 		device_name_label.text = mode + " - " + device_name
-
-	# Update the QR code for master devices
-	update_master_qr_code(bluetooth_name, work_mode)
 			
 
 func update_master_qr_code(ble_name: String, work_mode: String):
@@ -345,10 +342,6 @@ func _get_netlink_identity() -> Dictionary:
 			identity["bluetooth_name"] = str(status["bluetooth_name"])
 
 	return identity
-
-func _refresh_master_qr_code():
-	var info = _get_netlink_identity()
-	update_master_qr_code(info["device_name"], info["work_mode"])
 	
 func spawn_target():
 	"""Spawn the single target"""
@@ -372,13 +365,15 @@ func spawn_target():
 		target_instance.action_duration = current_animation_action.get("duration", -1.0)
 		print("[DrillsNetwork] spawn_target: Set CQB target action_duration to ", target_instance.action_duration)
 
-	# CQB swing: apply the animation start pose immediately to avoid a visible snap
-	if normalize_game_mode(game_mode) == "cqb" and animation_lib and current_animation_action.size() > 0:
-		animation_lib.apply_start_pose(target_instance, current_animation_action.get("name", ""))
-	
 	# Offset rotation target by -200, 200 from center
 	if current_target_type == "rotation":
 		target_instance.position = Vector2(-200, 200)
+	
+	# Center cqb swing target
+	if current_target_type == "cqb_swing":
+		var soldier = target_instance.get_node("Soldier")
+		soldier.position = Vector2(0, 0)  # Center relative to target_instance
+		soldier.visible = false  # Hide soldier initially
 	
 	# Set drill active flag to false initially
 	if target_instance.has_method("set"):
@@ -415,9 +410,6 @@ func spawn_target():
 	
 	# Connect performance tracker to our target_hit signal
 	target_hit.connect(performance_tracker._on_target_hit)
-	
-	# Hide QR code now that target is spawned
-	_refresh_master_qr_code()
 
 func start_drill():
 	"""Start the drill after delay"""
@@ -465,9 +457,6 @@ func spawn_final_target():
 	else:
 		if DEBUG_ENABLED:
 			print("[DrillsNetwork] ERROR: Could not load final target scene")
-
-	# Hide QR whenever targets are visible
-	_refresh_master_qr_code()
 
 func _on_final_target_hit(hit_position: Vector2):
 	"""Handle final target hit - send end acknowledgement"""
@@ -766,15 +755,24 @@ func start_drill_timer():
 	if target_instance and target_instance.has_method("set"):
 		target_instance.set("drill_active", true)
 	
+	# For CQB swing targets, reset and make soldier visible before starting
+	if current_target_type == "cqb_swing":
+		if target_instance.has_method("reset_target"):
+			target_instance.reset_target()
+			print("[DrillsNetwork] start_drill_timer: Reset CQB swing target")
+		var soldier = target_instance.get_node("Soldier")
+		if soldier:
+			soldier.visible = true
+			print("[DrillsNetwork] start_drill_timer: Made CQB swing soldier visible")
+	
 	# Apply animation if configured
 	if animation_lib and current_animation_action.size() > 0:
 		var duration = current_animation_action.get("duration", -1.0)
 		var animation_name = current_animation_action.get("name", "")
 		
-		# For CQB swing targets in continuous mode, apply start pose only (no animation)
+		# For CQB swing targets in continuous mode, skip start pose (editor handles positioning)
 		if normalize_game_mode(game_mode) == "cqb" and current_target_type == "cqb_swing" and duration == -1.0:
-			print("[DrillsNetwork] start_drill_timer: CQB swing continuous mode - applying start pose only")
-			animation_lib.apply_start_pose(target_instance, animation_name)
+			print("[DrillsNetwork] start_drill_timer: CQB swing continuous mode - skipping start pose (editor handles positioning)")
 		# For disguised_enemy, always apply animation (flash_sequence scene switching)
 		elif normalize_game_mode(game_mode) == "cqb" and current_target_type == "disguised_enemy":
 			print("[DrillsNetwork] start_drill_timer: Disguised enemy target - applying flash_sequence animation")
@@ -785,8 +783,10 @@ func start_drill_timer():
 			print("[DrillsNetwork] start_drill_timer: CQB continuous mode detected (duration=-1) - skipping animation")
 		else:
 			print("[DrillsNetwork] start_drill_timer: Animation configured - applying animation: ", animation_name)
-			# Prime the start pose first to prevent an initial jump when the animation begins
-			animation_lib.apply_start_pose(target_instance, animation_name)
+			# For CQB swing, skip start pose as editor handles positioning
+			if not (normalize_game_mode(game_mode) == "cqb" and current_target_type == "cqb_swing"):
+				# Prime the start pose first to prevent an initial jump when the animation begins
+				animation_lib.apply_start_pose(target_instance, animation_name)
 			
 			# For flash_sequence animations, pass parent container for scene swapping
 			if animation_name == "disguised_enemy_flash":
@@ -794,7 +794,7 @@ func start_drill_timer():
 				animation_lib.apply_animation(target_instance, animation_name, duration, 0.0, center_container)
 			else:
 				print("[DrillsNetwork] start_drill_timer: Applying animation without container")
-				animation_lib.apply_animation(target_instance, animation_name, duration)
+				animation_lib.apply_animation(target_instance, animation_name, duration, 0.0, null)
 	else:
 		print("[DrillsNetwork] start_drill_timer: No animation configured (animation_lib=" + str(animation_lib != null) + ", action.size=" + str(current_animation_action.size()) + ")")
 
@@ -872,8 +872,8 @@ func reset_drill_state():
 	# Reset UI timer
 	emit_signal("ui_timer_update", 0.0)
 
-	# Refresh QR code now that no targets are visible
-	_refresh_master_qr_code()
+	# # Refresh QR code now that no targets are visible
+	# _refresh_master_qr_code()
 
 func _on_menu_control(directive: String):
 	"""Handle websocket menu control"""
@@ -1134,5 +1134,6 @@ func _on_animation_config(action: String, duration: float) -> void:
 	
 	# Store the animation action for application when drill starts
 	current_animation_action = {"name": action, "duration": duration}
+	
 	if DEBUG_ENABLED:
 		print("[DrillsNetwork] Stored animation action: ", action, " with duration: ", duration, " (will apply when drill starts)")

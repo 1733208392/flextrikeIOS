@@ -8,6 +8,7 @@ const DEBUG_DISABLED = true  # Set to true to disable debug prints for productio
 @onready var option_button = $CenterContainer/GridContainer/OptionsButton
 @onready var copyright_label = $Label
 @onready var background_music = $BackgroundMusic
+@onready var subtitle_label = $background/SubTitle
 
 var focused_index
 var buttons = []
@@ -148,11 +149,15 @@ func _ready():
 
 	# Connect to GlobalData netlink_status_loaded signal
 	if global_data:
+		global_data.netlink_status_loaded.connect(_on_netlink_status_loaded)
 		if not DEBUG_DISABLED:
 			print("[Menu] Connected to GlobalData.netlink_status_loaded signal")
 	else:
 		if not DEBUG_DISABLED:
 			print("[Menu] GlobalData not found!")
+	
+	# Update subtitle with current netlink status if available
+	_update_subtitle()
 	
 	# Connect to SignalBus signals
 	stages_button.pressed.connect(_on_drills_pressed)
@@ -536,3 +541,39 @@ func _apply_sfx_volume(volume: int):
 			background_music.volume_db = db
 		if not DEBUG_DISABLED:
 			print("[Menu] Set audio volume_db to ", db, " (volume level: ", volume, ")")
+
+func _on_netlink_status_loaded():
+	"""Update subtitle when netlink status is loaded"""
+	_update_subtitle()
+
+func _update_subtitle():
+	"""Update the subtitle label with device name/device id + work mode"""
+	var global_data = get_node_or_null("/root/GlobalData")
+	if not global_data or not subtitle_label:
+		return
+	
+	var status = global_data.netlink_status
+	if not status or status.is_empty():
+		# No status available, show default
+		subtitle_label.text = "Device: Unknown"
+		return
+	
+	var device_name = str(status.get("device_name", "unknown"))
+	var work_mode = str(status.get("work_mode", "unknown"))
+	var bluetooth_name = str(status.get("bluetooth_name", ""))
+	
+	# Extract device ID from bluetooth_name (last part after space)
+	var device_id = device_name  # Default to device_name
+	if not bluetooth_name.is_empty():
+		if " " in bluetooth_name:
+			var parts = bluetooth_name.split(" ")
+			device_id = parts[-1]
+		else:
+			device_id = bluetooth_name
+	
+	# Format: "Device ID - Work Mode"
+	var work_mode_display = str(work_mode).to_upper()
+	subtitle_label.text = device_id + " - " + work_mode_display
+	
+	if not DEBUG_DISABLED:
+		print("[Menu] Updated subtitle: ", subtitle_label.text)

@@ -15,8 +15,7 @@ var active_tweens: Dictionary = {}
 # Configurable default durations for animations (in seconds)
 @export var flash_duration: float = 3.0
 @export var run_through_duration: float = 2.0
-@export var swing_left_duration: float = 2.0
-@export var swing_right_duration: float = 2.0
+@export var swing_duration: float = 2.0
 @export var up_duration: float = 1.5
 @export var down_duration: float = 1.5
 
@@ -25,8 +24,7 @@ enum AnimationAction {
 	FLASH,           # Show target for duration then disappear
 	RUN_THROUGH,     # Move target from left to right
 	RUN_THROUGH_REVERSE, # Move target from right to left
-	SWING_LEFT,      # Appear rotated from left, disappear after duration
-	SWING_RIGHT,     # Appear rotated from right, disappear after duration
+	SWING,           # Randomly plays one of the 4 swing animations
 	UP,              # Show target from bottom, stop at 1/3 visible
 	DOWN,            # Show target from top, stop at 1/3 visible
 	FLASH_SEQUENCE,  # Sequence of scene swaps with specified durations
@@ -74,15 +72,10 @@ func _get_animation_templates() -> Dictionary:
 			"default_duration": run_through_duration,
 			"description": "Target moves from right to left"
 		},
-		"swing_left": {
-			"action": AnimationAction.SWING_LEFT,
-			"default_duration": swing_left_duration,
-			"description": "Appear rotated from left, disappear after duration"
-		},
-		"swing_right": {
-			"action": AnimationAction.SWING_RIGHT,
-			"default_duration": swing_right_duration,
-			"description": "Appear rotated from right, disappear after duration"
+		"swing": {
+			"action": AnimationAction.SWING,
+			"default_duration": swing_duration,
+			"description": "Randomly plays one of the 4 swing animations"
 		},
 		"up": {
 			"action": AnimationAction.UP,
@@ -112,12 +105,14 @@ func _get_animation_templates() -> Dictionary:
 # start_delay: Delay before animation starts (optional)
 # parent_container: Parent container for scene swapping in flash_sequence (optional, required for flash_sequence)
 # Returns: AnimationPlayer animation name that was created
-func apply_animation(target: Node, animation_name: String, custom_duration: float = -1.0, start_delay: float = 0.0, parent_container: Node = null) -> String:
+func apply_animation(target: Node, animation_name: String, custom_duration: float = -1.0, start_delay: float = 0.0, parent_container: Node = null, direction: int = 1) -> String:
 	if not target:
 		push_error("TargetAnimationLibrary: Target is null")
 		return ""
 
 	var templates = _get_animation_templates()
+	if animation_name in ["swing_left", "swing_right"]:
+		animation_name = "swing"
 	if not animation_name in templates:
 		push_error("TargetAnimationLibrary: Unknown animation '" + animation_name + "'")
 		return ""
@@ -141,13 +136,14 @@ func apply_animation(target: Node, animation_name: String, custom_duration: floa
 	var duration = custom_duration if custom_duration > 0 else template.default_duration
 
 	var config = AnimationConfig.new(template.action, duration, start_delay)
+	config.direction = direction  # Apply the direction to the config
 	return _apply_animation_config(target, config, animation_name)
 
 
 # Apply the first-frame pose of a predefined animation to a target.
 # This is useful to prevent an initial "jump" (e.g. target spawns centered, then instantly snaps
 # to the animation's start position when the animation begins).
-func apply_start_pose(target: Node, animation_name: String) -> void:
+func apply_start_pose(target: Node, animation_name: String, direction: int = 1) -> void:
 	if not target:
 		return
 	if not (target is Node2D):
@@ -159,12 +155,6 @@ func apply_start_pose(target: Node, animation_name: String) -> void:
 
 	var template = templates[animation_name]
 	match template.action:
-		AnimationAction.SWING_LEFT:
-			# Keep in sync with _create_swing_animation(direction = -1)
-			(target as Node2D).position = Vector2(360, 0)
-		AnimationAction.SWING_RIGHT:
-			# Keep in sync with _create_swing_animation(direction = 1)
-			(target as Node2D).position = Vector2(-440, 0)
 		_:
 			pass
 
@@ -175,6 +165,8 @@ func _apply_animation_config(target: Node, config: AnimationConfig, animation_na
 		return _apply_flash_sequence(target, config as FlashSequenceConfig)
 	
 	var animation_player = target.get_node_or_null("AnimationPlayer")
+	if not animation_player:
+		animation_player = target.get_node_or_null("Soldier/AnimationPlayer")
 	if not animation_player:
 		push_error("TargetAnimationLibrary: Target does not have AnimationPlayer")
 		return ""
@@ -196,10 +188,9 @@ func _apply_animation_config(target: Node, config: AnimationConfig, animation_na
 			_create_run_through_animation(animation, config, 1)
 		AnimationAction.RUN_THROUGH_REVERSE:
 			_create_run_through_animation(animation, config, -1)
-		AnimationAction.SWING_LEFT:
-			_create_swing_animation(animation, config, -1)
-		AnimationAction.SWING_RIGHT:
-			_create_swing_animation(animation, config, 1)
+		AnimationAction.SWING:
+			var selected = ["swing-left-bottom", "swing-left", "swing-right", "swing-right-bottom"].pick_random()
+			return _play_editor_animation(target, selected, config.start_delay)
 		AnimationAction.UP:
 			_create_up_animation(animation, config)
 		AnimationAction.DOWN:
@@ -281,6 +272,31 @@ func _apply_flash_sequence(target: Node, config: FlashSequenceConfig) -> String:
 	
 	return unique_name
 
+# Play editor-created animation
+func _play_editor_animation(target: Node, animation_name: String, start_delay: float) -> String:
+	var animation_player = target.get_node_or_null("AnimationPlayer")
+	if not animation_player:
+		animation_player = target.get_node_or_null("Soldier/AnimationPlayer")
+	if not animation_player:
+		push_error("TargetAnimationLibrary: Target does not have AnimationPlayer")
+		return ""
+	if not animation_player.has_animation(animation_name):
+		push_error("TargetAnimationLibrary: Editor animation '" + animation_name + "' not found")
+		return ""
+	if start_delay > 0:
+		var timer = Timer.new()
+		timer.wait_time = start_delay
+		timer.one_shot = true
+		target.add_child(timer)
+		timer.timeout.connect(func():
+			animation_player.play(animation_name)
+			timer.queue_free()
+		)
+		timer.start()
+	else:
+		animation_player.play(animation_name)
+	return animation_name
+
 # Create flash animation (show then disappear)
 func _create_flash_animation(animation: Animation, config: AnimationConfig):
 	# Modulate track for visibility
@@ -310,26 +326,6 @@ func _create_run_through_animation(animation: Animation, config: AnimationConfig
 	animation.track_insert_key(modulate_track, config.start_delay + 0.2, Color(1, 1, 1, 1))
 	animation.track_insert_key(modulate_track, config.duration + config.start_delay - 0.2, Color(1, 1, 1, 1))
 	animation.track_insert_key(modulate_track, config.duration + config.start_delay, Color(1, 1, 1, 0))
-
-# Create swing animation (appear rotated, disappear)
-func _create_swing_animation(animation: Animation, config: AnimationConfig, direction: int):
-	# var max_rotation = PI/12 * config.amplitude * direction  # 15 degrees max
-
-	# Position track (fixed position)
-	var pos_start = Vector2(-440, 0) if direction == 1 else Vector2(360, 0)
-	var pos_end = Vector2(-80, 0) if direction == 1 else Vector2(0, 0)
-	var position_track = animation.add_track(Animation.TYPE_VALUE)
-	animation.track_set_path(position_track, ".:position")
-	animation.track_insert_key(position_track, config.start_delay, pos_start)
-	animation.track_insert_key(position_track, (config.duration + config.start_delay)/2, pos_end)
-	animation.track_insert_key(position_track, config.duration + config.start_delay, pos_start)
-
-	# Rotation track
-	# var rotation_track = animation.add_track(Animation.TYPE_VALUE)
-	# animation.track_set_path(rotation_track, ".:rotation")
-	# animation.track_insert_key(rotation_track, config.start_delay, 0)
-	# animation.track_insert_key(rotation_track, (config.start_delay + config.duration)/2, max_rotation)
-	# animation.track_insert_key(rotation_track, config.duration + config.start_delay, 0)
 
 # Create up animation (show from bottom, stop at 1/3 visible)
 func _create_up_animation(animation: Animation, config: AnimationConfig):
@@ -439,10 +435,15 @@ func stop_all_sequences():
 
 # Get list of available animation names
 func get_available_animations() -> Array[String]:
-	return _get_animation_templates().keys()
+	var anims = _get_animation_templates().keys()
+	anims.append("swing_left")
+	anims.append("swing_right")
+	return anims
 
 # Get animation description
 func get_animation_description(animation_name: String) -> String:
+	if animation_name in ["swing_left", "swing_right"]:
+		animation_name = "swing"
 	var templates = _get_animation_templates()
 	if animation_name in templates:
 		return templates[animation_name].description
@@ -450,6 +451,8 @@ func get_animation_description(animation_name: String) -> String:
 
 # Get default duration for animation
 func get_default_duration(animation_name: String) -> float:
+	if animation_name in ["swing_left", "swing_right"]:
+		animation_name = "swing"
 	var templates = _get_animation_templates()
 	if animation_name in templates:
 		return templates[animation_name].default_duration

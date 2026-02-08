@@ -27,9 +27,6 @@ func _ready():
 	# Setup timeout fallback
 	setup_timeout_fallback()
 	
-	# Setup shader effect
-	#setup_shader_effect()
-	
 	# Connect to GlobalData settings loaded signal
 	var global_data = get_node("/root/GlobalData")
 	if global_data:
@@ -104,8 +101,55 @@ func _start_auto_netlink():
 	if not DEBUG_DISABLED:
 		print("[Splash] Starting auto netlink config")
 	
-	# Config with channel 17, work_mode "master", device_name "01"
-	HttpService.netlink_config(Callable(self, "_on_auto_netlink_config_response"), 17, "01", "master")
+	# First, request netlink status to get the device ID from bluetooth_name
+	HttpService.netlink_status(Callable(self, "_on_auto_netlink_status_response"))
+
+func _on_auto_netlink_status_response(result, response_code, _headers, body):
+	"""
+	Handle auto netlink status response to get device ID
+	"""
+	if not is_instance_valid(self) or not is_inside_tree():
+		return
+	
+	var device_name = "01"  # Default fallback
+	
+	if result == HTTPRequest.RESULT_SUCCESS and response_code == 200:
+		var body_str = body.get_string_from_utf8()
+		var json = JSON.parse_string(body_str)
+		if json and json.has("data"):
+			var data = json["data"]
+			if typeof(data) == TYPE_STRING:
+				var parsed = JSON.parse_string(data)
+				if parsed and parsed.has("bluetooth_name"):
+					var bluetooth_name = str(parsed["bluetooth_name"])
+					if not bluetooth_name.is_empty():
+						# Extract device ID from bluetooth_name (last part after space)
+						var device_id = bluetooth_name
+						if " " in bluetooth_name:
+							var parts = bluetooth_name.split(" ")
+							device_id = parts[-1]
+						device_name = device_id
+						if not DEBUG_DISABLED:
+							print("[Splash] Extracted device_name from bluetooth_name '", bluetooth_name, "': ", device_name)
+			elif typeof(data) == TYPE_DICTIONARY and data.has("bluetooth_name"):
+				var bluetooth_name = str(data["bluetooth_name"])
+				if not bluetooth_name.is_empty():
+					# Extract device ID from bluetooth_name (last part after space)
+					var device_id = bluetooth_name
+					if " " in bluetooth_name:
+						var parts = bluetooth_name.split(" ")
+						device_id = parts[-1]
+					device_name = device_id
+					if not DEBUG_DISABLED:
+						print("[Splash] Extracted device_name from bluetooth_name '", bluetooth_name, "': ", device_name)
+	else:
+		if not DEBUG_DISABLED:
+			print("[Splash] Failed to get netlink status for device ID, using default '01'")
+	
+	# Now config with the extracted device_name
+	if not DEBUG_DISABLED:
+		print("[Splash] Using device_name: ", device_name)
+	HttpService.netlink_config(Callable(self, "_on_auto_netlink_config_response"), 17, device_name, "master")
 
 func _on_auto_netlink_config_response(result, response_code, _headers, _body):
 	"""

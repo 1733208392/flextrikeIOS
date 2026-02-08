@@ -1,9 +1,9 @@
-extends Area2D
+extends Node2D
 
 var last_click_frame = -1
 
 # Animation state tracking
-var is_disappearing: bool = false
+var is_destroyed: bool = false
 var action_duration: float = -1.0  # Animation duration; -1 = continuous
 
 # Shot tracking for disappearing animation - only valid target hits count
@@ -61,7 +61,14 @@ signal target_disappeared
 
 func _ready():
 	# Connect the input_event signal to detect mouse clicks
-	input_event.connect(_on_input_event)
+	var soldier = get_node_or_null("Soldier")
+	if soldier:
+		soldier.input_event.connect(_on_input_event)
+	else:
+		# Fallback for scenes where script is on the collision object itself
+		if has_signal("input_event"):
+			connect("input_event", _on_input_event)
+		# No default visibility change if no Soldier node found
 
 	# Initialize bullet hole pool for performance
 	initialize_bullet_hole_pool()
@@ -72,16 +79,16 @@ func _ready():
 		ws_listener.bullet_hit.connect(_on_websocket_bullet_hit)
 
 func _on_websocket_bullet_hit(pos: Vector2, _a: int = 0, _t: int = 0) -> void:
-	print("[CQB_Enemy] _on_websocket_bullet_hit called with pos=", pos, " drill_active=", drill_active, " t=", _t)
+	print("[CQB_SWING] _on_websocket_bullet_hit called with pos=", pos, " drill_active=", drill_active, " t=", _t)
 	# Ignore shots if drill is not active yet
 	if not drill_active:
-		print("[CQB_Enemy] drill_active is false - ignoring shot")
+		print("[CQB_SWING] drill_active is false - ignoring shot")
 		return
 
 	# Check if bullet spawning is enabled
 	var ws_listener = get_node_or_null("/root/WebSocketListener")
 	if ws_listener and not ws_listener.bullet_spawning_enabled:
-		print("[CQB_Enemy] bullet_spawning_enabled is false - ignoring shot")
+		print("[CQB_SWING] bullet_spawning_enabled is false - ignoring shot")
 		return
 
 	# CQB front targets do not support rotating-parent scenes.
@@ -97,8 +104,8 @@ func _input(event: InputEvent):
 		get_tree().root.set_input_as_handled()
 
 func _on_input_event(_viewport, event, _shape_idx):
-	# Don't process input events if target is disappearing
-	if is_disappearing:
+	# Don't process input events if target is destroyed
+	if is_destroyed:
 		return
 
 	# Check if it's a left mouse click
@@ -110,7 +117,9 @@ func _on_input_event(_viewport, event, _shape_idx):
 		last_click_frame = current_frame
 
 		# Get the click position in local coordinates
-		var local_pos = to_local(event.global_position)
+		var target_node = get_node_or_null("Soldier")
+		if not target_node: target_node = self
+		var local_pos = target_node.to_local(event.global_position)
 
 		# CQB front zones: head + body only
 		if is_point_in_zone("head", local_pos):
@@ -121,22 +130,27 @@ func _on_input_event(_viewport, event, _shape_idx):
 
 func is_point_in_zone(zone_name: String, point: Vector2) -> bool:
 	# Find the collision shape by name
-	var zone_node = get_node(zone_name)
+	var zone_node = get_node_or_null(zone_name)
+	if not zone_node:
+		zone_node = get_node_or_null("Soldier/" + zone_name)
+	
 	if not zone_node:
 		return false
 	
+	# Transform point from parent space (Soldier or Root) to zone_node's local space
+	# This correctly handles position, rotation, and scale of the zone node.
+	var local_point = zone_node.transform.affine_inverse() * point
+	
 	if zone_node is CollisionPolygon2D:
 		# Check if point is inside the polygon
-		return Geometry2D.is_point_in_polygon(point, zone_node.polygon)
+		return Geometry2D.is_point_in_polygon(local_point, zone_node.polygon)
 	elif zone_node is CollisionShape2D:
 		var shape = zone_node.shape
-		var local_point = point - zone_node.position
 		if shape is CircleShape2D:
 			return local_point.length() <= shape.radius
 		elif shape is RectangleShape2D:
-			var rect = shape.get_rect()
-			rect.position -= shape.size / 2  # Center the rect
-			return rect.has_point(local_point)
+			# get_rect() for RectangleShape2D returns a Rect2 centered at (0,0)
+			return shape.get_rect().has_point(local_point)
 		elif shape is CapsuleShape2D:
 			# For capsule shapes, check if point is within the capsule bounds
 			var half_height = shape.height / 2.0
@@ -145,7 +159,9 @@ func is_point_in_zone(zone_name: String, point: Vector2) -> bool:
 			if abs(local_point.x) > radius or abs(local_point.y) > half_height:
 				return false
 			# For points within the box, check against the rounded capsule edges
-			var closest_y = clamp(local_point.y, -half_height, half_height)
+			# Correct clamp to the centers of the hemispherical caps
+			var cap_offset = half_height - radius
+			var closest_y = clamp(local_point.y, -cap_offset, cap_offset)
 			var distance_to_axis = local_point.distance_to(Vector2(0, closest_y))
 			return distance_to_axis <= radius
 		# Add other shape types if needed
@@ -153,20 +169,23 @@ func is_point_in_zone(zone_name: String, point: Vector2) -> bool:
 
 func play_disappearing_animation():
 	"""Freeze the target in place instead of playing disappear animation"""
-	is_disappearing = true
+	is_destroyed = true
 
 	# Stop the AnimationPlayer to prevent the disappear animation from playing
 	var animation_player = get_node_or_null("AnimationPlayer")
+	if not animation_player:
+		animation_player = get_node_or_null("Soldier/AnimationPlayer")
+		
 	if animation_player and animation_player is AnimationPlayer:
-		animation_player.stop()
-		print("[CQB_Enemy] play_disappearing_animation: Stopped AnimationPlayer")
+		animation_player.play("RESET")
+		print("[CQB_SWING] play_disappearing_animation: Played RESET animation")
 	else:
-		print("[CQB_Enemy] play_disappearing_animation: No AnimationPlayer found, or not playing")
+		print("[CQB_SWING] play_disappearing_animation: No AnimationPlayer found, or not playing")
 	
 	# Immediately emit the target_disappeared signal
 	# This notifies the drills system that the target is no longer active
-	print("[CQB_Enemy] play_disappearing_animation: Emitting target_disappeared signal")
-	target_disappeared.emit()
+	print("[CQB_SWING] play_disappearing_animation: Skipping target_disappeared signal to keep visible")
+	# target_disappeared.emit()
 
 func is_connected_to_animation_finished() -> bool:
 	"""Check if we need to emit target_disappeared on animation finish"""
@@ -177,23 +196,31 @@ func is_connected_to_animation_finished() -> bool:
 func reset_target():
 	"""Reset the target to its original state (useful for restarting)"""
 	# Reset animation state
-	is_disappearing = false
+	is_destroyed = false
 
 	# Reset shot count
 	shot_count = 0
 
+	# Clear all blood splatters before next animation
+	clear_all_bullet_holes()
+
 	# Resume AnimationPlayer animation if it was stopped
 	var animation_player = get_node_or_null("AnimationPlayer")
+	if not animation_player:
+		animation_player = get_node_or_null("Soldier/AnimationPlayer")
+
 	if animation_player and animation_player is AnimationPlayer:
-		if animation_player.is_stopped():
-			# Start playing the idle animation if there is one, otherwise just play any animation
-			animation_player.play()
-			print("[CQB_Enemy] reset_target: Resumed AnimationPlayer")
+		if not animation_player.is_playing():
+			# Reset and start playing the animation from the beginning
+			animation_player.seek(0)
+			print("[CQB_SWING] reset_target: Reset and resumed AnimationPlayer")
 
 	# Reset visual properties
-	modulate = Color.WHITE
-	rotation = 0.0
-	scale = Vector2.ONE
+	var soldier = get_node_or_null("Soldier")
+	if soldier:
+		soldier.modulate = Color.WHITE
+		soldier.rotation = 0.0
+		soldier.scale = Vector2.ONE
 
 	# Reset bullet hole pool - hide all active holes
 	reset_bullet_hole_pool()
@@ -208,7 +235,6 @@ func reset_bullet_hole_pool():
 
 	# Clear active list
 	active_bullet_holes.clear()
-
 
 	# Reset GPU-instanced MultiMesh visible instance counts if present
 	for texture_index in range(bullet_hole_multimeshes.size()):
@@ -235,8 +261,10 @@ func initialize_bullet_hole_pool():
 	# Load bullet hole textures
 	load_bullet_hole_textures()
 
-	# Determine parent for multimesh instances (prefer IPSCMini child so holes rotate with it)
-	var parent_node = get_node_or_null("IPSCMini")
+	# Determine parent for multimesh instances (prefer Soldier or IPSCMini child so holes rotate with it)
+	var parent_node = get_node_or_null("Soldier")
+	if not parent_node:
+		parent_node = get_node_or_null("IPSCMini")
 	if not parent_node:
 		parent_node = self
 
@@ -354,16 +382,18 @@ func spawn_bullet_hole(local_position: Vector2):
 func handle_websocket_bullet_hit_fast(world_pos: Vector2, t: int = 0):
 	"""Fast path for WebSocket bullet hits - check zones first, then spawn appropriate effects"""
 
-	print("[CQB_Enemy] handle_websocket_bullet_hit_fast called with world_pos=", world_pos)
+	print("[CQB_SWING] handle_websocket_bullet_hit_fast called with world_pos=", world_pos)
 
-	# Don't process if target is disappearing
-	if is_disappearing:
-		print("[CQB_Enemy] Target is disappearing - ignoring hit")
+	# Don't process if target is destroyed
+	if is_destroyed:
+		print("[CQB_SWING] Target is destroyed - ignoring hit")
 		return
 
 	# Convert world position to local coordinates
-	var local_pos = to_local(world_pos)
-	print("[CQB_Enemy] Converted to local_pos=", local_pos)
+	var target_node = get_node_or_null("Soldier")
+	if not target_node: target_node = self
+	var local_pos = target_node.to_local(world_pos)
+	print("[CQB_SWING] Converted to local_pos=", local_pos)
 
 	# 1. FIRST: Determine hit zone
 	var zone_hit = ""
@@ -387,7 +417,7 @@ func handle_websocket_bullet_hit_fast(world_pos: Vector2, t: int = 0):
 	spawn_bullet_effects_at_position(world_pos, is_target_hit)
 
 	# 4. Emit signal with hit zone and position
-	print("[CQB_Enemy] Emitting cqb_target_hit signal: zone=", zone_hit, " world_pos=", world_pos, " t=", t)
+	print("[CQB_SWING] Emitting cqb_target_hit signal: zone=", zone_hit, " world_pos=", world_pos, " t=", t)
 	cqb_target_hit.emit(zone_hit, world_pos, t)
 
 	# 5. Increment shot count and check for freezing (only for valid target hits)
@@ -397,14 +427,17 @@ func handle_websocket_bullet_hit_fast(world_pos: Vector2, t: int = 0):
 		# Check if we've reached the maximum valid target hits
 		if shot_count >= max_shots:
 			# Always freeze the target in place after 2 valid hits
-			print("[CQB_Enemy] handle_websocket_bullet_hit_fast: shot_count=", shot_count, " - freezing target")
-			is_disappearing = true
+			print("[CQB_SWING] handle_websocket_bullet_hit_fast: shot_count=", shot_count, " - freezing target")
+			is_destroyed = true
 			var animation_player = get_node_or_null("AnimationPlayer")
+			if not animation_player:
+				animation_player = get_node_or_null("Soldier/AnimationPlayer")
+
 			if animation_player and animation_player is AnimationPlayer:
-				animation_player.stop()
-				print("[CQB_Enemy] handle_websocket_bullet_hit_fast: Stopped AnimationPlayer")
+				animation_player.pause()
+				print("[CQB_SWING] handle_websocket_bullet_hit_fast: Paused AnimationPlayer")
 			else:
-				print("[CQB_Enemy] handle_websocket_bullet_hit_fast: No AnimationPlayer found")
+				print("[CQB_SWING] handle_websocket_bullet_hit_fast: No AnimationPlayer found")
 
 func spawn_bullet_effects_at_position(world_pos: Vector2, _is_target_hit: bool = true):
 	"""Spawn bullet smoke and impact effects with throttling for performance"""
@@ -518,16 +551,14 @@ func get_cached_rotation_angle() -> float:
 func handle_websocket_bullet_hit_rotating(world_pos: Vector2, t: int = 0) -> void:
 	"""Optimized hit processing for rotating targets without bullet spawning"""
 
-	# Don't process if target is disappearing
-	if is_disappearing:
+	# Don't process if target is destroyed
+	if is_destroyed:
 		return
 
-	# DISABLE animation pausing for rotating targets - let ipda_rotate.gd control animation
-	# bullet_activity_count += 1
-	# monitor_bullet_activity()
-
 	# Convert world position to local coordinates (this handles rotation automatically)
-	var local_pos = to_local(world_pos)
+	var target_node = get_node_or_null("Soldier")
+	if not target_node: target_node = self
+	var local_pos = target_node.to_local(world_pos)
 
 	# Determine hit zone
 	var zone_hit = ""
@@ -557,17 +588,20 @@ func handle_websocket_bullet_hit_rotating(world_pos: Vector2, t: int = 0) -> voi
 	if is_target_hit:
 		shot_count += 1
 
-		# Check if we've reached the maximum valid target hits
-		if shot_count >= max_shots:
-			# Always freeze the target in place after 2 valid hits
-			print("[CQB_Enemy] handle_websocket_bullet_hit_rotating: shot_count=", shot_count, " - freezing target")
-			is_disappearing = true
-			var animation_player = get_node_or_null("AnimationPlayer")
-			if animation_player and animation_player is AnimationPlayer:
-				animation_player.stop()
-				print("[CQB_Enemy] handle_websocket_bullet_hit_rotating: Stopped AnimationPlayer")
-			else:
-				print("[CQB_Enemy] handle_websocket_bullet_hit_rotating: No AnimationPlayer found")
+		## Check if we've reached the maximum valid target hits
+		#if shot_count >= max_shots:
+			## Always freeze the target in place after 2 valid hits
+			#print("[CQB_SWING] handle_websocket_bullet_hit_rotating: shot_count=", shot_count, " - freezing target")
+			#is_destroyed = true
+			#var animation_player = get_node_or_null("AnimationPlayer")
+			#if not animation_player:
+				#animation_player = get_node_or_null("Soldier/AnimationPlayer")
+#
+			#if animation_player and animation_player is AnimationPlayer:
+				#animation_player.stop()
+				#print("[CQB_SWING] handle_websocket_bullet_hit_rotating: Stopped AnimationPlayer")
+			#else:
+				#print("[CQB_SWING] handle_websocket_bullet_hit_rotating: No AnimationPlayer found")
 
 func monitor_bullet_activity():
 	"""Monitor bullet activity and pause/resume animation accordingly"""
