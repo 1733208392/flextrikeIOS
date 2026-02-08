@@ -91,17 +91,18 @@ struct DrillListView: View {
             .onTapGesture {
                 onDrillSelected?(drill)
             }
-            .contextMenu {
-                Button(action: { copyDrill(drill) }) {
-                    Label(NSLocalizedString("copy", comment: "Copy drill action"), systemImage: "doc.on.doc")
-                }
-                
+            .swipeActions(edge: .trailing) {
                 Button(role: .destructive, action: {
                     drillToDelete = drill
                     showDeleteAlert = true
                 }) {
                     Label(NSLocalizedString("delete", comment: "Delete drill action"), systemImage: "trash")
                 }
+                
+                Button(action: { copyDrill(drill) }) {
+                    Label(NSLocalizedString("copy", comment: "Copy drill action"), systemImage: "doc.on.doc")
+                }
+                .tint(.blue)
             }
     }
     
@@ -126,6 +127,8 @@ struct DrillListView: View {
                 .foregroundColor(.red)
         }
         .padding(.vertical, 8)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .contentShape(Rectangle())
     }
     
     @ViewBuilder
