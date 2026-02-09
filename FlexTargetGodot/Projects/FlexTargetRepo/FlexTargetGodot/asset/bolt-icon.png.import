@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://jf4h5kecjgas"
-path="res://.godot/imported/2players.png-3fb111f029e7ba4cce71dd1b7cd6ab53.ctex"
+uid="uid://c64vql7ibtb08"
+path="res://.godot/imported/bolt-icon.png-2f49c55a69ecceb627bbdccc83c82087.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://asset/2players.png"
-dest_files=["res://.godot/imported/2players.png-3fb111f029e7ba4cce71dd1b7cd6ab53.ctex"]
+source_file="res://Projects/FlexTargetRepo/FlexTargetGodot/asset/bolt-icon.png"
+dest_files=["res://.godot/imported/bolt-icon.png-2f49c55a69ecceb627bbdccc83c82087.ctex"]
 
 [params]
 

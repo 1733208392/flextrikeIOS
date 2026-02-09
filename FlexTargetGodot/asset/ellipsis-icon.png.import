@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cw248c3vg1ugj"
-path="res://.godot/imported/1player.png-f9b1398a57a0832ca87fa5afff5851e2.ctex"
+uid="uid://c1546my67hf21"
+path="res://.godot/imported/ellipsis-icon.png-9ef43ce8ebbd55177e659280afbf2c5a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://asset/1player.png"
-dest_files=["res://.godot/imported/1player.png-f9b1398a57a0832ca87fa5afff5851e2.ctex"]
+source_file="res://asset/ellipsis-icon.png"
+dest_files=["res://.godot/imported/ellipsis-icon.png-9ef43ce8ebbd55177e659280afbf2c5a.ctex"]
 
 [params]
 
