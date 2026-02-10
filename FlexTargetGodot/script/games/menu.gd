@@ -12,12 +12,15 @@ var button_mole_attack: TextureButton
 var button_tictactoe: TextureButton
 var button_painter: TextureButton
 var button_chimptest: TextureButton
+var button_quickreact: TextureButton
 var fruitcatcher_label: Button
 var monkeyduel_label: Button
 var mole_attack_label: Button
 var tictactoe_label: Button
 var painter_label: Button
 var chimptest_label: Button
+var quickreact_label: Button
+var scroll_container: ScrollContainer
 
 func _ready():
 	# Hide global status bar when entering games
@@ -27,23 +30,27 @@ func _ready():
 		print("[Games Menu] Hid global status bar: ", status_bar.name)
 	
 	# Get node references for game buttons
-	button_fruitcatcher = get_node("Panel/GridContainer/VBoxContainer/1Player")
-	button_monkeyduel = get_node("Panel/GridContainer/VBoxContainer2/2Players")
-	button_mole_attack = get_node("Panel/GridContainer/VBoxContainer3/wackamole")
-	button_tictactoe = get_node("Panel/GridContainer/HBoxContainer4/tictactoe")
-	button_painter = get_node("Panel/GridContainer/HBoxContainer5/painter")
-	button_chimptest = get_node("Panel/GridContainer/HBoxContainer6/chimptest")
+	button_fruitcatcher = get_node("Panel/ScrollContainer/GridContainer/VBoxContainer/1Player")
+	button_monkeyduel = get_node("Panel/ScrollContainer/GridContainer/VBoxContainer2/2Players")
+	button_mole_attack = get_node("Panel/ScrollContainer/GridContainer/VBoxContainer3/wackamole")
+	button_tictactoe = get_node("Panel/ScrollContainer/GridContainer/HBoxContainer4/tictactoe")
+	button_painter = get_node("Panel/ScrollContainer/GridContainer/HBoxContainer5/painter")
+	button_chimptest = get_node("Panel/ScrollContainer/GridContainer/HBoxContainer6/chimptest")
+	button_quickreact = get_node("Panel/ScrollContainer/GridContainer/HBoxContainer7/quickreact")
+
+	scroll_container = get_node("Panel/ScrollContainer")
 
 	# Get game name labels
-	fruitcatcher_label = get_node("Panel/GridContainer/VBoxContainer/Label")
-	monkeyduel_label = get_node("Panel/GridContainer/VBoxContainer2/Label")
-	mole_attack_label = get_node("Panel/GridContainer/VBoxContainer3/Label")
-	tictactoe_label = get_node("Panel/GridContainer/HBoxContainer4/Label")
-	painter_label = get_node("Panel/GridContainer/HBoxContainer5/Label")
-	chimptest_label = get_node("Panel/GridContainer/HBoxContainer6/Label")
+	fruitcatcher_label = get_node("Panel/ScrollContainer/GridContainer/VBoxContainer/Label")
+	monkeyduel_label = get_node("Panel/ScrollContainer/GridContainer/VBoxContainer2/Label")
+	mole_attack_label = get_node("Panel/ScrollContainer/GridContainer/VBoxContainer3/Label")
+	tictactoe_label = get_node("Panel/ScrollContainer/GridContainer/HBoxContainer4/Label")
+	painter_label = get_node("Panel/ScrollContainer/GridContainer/HBoxContainer5/Label")
+	chimptest_label = get_node("Panel/ScrollContainer/GridContainer/HBoxContainer6/Label")
+	quickreact_label = get_node("Panel/ScrollContainer/GridContainer/HBoxContainer7/Label")
 	
 	# Populate menu options arrays
-	main_menu_options = [button_fruitcatcher, button_monkeyduel, button_mole_attack, button_tictactoe, button_painter, button_chimptest]
+	main_menu_options = [button_fruitcatcher, button_monkeyduel, button_mole_attack, button_tictactoe, button_painter, button_chimptest, button_quickreact]
 
 	# Connect button signals
 	button_fruitcatcher.pressed.connect(_on_fruitcatcher_pressed)
@@ -52,6 +59,7 @@ func _ready():
 	button_tictactoe.pressed.connect(_on_tictactoe_pressed)
 	button_painter.pressed.connect(_on_painter_pressed)
 	button_chimptest.pressed.connect(_on_chimptest_pressed)
+	button_quickreact.pressed.connect(_on_quickreact_pressed)
 
 	# Connect label signals
 	fruitcatcher_label.pressed.connect(_on_fruitcatcher_pressed)
@@ -60,6 +68,7 @@ func _ready():
 	tictactoe_label.pressed.connect(_on_tictactoe_pressed)
 	painter_label.pressed.connect(_on_painter_pressed)
 	chimptest_label.pressed.connect(_on_chimptest_pressed)
+	quickreact_label.pressed.connect(_on_quickreact_pressed)
 
 	# Connect to remote control directives
 	var remote_control = get_node_or_null("/root/MenuController")
@@ -84,6 +93,8 @@ func _ready():
 		painter_label.text = tr("shoot_painter")
 	if chimptest_label:
 		chimptest_label.text = tr("chimp_test")
+	if quickreact_label:
+		quickreact_label.text = tr("quick_react")
 
 	# Default to FruitNinja (FruitCatcher at index 0)
 	selected_option = 0
@@ -164,6 +175,8 @@ func _on_remote_enter():
 		_on_painter_pressed()
 	elif selected_option == 5:
 		_on_chimptest_pressed()
+	elif selected_option == 6:
+		_on_quickreact_pressed()
 
 func _on_remote_back_pressed():
 	"""Handle back press from remote control to return to main menu"""
@@ -188,6 +201,15 @@ func _update_selection():
 		tictactoe_label.button_pressed = (selected_option == 3)
 		painter_label.button_pressed = (selected_option == 4)
 		chimptest_label.button_pressed = (selected_option == 5)
+		quickreact_label.button_pressed = (selected_option == 6)
+		
+		# Auto-scroll based on selected row
+		var row = selected_option / COLS
+		if row == 0:
+			scroll_container.scroll_vertical = 0
+		elif row == 3:
+			scroll_container.scroll_vertical = scroll_container.get_v_scroll_bar().max_value
+	
 	print("[Menu] Selection updated to option: ", selected_option)
 
 func _on_fruitcatcher_pressed():
@@ -232,3 +254,10 @@ func _on_chimptest_pressed():
 	selected_option = 5
 	_save_last_selection()
 	get_tree().change_scene_to_file("res://scene/benchmark/chimp_test.tscn")
+
+func _on_quickreact_pressed():
+	"""Handle quick react button press"""
+	print("[Menu] Quick React selected")
+	selected_option = 6
+	_save_last_selection()
+	get_tree().change_scene_to_file("res://scene/benchmark/quickreact.tscn")

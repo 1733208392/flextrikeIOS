@@ -22,10 +22,19 @@ func _ready():
 	else:
 		print("WebSocketListener not found")
 
+	# Connect to MenuController for back and home directives
+	var menu_controller = get_node_or_null("/root/MenuController")
+	if menu_controller:
+		menu_controller.back_pressed.connect(_on_back_pressed)
+		menu_controller.home_pressed.connect(_on_back_pressed)
+		print("MenuController found, connected back and home")
+	else:
+		print("MenuController not found")
+
 			# Start the game via HTTP service
 	var http_service = get_node_or_null("/root/HttpService")
 	if http_service:
-		http_service.start_game(func(result, response_code, headers, body): 
+		http_service.start_game(func(_result, response_code, _headers, _body): 
 			if response_code == 200:
 				print("Game started successfully")
 			else:
@@ -81,3 +90,15 @@ func _input(event):
 	if ((event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed) or 
 		(event is InputEventScreenTouch and event.pressed)) and waiting_for_shoot:
 		on_click()
+
+func _on_back_pressed():
+	"""Handle back or home press to return to games menu"""
+	print("Back/Home pressed - returning to games menu")
+	# Show global status bar when returning to menu
+	var status_bars = get_tree().get_nodes_in_group("status_bar")
+	for status_bar in status_bars:
+		status_bar.visible = true
+		print("Showed global status bar: ", status_bar.name)
+	
+	# Return to games menu
+	get_tree().change_scene_to_file("res://scene/games/menu/menu.tscn")

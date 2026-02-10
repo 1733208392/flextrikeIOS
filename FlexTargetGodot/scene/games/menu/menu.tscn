@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://cgosfq33rfilf"]
+[gd_scene load_steps=18 format=3 uid="uid://cgosfq33rfilf"]
 
 [ext_resource type="Script" uid="uid://csw1htde5tl1j" path="res://script/games/menu.gd" id="1_8nwqc"]
 [ext_resource type="Texture2D" uid="uid://dd7g7gcxb7pif" path="res://asset/games/game_menu/fruit-ninja-selected.png" id="2_lira2"]
@@ -14,6 +14,8 @@
 [ext_resource type="Texture2D" uid="uid://lntlls7iw60t" path="res://asset/games/game_menu/painter-selected.png" id="11_lira2"]
 [ext_resource type="Texture2D" uid="uid://40wdlde6rfoh" path="res://asset/games/game_menu/chimp-test.png" id="13_68t83"]
 [ext_resource type="Texture2D" uid="uid://kbclcpus4isr" path="res://asset/games/game_menu/chimp-test-selected.png" id="14_mb7bb"]
+[ext_resource type="Texture2D" uid="uid://b3ine75vcis0m" path="res://asset/games/game_menu/quick-reaction.png" id="15_utt30"]
+[ext_resource type="Texture2D" uid="uid://bq7d8pfa8a277" path="res://asset/games/game_menu/quick-reaction-selected.png" id="16_a45au"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_68t83"]
 bg_color = Color(0.03137255, 0.03137255, 0.03137255, 1)
@@ -34,140 +36,137 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_68t83")
 
-[node name="GridContainer" type="GridContainer" parent="Panel"]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -150.0
-offset_top = -123.0
-offset_right = 150.0
-offset_bottom = 123.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="ScrollContainer" type="ScrollContainer" parent="Panel"]
+layout_mode = 0
+offset_left = 4.0
+offset_top = 198.0
+offset_right = 715.0
+offset_bottom = 1155.0
+
+[node name="GridContainer" type="GridContainer" parent="Panel/ScrollContainer"]
+layout_mode = 2
 theme_override_constants/h_separation = 32
 theme_override_constants/v_separation = 32
 columns = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Panel/GridContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel/ScrollContainer/GridContainer"]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="1Player" type="TextureButton" parent="Panel/GridContainer/VBoxContainer"]
+[node name="1Player" type="TextureButton" parent="Panel/ScrollContainer/GridContainer/VBoxContainer"]
 layout_mode = 2
 texture_normal = ExtResource("4_68t83")
 texture_pressed = ExtResource("2_lira2")
 texture_hover = ExtResource("2_lira2")
 texture_focused = ExtResource("2_lira2")
 
-[node name="Label" type="Button" parent="Panel/GridContainer/VBoxContainer"]
+[node name="Label" type="Button" parent="Panel/ScrollContainer/GridContainer/VBoxContainer"]
 layout_mode = 2
 theme = ExtResource("4_2klep")
 toggle_mode = true
 text = "FRUIT NINJA"
 
-[node name="VBoxContainer2" type="VBoxContainer" parent="Panel/GridContainer"]
+[node name="VBoxContainer2" type="VBoxContainer" parent="Panel/ScrollContainer/GridContainer"]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="2Players" type="TextureButton" parent="Panel/GridContainer/VBoxContainer2"]
+[node name="2Players" type="TextureButton" parent="Panel/ScrollContainer/GridContainer/VBoxContainer2"]
 layout_mode = 2
 texture_normal = ExtResource("4_lira2")
 texture_pressed = ExtResource("5_2klep")
 texture_hover = ExtResource("5_2klep")
 texture_focused = ExtResource("5_2klep")
 
-[node name="Label" type="Button" parent="Panel/GridContainer/VBoxContainer2"]
+[node name="Label" type="Button" parent="Panel/ScrollContainer/GridContainer/VBoxContainer2"]
 layout_mode = 2
 theme = ExtResource("4_2klep")
 toggle_mode = true
 text = "MONKEY DUEL"
 
-[node name="VBoxContainer3" type="VBoxContainer" parent="Panel/GridContainer"]
+[node name="VBoxContainer3" type="VBoxContainer" parent="Panel/ScrollContainer/GridContainer"]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="wackamole" type="TextureButton" parent="Panel/GridContainer/VBoxContainer3"]
+[node name="wackamole" type="TextureButton" parent="Panel/ScrollContainer/GridContainer/VBoxContainer3"]
 layout_mode = 2
 texture_normal = ExtResource("6_lira2")
 texture_pressed = ExtResource("7_2klep")
 texture_hover = ExtResource("7_2klep")
 texture_focused = ExtResource("7_2klep")
 
-[node name="Label" type="Button" parent="Panel/GridContainer/VBoxContainer3"]
+[node name="Label" type="Button" parent="Panel/ScrollContainer/GridContainer/VBoxContainer3"]
 layout_mode = 2
 theme = ExtResource("4_2klep")
 toggle_mode = true
 text = "MOLE ATTACK"
 
-[node name="HBoxContainer4" type="VBoxContainer" parent="Panel/GridContainer"]
+[node name="HBoxContainer4" type="VBoxContainer" parent="Panel/ScrollContainer/GridContainer"]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="tictactoe" type="TextureButton" parent="Panel/GridContainer/HBoxContainer4"]
+[node name="tictactoe" type="TextureButton" parent="Panel/ScrollContainer/GridContainer/HBoxContainer4"]
 layout_mode = 2
 texture_normal = ExtResource("8_lira2")
 texture_pressed = ExtResource("9_2klep")
 texture_hover = ExtResource("9_2klep")
 texture_focused = ExtResource("9_2klep")
 
-[node name="Label" type="Button" parent="Panel/GridContainer/HBoxContainer4"]
+[node name="Label" type="Button" parent="Panel/ScrollContainer/GridContainer/HBoxContainer4"]
 layout_mode = 2
 theme = ExtResource("4_2klep")
 toggle_mode = true
 text = "TICTACTOE"
 
-[node name="HBoxContainer5" type="VBoxContainer" parent="Panel/GridContainer"]
+[node name="HBoxContainer5" type="VBoxContainer" parent="Panel/ScrollContainer/GridContainer"]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="painter" type="TextureButton" parent="Panel/GridContainer/HBoxContainer5"]
+[node name="painter" type="TextureButton" parent="Panel/ScrollContainer/GridContainer/HBoxContainer5"]
 layout_mode = 2
 texture_normal = ExtResource("10_lpr6s")
 texture_pressed = ExtResource("11_lira2")
 texture_hover = ExtResource("11_lira2")
 texture_focused = ExtResource("11_lira2")
 
-[node name="Label" type="Button" parent="Panel/GridContainer/HBoxContainer5"]
+[node name="Label" type="Button" parent="Panel/ScrollContainer/GridContainer/HBoxContainer5"]
 layout_mode = 2
 theme = ExtResource("4_2klep")
 toggle_mode = true
 text = "SHOOT PAINTER"
 
-[node name="HBoxContainer6" type="VBoxContainer" parent="Panel/GridContainer"]
+[node name="HBoxContainer6" type="VBoxContainer" parent="Panel/ScrollContainer/GridContainer"]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="chimptest" type="TextureButton" parent="Panel/GridContainer/HBoxContainer6"]
+[node name="chimptest" type="TextureButton" parent="Panel/ScrollContainer/GridContainer/HBoxContainer6"]
 layout_mode = 2
 texture_normal = ExtResource("13_68t83")
 texture_pressed = ExtResource("14_mb7bb")
 texture_hover = ExtResource("14_mb7bb")
 texture_focused = ExtResource("14_mb7bb")
 
-[node name="Label" type="Button" parent="Panel/GridContainer/HBoxContainer6"]
+[node name="Label" type="Button" parent="Panel/ScrollContainer/GridContainer/HBoxContainer6"]
 layout_mode = 2
 theme = ExtResource("4_2klep")
 toggle_mode = true
 text = "CHIMP TEST"
 
-[node name="VBoxContainer2" type="VBoxContainer" parent="Panel"]
-visible = false
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -286.0
-offset_top = -541.0
-offset_right = 286.0
-offset_bottom = 541.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/separation = 20
+[node name="HBoxContainer7" type="VBoxContainer" parent="Panel/ScrollContainer/GridContainer"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="quickreact" type="TextureButton" parent="Panel/ScrollContainer/GridContainer/HBoxContainer7"]
+layout_mode = 2
+texture_normal = ExtResource("15_utt30")
+texture_pressed = ExtResource("16_a45au")
+texture_hover = ExtResource("16_a45au")
+texture_focused = ExtResource("16_a45au")
+
+[node name="Label" type="Button" parent="Panel/ScrollContainer/GridContainer/HBoxContainer7"]
+layout_mode = 2
+theme = ExtResource("4_2klep")
+toggle_mode = true
+text = "REACTION TEST"
 
 [node name="VBoxContainer" type="VBoxContainer" parent="Panel"]
 layout_mode = 1
