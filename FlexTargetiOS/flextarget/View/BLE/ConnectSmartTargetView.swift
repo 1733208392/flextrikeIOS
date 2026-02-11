@@ -216,6 +216,32 @@ struct ConnectSmartTargetView: View {
                 dismissButton: .default(Text("OK"))
             )
         }
+        .onChange(of: bleManager.error) { error in
+            if case .bluetoothOff = error {
+                statusText = "Bluetooth has been turned off"
+                isShaking = false
+                showProgress = false
+                showReconnect = true
+                timeoutTimer?.invalidate()
+                
+                // Dismiss after 2 seconds if already connected
+                if isAlreadyConnected {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                        dismiss()
+                    }
+                }
+            }
+        }
+        .onChange(of: bleManager.isConnected) { isConnected in
+            if !isConnected && hasTriedReconnect && activeTargetName == nil {
+                // Unexpected disconnection during auto-detect
+                statusText = NSLocalizedString("trying_to_connect", comment: "Status when trying to connect to FlexTarget device")
+                showReconnect = true
+                showProgress = false
+                isShaking = false
+                timeoutTimer?.invalidate()
+            }
+        }
         .onAppear {
             if isAlreadyConnected {
                 statusText = NSLocalizedString("target_connected", comment: "Status when target is connected")

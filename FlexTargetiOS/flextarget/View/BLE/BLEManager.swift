@@ -47,7 +47,7 @@ public struct DiscoveredPeripheral: Identifiable, Hashable {
     }
 }
 
-enum BLEError: Error, LocalizedError {
+enum BLEError: Error, LocalizedError, Equatable {
     case bluetoothOff
     case unauthorized
     case connectionFailed(String)
@@ -488,10 +488,22 @@ public class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, C
         connectedPeripheral = nil
         #else
         connectionAttemptFailed = true
+        
+        // Try to disconnect from connectingPeripheral first
         if let peripheral = connectingPeripheral {
-            //print device is disconnected
-            print("Device is disconnected")
+            print("Disconnecting from connecting peripheral: \(peripheral.name ?? "Unknown")")
             centralManager.cancelPeripheralConnection(peripheral)
+        }
+        // If connectingPeripheral is nil, try the connected peripheral
+        else if let peripheral = connectedPeripheral?.peripheral {
+            print("Disconnecting from connected peripheral: \(peripheral.name ?? "Unknown")")
+            centralManager.cancelPeripheralConnection(peripheral)
+        } else {
+            print("No peripheral to disconnect from (both connectingPeripheral and connectedPeripheral are nil)")
+            // Still reset state locally even if there's no peripheral to disconnect
+            isConnected = false
+            isReady = false
+            connectedPeripheral = nil
         }
         #endif
         stopProvisionVerification()
@@ -526,11 +538,31 @@ public class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, C
                 pendingStartScan = false
                 startScan()
             }
+            error = nil
             break
         case .unauthorized:
             error = .unauthorized
         case .poweredOff:
+            print("[BLEManager] Bluetooth powered off externally")
             error = .bluetoothOff
+            // Auto-disconnect when Bluetooth is turned off externally
+            if isConnected {
+                DispatchQueue.main.async {
+                    self.errorMessage = "Bluetooth has been turned off. Device disconnected."
+                    self.showErrorAlert = true
+                    self.isConnected = false
+                    self.isReady = false
+                    self.connectedPeripheral = nil
+                    self.stopProvisionVerification()
+                    self.provisionInProgress = false
+                    // Start auto-detection when disconnected
+                    self.startAutoDetection()
+                }
+            }
+            // Clear discovered peripherals
+            DispatchQueue.main.async {
+                self.discoveredPeripherals.removeAll()
+            }
         default:
             error = .unknown("Bluetooth state: \(central.state.rawValue)")
         }

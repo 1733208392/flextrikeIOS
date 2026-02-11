@@ -79,7 +79,13 @@ struct DrillMainPageView: View {
                 }
                 .alert(isPresented: $bleManager.showErrorAlert) {
                     Alert(title: Text("Error"), message: Text(bleManager.errorMessage ?? "Unknown error occurred"), dismissButton: .default(Text("OK")))
-                }     
+                }
+                .onChange(of: bleManager.error) { error in
+                    if case .bluetoothOff = error {
+                        print("[DrillMainPageView] Bluetooth turned off")
+                        // Could optionally handle Bluetooth off state
+                    }
+                }
                 .navigationViewStyle(.stack)
         }
     }
@@ -175,19 +181,47 @@ struct DrillMainPageView: View {
                 Button(action: {
                     if bleManager.isConnected {
                         showConnectView = true
+                    } else if case .bluetoothOff = bleManager.error {
+                        // When Bluetooth is off, show connect view to allow turning it back on
+                        showConnectView = true
                     } else {
                         showQRScanner = true
                     }
                 }) {
                     HStack(spacing: 8) {
-                        Image(bleManager.isConnected ? "BleConnect": "BleDisconnect")
+                        // Status indicator with color based on connection state
+                        let statusColor: Color = {
+                            if case .bluetoothOff = bleManager.error {
+                                return .yellow
+                            } else if bleManager.isConnected {
+                                return .green
+                            } else {
+                                return .gray
+                            }
+                        }()
+                        
+                        Circle()
+                            .fill(statusColor)
+                            .frame(width: 8, height: 8)
+                        
+                        Image(bleManager.isConnected ? "BleConnect" : "BleDisconnect")
                             .resizable()
                             .scaledToFit()
                             .frame(width: 22, height: 22)
                         
-                        Text(bleManager.connectedPeripheral?.name ?? (bleManager.isConnected ? NSLocalizedString("target_connected", comment: "Status when target is connected") : NSLocalizedString("target_disconnected", comment: "Status when target is disconnected")))
+                        Text({
+                            if case .bluetoothOff = bleManager.error {
+                                return "Bluetooth Off"
+                            } else if bleManager.isConnected {
+                                return bleManager.connectedPeripheral?.name ?? NSLocalizedString("target_connected", comment: "Status when target is connected")
+                            } else {
+                                return NSLocalizedString("target_disconnected", comment: "Status when target is disconnected")
+                            }
+                        }())
                             .font(.footnote)
                             .foregroundColor(.gray)
+                        
+                        Spacer()
                     }
                     .padding(.vertical, 4)
                     .padding(.horizontal, 12)

@@ -3,6 +3,7 @@ package com.flextarget.android.ui.drills
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -98,6 +99,15 @@ private fun MainContent(
     onShowQRScanner: () -> Unit,
     onDrillSelected: (List<DrillResultWithShots>) -> Unit
 ) {
+    // Handle Bluetooth state changes
+    LaunchedEffect(bleManager.error) {
+        if (bleManager.error is com.flextarget.android.data.ble.BLEError.BluetoothOff) {
+            println("[DrillMainPageView] Bluetooth turned off")
+            // Show alert and optionally dismiss drills
+            bleManager.stopScan()
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -170,30 +180,54 @@ private fun MainContent(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // BLE Connection Status
+                val statusColor = when {
+                    bleManager.error is com.flextarget.android.data.ble.BLEError.BluetoothOff -> Color.Yellow
+                    bleManager.isConnected -> Color.Green
+                    else -> Color.Gray
+                }
+
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
-                        .background(Color.Gray.copy(alpha = 0.2f), RoundedCornerShape(16.dp))
+                        .background(statusColor.copy(alpha = 0.2f), RoundedCornerShape(16.dp))
                         .padding(vertical = 4.dp, horizontal = 12.dp)
                         .clickable {
                             if (bleManager.isConnected) {
+                                onShowConnectView()
+                            } else if (bleManager.error is com.flextarget.android.data.ble.BLEError.BluetoothOff) {
+                                // Show reconnect option when Bluetooth off
                                 onShowConnectView()
                             } else {
                                 onShowQRScanner()
                             }
                         }
                 ) {
-                    // TODO: Add proper BLE connect/disconnect icons
+                    // Status indicator circle
+                    Box(
+                        modifier = Modifier
+                            .size(8.dp)
+                            .background(statusColor, CircleShape)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = if (bleManager.isConnected) "Connected" else "Disconnected",
-                        color = Color.Gray,
+                        text = when {
+                            bleManager.error is com.flextarget.android.data.ble.BLEError.BluetoothOff -> "Bluetooth Off"
+                            bleManager.isConnected -> "Connected"
+                            else -> "Disconnected"
+                        },
+                        color = statusColor,
                         fontSize = 12.sp
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = bleManager.connectedPeripheralName ?: "Target",
+                        text = when {
+                            bleManager.error is com.flextarget.android.data.ble.BLEError.BluetoothOff -> "Turn On BLE"
+                            bleManager.isConnected -> bleManager.connectedPeripheralName ?: "Target"
+                            else -> "Tap to Connect"
+                        },
                         color = Color.White,
-                        fontSize = 14.sp
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium
                     )
                 }
 

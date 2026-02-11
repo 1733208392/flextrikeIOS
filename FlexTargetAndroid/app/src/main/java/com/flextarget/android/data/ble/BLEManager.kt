@@ -1,7 +1,10 @@
 package com.flextarget.android.data.ble
 
+import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.os.Handler
 import android.os.Looper
 import androidx.compose.runtime.getValue
@@ -86,6 +89,10 @@ class BLEManager private constructor() {
 
     val connectedPeripheralName: String?
         get() = connectedPeripheral?.name
+
+    // Bluetooth state change receiver
+    private var bluetoothStateReceiver: android.content.BroadcastReceiver? = null
+    private var appContext: Context? = null
 
     init {
         // Initialize provision status handler at singleton level
@@ -178,6 +185,78 @@ class BLEManager private constructor() {
         if (autoDetectMode && !isConnected) {
             startAutoDetection()
         }
+        
+        // Store context and register Bluetooth state change receiver
+        appContext = context
+        registerBluetoothStateReceiver(context)
+    }
+    
+    private fun registerBluetoothStateReceiver(context: Context) {
+        // Unregister if already registered
+        bluetoothStateReceiver?.let {
+            try {
+                context.unregisterReceiver(it)
+            } catch (e: Exception) {
+                println("[BLEManager] Error unregistering Bluetooth receiver: ${e.message}")
+            }
+        }
+        
+        bluetoothStateReceiver = object : android.content.BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                if (intent?.action == BluetoothAdapter.ACTION_STATE_CHANGED) {
+                    val state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR)
+                    when (state) {
+                        BluetoothAdapter.STATE_OFF -> {
+                            println("[BLEManager] Bluetooth turned off externally")
+                            // Auto-disconnect when Bluetooth is turned off
+                            if (isConnected) {
+                                errorMessage = "Bluetooth has been turned off. Device disconnected."
+                                showErrorAlert = true
+                                disconnect()
+                            }
+                            // Clear discovered peripherals
+                            discoveredPeripherals = emptyList()
+                            error = BLEError.BluetoothOff
+                        }
+                        BluetoothAdapter.STATE_TURNING_OFF -> {
+                            println("[BLEManager] Bluetooth turning off")
+                        }
+                        BluetoothAdapter.STATE_ON -> {
+                            println("[BLEManager] Bluetooth turned on")
+                            error = null
+                            if (autoDetectMode && !isConnected) {
+                                startAutoDetection()
+                            }
+                        }
+                        BluetoothAdapter.STATE_TURNING_ON -> {
+                            println("[BLEManager] Bluetooth turning on")
+                        }
+                    }
+                }
+            }
+        }
+        
+        try {
+            val filter = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
+            context.registerReceiver(bluetoothStateReceiver, filter)
+            println("[BLEManager] Bluetooth state receiver registered")
+        } catch (e: Exception) {
+            println("[BLEManager] Error registering Bluetooth receiver: ${e.message}")
+        }
+    }
+    
+    fun unregisterBluetoothStateReceiver() {
+        bluetoothStateReceiver?.let {
+            appContext?.let { context ->
+                try {
+                    context.unregisterReceiver(it)
+                    println("[BLEManager] Bluetooth state receiver unregistered")
+                } catch (e: Exception) {
+                    println("[BLEManager] Error unregistering Bluetooth receiver: ${e.message}")
+                }
+            }
+        }
+        bluetoothStateReceiver = null
     }
 
     private fun startProvisionVerification() {

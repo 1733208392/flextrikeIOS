@@ -118,7 +118,9 @@ class AndroidBLEManager(private val context: Context) {
                 BluetoothProfile.STATE_CONNECTED -> {
                     println("[AndroidBLEManager] Connected to device")
                     BLEManager.shared.error = null
-                    bluetoothGatt = gatt
+                    synchronized(this@AndroidBLEManager) {
+                        bluetoothGatt = gatt
+                    }
                     // Discover services
                     if (ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
                         gatt.discoverServices()
@@ -128,13 +130,20 @@ class AndroidBLEManager(private val context: Context) {
                 }
                 BluetoothProfile.STATE_DISCONNECTED -> {
                     println("[AndroidBLEManager] Disconnected from device")
-                    BLEManager.shared.isConnected = false
-                    BLEManager.shared.isReady = false
-                    BLEManager.shared.connectedPeripheral = null
-                    bluetoothGatt = null
-                    writeCharacteristic = null
-                    notifyCharacteristic = null
-                    pendingPeripheral = null
+                    // Synchronize to prevent conflict with explicit disconnect() calls
+                    synchronized(this@AndroidBLEManager) {
+                        // Only update state if we still have this GATT object
+                        // (disconnect() may have already cleared it)
+                        if (bluetoothGatt === gatt) {
+                            BLEManager.shared.isConnected = false
+                            BLEManager.shared.isReady = false
+                            BLEManager.shared.connectedPeripheral = null
+                            bluetoothGatt = null
+                            writeCharacteristic = null
+                            notifyCharacteristic = null
+                            pendingPeripheral = null
+                        }
+                    }
 
                     if (status != BluetoothGatt.GATT_SUCCESS) {
                         this@AndroidBLEManager.error = "Disconnected with status: $status"
@@ -479,7 +488,10 @@ class AndroidBLEManager(private val context: Context) {
     }
 
     fun stopScan() {
-        bluetoothLeScanner?.stopScan(scanCallback)
+        // Only stop scan if Bluetooth is enabled
+        if (bluetoothAdapter?.isEnabled == true) {
+            bluetoothLeScanner?.stopScan(scanCallback)
+        }
         BLEManager.shared.isScanning = false
     }
 
@@ -501,18 +513,31 @@ class AndroidBLEManager(private val context: Context) {
     }
 
     fun disconnect() {
-        bluetoothGatt?.disconnect()
-        bluetoothGatt?.close()
-        bluetoothGatt = null
-        writeCharacteristic = null
-        notifyCharacteristic = null
-        this.isConnected = false
-        this.isReady = false
-        this.connectedPeripheral = null
-        pendingPeripheral = null
-        BLEManager.shared.isConnected = false
-        BLEManager.shared.isReady = false
-        BLEManager.shared.connectedPeripheral = null
+        // Synchronize to prevent race condition with GATT callback
+        // The callback may fire while we're cleaning up state
+        synchronized(this) {
+            val gatt = bluetoothGatt
+            bluetoothGatt = null
+            writeCharacteristic = null
+            notifyCharacteristic = null
+            this.isConnected = false
+            this.isReady = false
+            this.connectedPeripheral = null
+            pendingPeripheral = null
+            
+            // Reset shared state immediately
+            BLEManager.shared.isConnected = false
+            BLEManager.shared.isReady = false
+            BLEManager.shared.connectedPeripheral = null
+            
+            // Now disconnect and close the GATT, using the reference we saved
+            try {
+                gatt?.disconnect()
+                gatt?.close()
+            } catch (e: Exception) {
+                println("[AndroidBLEManager] Error closing GATT: ${e.message}")
+            }
+        }
     }
 
     fun write(data: ByteArray, completion: (Boolean) -> Unit) {

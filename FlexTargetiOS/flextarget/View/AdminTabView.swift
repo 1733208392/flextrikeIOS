@@ -72,6 +72,15 @@ struct AdminContentView: View {
                 onConnected: { showConnectView = false }
             )
         }
+        .onChange(of: bleManager.error) { error in
+            if case .bluetoothOff = error {
+                print("[AdminTabView] Bluetooth turned off")
+                // Could optionally dismiss device management view if Bluetooth turns off
+                if showDeviceManagement && !isDeviceConnected {
+                    showDeviceManagement = false
+                }
+            }
+        }
     }
     
     private var mainMenuView: some View {

@@ -82,6 +82,9 @@ FlexTargetiOS/build/
 # Optional: DerivedData inside build (if present)
 build/DerivedData/
 
+# iOS DerivedData folder
+FlexTargetiOS/DerivedData/
+
 *.mp4
 FlexTargetiOS/build/Build/Intermediates.noindex/XCBuildData/99cee93f74529e72fd8b938164c1c8cd.xcbuilddata/attachments/2de6a04cdba79ed13580c47dfd70cc5f
 FlexTargetiOS/build/Build/Intermediates.noindex/XCBuildData/99cee93f74529e72fd8b938164c1c8cd.xcbuilddata/attachments/3d6a82c6cddc88aac54e6bb2a09c7002

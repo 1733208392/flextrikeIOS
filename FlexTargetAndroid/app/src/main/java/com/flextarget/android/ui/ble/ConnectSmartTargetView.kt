@@ -20,6 +20,7 @@ import androidx.compose.ui.res.stringResource
 import com.flextarget.android.R
 import com.flextarget.android.data.ble.BLEManager
 import com.flextarget.android.data.ble.DiscoveredPeripheral
+import com.flextarget.android.data.ble.BLEError
 import com.flextarget.android.ui.imagecrop.ImageCropViewV2
 import kotlinx.coroutines.delay
 
@@ -52,6 +53,7 @@ fun ConnectSmartTargetView(
             "no_targets_found" -> stringResource(R.string.no_targets_found)
             "multiple_found" -> "Multiple devices found, select one"
             "bluetooth_service_not_found" -> stringResource(R.string.bluetooth_service_not_found)
+            "bluetooth_off" -> "Bluetooth turned off"
             else -> stringResource(R.string.connecting)
         }
     }
@@ -117,6 +119,27 @@ fun ConnectSmartTargetView(
                 showProgress = false
                 goToMain()
             }
+        }
+    }
+
+    // Handle Bluetooth off state and disconnection
+    LaunchedEffect(bleManager.error, bleManager.isConnected) {
+        if (bleManager.error is BLEError.BluetoothOff) {
+            // Bluetooth was turned off
+            statusTextKey = "bluetooth_off"
+            showProgress = false
+            showReconnect = true
+            selectedPeripheral = null
+            bleManager.stopScan()
+            if (isAlreadyConnected) {
+                // If we were already connected, dismiss after showing error
+                delay(2000)
+                onDismiss()
+            }
+        } else if (!bleManager.isConnected && hasHandledInitialConnection && !showReconnect) {
+            // Unexpected disconnection
+            showProgress = false
+            hasHandledInitialConnection = false
         }
     }
 
