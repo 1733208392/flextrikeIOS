@@ -70,8 +70,13 @@ class DrillExecutionManager(
 
     fun performReadinessCheck() {
         isReadinessCheckOnly = true
-        sendReadyCommands()
-        beginWaitingForAcks()
+        // Send home command first to reset device UI to main menu
+        sendHomeCommand()
+        // Then send back command to ensure we are out of any sub-menus        // Delay readiness check to allow device to process home command
+        Handler(Looper.getMainLooper()).postDelayed({
+            sendReadyCommands()
+            beginWaitingForAcks()
+        }, 1000) // 0.5 second delay for device UI transition
     }
 
     fun startExecution() {
@@ -146,6 +151,42 @@ class DrillExecutionManager(
         finalizeRepeat(repeatIndex)
         // NOTE: Do NOT call onRepeatFinalized here - it's already called in completeRepeat via finalizeRepeat completion
         // NOTE: Do NOT call onComplete here - UI will call completeDrill() when ready
+    }
+
+    private fun sendHomeCommand() {
+        if (!bleManager.isConnected) {
+            println("BLE home command failed - not connected")
+            return // Best-effort approach: proceed even if home command fails
+        }
+
+        try {
+            // Send homepage directive
+            val homeMessage = mapOf(
+                "action" to "remote_control",
+                "directive" to "homepage"
+            )
+            val homeData = Gson().toJson(homeMessage)
+            Log.d("DrillExecutionManager", "Sending home command to reset device to main menu")
+            bleManager.writeJSON(homeData)
+            
+            // Send back directive after 0.5s delay
+            Handler(Looper.getMainLooper()).postDelayed({
+                try {
+                    val backMessage = mapOf(
+                        "action" to "remote_control",
+                        "directive" to "back"
+                    )
+                    val backData = Gson().toJson(backMessage)
+                    Log.d("DrillExecutionManager", "Sending back command to ensure menu state")
+                    bleManager.writeJSON(backData)
+                } catch (e: Exception) {
+                    Log.e("DrillExecutionManager", "Failed to send back command: ${e.message}")
+                }
+            }, 500) // 0.5 second delay
+        } catch (e: Exception) {
+            Log.e("DrillExecutionManager", "Failed to send home command: ${e.message}")
+            // Best-effort: don't fail the drill, proceed with readiness check
+        }
     }
 
     private fun sendReadyCommands() {

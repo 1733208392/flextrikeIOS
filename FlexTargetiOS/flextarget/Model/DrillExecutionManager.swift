@@ -71,8 +71,13 @@ class DrillExecutionManager {
 
     func performReadinessCheck() {
         isReadinessCheckOnly = true
-        sendReadyCommands()
-        beginWaitingForAcks()
+        // Send home command first to reset device UI to main menu
+        sendHomeCommand()
+        // Delay readiness check to allow device to process home command
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            self?.sendReadyCommands()
+            self?.beginWaitingForAcks()
+        }
     }
     
     func startExecution() {
@@ -130,6 +135,46 @@ class DrillExecutionManager {
         // NOTE: Do NOT call onComplete here - UI manages the next repeat or drill completion
     }
     
+    private func sendHomeCommand() {
+        guard bleManager.isConnected else {
+            print("BLE home command failed - not connected")
+            return // Best-effort approach: proceed even if home command fails
+        }
+
+        do {
+            // Send homepage directive
+            let homeMessage: [String: Any] = [
+                "action": "remote_control",
+                "directive": "homepage"
+            ]
+            let homeData = try JSONSerialization.data(withJSONObject: homeMessage, options: [])
+            if let homeString = String(data: homeData, encoding: .utf8) {
+                print("Sending home command to reset device to main menu")
+                bleManager.writeJSON(homeString)
+            }
+            
+            // Send back directive after 0.5s delay
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                do {
+                    let backMessage: [String: Any] = [
+                        "action": "remote_control",
+                        "directive": "back"
+                    ]
+                    let backData = try JSONSerialization.data(withJSONObject: backMessage, options: [])
+                    if let backString = String(data: backData, encoding: .utf8) {
+                        print("Sending back command to ensure menu state")
+                        self?.bleManager.writeJSON(backString)
+                    }
+                } catch {
+                    print("Failed to send back command: \(error)")
+                }
+            }
+        } catch {
+            print("Failed to send home command: \(error)")
+            // Best-effort: don't fail the drill, proceed with readiness check
+        }
+    }
+
     private func sendReadyCommands() {
         guard bleManager.isConnected else {
             print("BLE not connected")
