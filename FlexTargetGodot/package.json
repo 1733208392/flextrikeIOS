@@ -1,0 +1,16 @@
+{
+  "name": "flex-target-godot-server",
+  "version": "1.0.0",
+  "description": "Combined server for FlexTarget Godot game - HTTP server for game data and WebSocket/BLE proxy",
+  "main": "combined_server.js",
+  "scripts": {
+    "start": "node combined_server.js"
+  },
+  "dependencies": {
+    "@abandonware/bleno": "^0.6.2",
+    "ws": "^8.17.1"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

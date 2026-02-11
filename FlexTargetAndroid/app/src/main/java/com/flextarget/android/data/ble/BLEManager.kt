@@ -46,6 +46,9 @@ class BLEManager private constructor() {
     // Error message for displaying alerts
     var errorMessage by mutableStateOf<String?>(null)
     var showErrorAlert by mutableStateOf(false)
+    
+    // Multi-device selection UI state
+    var showMultiDevicePicker by mutableStateOf(false)
 
     // Provision related
     var autoDetectMode by mutableStateOf(true)
@@ -380,6 +383,17 @@ class BLEManager private constructor() {
             // Start scanning when auto-connect target is set
             startScan()
         }
+    }
+    
+    /// Called by UI when user dismisses device picker without selection
+    fun dismissDevicePicker() {
+        showMultiDevicePicker = false
+    }
+    
+    /// Called by UI when user selects a device from picker
+    fun selectDeviceFromPicker(discoveredPeripheral: DiscoveredPeripheral) {
+        showMultiDevicePicker = false
+        connectToSelectedPeripheral(discoveredPeripheral)
     }
 }
 

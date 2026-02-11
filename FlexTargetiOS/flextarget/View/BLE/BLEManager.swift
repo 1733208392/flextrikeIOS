@@ -90,6 +90,10 @@ public class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, C
     @Published var provisionInProgress: Bool = false
     @Published var errorMessage: String?
     @Published var showErrorAlert: Bool = false
+    
+    // Multi-device selection UI state
+    @Published var showMultiDevicePicker: Bool = false
+    @Published var shouldAutoConnectSingleDevice: Bool = false
 
     // Global device list data for sharing across views
     @Published var networkDevices: [NetworkDevice] = []
@@ -120,6 +124,10 @@ public class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, C
     // Auto-detection properties
     private var autoDetectTimer: Timer?
     private let autoDetectInterval: TimeInterval = 10.0
+    
+    // Multi-device discovery properties
+    private var discoveryTimeoutTimer: Timer?
+    private let discoveryTimeout: TimeInterval = 3.0
 
     // 1. Store the target service UUID
 //    private let advServiceUUID = CBUUID(string: "002A7982-6A23-1A71-A5C2-6C4B54310C9C")
@@ -340,6 +348,49 @@ public class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, C
         startScan()
     }
     
+    private func handleDiscoveryTimeout() {
+        // Called when discovery timeout expires after first device is discovered
+        print("Discovery timeout reached. Total devices found: \(discoveredPeripherals.count)")
+        
+        if discoveredPeripherals.isEmpty {
+            print("No devices discovered within timeout")
+            completeScan()
+        } else if discoveredPeripherals.count == 1 {
+            // Single device found - auto-connect if in auto-detect mode
+            if autoDetectMode && !isConnected {
+                print("Single device found: \(discoveredPeripherals[0].name). Auto-connecting.")
+                stopScan()
+                connectToSelectedPeripheral(discoveredPeripherals[0])
+            } else {
+                // Auto-detect mode off or already connected - just stop scan
+                completeScan()
+            }
+        } else {
+            // Multiple devices found - show picker for user selection
+            print("Multiple devices found: \(discoveredPeripherals.map { $0.name }). Showing device picker.")
+            DispatchQueue.main.async {
+                self.showMultiDevicePicker = true
+            }
+            // Keep scanning stopped so user can make selection
+            stopScan()
+        }
+    }
+    
+    /// Called by UI when user dismisses device picker without selection
+    public func dismissDevicePicker() {
+        DispatchQueue.main.async {
+            self.showMultiDevicePicker = false
+        }
+    }
+    
+    /// Called by UI when user selects a device from picker
+    public func selectDeviceFromPicker(_ discoveredPeripheral: DiscoveredPeripheral) {
+        DispatchQueue.main.async {
+            self.showMultiDevicePicker = false
+        }
+        connectToSelectedPeripheral(discoveredPeripheral)
+    }
+    
     // MARK: - Scanning
     func startScan() {
         #if targetEnvironment(simulator)
@@ -382,6 +433,8 @@ public class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, C
         centralManager.stopScan()
         fallbackScanTimer?.invalidate()
         fallbackScanTimer = nil
+        discoveryTimeoutTimer?.invalidate()
+        discoveryTimeoutTimer = nil
         pendingStartScan = false
         connectionTimer?.invalidate()
         connectionTimer = nil
@@ -588,6 +641,7 @@ public class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, C
                 let discovered = DiscoveredPeripheral(id: peripheral.identifier, name: name, peripheral: peripheral)
                 discoveredPeripherals.append(discovered)
             }
+            
             // If an auto-connect target name is set, and this discovered peripheral
             // matches, initiate an automatic connection and clear the target name.
             if let target = autoConnectTargetName {
@@ -595,14 +649,15 @@ public class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, C
                     // Clear the auto-connect target to avoid repeated attempts
                     autoConnectTargetName = nil
                     print("Auto-connecting to discovered target: \(match.name)")
+                    stopScan()
                     connectToSelectedPeripheral(match)
                 }
-            }
-            // Auto-connect in auto-detect mode if not connected
-            if autoDetectMode && !isConnected {
-                if let discovered = discoveredPeripherals.first(where: { $0.id == peripheral.identifier }) {
-                    print("Auto-detecting and connecting to: \(discovered.name)")
-                    connectToSelectedPeripheral(discovered)
+            } else {
+                // No auto-connect target set, start/extend discovery timeout to collect multiple devices
+                // Reset the discovery timeout timer to allow more time for other devices to be discovered
+                discoveryTimeoutTimer?.invalidate()
+                discoveryTimeoutTimer = Timer.scheduledTimer(withTimeInterval: discoveryTimeout, repeats: false) { [weak self] _ in
+                    self?.handleDiscoveryTimeout()
                 }
             }
         }

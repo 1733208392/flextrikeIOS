@@ -253,25 +253,14 @@ fun ConnectSmartTargetView(
                     }
                 }
 
-                // Device list for multiple found
-                if (statusTextKey == "multiple_found") {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        bleManager.discoveredPeripherals.forEach { peripheral ->
-                            Button(
-                                onClick = { connectToSelectedPeripheral(peripheral) },
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
-                                shape = RoundedCornerShape(8.dp)
-                            ) {
-                                Text(peripheral.name, color = Color.White)
-                            }
+                // Device list for multiple found - show dialog instead
+                if (statusTextKey == "multiple_found" || bleManager.showMultiDevicePicker) {
+                    MultiDevicePickerDialog(
+                        bleManager = bleManager,
+                        onDismiss = {
+                            bleManager.dismissDevicePicker()
                         }
-                    }
+                    )
                 }
 
                 // Reconnect button

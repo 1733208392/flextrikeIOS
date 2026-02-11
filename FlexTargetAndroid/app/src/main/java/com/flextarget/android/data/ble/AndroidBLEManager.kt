@@ -71,6 +71,11 @@ class AndroidBLEManager(private val context: Context) {
     internal var writeCompletion: ((Boolean) -> Unit)? = null
     private val messageBuffer = mutableListOf<Byte>()
     private var pendingPeripheral: DiscoveredPeripheral? = null
+    
+    // Multi-device discovery properties
+    private var discoveryTimeoutHandler: Handler? = null
+    private var discoveryTimeoutRunnable: Runnable? = null
+    private val discoveryTimeout: Long = 3000L // 3 seconds
 
     // Scan callback
     private val scanCallback = object : ScanCallback() {
@@ -97,10 +102,15 @@ class AndroidBLEManager(private val context: Context) {
                 BLEManager.shared.discoveredPeripherals = BLEManager.shared.discoveredPeripherals + discovered
             }
 
+            // If an auto-connect target name is set, connect to matching device
             BLEManager.shared.autoConnectTargetName?.let { targetName ->
                 if (matchesName(deviceName, targetName)) {
+                    stopScan()
                     connectToSelectedPeripheral(discovered)
                 }
+            } ?: run {
+                // No auto-connect target set, start/extend discovery timeout to collect multiple devices
+                startDiscoveryTimeout()
             }
         }
 
@@ -108,6 +118,51 @@ class AndroidBLEManager(private val context: Context) {
             BLEManager.shared.error = BLEError.Unknown("Scan failed with code: $errorCode")
             BLEManager.shared.isScanning = false
         }
+    }
+    
+    private fun startDiscoveryTimeout() {
+        // Reset the discovery timeout timer to allow more time for other devices to be discovered
+        discoveryTimeoutRunnable?.let { discoveryTimeoutHandler?.removeCallbacks(it) }
+        
+        discoveryTimeoutHandler = Handler(Looper.getMainLooper())
+        discoveryTimeoutRunnable = Runnable {
+            handleDiscoveryTimeout()
+        }
+        discoveryTimeoutHandler?.postDelayed(discoveryTimeoutRunnable!!, discoveryTimeout)
+    }
+    
+    private fun handleDiscoveryTimeout() {
+        println("[AndroidBLEManager] Discovery timeout reached. Total devices found: ${BLEManager.shared.discoveredPeripherals.size}")
+        
+        when {
+            BLEManager.shared.discoveredPeripherals.isEmpty() -> {
+                println("[AndroidBLEManager] No devices discovered within timeout")
+                stopScan()
+            }
+            BLEManager.shared.discoveredPeripherals.size == 1 -> {
+                // Single device found - auto-connect if in auto-detect mode
+                if (BLEManager.shared.autoDetectMode && !BLEManager.shared.isConnected) {
+                    println("[AndroidBLEManager] Single device found: ${BLEManager.shared.discoveredPeripherals[0].name}. Auto-connecting.")
+                    stopScan()
+                    connectToSelectedPeripheral(BLEManager.shared.discoveredPeripherals[0])
+                } else {
+                    // Auto-detect mode off or already connected - just stop scan
+                    stopScan()
+                }
+            }
+            else -> {
+                // Multiple devices found - show picker for user selection
+                println("[AndroidBLEManager] Multiple devices found: ${BLEManager.shared.discoveredPeripherals.map { it.name }}. Showing device picker.")
+                stopScan()
+                BLEManager.shared.showMultiDevicePicker = true
+            }
+        }
+    }
+    
+    fun clearDiscoveryTimeout() {
+        discoveryTimeoutRunnable?.let { discoveryTimeoutHandler?.removeCallbacks(it) }
+        discoveryTimeoutHandler = null
+        discoveryTimeoutRunnable = null
     }
 
     // GATT callback
@@ -493,6 +548,7 @@ class AndroidBLEManager(private val context: Context) {
             bluetoothLeScanner?.stopScan(scanCallback)
         }
         BLEManager.shared.isScanning = false
+        clearDiscoveryTimeout()
     }
 
     fun connectToSelectedPeripheral(discoveredPeripheral: DiscoveredPeripheral) {

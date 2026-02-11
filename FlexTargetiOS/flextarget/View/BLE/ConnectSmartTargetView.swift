@@ -24,7 +24,6 @@ struct ConnectSmartTargetView: View {
     private let minScanDuration: TimeInterval = 5.0  // Minimum 3 seconds before showing picker
     var onConnected: (() -> Void)?
     @State private var activeTargetName: String? = nil
-    @State private var showDeviceList: Bool = false
     
     func goToMain() {
         if let onConnected = onConnected {
@@ -127,30 +126,7 @@ struct ConnectSmartTargetView: View {
                         .padding(.horizontal)
                     }
                     
-                    if showDeviceList {
-                        List(bleManager.discoveredPeripherals) { peripheral in
-                            Button(action: {
-                                bleManager.connectToSelectedPeripheral(peripheral)
-                                showDeviceList = false
-                            }) {
-                                HStack {
-                                    Image(systemName: "smartphone")
-                                        .foregroundColor(.red)
-                                    Text(peripheral.name)
-                                        .foregroundColor(.white)
-                                    Spacer()
-                                    Text(peripheral.peripheral.identifier.uuidString.prefix(8))
-                                        .foregroundColor(.gray)
-                                }
-                                .padding()
-                            }
-                            .listRowBackground(Color.white.opacity(0.05))
-                        }
-                        .frame(height: 200)
-                        .background(Color.black)
-                        .cornerRadius(8)
-                        .padding(.horizontal)
-                    }
+
                     
                     if isAlreadyConnected {
                         VStack(spacing: 12) {
@@ -207,6 +183,9 @@ struct ConnectSmartTargetView: View {
         }
         .sheet(isPresented: $showImageCrop) {
             ImageCropView()
+        }
+        .sheet(isPresented: $bleManager.showMultiDevicePicker) {
+            MultiDevicePickerSheetView(bleManager: bleManager)
         }
         .background(Color.black.ignoresSafeArea())
         .alert(isPresented: $bleManager.showErrorAlert) {
@@ -267,7 +246,7 @@ struct ConnectSmartTargetView: View {
                     } else if bleManager.discoveredPeripherals.count > 1 {
                         // Multiple devices found - show selection
                         bleManager.stopScan()
-                        showDeviceList = true
+                        bleManager.showMultiDevicePicker = true
                         statusText = "Multiple devices found, select one"
                         showProgress = false
                     } else if bleManager.isScanning {
@@ -332,7 +311,7 @@ struct ConnectSmartTargetView: View {
                     connectToSelectedPeripheral()
                 } else if bleManager.discoveredPeripherals.count > 1 {
                     bleManager.stopScan()
-                    showDeviceList = true
+                    bleManager.showMultiDevicePicker = true
                     statusText = "Multiple devices found, select one"
                     showProgress = false
                 }
@@ -443,3 +422,121 @@ struct ConnectSmartTargetView: View {
         }
     }
 #endif
+
+// MARK: - Multi-Device Picker Sheet
+struct MultiDevicePickerSheetView: View {
+    var bleManager: BLEManager
+    @Environment(\.dismiss) var dismiss
+    
+    var body: some View {
+        ZStack {
+            Color.black.ignoresSafeArea()
+            
+            VStack(spacing: 0) {
+                // Header
+                VStack(spacing: 12) {
+                    Text("Select a Device")
+                        .font(.custom("SFPro-Bold", size: 24))
+                        .foregroundColor(.white)
+                    
+                    Text("Multiple targets found. Please select one to connect:")
+                        .font(.custom("SFPro-Regular", size: 14))
+                        .foregroundColor(.gray)
+                        .multilineTextAlignment(.center)
+                }
+                .padding(.vertical, 24)
+                .padding(.horizontal, 20)
+                
+                // Device List
+                ScrollView {
+                    VStack(spacing: 12) {
+                        ForEach(bleManager.discoveredPeripherals) { peripheral in
+                            DeviceSelectionButtonView(
+                                peripheral: peripheral,
+                                action: {
+                                    bleManager.selectDeviceFromPicker(peripheral)
+                                }
+                            )
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 12)
+                }
+                
+                // Cancel Button
+                VStack(spacing: 0) {
+                    Divider()
+                        .background(Color.white.opacity(0.1))
+                    
+                    Button(action: {
+                        bleManager.dismissDevicePicker()
+                    }) {
+                        Text("Cancel")
+                            .font(.custom("SFPro-Medium", size: 18))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 50)
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 16)
+                }
+            }
+        }
+    }
+}
+
+struct DeviceSelectionButtonView: View {
+    let peripheral: DiscoveredPeripheral
+    let action: () -> Void
+    @State private var isPressed = false
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 16) {
+                // Device Icon
+                Image(systemName: "smartphone.badge.checkmark")
+                    .font(.system(size: 24))
+                    .foregroundColor(.red)
+                
+                // Device Information
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(peripheral.name)
+                        .font(.custom("SFPro-Medium", size: 16))
+                        .foregroundColor(.white)
+                        .lineLimit(1)
+                    
+                    Text(peripheral.peripheral.identifier.uuidString.prefix(12).uppercased())
+                        .font(.custom("SFPro-Regular", size: 12))
+                        .foregroundColor(.gray)
+                }
+                
+                Spacer()
+                
+                // Arrow Icon
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.gray)
+            }
+            .padding(.vertical, 14)
+            .padding(.horizontal, 16)
+            .background(Color.white.opacity(0.05))
+            .cornerRadius(8)
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(Color.white.opacity(0.1), lineWidth: 1)
+            )
+            .scaleEffect(isPressed ? 0.95 : 1.0)
+            .onTapGesture {
+                withAnimation(.easeInOut(duration: 0.1)) {
+                    isPressed = true
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    action()
+                    withAnimation(.easeInOut(duration: 0.1)) {
+                        isPressed = false
+                    }
+                }
+            }
+        }
+    }
+}
