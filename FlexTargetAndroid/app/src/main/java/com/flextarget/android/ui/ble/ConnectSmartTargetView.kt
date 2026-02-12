@@ -270,7 +270,7 @@ fun ConnectSmartTargetView(
                         modifier = Modifier
                             .fillMaxWidth(0.75f)
                             .height(44.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFde3823)),
                         shape = RoundedCornerShape(8.dp)
                     ) {
                         Text(
@@ -336,13 +336,14 @@ fun ConnectSmartTargetView(
             onClick = onDismiss,
             modifier = Modifier
                 .align(Alignment.TopEnd)
+                .windowInsetsPadding(WindowInsets.statusBars)
                 .padding(20.dp)
                 .size(44.dp)
                 .background(Color.White.copy(alpha = 0.2f), CircleShape)
         ) {
             Text(
                 text = "✕",
-                color = Color.White,
+                color = Color(0xFFde3823),
                 fontSize = 20.sp
             )
         }

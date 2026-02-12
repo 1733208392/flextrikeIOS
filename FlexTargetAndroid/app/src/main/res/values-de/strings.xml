@@ -322,6 +322,12 @@
     <string name="no_results_yet">Noch keine Ergebnisse</string>
     <string name="unknown_athlete">Unbekannter Athlet</string>
     
+    <!-- QR Scanner -->
+    <string name="camera_permission_required_for_qr">Kameraberechtigung ist für QR-Scanning erforderlich</string>
+    <string name="qr_code_scanned">QR-Code gescannt</string>
+    <string name="align_qr_code_within_frame">Richten Sie den QR-Code im Rahmen aus</string>
+    <string name="done_button">Fertig</string>
+    
     <!-- Remote Control -->
     <string name="remote_control">Fernbedienung</string>
     <string name="remote_control_description">Steuern Sie das Ziel remote</string>

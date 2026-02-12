@@ -34,19 +34,12 @@ struct DrillsTabView: View {
                         }
                     }) {
                         HStack(spacing: 8) {
-                            Image(bleManager.isConnected ? "BleConnect": "BleDisconnect")
+                            Image(bleManager.isConnected ? "BleConnect" : "BleDisconnect")
                                 .resizable()
                                 .scaledToFit()
-                                .frame(width: 22, height: 22)
-                            
-                            Text(bleManager.isConnected ? NSLocalizedString("target_connected", comment: "Status when target is connected") : NSLocalizedString("target_disconnected", comment: "Status when target is disconnected"))
-                                .font(.footnote)
-                                .foregroundColor(.gray)
+//                                .frame(width: 22, height: 22)
+                                .foregroundColor(bleManager.isConnected ? .red : .gray)
                         }
-                        .padding(.vertical, 4)
-                        .padding(.horizontal, 12)
-                        .background(Color.gray.opacity(0.2))
-                        .cornerRadius(16)
                     }
                 }
                 

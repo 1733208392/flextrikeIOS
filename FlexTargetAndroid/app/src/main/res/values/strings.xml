@@ -348,6 +348,12 @@
     <!-- User Profile & Authentication -->
     <string name="session_expired_message">Your session has expired. Please login again.</string>
     
+    <!-- QR Scanner -->
+    <string name="camera_permission_required_for_qr">Camera permission is required for QR scanning</string>
+    <string name="qr_code_scanned">QR Code Scanned</string>
+    <string name="align_qr_code_within_frame">Align QR code within the frame</string>
+    <string name="done_button">Done</string>
+    
     <!-- Remote Control -->
     <string name="remote_control">Remote Control</string>
     <string name="remote_control_description">Control the target remotely</string>

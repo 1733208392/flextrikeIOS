@@ -5,7 +5,7 @@
     
     <!-- Login screen -->
     <string name="login_title">FlexTarget</string>
-    <string name="login_subtitle">使用您的射箭靶场账户登录</string>
+    <string name="login_subtitle">使用您的账户登录</string>
     <string name="login_mobile">手机号码</string>
     <string name="login_password">密码</string>
     <string name="login_button">登录</string>
@@ -90,14 +90,14 @@
     <!-- BLE Connection -->
     <string name="connecting">连接中</string>
     <string name="trying_to_connect">正在尝试连接...</string>
-    <string name="target_connected">目标已连接</string>
+    <string name="target_connected">标靶已连接</string>
     <string name="scanning_for">正在扫描</string>
     <string name="ready_to_scan">准备扫描</string>
-    <string name="target_not_found">未找到目标</string>
-    <string name="no_targets_found">未找到目标</string>
+    <string name="target_not_found">未找到标靶</string>
+    <string name="no_targets_found">未找到标靶</string>
     <string name="bluetooth_service_not_found">未找到蓝牙服务</string>
     <string name="reconnect">重新连接</string>
-    <string name="my_target">我的目标</string>
+    <string name="my_target">我的标靶</string>
     <string name="ble_test_tool">BLE测试工具</string>
     
     <!-- Errors -->
@@ -155,10 +155,10 @@
     <string name="no_shots_to_display">没有射击可显示</string>
     <string name="replay">重播</string>
     <string name="training_records_available">训练记录可用</string>
-    <string name="maximum_targets_reached">达到最大目标数</string>
-    <string name="max_targets_message">您只能配置最多 %1$d 个目标（%2$d/%1$d）</string>
+    <string name="maximum_targets_reached">达到最大标靶数</string>
+    <string name="max_targets_message">您只能配置最多 %1$d 个标靶（%2$d/%1$d）</string>
     <string name="connection_required">需要连接</string>
-    <string name="connection_required_message">您必须连接到目标才能创建新的演练。</string>
+    <string name="connection_required_message">您必须连接到标靶才能创建新的演练。</string>
     
     <!-- Competition -->
     <string name="competitions_menu_desc">查看和管理竞赛</string>
@@ -196,7 +196,7 @@
     <string name="scan_qr_code">扫描二维码</string>
     <string name="scan_device_qr">扫描设备二维码</string>
 
-    <string name="select_target_type">选择目标类型</string>
+    <string name="select_target_type">选择标靶类型</string>
     <string name="available_devices">可用设备</string>
     <string name="scan_again">重新扫描</string>
     <string name="scanning">扫描中...</string>
@@ -280,9 +280,9 @@
     <!-- Drill Form View strings -->
     <string name="add_drill">添加演练</string>
     <string name="edit_drill">编辑演练</string>
-    <string name="targets_screen">目标</string>
+    <string name="targets_screen">标靶</string>
 
-    <string name="add_target">添加目标</string>
+    <string name="add_target">添加标靶</string>
     <string name="lock">锁定</string>
     <string name="editing_disabled_message">由于此演练有结果或与竞赛相关联，编辑已被禁用。</string>
     <string name="drill_name">演练名称</string>
@@ -315,18 +315,24 @@
     <string name="saving">保存中...</string>
     <string name="save_drill">保存演练</string>
     <string name="save_changes">保存更改</string>
-    <string name="targets_count">%d 个目标</string>
+    <string name="targets_count">%d 个标靶</string>
     <string name="arrow_right">></string>
-    <string name="targets_section">目标</string>
+    <string name="targets_section">标靶</string>
     
     <!-- Results & Competition -->
     <string name="results">结果</string>
     <string name="no_results_yet">还没有结果</string>
     <string name="unknown_athlete">未知运动员</string>
     
+    <!-- QR Scanner -->
+    <string name="camera_permission_required_for_qr">QR扫描需要相机权限</string>
+    <string name="qr_code_scanned">QR码已扫描</string>
+    <string name="align_qr_code_within_frame">将QR码对准框架内</string>
+    <string name="done_button">完成</string>
+    
     <!-- Remote Control -->
     <string name="remote_control">遥控器</string>
-    <string name="remote_control_description">远程控制目标</string>
+    <string name="remote_control_description">远程控制标靶</string>
     <string name="remote_control_instruction">滑动导航 • 点击选择</string>
     <string name="back_button">返回</string>
     <string name="home_button">首页</string>

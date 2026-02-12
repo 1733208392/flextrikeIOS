@@ -323,6 +323,12 @@
     <string name="no_results_yet">まだ結果がありません</string>
     <string name="unknown_athlete">未知の選手</string>
     
+    <!-- QR Scanner -->
+    <string name="camera_permission_required_for_qr">QRスキャンにはカメラの許可が必要です</string>
+    <string name="qr_code_scanned">QRコードがスキャンされました</string>
+    <string name="align_qr_code_within_frame">QRコードをフレーム内に揃えてください</string>
+    <string name="done_button">完了</string>
+    
     <!-- Remote Control -->
     <string name="remote_control">リモートコントロール</string>
     <string name="remote_control_description">ターゲットをリモートで制御する</string>

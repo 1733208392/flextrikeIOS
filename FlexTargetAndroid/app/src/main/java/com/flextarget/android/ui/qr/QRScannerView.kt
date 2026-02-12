@@ -1,5 +1,7 @@
 package com.flextarget.android.ui.qr
 
+import com.flextarget.android.R
+
 import android.Manifest
 import android.content.pm.PackageManager
 import android.util.Log
@@ -23,6 +25,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
@@ -130,7 +133,7 @@ fun QRScannerView(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Camera permission is required for QR scanning",
+                    text = stringResource(R.string.camera_permission_required_for_qr),
                     color = Color.White,
                     fontSize = 16.sp
                 )
@@ -160,7 +163,7 @@ fun QRScannerView(
                     verticalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
                     Text(
-                        text = "QR Code Scanned",
+                        text = stringResource(R.string.qr_code_scanned),
                         style = MaterialTheme.typography.headlineSmall,
                         color = Color.White
                     )
@@ -178,7 +181,7 @@ fun QRScannerView(
                         onClick = onDismiss,
                         colors = ButtonDefaults.buttonColors(containerColor = Color.Green)
                     ) {
-                        Text("Done", color = Color.White)
+                        Text(stringResource(R.string.done_button), color = Color.White)
                     }
                 }
             }
@@ -306,7 +309,7 @@ private fun QRScannerCameraView(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Align QR code within the frame",
+                text = stringResource(R.string.align_qr_code_within_frame),
                 color = Color.White,
                 fontSize = 16.sp,
                 style = MaterialTheme.typography.bodyMedium
