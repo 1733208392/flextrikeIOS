@@ -27,6 +27,7 @@ import com.flextarget.android.ui.viewmodel.DrillFormViewModel
 import com.flextarget.android.ui.viewmodel.DrillListViewModel
 import kotlinx.coroutines.launch
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.painterResource
 import com.flextarget.android.R
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -87,7 +88,13 @@ fun DrillListView(
                                 )
                             }
                         } else {
-                            // iOS-like connection status pill
+                            // Bluetooth Connection Status Icon
+                            val bluetoothIconRes = when {
+                                bleManager.error is com.flextarget.android.data.ble.BLEError.BluetoothOff -> R.drawable.bluetooth_disabled_24px
+                                bleManager.isConnected -> R.drawable.bluetooth_connected_24px
+                                else -> R.drawable.bluetooth_searching_24px
+                            }
+
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier
@@ -102,19 +109,16 @@ fun DrillListView(
                                         }
                                     }
                             ) {
-                                Text(
-                                    text = if (bleManager.isConnected) stringResource(R.string.device_connected) else stringResource(R.string.device_disconnected),
-                                    color = Color.Gray,
-                                    fontSize = 12.sp
+                                Icon(
+                                    painter = painterResource(bluetoothIconRes),
+                                    contentDescription = when {
+                                        bleManager.error is com.flextarget.android.data.ble.BLEError.BluetoothOff -> "Bluetooth Disabled"
+                                        bleManager.isConnected -> "Bluetooth Connected"
+                                        else -> "Bluetooth Disconnected"
+                                    },
+                                    tint = if (bleManager.isConnected) Color(0xFFDE3823) else Color.Gray,
+                                    modifier = Modifier.size(24.dp)
                                 )
-                                if (bleManager.isConnected) {
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(
-                                        text = bleManager.connectedPeripheralName ?: "Target",
-                                        color = Color.White,
-                                        fontSize = 12.sp
-                                    )
-                                }
                             }
                         }
                     },
