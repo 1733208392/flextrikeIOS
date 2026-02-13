@@ -452,3 +452,12 @@
 "remote_control_instruction" = "スワイプしてナビゲート • タップして選択";
 "back_button" = "戻る";
 "home_button" = "ホーム";
+
+/* Forgot Password */
+"reset_password" = "パスワードをリセット";
+"verify_code" = "確認コード";
+"reset_password_button" = "パスワードをリセット";
+"send_code" = "コードを送信";
+
+/* Logout */
+"logout_confirm" = "ログアウトしてもよろしいですか？";

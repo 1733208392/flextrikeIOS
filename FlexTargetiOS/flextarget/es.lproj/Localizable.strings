@@ -451,3 +451,12 @@
 "remote_control_instruction" = "Desliza para navegar • Toca para seleccionar";
 "back_button" = "Atrás";
 "home_button" = "Inicio";
+
+/* Forgot Password */
+"reset_password" = "Restablecer contraseña";
+"verify_code" = "Código de verificación";
+"reset_password_button" = "Restablecer contraseña";
+"send_code" = "Enviar código";
+
+/* Logout */
+"logout_confirm" = "¿Estás seguro de que quieres cerrar sesión?";

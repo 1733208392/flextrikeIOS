@@ -458,3 +458,12 @@
 "remote_control_instruction" = "Swipe to navigate • Tap to select";
 "back_button" = "Back";
 "home_button" = "Home";
+
+/* Forgot Password */
+"reset_password" = "Reset Password";
+"verify_code" = "Verification Code";
+"reset_password_button" = "Reset Password";
+"send_code" = "Send Code";
+
+/* Logout */
+"logout_confirm" = "Are you sure you want to logout?";

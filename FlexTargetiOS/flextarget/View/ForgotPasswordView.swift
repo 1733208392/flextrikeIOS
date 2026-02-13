@@ -43,24 +43,26 @@ struct ForgotPasswordView: View {
                     .disabled(isLoading)
                 
                 // New password input field with show/hide toggle
-                HStack {
-                    if showPassword {
-                        TextField(NSLocalizedString("new_password", comment: "New password placeholder"), text: $newPassword)
+                if !verifyCode.isEmpty {
+                    HStack {
+                        if showPassword {
+                            TextField(NSLocalizedString("new_password", comment: "New password placeholder"), text: $newPassword)
 
 
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                    } else {
-                        SecureField(NSLocalizedString("new_password", comment: "New password placeholder"), text: $newPassword)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                        } else {
+                            SecureField(NSLocalizedString("new_password", comment: "New password placeholder"), text: $newPassword)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                        }
+                        
+                        Button(action: { showPassword.toggle() }) {
+                            Image(systemName: showPassword ? "eye.slash" : "eye")
+                                .foregroundColor(.gray)
+                        }
+                        .padding(.trailing, 8)
                     }
-                    
-                    Button(action: { showPassword.toggle() }) {
-                        Image(systemName: showPassword ? "eye.slash" : "eye")
-                            .foregroundColor(.gray)
-                    }
-                    .padding(.trailing, 8)
+                    .disabled(isLoading)
                 }
-                .disabled(isLoading)
                 
                 if showError {
                     Text(errorMessage)
@@ -100,19 +102,6 @@ struct ForgotPasswordView: View {
                         }
                     }
                     .disabled(isLoading || !isResetButtonEnabled)
-                    
-                    // Back to send code button
-                    Button(action: { codeVerifySent = false }) {
-                        Text(NSLocalizedString("back", comment: "Back button"))
-                            .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .stroke(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433), lineWidth: 2)
-                            )
-                    }
-                    .disabled(isLoading)
                 }
             }
             .padding(.horizontal, 32)

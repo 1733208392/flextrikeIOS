@@ -465,3 +465,12 @@
 /* Athlete Deletion */
 "delete_athlete" = "刪除運動員";
 "delete_athlete_confirm" = "這將刪除該運動員及其所有競賽成績。此操作無法撤銷。";
+
+/* Forgot Password */
+"reset_password" = "重設密碼";
+"verify_code" = "驗證碼";
+"reset_password_button" = "重設密碼";
+"send_code" = "發送代碼";
+
+/* Logout */
+"logout_confirm" = "您確定要登出嗎？";

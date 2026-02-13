@@ -18,24 +18,13 @@ struct RegistrationView: View {
     
     var body: some View {
         VStack(spacing: 20) {
-            // Header with back button
-            HStack {
-                Button(action: onDismiss) {
-                    HStack(spacing: 8) {
-                        Image(systemName: "chevron.left")
-                        // Text(NSLocalizedString("registration_back", comment: "Back button"))
-                    }
-                    .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
-                }
-                // Spacer()
-                // Text(NSLocalizedString("registration_title", comment: "Registration title"))
-                //     .font(.title)
-                //     .foregroundColor(.white)
-                // Spacer()
-                // Placeholder to balance layout
-                Color.clear.frame(width: 60)
-            }
-            .padding()
+            Image(systemName: "person.circle")
+                .font(.system(size: 64))
+                .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+            
+            // Text(NSLocalizedString("registration_title", comment: "Registration title"))
+            //     .font(.title)
+            //     .foregroundColor(.white)
             
             ScrollView {
                 VStack(spacing: 16) {
@@ -58,53 +47,30 @@ struct RegistrationView: View {
                         }
                     }
                     
-                    // Send verification code button
-                    Button(action: sendVerificationCode) {
-                        if isLoading {
-                            ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                        } else {
-                            Text(codeCountdown > 0 ? String(format: NSLocalizedString("registration_resend_code", comment: "Resend code"), codeCountdown) : NSLocalizedString("registration_send_code", comment: "Send code button"))
-                                .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
-                                .cornerRadius(8)
+                    if codeSent {
+                        // Verification code input (6 digits only)
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text(NSLocalizedString("registration_verify_code", comment: "Verify code label"))
+                                .foregroundColor(.gray)
+                                .font(.caption)
+                            
+                            TextField("000000", text: $verifyCode)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .keyboardType(.numberPad)
+                                .disabled(isLoading)
+                                .onChange(of: verifyCode) { newValue in
+                                    // Allow only digits, max 6
+                                    if newValue.allSatisfy({ $0.isNumber }) && newValue.count <= 6 {
+                                        verifyCode = newValue
+                                    } else {
+                                        verifyCode = String(newValue.filter { $0.isNumber }.prefix(6))
+                                    }
+                                    // Show password field once code is entered
+                                    if verifyCode.count == 6 {
+                                        showPasswordField = true
+                                    }
+                                }
                         }
-                    }
-                    .disabled(isLoading || !isValidEmail(email) || codeCountdown > 0 || codeSent && codeCountdown > 0)
-                    
-                    if showError && !codeSent {
-                        Text(errorMessage)
-                            .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
-                            .font(.caption)
-                    }
-                    
-                    Divider()
-                        .background(Color.gray.opacity(0.3))
-                    
-                    // Verification code input (6 digits only)
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(NSLocalizedString("registration_verify_code", comment: "Verify code label"))
-                            .foregroundColor(.gray)
-                            .font(.caption)
-                        
-                        TextField("000000", text: $verifyCode)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .keyboardType(.numberPad)
-                            .disabled(isLoading || !codeSent)
-                            .onChange(of: verifyCode) { newValue in
-                                // Allow only digits, max 6
-                                if newValue.allSatisfy({ $0.isNumber }) && newValue.count <= 6 {
-                                    verifyCode = newValue
-                                } else {
-                                    verifyCode = String(newValue.filter { $0.isNumber }.prefix(6))
-                                }
-                                // Show password field once code is entered
-                                if verifyCode.count == 6 {
-                                    showPasswordField = true
-                                }
-                            }
                     }
                     
                     // Password input field (shown after code entry)
@@ -127,22 +93,13 @@ struct RegistrationView: View {
                         .transition(.opacity)
                     }
                     
-                    if showError && codeSent {
-                        Text(errorMessage)
-                            .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
-                            .font(.caption)
-                    }
-                    
-                    Spacer()
-                        .frame(height: 20)
-                    
-                    // Register button
-                    Button(action: registerUser) {
+                    // Combined button
+                    Button(action: codeSent ? registerUser : sendVerificationCode) {
                         if isLoading {
                             ProgressView()
                                 .progressViewStyle(CircularProgressViewStyle(tint: .white))
                         } else {
-                            Text(NSLocalizedString("registration_register_button", comment: "Register button"))
+                            Text(codeSent ? "Complete Registration" : codeCountdown > 0 ? String(format: NSLocalizedString("registration_resend_code", comment: "Resend code"), codeCountdown) : NSLocalizedString("registration_send_code", comment: "Send code button"))
                                 .foregroundColor(.white)
                                 .frame(maxWidth: .infinity)
                                 .padding()
@@ -150,7 +107,15 @@ struct RegistrationView: View {
                                 .cornerRadius(8)
                         }
                     }
-                    .disabled(isLoading || !isValidEmail(email) || verifyCode.count != 6 || password.count < 6 || !codeSent)
+                    .disabled(codeSent ? (isLoading || !isValidEmail(email) || verifyCode.count != 6 || password.count < 6) : (isLoading || !isValidEmail(email) || codeCountdown > 0))
+                    
+                    if showError {
+                        Text(errorMessage)
+                            .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+                            .font(.caption)
+                    }
+                    
+
                     
                     Spacer()
                 }
@@ -158,6 +123,16 @@ struct RegistrationView: View {
             }
         }
         .background(Color.black.ignoresSafeArea())
+        .navigationTitle(NSLocalizedString("registration_title", comment: "Registration title"))
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button(action: onDismiss) {
+                    Image(systemName: "chevron.left")
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+                }
+            }
+        }
         .onAppear {
             showError = false
             errorMessage = ""

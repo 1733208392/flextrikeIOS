@@ -459,6 +459,15 @@
 /* Athlete Deletion */
 "delete_athlete" = "删除运动员";
 "delete_athlete_confirm" = "这将删除该运动员及其所有竞赛成绩。此操作无法撤销。";
+
+/* Forgot Password */
+"reset_password" = "重置密码";
+"verify_code" = "验证码";
+"reset_password_button" = "重置密码";
+"send_code" = "发送代码";
+
+/* Logout */
+"logout_confirm" = "您确定要注销吗？";
 /* UserProfileView Validation */
 "username_empty_error" = "用户名不能为空";
 "username_same_error" = "新用户名必须与当前用户名不同";
