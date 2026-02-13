@@ -85,18 +85,6 @@ struct ManualDeviceSelectionView: View {
                     .padding(.horizontal, 16)
                     .padding(.bottom, 12)
                 }
-                
-                // Close Button
-                Button(action: { dismiss() }) {
-                    Text(NSLocalizedString("device_cancel", comment: "Cancel"))
-                        .frame(maxWidth: .infinity)
-                        .padding(12)
-                        .background(Color.gray.opacity(0.2))
-                        .foregroundColor(.white)
-                        .cornerRadius(8)
-                }
-                .padding(.horizontal, 16)
-                .padding(.bottom, 12)
             }
         }
         .onAppear {
@@ -111,6 +99,15 @@ struct ManualDeviceSelectionView: View {
         }
         .navigationTitle(NSLocalizedString("device_select_title", comment: "Select Device"))
         .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button(action: { dismiss() }) {
+                    Image(systemName: "chevron.left")
+                        .foregroundColor(Color(red: 222/255, green: 56/255, blue: 35/255))
+                }
+            }
+        }
     }
     
     private func deviceRow(_ peripheral: DiscoveredPeripheral) -> some View {

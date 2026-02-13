@@ -1,5 +1,6 @@
 import SwiftUI
 import AVFoundation
+import UIKit
 
 struct QRScannerView: View {
     @Environment(\.dismiss) var dismiss
@@ -108,9 +109,9 @@ struct QRScannerView: View {
                             }) {
                                 Image(systemName: "chevron.left")
                                     .font(.system(size: 20, weight: .semibold))
-                                    .foregroundColor(.white)
+                                    .foregroundColor(Color(red: 222/255, green: 56/255, blue: 35/255))
                                     .frame(width: 44, height: 44)
-                                    .background(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+                                    // .background(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                                     .clipShape(Circle())
                             }
                             .padding(.leading, 20)
@@ -155,11 +156,15 @@ struct QRScannerView: View {
             }
             .onAppear {
                 qrScanner.startScanning()
+                UINavigationBar.appearance().tintColor = UIColor(red: 222/255, green: 56/255, blue: 35/255, alpha: 1.0)
             }
             .onDisappear {
                 qrScanner.stopScanning()
+                UINavigationBar.appearance().tintColor = UIColor.systemBlue
             }
         }
+        .navigationTitle(NSLocalizedString("scan_qr_code", comment: "Scan QR Code"))
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
