@@ -9,6 +9,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.Visibility
@@ -69,7 +70,7 @@ fun LoginScreen(
             navigationIcon = {
                 IconButton(onClick = onBackClick) {
                     Icon(
-                        imageVector = Icons.Filled.ChevronLeft,
+                        imageVector = Icons.Default.ArrowBack,
                         contentDescription = "Back",
                         tint = customRed
                     )

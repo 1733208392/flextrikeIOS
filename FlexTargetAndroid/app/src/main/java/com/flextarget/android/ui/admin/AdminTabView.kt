@@ -207,6 +207,10 @@ fun AdminTabView(
                     onForgotPasswordClick = {
                         showLogin.value = false
                         showForgotPassword.value = true
+                    },
+                    onBackClick = {
+                        showLogin.value = false
+                        showMainMenu.value = true
                     }
                 )
             }

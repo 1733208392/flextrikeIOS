@@ -9,6 +9,8 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -44,6 +46,8 @@ fun ForgotPasswordScreen(
     onResetSuccess: () -> Unit = {},
     onBackClick: () -> Unit = {}
 ) {
+    val redColor = Color(0xFFDE3823)
+    
     var email by remember { mutableStateOf("") }
     var newPassword by remember { mutableStateOf("") }
     var verifyCode by remember { mutableStateOf("") }
@@ -56,70 +60,79 @@ fun ForgotPasswordScreen(
     
     val isResetButtonEnabled = codeVerifySent && verifyCode.isNotEmpty() && newPassword.length >= 6
     
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black)
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 24.dp)
-            .padding(top = 64.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text(stringResource(R.string.reset_password), color = redColor, style = MaterialTheme.typography.titleSmall) },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = redColor)
+                    }
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = Color.Black,
+                    titleContentColor = redColor
+                )
+            )
+        },
+        containerColor = Color.Black
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 24.dp)
+                .padding(top = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
         // Title icon and text
         Icon(
-            imageVector = Icons.Default.Error,
+            imageVector = Icons.Default.Key,
             contentDescription = "Reset Password",
             modifier = Modifier
                 .size(64.dp)
                 .padding(bottom = 24.dp),
-            tint = Color.Red
-        )
-        
-        Text(
-            text = stringResource(R.string.reset_password),
-            style = MaterialTheme.typography.displaySmall,
-            color = Color.White,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 48.dp)
+            tint = redColor
         )
         
         // Email input field
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
-            label = { Text(stringResource(R.string.login_email), color = Color.Gray) },
+            label = { Text(stringResource(R.string.login_email), color = Color.Gray, style = MaterialTheme.typography.bodyMedium) },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 16.dp),
+                .padding(bottom = 8.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White,
-                focusedBorderColor = Color.Red,
+                focusedBorderColor = redColor,
                 unfocusedBorderColor = Color.Gray,
-                cursorColor = Color.Red
+                cursorColor = redColor
             ),
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Email,
                 imeAction = ImeAction.Next
             ),
             singleLine = true,
-            enabled = !codeVerifySent && !isLoading
+            enabled = !isLoading
         )
         
         // Verification code input field
         OutlinedTextField(
             value = verifyCode,
             onValueChange = { verifyCode = it },
-            label = { Text(stringResource(R.string.verify_code), color = Color.Gray) },
+            label = { Text(stringResource(R.string.verify_code), color = Color.Gray, style = MaterialTheme.typography.bodyMedium) },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 16.dp),
+                .padding(bottom = 8.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White,
-                focusedBorderColor = Color.Red,
+                focusedBorderColor = redColor,
                 unfocusedBorderColor = Color.Gray,
-                cursorColor = Color.Red
+                cursorColor = redColor
             ),
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Number,
@@ -133,16 +146,16 @@ fun ForgotPasswordScreen(
         OutlinedTextField(
             value = newPassword,
             onValueChange = { newPassword = it },
-            label = { Text(stringResource(R.string.new_password), color = Color.Gray) },
+            label = { Text(stringResource(R.string.new_password), color = Color.Gray, style = MaterialTheme.typography.bodyMedium) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 24.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White,
-                focusedBorderColor = Color.Red,
+                focusedBorderColor = redColor,
                 unfocusedBorderColor = Color.Gray,
-                cursorColor = Color.Red
+                cursorColor = redColor
             ),
             visualTransformation = if (showPassword) {
                 VisualTransformation.None
@@ -233,7 +246,7 @@ fun ForgotPasswordScreen(
                 } else {
                     Text(
                         stringResource(R.string.send_code),
-                        style = MaterialTheme.typography.labelLarge,
+                        style = MaterialTheme.typography.labelMedium,
                         color = Color.White,
                         fontWeight = FontWeight.Bold
                     )
@@ -286,42 +299,16 @@ fun ForgotPasswordScreen(
                 } else {
                     Text(
                         stringResource(R.string.reset_password_button),
-                        style = MaterialTheme.typography.labelLarge,
+                        style = MaterialTheme.typography.labelMedium,
                         color = Color.White,
                         fontWeight = FontWeight.Bold
                     )
                 }
             }
-            
-            // Back to send code button
-            Button(
-                onClick = { codeVerifySent = false },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp)
-                    .padding(bottom = 24.dp)
-                    .border(
-                        width = 2.dp,
-                        color = Color.Red,
-                        shape = RoundedCornerShape(8.dp)
-                    ),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Transparent,
-                    disabledContainerColor = Color.Transparent
-                ),
-                shape = RoundedCornerShape(8.dp),
-                enabled = !isLoading
-            ) {
-                Text(
-                    stringResource(R.string.back),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = Color.Red,
-                    fontWeight = FontWeight.Bold
-                )
-            }
         }
         
         Spacer(modifier = Modifier.weight(1f))
+    }
     }
 }
 
