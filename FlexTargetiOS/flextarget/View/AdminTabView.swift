@@ -20,6 +20,7 @@ struct AdminContentView: View {
     @State private var showUserProfile = false
     @State private var scannedPeripheralName: String? = nil
     @State private var showConnectView = false
+    @State private var showImageCrop = false
     @ObservedObject var bleManager = BLEManager.shared
     @ObservedObject var authManager = AuthManager.shared
     
@@ -71,6 +72,9 @@ struct AdminContentView: View {
                 isAlreadyConnected: bleManager.isConnected,
                 onConnected: { showConnectView = false }
             )
+        }
+        .sheet(isPresented: $showImageCrop) {
+            ImageCropView()
         }
         .onChange(of: bleManager.error) { error in
             if case .bluetoothOff = error {
@@ -220,6 +224,31 @@ struct AdminContentView: View {
                                     .font(.headline)
                                     .foregroundColor(.white)
                                 Text(NSLocalizedString("remote_control_description", comment: "Control the target remotely"))
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                            }
+                            
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+                        }
+                        .padding(12)
+                        .background(Color.gray.opacity(0.1))
+                        .cornerRadius(8)
+                    }
+                    
+                    // Upload Target Image Menu
+                    Button(action: { showImageCrop = true }) {
+                        HStack(spacing: 12) {
+                            Image(systemName: "photo.badge.plus")
+                                .font(.title2)
+                                .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+                            
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(NSLocalizedString("upload_target_image", comment: "Upload Target Image"))
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                                Text("Upload a custom target image to the device")
                                     .font(.caption)
                                     .foregroundColor(.gray)
                             }

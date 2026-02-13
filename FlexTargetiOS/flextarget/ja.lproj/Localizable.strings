@@ -194,6 +194,7 @@
 
 /* Image transfer / ImageCropView */
 "my_target" = "画像をアップロード";
+"upload_target_image" = "ターゲット画像をアップロード";
 "choose_photo" = "写真を選ぶ";
 "transfer" = "程伝送";
 "align_qr_code" = "フレーム内に QR コードを合わせてください";

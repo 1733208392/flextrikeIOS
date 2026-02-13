@@ -190,6 +190,7 @@
 
 /* Image transfer / ImageCropView */
 "my_target" = "Bild hochladen";
+"upload_target_image" = "Zielbild hochladen";
 "choose_photo" = "Foto auswählen";
 "complete" = "Übertragen";
 "align_qr_code" = "Richten Sie den QR-Code im Rahmen aus";

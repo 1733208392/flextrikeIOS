@@ -34,8 +34,11 @@ struct ConnectSmartTargetView: View {
         navigateToMain = true
     }
     
-    var body: some View {
-        GeometryReader { geometry in
+    private struct TargetFrameView: View {
+        let geometry: GeometryProxy
+        let bleManager: BLEManager
+        
+        var body: some View {
             let frameWidth = geometry.size.width * 0.4
             let frameHeight = geometry.size.height * 0.35
             let dotPadding: CGFloat = 100
@@ -43,124 +46,138 @@ struct ConnectSmartTargetView: View {
             // Corner sensor icon configuration
             let sensorIconSize: CGFloat = 24
             let sensorOffsetAdjustment: CGFloat = -4 // how far outside the rectangle the icons sit
+            let baseAnimation = Animation.easeInOut(duration: 0.6).repeatForever(autoreverses: true)
+            let animation0 = baseAnimation
+            let animation15 = baseAnimation.delay(0.15)
+            let animation30 = baseAnimation.delay(0.30)
+            let animation45 = baseAnimation.delay(0.45)
             
-            VStack(spacing: 0) {
-                //Main Target Frame
-                ZStack(alignment: .topLeading) {
-                    Rectangle()
-                        .stroke(Color.white, lineWidth: 10)
-                        .frame(width: frameWidth, height: frameHeight)
-                    Circle()
-                        .fill(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
-                        .frame(width: dotRadius * 2, height: dotRadius * 2)
-                        .offset(x: dotPadding, y: dotPadding)
-                    
-                    // Bottom-left sensor icon (45° clockwise)
-                    Image(systemName: "dot.radiowaves.forward")
-                        .font(.system(size: sensorIconSize))
-                        .foregroundColor(.white)
-                        .scaleEffect(!bleManager.isConnected ? 1.1 : 0.9)
-                        .opacity(!bleManager.isConnected ? 1.0 : 0.6)
-                        .animation(Animation.easeInOut(duration: 0.6).repeatForever(autoreverses: true), value: bleManager.isConnected)
-                        .rotationEffect(.degrees(-45)) // clockwise
-                        .offset(x: -sensorOffsetAdjustment, y: frameHeight - sensorIconSize + sensorOffsetAdjustment)
-                    
-                    // Bottom-right sensor icon (135° clockwise)
-                    Image(systemName: "dot.radiowaves.forward")
-                        .font(.system(size: sensorIconSize))
-                        .foregroundColor(.white)
-                        .scaleEffect(!bleManager.isConnected ? 1.1 : 0.9)
-                        .opacity(!bleManager.isConnected ? 1.0 : 0.6)
-                        .animation(Animation.easeInOut(duration: 0.6).repeatForever(autoreverses: true).delay(0.15), value: bleManager.isConnected)
-                        .rotationEffect(.degrees(-135)) // clockwise
-                        .offset(x: frameWidth - sensorIconSize + sensorOffsetAdjustment, y: frameHeight - sensorIconSize + sensorOffsetAdjustment)
-                    
-                    // Top-right sensor icon (135° counter-clockwise)
-                    Image(systemName: "dot.radiowaves.forward")
-                        .font(.system(size: sensorIconSize))
-                        .foregroundColor(.white)
-                        .scaleEffect(!bleManager.isConnected ? 1.1 : 0.9)
-                        .opacity(!bleManager.isConnected ? 1.0 : 0.6)
-                        .animation(Animation.easeInOut(duration: 0.6).repeatForever(autoreverses: true).delay(0.30), value: bleManager.isConnected)
-                        .rotationEffect(.degrees(135)) // counter-clockwise
-                        .offset(x: frameWidth - sensorIconSize + sensorOffsetAdjustment, y: -sensorOffsetAdjustment)
-                    
-                    // Top-left sensor icon (45° counter-clockwise)
-                    Image(systemName: "dot.radiowaves.forward")
-                        .font(.system(size: sensorIconSize))
-                        .foregroundColor(.white)
-                        .scaleEffect(!bleManager.isConnected ? 1.1 : 0.9)
-                        .opacity(!bleManager.isConnected ? 1.0 : 0.6)
-                        .animation(Animation.easeInOut(duration: 0.6).repeatForever(autoreverses: true).delay(0.45), value: bleManager.isConnected)
-                        .rotationEffect(.degrees(45)) // counter-clockwise
-                        .offset(x: -sensorOffsetAdjustment, y: -sensorOffsetAdjustment)
-                }
-                //.frame(width: .infinity, height: frameHeight, alignment: .top)
-                .padding(.top, geometry.size.height * 0.15)
-                //                    .border(.red, width: 1)
+            ZStack(alignment: .topLeading) {
+                Rectangle()
+                    .stroke(Color.white, lineWidth: 10)
+                    .frame(width: frameWidth, height: frameHeight)
+                Circle()
+                    .fill(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+                    .frame(width: dotRadius * 2, height: dotRadius * 2)
+                    .offset(x: dotPadding, y: dotPadding)
                 
-                // Status and Reconnect Button
-                VStack(spacing: 12) {
-                    HStack(spacing: 8) {
-                        Text(statusText)
-                            .font(.custom("SFPro-Medium", size: 16))
-                            .foregroundColor(.white)
-                            .multilineTextAlignment(.center)
-                        if showProgress {
-                            ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                        }
+                // Bottom-left sensor icon (45° clockwise)
+                Image(systemName: "dot.radiowaves.forward")
+                    .font(.system(size: sensorIconSize))
+                    .foregroundColor(.white)
+                    .scaleEffect(!bleManager.isConnected ? 1.1 : 0.9)
+                    .opacity(!bleManager.isConnected ? 1.0 : 0.6)
+                    .animation(animation0, value: bleManager.isConnected)
+                    .rotationEffect(.degrees(-45)) // clockwise
+                    .offset(x: -sensorOffsetAdjustment, y: frameHeight - sensorIconSize + sensorOffsetAdjustment)
+                
+                // Bottom-right sensor icon (135° clockwise)
+                Image(systemName: "dot.radiowaves.forward")
+                    .font(.system(size: sensorIconSize))
+                    .foregroundColor(.white)
+                    .scaleEffect(!bleManager.isConnected ? 1.1 : 0.9)
+                    .opacity(!bleManager.isConnected ? 1.0 : 0.6)
+                    .animation(animation15, value: bleManager.isConnected)
+                    .rotationEffect(.degrees(-135)) // clockwise
+                    .offset(x: frameWidth - sensorIconSize + sensorOffsetAdjustment, y: frameHeight - sensorIconSize + sensorOffsetAdjustment)
+                
+                // Top-right sensor icon (135° counter-clockwise)
+                Image(systemName: "dot.radiowaves.forward")
+                    .font(.system(size: sensorIconSize))
+                    .foregroundColor(.white)
+                    .scaleEffect(!bleManager.isConnected ? 1.1 : 0.9)
+                    .opacity(!bleManager.isConnected ? 1.0 : 0.6)
+                    .animation(animation30, value: bleManager.isConnected)
+                    .rotationEffect(.degrees(135)) // counter-clockwise
+                    .offset(x: frameWidth - sensorIconSize + sensorOffsetAdjustment, y: -sensorOffsetAdjustment)
+                
+                // Top-left sensor icon (45° counter-clockwise)
+                Image(systemName: "dot.radiowaves.forward")
+                    .font(.system(size: sensorIconSize))
+                    .foregroundColor(.white)
+                    .scaleEffect(!bleManager.isConnected ? 1.1 : 0.9)
+                    .opacity(!bleManager.isConnected ? 1.0 : 0.6)
+                    .animation(animation45, value: bleManager.isConnected)
+                    .rotationEffect(.degrees(45)) // counter-clockwise
+                    .offset(x: -sensorOffsetAdjustment, y: -sensorOffsetAdjustment)
+            }
+            .padding(.top, geometry.size.height * 0.15)
+        }
+    }
+    
+    private struct StatusAndButtonsView: View {
+        let geometry: GeometryProxy
+        let statusText: String
+        let showProgress: Bool
+        let showReconnect: Bool
+        let isAlreadyConnected: Bool
+        let bleManager: BLEManager
+        let handleReconnect: () -> Void
+        @Environment(\.dismiss) var dismiss
+        
+        var body: some View {
+            VStack(spacing: 12) {
+                HStack(spacing: 8) {
+                    Text(statusText)
+                        .font(.custom("SFPro-Medium", size: 16))
+                        .foregroundColor(.white)
+                        .multilineTextAlignment(.center)
+                    if showProgress {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
                     }
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 16)
-                    
-                    if showReconnect {
-                        Button(action: handleReconnect) {
-                            Text(NSLocalizedString("reconnect", comment: "Reconnect button"))
+                }
+                .padding(.horizontal, 24)
+                .padding(.vertical, 16)
+                
+                if showReconnect {
+                    Button(action: handleReconnect) {
+                        Text(NSLocalizedString("reconnect", comment: "Reconnect button"))
+                            .font(.custom("SFPro-Medium", size: 20))
+                            .foregroundColor(.white)
+                            .frame(width: geometry.size.width * 0.75, height: 44)
+                            .background(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+                            .cornerRadius(8)
+                    }
+                    .padding(.horizontal)
+                }
+                
+                if isAlreadyConnected {
+                    VStack(spacing: 12) {
+                        Button(action: {
+                            bleManager.disconnect()
+                            dismiss()
+                        }) {
+                            Text(NSLocalizedString("disconnect", comment: "Disconnect button"))
                                 .font(.custom("SFPro-Medium", size: 20))
                                 .foregroundColor(.white)
-                                .frame(width: geometry.size.width * 0.75, height: 44)
+                                .frame(height: 44)
+                                .frame(maxWidth: .infinity)
                                 .background(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                                 .cornerRadius(8)
                         }
-                        .padding(.horizontal)
+                        .padding(.horizontal, 16)
                     }
-                    
-
-                    
-                    if isAlreadyConnected {
-                        VStack(spacing: 12) {
-                            HStack(spacing: 20) {
-                                Button(action: {
-                                    bleManager.disconnect()
-                                    dismiss()
-                                }) {
-                                    Text(NSLocalizedString("disconnect", comment: "Disconnect button"))
-                                        .font(.custom("SFPro-Medium", size: 20))
-                                        .foregroundColor(.white)
-                                        .frame(width: geometry.size.width * 0.35, height: 44)
-                                        .background(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
-                                        .cornerRadius(8)
-                                }
-                            }
-                            .padding(.horizontal)
-                            
-                            // Image Transfer button shown when connected (placed under Scan)
-                            Button(action: {
-                                showImageCrop = true
-                            }) {
-                                Text(NSLocalizedString("my_target", comment: "Transfer Image button title"))
-                                    .font(.custom("SFPro-Medium", size: 20))
-                                    .foregroundColor(.white)
-                                    .frame(width: geometry.size.width * 0.75, height: 44)
-                                    .background(Color.blue)
-                                    .cornerRadius(8)
-                            }
-                            .padding(.top, 4)
-                        }
-                    }
-                }//Status and Reconnect Button
-                .frame(maxWidth: .infinity)
+                }
+            }
+            .frame(maxWidth: .infinity)
+        }
+    }
+    
+    var body: some View {
+        GeometryReader { geometry in
+            VStack(spacing: 0) {
+                TargetFrameView(geometry: geometry, bleManager: bleManager)
+                
+                StatusAndButtonsView(
+                    geometry: geometry,
+                    statusText: statusText,
+                    showProgress: showProgress,
+                    showReconnect: showReconnect,
+                    isAlreadyConnected: isAlreadyConnected,
+                    bleManager: bleManager,
+                    handleReconnect: handleReconnect
+                )
                 .padding(.top, 120)
             }//Top Level VStack
             .frame(width: geometry.size.width, height: geometry.size.height, alignment: .top)
@@ -223,7 +240,9 @@ struct ConnectSmartTargetView: View {
         }
         .onAppear {
             if isAlreadyConnected {
-                statusText = NSLocalizedString("target_connected", comment: "Status when target is connected")
+                let deviceName = bleManager.connectedPeripheral?.name ?? "Device"
+                let connectedText = NSLocalizedString("target_connected", comment: "Status when target is connected")
+                statusText = deviceName + " " + connectedText
             } else {
                 connectionStartTime = Date()
                 startConnectionTimeout()
@@ -280,7 +299,9 @@ struct ConnectSmartTargetView: View {
         .onChange(of: bleManager.isConnected) { newValue in
             if newValue {
                 timeoutTimer?.invalidate()
-                statusText = NSLocalizedString("connected", comment: "Status when connection successful")
+                let deviceName = bleManager.connectedPeripheral?.name ?? "Device"
+                let connectedText = NSLocalizedString("connected", comment: "Status when connection successful")
+                statusText = deviceName + " " + connectedText
                 isShaking = false
                 showReconnect = false
                 showProgress = false

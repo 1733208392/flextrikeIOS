@@ -44,11 +44,11 @@ fun ConnectSmartTargetView(
         return when (statusTextKey) {
             "connecting" -> stringResource(R.string.connecting)
             "trying_to_connect" -> stringResource(R.string.trying_to_connect)
-            "target_connected" -> stringResource(R.string.target_connected)
+            "target_connected" -> "${bleManager.connectedPeripheral?.name ?: "Device"} ${stringResource(R.string.target_connected)}"
             "scanning_for" -> "${stringResource(R.string.scanning_for)} $activeTargetName"
             "scanning" -> "Scanning for devices"
             "ready_to_scan" -> stringResource(R.string.ready_to_scan)
-            "connected" -> stringResource(R.string.device_connected)
+            "connected" -> "${bleManager.connectedPeripheral?.name ?: "Device"} ${stringResource(R.string.device_connected)}"
             "target_not_found" -> stringResource(R.string.target_not_found)
             "no_targets_found" -> stringResource(R.string.no_targets_found)
             "multiple_found" -> "Multiple devices found, select one"
@@ -295,32 +295,14 @@ fun ConnectSmartTargetView(
                                 onDismiss()
                             },
                             modifier = Modifier
-                                .fillMaxWidth(0.75f)
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp)
                                 .height(44.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
                             shape = RoundedCornerShape(8.dp)
                         ) {
                             Text(
                                 text = stringResource(R.string.device_disconnect),
-                                color = Color.White,
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Medium
-                            )
-                        }
-
-                        // Image Transfer button
-                        Button(
-                            onClick = {
-                                showImageCrop = true
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth(0.75f)
-                                .height(44.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.Blue),
-                            shape = RoundedCornerShape(8.dp)
-                        ) {
-                            Text(
-                                text = stringResource(R.string.my_target),
                                 color = Color.White,
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Medium

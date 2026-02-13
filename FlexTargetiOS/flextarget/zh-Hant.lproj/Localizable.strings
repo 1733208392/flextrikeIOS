@@ -194,6 +194,7 @@
 
 /* Image transfer / ImageCropView */
 "my_target" = "上傳圖片";
+"upload_target_image" = "上傳目標影像";
 "choose_photo" = "選擇照片";
 "complete" = "傳送";
 "align_qr_code" = "對齊控制框內的二維碼";

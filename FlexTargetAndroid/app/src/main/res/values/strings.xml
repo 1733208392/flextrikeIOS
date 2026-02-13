@@ -360,4 +360,8 @@
     <string name="remote_control_instruction">Swipe to navigate • Tap to select</string>
     <string name="back_button">Back</string>
     <string name="home_button">Home</string>
+    
+    <!-- Upload Target Image -->
+    <string name="upload_target_image_title">Upload Target Image</string>
+    <string name="upload_target_image_subtitle">Upload a custom target image to the device</string>
 </resources>

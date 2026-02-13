@@ -335,4 +335,8 @@
     <string name="remote_control_instruction">スワイプしてナビゲート • タップして選択</string>
     <string name="back_button">戻る</string>
     <string name="home_button">ホーム</string>
+    
+    <!-- Upload Target Image -->
+    <string name="upload_target_image_title">ターゲット画像をアップロード</string>
+    <string name="upload_target_image_subtitle">カスタムターゲット画像をデバイスにアップロード</string>
 </resources>

@@ -193,6 +193,7 @@
 
 /* Image transfer / ImageCropView */
 "my_target" = "Subir imagen";
+"upload_target_image" = "Cargar imagen del objetivo";
 "choose_photo" = "Elegir foto";
 "transfer" = "Transferir";
 "align_qr_code" = "Alinee el código QR dentro del marco";

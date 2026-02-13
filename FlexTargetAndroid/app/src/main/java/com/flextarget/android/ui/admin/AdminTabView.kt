@@ -25,6 +25,8 @@ import com.flextarget.android.data.ble.BLEManager
 import com.flextarget.android.ui.viewmodel.AuthViewModel
 import com.flextarget.android.ui.viewmodel.OTAViewModel
 import com.flextarget.android.ui.viewmodel.BLEViewModel
+import androidx.compose.material.icons.filled.Image
+import com.flextarget.android.ui.imagecrop.ImageCropViewV2
 
 @Composable
 fun AdminTabView(
@@ -44,6 +46,7 @@ fun AdminTabView(
     val showConnectedDeviceDetails = remember { mutableStateOf(false) }
     val showOTAUpdate = remember { mutableStateOf(false) }
     val showRemoteControl = remember { mutableStateOf(false) }
+    val showUploadTargetImage = remember { mutableStateOf(false) }
 
     val authUiState by authViewModel.authUiState.collectAsState()
 
@@ -69,6 +72,14 @@ fun AdminTabView(
                     bleManager = bleManager,
                     onBack = {
                         showRemoteControl.value = false
+                        showDeviceManagement.value = true
+                    }
+                )
+            }
+            showUploadTargetImage.value -> {
+                ImageCropViewV2(
+                    onDismiss = {
+                        showUploadTargetImage.value = false
                         showDeviceManagement.value = true
                     }
                 )
@@ -160,6 +171,10 @@ fun AdminTabView(
                     onRemoteControlClick = {
                         showDeviceManagement.value = false
                         showRemoteControl.value = true
+                    },
+                    onUploadTargetImageClick = {
+                        showDeviceManagement.value = false
+                        showUploadTargetImage.value = true
                     }
                 )
             }
@@ -358,7 +373,8 @@ private fun DeviceManagementView(
     onQRScanClick: () -> Unit = {},
     onConnectedDeviceClick: () -> Unit = {},
     onOTAUpdateClick: () -> Unit = {},
-    onRemoteControlClick: () -> Unit = {}
+    onRemoteControlClick: () -> Unit = {},
+    onUploadTargetImageClick: () -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -410,6 +426,15 @@ private fun DeviceManagementView(
                         title = stringResource(R.string.remote_control),
                         subtitle = stringResource(R.string.remote_control_description),
                         onClick = onRemoteControlClick
+                    )
+                }
+
+                item {
+                    DeviceMenuOption(
+                        icon = Icons.Default.Image,
+                        title = stringResource(R.string.upload_target_image_title),
+                        subtitle = stringResource(R.string.upload_target_image_subtitle),
+                        onClick = onUploadTargetImageClick
                     )
                 }
             } else {

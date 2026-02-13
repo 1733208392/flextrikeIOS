@@ -334,4 +334,8 @@
     <string name="remote_control_instruction">Wischen zum Navigieren • Tippen zum Auswählen</string>
     <string name="back_button">Zurück</string>
     <string name="home_button">Startseite</string>
+    
+    <!-- Upload Target Image -->
+    <string name="upload_target_image_title">Zielbild hochladen</string>
+    <string name="upload_target_image_subtitle">Laden Sie ein benutzerdefiniertes Zielbild auf das Gerät</string>
 </resources>

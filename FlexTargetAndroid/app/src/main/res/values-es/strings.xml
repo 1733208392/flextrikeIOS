@@ -335,4 +335,8 @@
     <string name="remote_control_instruction">Desliza para navegar • Toca para seleccionar</string>
     <string name="back_button">Atrás</string>
     <string name="home_button">Inicio</string>
+    
+    <!-- Upload Target Image -->
+    <string name="upload_target_image_title">Cargar imagen del objetivo</string>
+    <string name="upload_target_image_subtitle">Carga una imagen de objetivo personalizada en el dispositivo</string>
 </resources>

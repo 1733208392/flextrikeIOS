@@ -176,6 +176,7 @@
 
 /* Image transfer / ImageCropView */
 "my_target" = "Upload Picture";
+"upload_target_image" = "Upload Target Image";
 "choose_photo" = "Choose Photo";
 "transfer" = "Transfer";
 "align_qr_code" = "Align QR Code within frame";

@@ -194,6 +194,7 @@
 
 /* Image transfer / ImageCropView */
 "my_target" = "上传图片";
+"upload_target_image" = "上传标靶图像";
 "choose_photo" = "选择照片";
 "complete" = "传输";
 "align_qr_code" = "对齐控制框内的二维码";

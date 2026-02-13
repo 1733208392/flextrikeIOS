@@ -336,4 +336,8 @@
     <string name="remote_control_instruction">滑动导航 • 点击选择</string>
     <string name="back_button">返回</string>
     <string name="home_button">首页</string>
+    
+    <!-- Upload Target Image -->
+    <string name="upload_target_image_title">上传标靶图像</string>
+    <string name="upload_target_image_subtitle">将自定义目标图像上传到设备</string>
 </resources>
