@@ -381,14 +381,14 @@ private fun DeviceManagementView(
             .fillMaxSize()
             .background(Color.Black)
     ) {
-        TopAppBar(
+        CenterAlignedTopAppBar(
             title = { Text(stringResource(R.string.device_management), color = Color.White) },
             navigationIcon = {
                 IconButton(onClick = onBack) {
                     Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.Red)
                 }
             },
-            colors = TopAppBarDefaults.topAppBarColors(
+            colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                 containerColor = Color.Black,
                 titleContentColor = Color.White
             )

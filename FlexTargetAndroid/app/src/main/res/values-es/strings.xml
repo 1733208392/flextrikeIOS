@@ -13,6 +13,9 @@
     <string name="login_error">Error al iniciar sesión. Por favor, verifique sus credenciales.</string>
     <string name="login_hint_mobile">Ingrese su número de teléfono móvil</string>
     <string name="login_hint_password">Ingrese su contraseña</string>
+    <string name="login_account">Cuenta</string>
+    <string name="login_forgot_password">Olvidé mi contraseña</string>
+    <string name="login_register_button">Registrar cuenta</string>
     
     <!-- Auth state -->
     <string name="auth_not_authenticated">No autenticado</string>

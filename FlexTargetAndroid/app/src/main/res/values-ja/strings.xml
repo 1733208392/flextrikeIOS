@@ -13,6 +13,9 @@
     <string name="login_error">ログインに失敗しました。認証情報を確認してください。</string>
     <string name="login_hint_mobile">携帯電話番号を入力してください</string>
     <string name="login_hint_password">パスワードを入力してください</string>
+    <string name="login_account">アカウント</string>
+    <string name="login_forgot_password">パスワードを忘れた</string>
+    <string name="login_register_button">アカウント登録</string>
     
     <!-- Auth state -->
     <string name="auth_not_authenticated">認証されていません</string>

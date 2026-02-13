@@ -13,6 +13,9 @@
     <string name="login_error">Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre Anmeldedaten.</string>
     <string name="login_hint_mobile">Geben Sie Ihre Mobilnummer ein</string>
     <string name="login_hint_password">Geben Sie Ihr Passwort ein</string>
+    <string name="login_account">Konto</string>
+    <string name="login_forgot_password">Passwort vergessen</string>
+    <string name="login_register_button">Konto registrieren</string>
     
     <!-- Auth state -->
     <string name="auth_not_authenticated">Nicht authentifiziert</string>

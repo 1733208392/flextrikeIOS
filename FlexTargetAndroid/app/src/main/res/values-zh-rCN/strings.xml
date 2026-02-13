@@ -13,6 +13,9 @@
     <string name="login_error">登录失败。请检查您的凭据。</string>
     <string name="login_hint_mobile">输入您的手机号码</string>
     <string name="login_hint_password">输入您的密码</string>
+    <string name="login_account">账户</string>
+    <string name="login_forgot_password">忘记密码</string>
+    <string name="login_register_button">注册账户</string>
     
     <!-- Auth state -->
     <string name="auth_not_authenticated">未认证</string>

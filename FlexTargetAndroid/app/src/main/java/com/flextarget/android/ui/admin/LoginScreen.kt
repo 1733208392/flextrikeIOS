@@ -9,9 +9,11 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -38,13 +40,16 @@ fun LoginScreen(
     authViewModel: AuthViewModel,
     onLoginSuccess: () -> Unit = {},
     onRegisterClick: () -> Unit = {},
-    onForgotPasswordClick: () -> Unit = {}
+    onForgotPasswordClick: () -> Unit = {},
+    onBackClick: () -> Unit = {}
 ) {
     val authUiState by authViewModel.authUiState.collectAsState()
     
     var mobile by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var showPassword by remember { mutableStateOf(false) }
+    
+    val customRed = Color(0xFFde3823)
     
     // Navigate on successful login
     LaunchedEffect(authUiState.isAuthenticated) {
@@ -57,34 +62,56 @@ fun LoginScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 24.dp)
-            .padding(top = 64.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // App title
-        Text(
-            text = stringResource(R.string.app_name),
-            style = MaterialTheme.typography.displaySmall,
-            color = Color.White,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 48.dp)
+        // Top toolbar
+        CenterAlignedTopAppBar(
+            title = { Text("Login", color = customRed) },
+            navigationIcon = {
+                IconButton(onClick = onBackClick) {
+                    Icon(
+                        imageVector = Icons.Filled.ChevronLeft,
+                        contentDescription = "Back",
+                        tint = customRed
+                    )
+                }
+            },
+            colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                containerColor = Color.Black
+            )
+        )
+        
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+        // App icon
+        Icon(
+            imageVector = Icons.Filled.Person,
+            contentDescription = stringResource(R.string.app_name),
+            modifier = Modifier
+                .size(120.dp)
+                .padding(top = 24.dp, bottom = 48.dp),
+            tint = customRed
         )
         
         // Mobile input field
         OutlinedTextField(
             value = mobile,
             onValueChange = { mobile = it },
-            label = { Text(stringResource(R.string.login_mobile), color = Color.Gray) },
+            label = { Text(stringResource(R.string.login_account), color = Color.Gray) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 16.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White,
-                focusedBorderColor = Color.Red,
+                focusedBorderColor = customRed,
                 unfocusedBorderColor = Color.Gray,
-                cursorColor = Color.Red
+                cursorColor = customRed
             ),
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Email,
@@ -105,9 +132,9 @@ fun LoginScreen(
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White,
-                focusedBorderColor = Color.Red,
+                focusedBorderColor = customRed,
                 unfocusedBorderColor = Color.Gray,
-                cursorColor = Color.Red
+                cursorColor = customRed
             ),
             visualTransformation = if (showPassword) {
                 VisualTransformation.None
@@ -154,11 +181,11 @@ fun LoginScreen(
                     imageVector = Icons.Filled.Error,
                     contentDescription = "Error",
                     modifier = Modifier.size(24.dp),
-                    tint = Color.Red
+                    tint = customRed
                 )
                 Text(
                     text = authUiState.error ?: "Unknown error",
-                    color = Color.Red,
+                    color = customRed,
                     style = MaterialTheme.typography.bodySmall
                 )
             }
@@ -174,8 +201,8 @@ fun LoginScreen(
                 .height(56.dp)
                 .padding(bottom = 8.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Red,
-                disabledContainerColor = Color.Red.copy(alpha = 0.5f)
+                containerColor = customRed,
+                disabledContainerColor = customRed.copy(alpha = 0.5f)
             ),
             shape = RoundedCornerShape(8.dp),
             enabled = mobile.isNotEmpty() && password.isNotEmpty() && !authUiState.isLoading
@@ -196,52 +223,52 @@ fun LoginScreen(
             }
         }
         
-        // Forgot Password button
-        Button(
-            onClick = onForgotPasswordClick,
+        // Forgot Password and Register buttons in a row
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(48.dp)
-                .padding(bottom = 16.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Transparent,
-                disabledContainerColor = Color.Transparent
-            ),
-            shape = RoundedCornerShape(8.dp),
-            enabled = !authUiState.isLoading
+                .padding(bottom = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text(
-                stringResource(R.string.login_forgot_password),
-                style = MaterialTheme.typography.labelMedium,
-                color = Color.Red
-            )
-        }
-        
-        // Register button
-        Button(
-            onClick = onRegisterClick,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp)
-                .padding(bottom = 24.dp)
-                .border(
-                    width = 2.dp,
-                    color = Color.Red,
-                    shape = RoundedCornerShape(8.dp)
+            // Forgot Password button
+            Button(
+                onClick = onForgotPasswordClick,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(56.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Transparent,
+                    disabledContainerColor = Color.Transparent
                 ),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Transparent,
-                disabledContainerColor = Color.Transparent
-            ),
-            shape = RoundedCornerShape(8.dp),
-            enabled = !authUiState.isLoading
-        ) {
-            Text(
-                stringResource(R.string.login_register_button),
-                style = MaterialTheme.typography.labelLarge,
-                color = Color.Red,
-                fontWeight = FontWeight.Bold
-            )
+                shape = RoundedCornerShape(8.dp),
+                enabled = !authUiState.isLoading
+            ) {
+                Text(
+                    stringResource(R.string.login_forgot_password),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = customRed
+                )
+            }
+            
+            // Register button
+            Button(
+                onClick = onRegisterClick,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(56.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Transparent,
+                    disabledContainerColor = Color.Transparent
+                ),
+                shape = RoundedCornerShape(8.dp),
+                enabled = !authUiState.isLoading
+            ) {
+                Text(
+                    stringResource(R.string.login_register_button),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = customRed
+                )
+            }
         }
         
         // Additional info
@@ -251,6 +278,7 @@ fun LoginScreen(
             style = MaterialTheme.typography.bodySmall,
             color = Color.Gray
         )
+        }
     }
 }
 
