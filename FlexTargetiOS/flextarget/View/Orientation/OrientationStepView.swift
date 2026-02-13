@@ -41,7 +41,7 @@ struct OrientationStepView: View {
                     VStack(spacing: 4) {
                         ProgressView(value: max(0, min(1, duration > 0 ? currentTime / duration : 0)))
                             .progressViewStyle(.linear)
-                            .accentColor(.red)
+                            .accentColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                             .frame(height: 4)
                             .padding(.horizontal, 8)
                         HStack {
@@ -78,7 +78,7 @@ struct OrientationStepView: View {
                         }) {
                             Image(systemName: isPlaying ? "pause.circle.fill" : "play.circle.fill")
                                 .font(.system(size: 32))
-                                .foregroundColor(.red)
+                                .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                         }
                         
                         Button(action: {
@@ -115,7 +115,7 @@ struct OrientationStepView: View {
                         }) {
                             ZStack {
                                 Circle()
-                                    .fill(Color.red)
+                                    .fill(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                                     .frame(width: 44, height: 44)
                                 Image(systemName: "arrow.right")
                                     .foregroundColor(.white)

@@ -258,14 +258,14 @@ struct DrillFormView: View {
                         Text(NSLocalizedString("my_drills", comment: "Back button label"))
                             .font(.system(size: 16, weight: .regular))
                     }
-                    .foregroundColor(.red)
+                    .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                 }
             }
             
             ToolbarItem(placement: .principal) {
                 Text(NSLocalizedString("drill_setup", comment: "Drill setup view title"))
                     .font(.headline)
-                    .foregroundColor(.red)
+                    .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
             }
         }
         .alert(NSLocalizedString("drill_in_progress", comment: "Drill in progress"), isPresented: $showBackConfirmationAlert) {
@@ -298,7 +298,7 @@ struct DrillFormView: View {
                     .fontWeight(.semibold)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background((bleManager.isConnected && !isEditingDisabled) ? Color.red : Color.gray)
+                    .background((bleManager.isConnected && !isEditingDisabled) ? Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433) : Color.gray)
                     .cornerRadius(8)
             }
             .disabled(!bleManager.isConnected || isEditingDisabled)

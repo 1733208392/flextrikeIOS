@@ -88,7 +88,7 @@ struct DescriptionVideoSectionView: View {
                 Spacer()
                 if isDescriptionFocused {
                     Image(systemName: "checkmark")
-                        .foregroundColor(.red)
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                         .onTapGesture {
                             isDescriptionFocused = false
                         }
@@ -123,13 +123,13 @@ struct DescriptionVideoSectionView: View {
                 VStack {
                     RoundedRectangle(cornerRadius: 16)
                         .stroke(style: StrokeStyle(lineWidth: 1, dash: [4]))
-                        .foregroundColor(.red)
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                         .frame(height: 120)
                         .overlay(
                             Group {
                                 if isGeneratingThumbnail {
                                     ProgressView()
-                                        .progressViewStyle(CircularProgressViewStyle(tint: .red))
+                                        .progressViewStyle(CircularProgressViewStyle(tint: Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433)))
                                         .scaleEffect(1.5)
                                 } else if let thumbnail = demoVideoThumbnail, demoVideoURL != nil {
                                     ZStack {
@@ -165,7 +165,7 @@ struct DescriptionVideoSectionView: View {
                                                     Image(systemName: "xmark.circle.fill")
                                                         .resizable()
                                                         .frame(width: 28, height: 28)
-                                                        .foregroundColor(.red)
+                                                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                                                         .background(Color.white.opacity(0.8))
                                                         .clipShape(Circle())
                                                         .shadow(radius: 2)
@@ -185,7 +185,7 @@ struct DescriptionVideoSectionView: View {
                                     VStack {
                                         Image(systemName: "video.badge.plus")
                                             .font(.system(size: 30))
-                                            .foregroundColor(.red)
+                                            .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                                         Text(NSLocalizedString("add_demo_video", comment: "Add demo video button"))
                                             .foregroundColor(.white)
                                             .font(.footnote)

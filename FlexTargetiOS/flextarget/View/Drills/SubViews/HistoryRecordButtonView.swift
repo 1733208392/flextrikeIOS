@@ -24,13 +24,13 @@ struct HistoryRecordButtonView: View {
         Button(action: action) {
             HStack {
                 RoundedRectangle(cornerRadius: 24)
-                    .stroke(Color.red, lineWidth: 1)
+                    .stroke(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433), lineWidth: 1)
                     .background(RoundedRectangle(cornerRadius: 16).fill(Color.clear))
                     .frame(height: 36)
                     .overlay(
                         HStack(spacing: 8) {
                             Image(systemName: "clock.arrow.circlepath")
-                                .foregroundColor(.red)
+                                .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                                 .font(.title3)
                             Text(NSLocalizedString("history_record", comment: "History record button"))
                                 .foregroundColor(.white)

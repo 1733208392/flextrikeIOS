@@ -63,7 +63,7 @@ struct DrillListView: View {
                 .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: NSLocalizedString("search_drills", comment: "Search prompt for drills"))
             }
         }
-        .tint(.red)
+        .tint(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
         .navigationTitle(NSLocalizedString("drill_setup", comment: "Navigation title for drill list"))
         .navigationBarTitleDisplayMode(.inline)
         .alert(NSLocalizedString("delete_drill_title", comment: "Alert title for deleting drill"), isPresented: $showDeleteAlert, presenting: drillToDelete) { drill in
@@ -124,7 +124,7 @@ struct DrillListView: View {
             Spacer()
 
             Image(systemName: "chevron.right")
-                .foregroundColor(.red)
+                .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
         }
         .padding(.vertical, 8)
         .frame(maxWidth: .infinity, alignment: .leading)

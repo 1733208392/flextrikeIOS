@@ -26,9 +26,9 @@ struct flextargetApp: App {
         let appearance = UINavigationBarAppearance()
         appearance.configureWithTransparentBackground()
         appearance.backgroundColor = UIColor.black
-        appearance.titleTextAttributes = [.foregroundColor: UIColor.red]
-        appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.red]
-        UINavigationBar.appearance().tintColor = .red
+        appearance.titleTextAttributes = [.foregroundColor: UIColor(red: 222/255, green: 56/255, blue: 35/255, alpha: 1)]
+        appearance.largeTitleTextAttributes = [.foregroundColor: UIColor(red: 222/255, green: 56/255, blue: 35/255, alpha: 1)]
+        UINavigationBar.appearance().tintColor = UIColor(red: 222/255, green: 56/255, blue: 35/255, alpha: 1)
         UINavigationBar.appearance().standardAppearance = appearance
         UINavigationBar.appearance().scrollEdgeAppearance = appearance
         

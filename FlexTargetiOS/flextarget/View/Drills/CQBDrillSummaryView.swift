@@ -113,7 +113,7 @@ struct CQBDrillSummaryView: View {
                             Text(cqbPassed ? NSLocalizedString("cqb_passed", comment: "Passed status") : NSLocalizedString("cqb_failed", comment: "Failed status"))
                                 .font(.system(size: 12, weight: .bold))
                         }
-                        .foregroundColor(cqbPassed ? .green : .red)
+                        .foregroundColor(cqbPassed ? .green : Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                     }
                 }
                 .padding(.horizontal, 16)
@@ -151,15 +151,15 @@ struct CQBDrillSummaryView: View {
                         .font(.system(size: 14, weight: .bold))
                         .kerning(0.5)
                 }
-                .foregroundColor(.red)
+                .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                 .padding(.vertical, 10)
                 .frame(maxWidth: .infinity)
                 .background(
                     RoundedRectangle(cornerRadius: 12)
-                        .fill(Color.red.opacity(0.1))
+                        .fill(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433).opacity(0.1))
                         .overlay(
                             RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color.red.opacity(0.3), lineWidth: 1)
+                                .stroke(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433).opacity(0.3), lineWidth: 1)
                         )
                 )
             }
@@ -174,7 +174,7 @@ struct CQBDrillSummaryView: View {
             // Card indicator (green or red circle)
             Image(systemName: result.cardStatus == .green ? "checkmark.circle.fill" : "xmark.circle.fill")
                 .font(.system(size: 18, weight: .bold))
-                .foregroundColor(result.cardStatus == .green ? .green : .red)
+                .foregroundColor(result.cardStatus == .green ? .green : Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
             
             // Target info
             VStack(alignment: .leading, spacing: 4) {
@@ -221,11 +221,11 @@ struct CQBDrillSummaryView: View {
         .padding(12)
         .background(
             RoundedRectangle(cornerRadius: 8)
-                .fill(result.cardStatus == .green ? Color.green.opacity(0.08) : Color.red.opacity(0.08))
+                .fill(result.cardStatus == .green ? Color.green.opacity(0.08) : Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433).opacity(0.08))
                 .overlay(
                     RoundedRectangle(cornerRadius: 8)
                         .stroke(
-                            result.cardStatus == .green ? Color.green.opacity(0.3) : Color.red.opacity(0.3),
+                            result.cardStatus == .green ? Color.green.opacity(0.3) : Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433).opacity(0.3),
                             lineWidth: 1
                         )
                 )

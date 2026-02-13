@@ -24,7 +24,7 @@ struct GunTypeSelectionView: View {
     var body: some View {
         HStack {
             Text(NSLocalizedString("gun", comment: "Gun type selection label"))
-                .foregroundColor(.red)
+                .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
             Spacer()
             HStack(spacing: 20) {
                 ForEach(GunType.allCases, id: \.self) { type in
@@ -34,11 +34,11 @@ struct GunTypeSelectionView: View {
                         HStack(spacing: 8) {
                             ZStack {
                                 Circle()
-                                    .stroke(Color.red, lineWidth: 2)
+                                    .stroke(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433), lineWidth: 2)
                                     .frame(width: 24, height: 24)
                                 if gunType == type {
                                     Circle()
-                                        .fill(Color.red)
+                                        .fill(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                                         .frame(width: 14, height: 14)
                                 }
                             }

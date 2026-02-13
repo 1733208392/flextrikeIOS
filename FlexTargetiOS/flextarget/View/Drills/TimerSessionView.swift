@@ -70,7 +70,7 @@ struct TimerSessionView: View {
                             .foregroundColor(.white)
                             .padding(.horizontal, 12)
                             .padding(.vertical, 4)
-                            .background(Color.red)
+                            .background(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                             .cornerRadius(4)
                         
                         if let athleteName = athlete?.name {
@@ -97,7 +97,7 @@ struct TimerSessionView: View {
                                     .fill(Color.white.opacity(0.2))
                                 
                                 RoundedRectangle(cornerRadius: 2)
-                                    .fill(Color.red)
+                                    .fill(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                                     .frame(width: geometry.size.width * (1 - (delayRemaining / randomDelay)))
                             }
                             .frame(height: 2)
@@ -176,7 +176,7 @@ struct TimerSessionView: View {
                             Image(systemName: "chevron.left")
                             Text(NSLocalizedString("back", comment: "Back button"))
                         }
-                        .foregroundColor(.red)
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                     }
                     Spacer()
                 }
@@ -197,7 +197,7 @@ struct TimerSessionView: View {
                         if readinessTimeoutOccurred {
                             Text(NSLocalizedString("targets_not_ready", comment: "Targets not ready"))
                                 .font(.subheadline)
-                                .foregroundColor(.red)
+                                .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                             Text(NSLocalizedString("targets_not_ready_message", comment: "Targets not ready message"))
                                 .font(.caption)
                                 .foregroundColor(.orange)
@@ -217,7 +217,7 @@ struct TimerSessionView: View {
         }
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark)
-        .tint(.red)
+        .tint(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
         .navigationBarBackButtonHidden(true)
         .alert(NSLocalizedString("end_drill", comment: "End drill alert title"), isPresented: $showEndDrillAlert) {
             Button(NSLocalizedString("cancel", comment: "Cancel button"), role: .cancel) { }
@@ -278,13 +278,13 @@ struct TimerSessionView: View {
 
         switch timerState {
         case .idle:
-            return Color.red
+            return Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433)
         case .standby:
-            return Color.red
+            return Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433)
         case .running:
             return Color.blue
         case .paused:
-            return Color.red
+            return Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433)
         }
     }
 

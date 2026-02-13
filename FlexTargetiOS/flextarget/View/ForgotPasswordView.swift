@@ -23,7 +23,7 @@ struct ForgotPasswordView: View {
         VStack(spacing: 20) {
             Image(systemName: "key.circle")
                 .font(.system(size: 64))
-                .foregroundColor(.red)
+                .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
             
             Text(NSLocalizedString("reset_password", comment: "Reset password title"))
                 .font(.title)
@@ -64,7 +64,7 @@ struct ForgotPasswordView: View {
                 
                 if showError {
                     Text(errorMessage)
-                        .foregroundColor(.red)
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                         .font(.caption)
                 }
                 
@@ -79,7 +79,7 @@ struct ForgotPasswordView: View {
                                 .foregroundColor(.white)
                                 .frame(maxWidth: .infinity)
                                 .padding()
-                                .background(Color.red)
+                                .background(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                                 .cornerRadius(8)
                         }
                     }
@@ -95,7 +95,7 @@ struct ForgotPasswordView: View {
                                 .foregroundColor(.white)
                                 .frame(maxWidth: .infinity)
                                 .padding()
-                                .background(isResetButtonEnabled ? Color.red : Color.gray)
+                                .background(isResetButtonEnabled ? Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433) : Color.gray)
                                 .cornerRadius(8)
                         }
                     }
@@ -104,12 +104,12 @@ struct ForgotPasswordView: View {
                     // Back to send code button
                     Button(action: { codeVerifySent = false }) {
                         Text(NSLocalizedString("back", comment: "Back button"))
-                            .foregroundColor(.red)
+                            .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                             .frame(maxWidth: .infinity)
                             .padding()
                             .overlay(
                                 RoundedRectangle(cornerRadius: 8)
-                                    .stroke(Color.red, lineWidth: 2)
+                                    .stroke(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433), lineWidth: 2)
                             )
                     }
                     .disabled(isLoading)
@@ -126,7 +126,7 @@ struct ForgotPasswordView: View {
             ToolbarItem(placement: .navigationBarLeading) {
                 Button(action: onDismiss) {
                     Image(systemName: "chevron.left")
-                        .foregroundColor(.red)
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                 }
             }
         }

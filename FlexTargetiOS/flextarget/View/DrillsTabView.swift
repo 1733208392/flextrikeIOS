@@ -37,8 +37,8 @@ struct DrillsTabView: View {
                             Image(bleManager.isConnected ? "BleConnect" : "BleDisconnect")
                                 .resizable()
                                 .scaledToFit()
-//                                .frame(width: 22, height: 22)
-                                .foregroundColor(bleManager.isConnected ? .red : .gray)
+                                .frame(width: 24, height: 24)
+                                .foregroundColor(bleManager.isConnected ? Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433) : .gray)
                         }
                     }
                 }
@@ -47,14 +47,14 @@ struct DrillsTabView: View {
                     if bleManager.isConnected {
                         NavigationLink(destination: AddDrillView(bleManager: bleManager)) {
                             Image(systemName: "plus")
-                                .foregroundColor(.red)
+                                .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                         }
                     } else {
                         Button(action: {
                             showConnectionAlert = true
                         }) {
                             Image(systemName: "plus")
-                                .foregroundColor(.red)
+                                .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                         }
                     }
                 }

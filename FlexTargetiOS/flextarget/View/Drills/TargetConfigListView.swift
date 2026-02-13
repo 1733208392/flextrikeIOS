@@ -30,7 +30,7 @@ struct TargetConfigListView: View {
                     }
                 }) {
                     Image(systemName: "plus")
-                        .foregroundColor(.red)
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                 }
                 .help(targetConfigs.count >= deviceList.count ? "Maximum targets reached (\(targetConfigs.count)/\(deviceList.count))" : "")
             }
@@ -83,7 +83,7 @@ struct TargetConfigListView: View {
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .frame(height: 44)
-                    .background(Color.red)
+                    .background(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                     .cornerRadius(8)
             }
         }
@@ -313,7 +313,7 @@ struct TargetRowView: View {
         VStack(spacing: 12) {
             // Title row
             Text(config.targetName.isEmpty ? NSLocalizedString("select_device", comment: "Select Device placeholder") : config.targetName)
-                .foregroundColor(.red)
+                .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                 .font(.system(size: 16, weight: .semibold))
                 .lineLimit(1)
                 .truncationMode(.tail)
@@ -441,7 +441,7 @@ struct TargetNamePickerView: View {
                                 Spacer()
                                 if selectedDevice == device.name {
                                     Image(systemName: "checkmark")
-                                        .foregroundColor(.red)
+                                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                                 }
                             }
                             .padding(.vertical, 12)
@@ -460,7 +460,7 @@ struct TargetNamePickerView: View {
                     Button(NSLocalizedString("cancel", comment: "Cancel button")) {
                         onDone?()
                     }
-                    .foregroundColor(.red)
+                    .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                 }
             }
             .navigationViewStyle(.stack)
@@ -512,7 +512,7 @@ struct TargetTypePickerView: View {
                                 Spacer()
                                 if selectedType == icon {
                                     Image(systemName: "checkmark")
-                                        .foregroundColor(.red)
+                                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                                 }
                             }
                             .padding(.vertical, 12)
@@ -531,7 +531,7 @@ struct TargetTypePickerView: View {
                     Button(NSLocalizedString("cancel", comment: "Cancel button")) {
                         onDone?()
                     }
-                    .foregroundColor(.red)
+                    .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                 }
             }
             .navigationViewStyle(.stack)
@@ -566,7 +566,7 @@ struct ActionPickerView: View {
                                 Spacer()
                                 if selectedAction == action {
                                     Image(systemName: "checkmark")
-                                        .foregroundColor(.red)
+                                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                                 }
                             }
                             .padding(.vertical, 12)
@@ -585,7 +585,7 @@ struct ActionPickerView: View {
                     Button("Cancel") {
                         onDone?()
                     }
-                    .foregroundColor(.red)
+                    .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                 }
             }
             .navigationViewStyle(.stack)
@@ -623,7 +623,7 @@ struct ActionDurationPickerView: View {
                                 Spacer()
                                 if selectedDuration == duration {
                                     Image(systemName: "checkmark")
-                                        .foregroundColor(.red)
+                                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                                 }
                             }
                             .padding(.vertical, 12)
@@ -642,7 +642,7 @@ struct ActionDurationPickerView: View {
                     Button(NSLocalizedString("cancel", comment: "Cancel button")) {
                         onDone?()
                     }
-                    .foregroundColor(.red)
+                    .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                 }
             }
             .navigationViewStyle(.stack)

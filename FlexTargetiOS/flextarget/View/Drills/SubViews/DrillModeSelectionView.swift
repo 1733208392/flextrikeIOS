@@ -24,11 +24,11 @@ struct DrillModeSelectionView: View {
     var body: some View {
         HStack {
             Image(systemName: "scope")
-                .foregroundColor(.red)
+                .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                 .padding(10)
                 .background(Circle().fill(Color.white.opacity(0.1)))
                 .overlay(
-                    Circle().stroke(Color.red, lineWidth: 2)
+                    Circle().stroke(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433), lineWidth: 2)
                 )
 
             Text(NSLocalizedString("drill_mode", comment: "Drill Mode label"))
@@ -43,10 +43,10 @@ struct DrillModeSelectionView: View {
             }) {
                 HStack {
                     Text(currentModeTitle)
-                        .foregroundColor(.red)
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                         .font(.system(size: 16))
                     Image(systemName: "chevron.down")
-                        .foregroundColor(.red)
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                         .font(.system(size: 12))
                 }
                 .padding(.vertical, 8)
@@ -91,7 +91,7 @@ private struct DrillModePickerView: View {
                                 Spacer()
                                 if selectedMode == mode.id {
                                     Image(systemName: "checkmark")
-                                        .foregroundColor(.red)
+                                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                                 }
                             }
                             .padding(.vertical, 12)
@@ -110,7 +110,7 @@ private struct DrillModePickerView: View {
                     Button(NSLocalizedString("cancel", comment: "Cancel button")) {
                         onDone?()
                     }
-                    .foregroundColor(.red)
+                    .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                 }
             }
             .navigationViewStyle(.stack)
@@ -120,7 +120,7 @@ private struct DrillModePickerView: View {
                     Button(NSLocalizedString("cancel", comment: "Cancel button")) {
                         onDone?()
                     }
-                    .foregroundColor(.red)
+                    .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                 }
             }
             #endif

@@ -82,7 +82,7 @@ struct RecentTrainingView: View {
             //Title
             HStack(spacing: 8) {
                 Image(systemName: "scope")
-                    .foregroundColor(.red)
+                    .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                 Text(summary.drillName)
                     .font(.headline)
                     .foregroundColor(.white)

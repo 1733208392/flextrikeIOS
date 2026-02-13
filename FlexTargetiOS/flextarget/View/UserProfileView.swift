@@ -41,7 +41,7 @@ struct UserProfileView: View {
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.red.opacity(0.8))
+                    .background(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433).opacity(0.8))
                     .cornerRadius(8)
             }
             .padding(.horizontal, 32)
@@ -56,7 +56,7 @@ struct UserProfileView: View {
             ToolbarItem(placement: .navigationBarLeading) {
                 Button(action: onDismiss) {
                     Image(systemName: "chevron.left")
-                        .foregroundColor(.red)
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                 }
             }
         }
@@ -87,7 +87,7 @@ struct UserProfileView: View {
         VStack(spacing: 20) {
             Image(systemName: "person.circle")
                 .font(.system(size: 64))
-                .foregroundColor(.red)
+                .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
             
             VStack(spacing: 16) {
                 TextField(NSLocalizedString("username", comment: "Username"), text: $username)
@@ -97,7 +97,7 @@ struct UserProfileView: View {
                 
                 if showError {
                     Text(errorMessage)
-                        .foregroundColor(.red)
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                         .font(.caption)
                 }
                 
@@ -110,7 +110,7 @@ struct UserProfileView: View {
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(Color.red)
+                            .background(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                             .cornerRadius(8)
                     }
                 }
@@ -124,7 +124,7 @@ struct UserProfileView: View {
         VStack(spacing: 20) {
             Image(systemName: "lock.circle")
                 .font(.system(size: 64))
-                .foregroundColor(.red)
+                .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
             
             VStack(spacing: 16) {
                 SecureField(NSLocalizedString("current_password", comment: "Current Password"), text: $oldPassword)
@@ -138,7 +138,7 @@ struct UserProfileView: View {
                 
                 if showError {
                     Text(errorMessage)
-                        .foregroundColor(.red)
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                         .font(.caption)
                 }
                 
@@ -151,7 +151,7 @@ struct UserProfileView: View {
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(Color.red)
+                            .background(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                             .cornerRadius(8)
                     }
                 }

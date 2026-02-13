@@ -65,7 +65,7 @@ struct TabNavigationView: View {
                 }
                 .tag(3)
             }
-            .tint(.red)
+            .tint(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
             .preferredColorScheme(.dark)
             .onAppear {
                 errorObserver = NotificationCenter.default.addObserver(forName: NSNotification.Name("bleErrorOccurred"), object: nil, queue: .main) { notification in

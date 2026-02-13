@@ -33,7 +33,7 @@ struct CompetitionTabView: View {
                 HStack {
                     Image(systemName: "trophy.fill")
                         .font(.title2)
-                        .foregroundColor(.red)
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                     
                     VStack(alignment: .leading, spacing: 4) {
                         Text(NSLocalizedString("competitions", comment: "Competitions menu item"))
@@ -67,7 +67,7 @@ struct CompetitionTabView: View {
                 HStack {
                     Image(systemName: "person.3.fill")
                         .font(.title2)
-                        .foregroundColor(.red)
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                     
                     VStack(alignment: .leading, spacing: 4) {
                         Text(NSLocalizedString("shooters", comment: "Shooters menu item"))
@@ -101,7 +101,7 @@ struct CompetitionTabView: View {
                 HStack {
                     Image(systemName: "list.number")
                         .font(.title2)
-                        .foregroundColor(.red)
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                     
                     VStack(alignment: .leading, spacing: 4) {
                         Text(NSLocalizedString("leaderboard", comment: "Leaderboard menu item"))

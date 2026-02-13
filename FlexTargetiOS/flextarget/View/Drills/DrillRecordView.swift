@@ -243,7 +243,7 @@ struct DrillRecordRowView: View {
             VStack(alignment: .leading, spacing: 2) {
                 ZStack {
                     Circle()
-                        .stroke(Color.red, lineWidth: 2)
+                        .stroke(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433), lineWidth: 2)
                         .frame(width: 40, height: 40)
                     
                     Text(model.dayText.uppercased())
@@ -262,13 +262,13 @@ struct DrillRecordRowView: View {
 
                     Divider()
                         .frame(height: 44)
-                        .background(Color.red)
+                        .background(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
 
                     DrillMetricColumn(value: model.totalShotsText, label: "#Shots")
 
                     Divider()
                         .frame(height: 44)
-                        .background(Color.red)
+                        .background(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
 
                     DrillMetricColumn(value: model.fastestShotText, label: "Fastest")
                 }

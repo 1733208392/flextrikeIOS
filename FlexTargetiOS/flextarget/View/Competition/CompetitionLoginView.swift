@@ -12,7 +12,7 @@ struct CompetitionLoginView: View {
             VStack(spacing: 20) {
                 Image(systemName: "trophy.fill")
                     .font(.system(size: 80))
-                    .foregroundColor(.red)
+                    .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                     .padding(.bottom, 20)
                 
                 Text(NSLocalizedString("competition_login", comment: "Competition Login Title"))
@@ -47,7 +47,7 @@ struct CompetitionLoginView: View {
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color.red)
+                        .background(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                         .cornerRadius(10)
                 }
                 .padding(.horizontal, 40)

@@ -32,11 +32,11 @@ struct RepeatsConfigView: View {
         HStack {
             // Icon on the left
             Image(systemName: "shuffle")
-                .foregroundColor(.red)
+                .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                 .padding(10)
                 .background(Circle().fill(Color.white.opacity(0.1)))
                 .overlay(
-                    Circle().stroke(Color.red, lineWidth: 2)
+                    Circle().stroke(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433), lineWidth: 2)
                 )
 
             // Text label next to icon
@@ -53,10 +53,10 @@ struct RepeatsConfigView: View {
             }) {
                 HStack {
                     Text("\(repeatsValue)")
-                        .foregroundColor(.red)
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                         .font(.system(size: 16))
                     Image(systemName: "chevron.down")
-                        .foregroundColor(.red)
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                         .font(.system(size: 12))
                 }
                 .padding(.vertical, 8)
@@ -102,7 +102,7 @@ struct RepeatsPickerView: View {
                                 Spacer()
                                 if selectedRepeats == repeats {
                                     Image(systemName: "checkmark")
-                                        .foregroundColor(.red)
+                                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                                 }
                             }
                             .padding(.vertical, 12)
@@ -121,7 +121,7 @@ struct RepeatsPickerView: View {
                     Button(NSLocalizedString("cancel", comment: "Cancel button")) {
                         onDone?()
                     }
-                    .foregroundColor(.red)
+                    .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                 }
             }
             .navigationViewStyle(.stack)

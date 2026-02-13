@@ -23,15 +23,15 @@ struct RegistrationView: View {
                 Button(action: onDismiss) {
                     HStack(spacing: 8) {
                         Image(systemName: "chevron.left")
-                        Text(NSLocalizedString("registration_back", comment: "Back button"))
+                        // Text(NSLocalizedString("registration_back", comment: "Back button"))
                     }
-                    .foregroundColor(.red)
+                    .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                 }
-                Spacer()
-                Text(NSLocalizedString("registration_title", comment: "Registration title"))
-                    .font(.title)
-                    .foregroundColor(.white)
-                Spacer()
+                // Spacer()
+                // Text(NSLocalizedString("registration_title", comment: "Registration title"))
+                //     .font(.title)
+                //     .foregroundColor(.white)
+                // Spacer()
                 // Placeholder to balance layout
                 Color.clear.frame(width: 60)
             }
@@ -53,7 +53,7 @@ struct RegistrationView: View {
                         
                         if !email.isEmpty && !isValidEmail(email) {
                             Text(NSLocalizedString("registration_email_invalid", comment: "Invalid email error"))
-                                .foregroundColor(.red)
+                                .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                                 .font(.caption)
                         }
                     }
@@ -68,7 +68,7 @@ struct RegistrationView: View {
                                 .foregroundColor(.white)
                                 .frame(maxWidth: .infinity)
                                 .padding()
-                                .background(Color.red)
+                                .background(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                                 .cornerRadius(8)
                         }
                     }
@@ -76,7 +76,7 @@ struct RegistrationView: View {
                     
                     if showError && !codeSent {
                         Text(errorMessage)
-                            .foregroundColor(.red)
+                            .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                             .font(.caption)
                     }
                     
@@ -120,7 +120,7 @@ struct RegistrationView: View {
                             
                             if !password.isEmpty && password.count < 6 {
                                 Text(NSLocalizedString("registration_password_invalid", comment: "Invalid password error"))
-                                    .foregroundColor(.red)
+                                    .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                                     .font(.caption)
                             }
                         }
@@ -129,7 +129,7 @@ struct RegistrationView: View {
                     
                     if showError && codeSent {
                         Text(errorMessage)
-                            .foregroundColor(.red)
+                            .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                             .font(.caption)
                     }
                     
@@ -146,7 +146,7 @@ struct RegistrationView: View {
                                 .foregroundColor(.white)
                                 .frame(maxWidth: .infinity)
                                 .padding()
-                                .background(Color.red)
+                                .background(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                                 .cornerRadius(8)
                         }
                     }

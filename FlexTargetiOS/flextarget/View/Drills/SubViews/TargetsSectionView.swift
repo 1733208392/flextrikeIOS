@@ -19,11 +19,11 @@ struct TargetsSectionView: View {
                     HStack(spacing: 8) {
                         // Shield icon on the left
                         Image(systemName: "shield")
-                            .foregroundColor(.red)
+                            .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                             .padding(10)
                             .background(Circle().fill(Color.white.opacity(0.1)))
                             .overlay(
-                                Circle().stroke(Color.red, lineWidth: 2)
+                                Circle().stroke(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433), lineWidth: 2)
                             )
 
                         // Text label
@@ -55,11 +55,11 @@ struct TargetsSectionView: View {
                     HStack(spacing: 8) {
                         // Shield icon on the left
                         Image(systemName: "shield")
-                            .foregroundColor(.red)
+                            .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                             .padding(10)
                             .background(Circle().fill(Color.white.opacity(0.1)))
                             .overlay(
-                                Circle().stroke(Color.red, lineWidth: 2)
+                                Circle().stroke(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433), lineWidth: 2)
                             )
 
                         // Text label

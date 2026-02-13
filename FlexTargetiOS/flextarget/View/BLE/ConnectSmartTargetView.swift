@@ -51,7 +51,7 @@ struct ConnectSmartTargetView: View {
                         .stroke(Color.white, lineWidth: 10)
                         .frame(width: frameWidth, height: frameHeight)
                     Circle()
-                        .fill(Color.red)
+                        .fill(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                         .frame(width: dotRadius * 2, height: dotRadius * 2)
                         .offset(x: dotPadding, y: dotPadding)
                     
@@ -120,7 +120,7 @@ struct ConnectSmartTargetView: View {
                                 .font(.custom("SFPro-Medium", size: 20))
                                 .foregroundColor(.white)
                                 .frame(width: geometry.size.width * 0.75, height: 44)
-                                .background(Color.red)
+                                .background(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                                 .cornerRadius(8)
                         }
                         .padding(.horizontal)
@@ -139,7 +139,7 @@ struct ConnectSmartTargetView: View {
                                         .font(.custom("SFPro-Medium", size: 20))
                                         .foregroundColor(.white)
                                         .frame(width: geometry.size.width * 0.35, height: 44)
-                                        .background(Color.red)
+                                        .background(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                                         .cornerRadius(8)
                                 }
                             }
@@ -496,7 +496,7 @@ struct DeviceSelectionButtonView: View {
                 // Device Icon
                 Image(systemName: "smartphone.badge.checkmark")
                     .font(.system(size: 24))
-                    .foregroundColor(.red)
+                    .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                 
                 // Device Information
                 VStack(alignment: .leading, spacing: 4) {

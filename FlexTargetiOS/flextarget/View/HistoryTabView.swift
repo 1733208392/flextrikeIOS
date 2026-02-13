@@ -178,7 +178,7 @@ struct HistoryTabView: View {
                             Spacer()
                             Image(systemName: "chevron.down")
                         }
-                        .foregroundColor(.red)
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                         .padding(12)
                         .background(Color.gray.opacity(0.2))
                         .cornerRadius(8)
@@ -205,7 +205,7 @@ struct HistoryTabView: View {
                             Spacer()
                             Image(systemName: "chevron.down")
                         }
-                        .foregroundColor(.red)
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                         .padding(12)
                         .background(Color.gray.opacity(0.2))
                         .cornerRadius(8)
@@ -232,7 +232,7 @@ struct HistoryTabView: View {
                             Spacer()
                             Image(systemName: "chevron.down")
                         }
-                        .foregroundColor(.red)
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                         .padding(12)
                         .background(Color.gray.opacity(0.2))
                         .cornerRadius(8)
@@ -241,7 +241,7 @@ struct HistoryTabView: View {
                 .padding(12)
                 
                 Divider()
-                    .background(Color.red.opacity(0.3))
+                    .background(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433).opacity(0.3))
                 
                 // Results List
                 if groupedResults.isEmpty {
@@ -250,7 +250,7 @@ struct HistoryTabView: View {
                         VStack(spacing: 12) {
                             Image(systemName: "clock.badge.exclamationmark")
                                 .font(.system(size: 48))
-                                .foregroundColor(.red)
+                                .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                             Text(NSLocalizedString("no_results", comment: "No results message"))
                                 .font(.headline)
                             Text(NSLocalizedString("no_results_hint", comment: "No results hint"))
@@ -266,7 +266,7 @@ struct HistoryTabView: View {
                                 VStack(alignment: .leading, spacing: 8) {
                                     Text(dateKey)
                                         .font(.subheadline)
-                                        .foregroundColor(.red)
+                                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                                         .padding(.horizontal)
                                     
                                     ForEach(sessions, id: \.sessionId) { session in
@@ -292,7 +292,7 @@ struct HistoryTabView: View {
                                                     }
                                                     Spacer()
                                                     Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                                                        .foregroundColor(.red)
+                                                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                                                 }
                                                 .padding(12)
                                                 .background(Color.gray.opacity(0.15))
@@ -439,20 +439,20 @@ struct DrillSummaryCard: View {
                         .foregroundColor(.white)
                     Text(drillSetup.mode?.uppercased() ?? "N/A")
                         .font(.caption)
-                        .foregroundColor(.red)
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                 }
                 Spacer()
                 VStack(alignment: .trailing, spacing: 4) {
                     Text(String(format: "%.2fs", summaries.first?.totalTime ?? 0))
                         .font(.caption)
-                        .foregroundColor(.red)
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                     Text(String(summaries.first?.shots.count ?? 0) + " shots")
                         .font(.caption)
                         .foregroundColor(.gray)
                 }
                 Button(action: onDelete) {
                     Image(systemName: "trash")
-                        .foregroundColor(.red)
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                 }
                 .padding(.leading, 8)
             }

@@ -110,7 +110,7 @@ struct QRScannerView: View {
                                     .font(.system(size: 20, weight: .semibold))
                                     .foregroundColor(.white)
                                     .frame(width: 44, height: 44)
-                                    .background(Color.red)
+                                    .background(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                                     .clipShape(Circle())
                             }
                             .padding(.leading, 20)

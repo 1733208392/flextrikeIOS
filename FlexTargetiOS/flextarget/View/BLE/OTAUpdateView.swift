@@ -138,7 +138,7 @@ struct OTAUpdateView: View {
                 Spacer()
                 
                 Image(systemName: "arrow.down.circle")
-                    .foregroundColor(.red)
+                    .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
             }
             .padding()
             .background(Color.gray.opacity(0.1))
@@ -162,10 +162,10 @@ struct OTAUpdateView: View {
                 } else if otaManager.currentState == .failed {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .font(.system(size: 80))
-                        .foregroundColor(.red)
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                 } else {
                     ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: .red))
+                        .progressViewStyle(CircularProgressViewStyle(tint: Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433)))
                         .scaleEffect(2.0)
                 }
             }
@@ -173,7 +173,7 @@ struct OTAUpdateView: View {
             VStack(spacing: 12) {
                 Text(otaManager.currentState.rawValue.uppercased())
                     .font(.headline)
-                    .foregroundColor(.red)
+                    .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                 
                 Text(otaManager.progressMessage)
                     .font(.body)
@@ -197,7 +197,7 @@ struct OTAUpdateView: View {
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(Color.red)
+                            .background(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                             .cornerRadius(10)
                     }
                     
@@ -206,10 +206,10 @@ struct OTAUpdateView: View {
                     }) {
                         Text(NSLocalizedString("ota_recovery_backup", comment: "Recovery (Restore Backup)"))
                             .font(.headline)
-                            .foregroundColor(.red)
+                            .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.red, lineWidth: 1))
+                            .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433), lineWidth: 1))
                     }
                 }
                 .padding(.top, 20)

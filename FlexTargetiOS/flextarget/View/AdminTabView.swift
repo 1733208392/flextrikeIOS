@@ -157,7 +157,7 @@ struct AdminContentView: View {
                         HStack(spacing: 12) {
                             Image(systemName: "antenna.radiowaves.left.and.right")
                                 .font(.title2)
-                                .foregroundColor(.red)
+                                .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                             
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(NSLocalizedString("connected_device", comment: "Connected device"))
@@ -176,7 +176,7 @@ struct AdminContentView: View {
                             
                             Spacer()
                             Image(systemName: "chevron.right")
-                                .foregroundColor(.red)
+                                .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                         }
                         .padding(12)
                         .background(Color.gray.opacity(0.1))
@@ -188,7 +188,7 @@ struct AdminContentView: View {
                         HStack(spacing: 12) {
                             Image(systemName: "arrow.triangle.2.circlepath.circle")
                                 .font(.title2)
-                                .foregroundColor(.red)
+                                .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                             
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(NSLocalizedString("ota_update_title", comment: "OTA Update"))
@@ -201,7 +201,7 @@ struct AdminContentView: View {
                             
                             Spacer()
                             Image(systemName: "chevron.right")
-                                .foregroundColor(.red)
+                                .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                         }
                         .padding(12)
                         .background(Color.gray.opacity(0.1))
@@ -213,7 +213,7 @@ struct AdminContentView: View {
                         HStack(spacing: 12) {
                             Image(systemName: "gamecontroller")
                                 .font(.title2)
-                                .foregroundColor(.red)
+                                .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                             
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(NSLocalizedString("remote_control", comment: "Remote Control"))
@@ -226,7 +226,7 @@ struct AdminContentView: View {
                             
                             Spacer()
                             Image(systemName: "chevron.right")
-                                .foregroundColor(.red)
+                                .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                         }
                         .padding(12)
                         .background(Color.gray.opacity(0.1))
@@ -243,7 +243,7 @@ struct AdminContentView: View {
                         HStack(spacing: 12) {
                             Image(systemName: "list.bullet.rectangle.portrait")
                                 .font(.title2)
-                                .foregroundColor(.red)
+                                .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                             
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(NSLocalizedString("manual_select_title", comment: "Manual Select"))
@@ -256,7 +256,7 @@ struct AdminContentView: View {
                             
                             Spacer()
                             Image(systemName: "chevron.right")
-                                .foregroundColor(.red)
+                                .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                         }
                         .padding(12)
                         .background(Color.gray.opacity(0.1))
@@ -277,7 +277,7 @@ struct AdminContentView: View {
                         HStack(spacing: 12) {
                             Image(systemName: "qrcode.viewfinder")
                                 .font(.title2)
-                                .foregroundColor(.red)
+                                .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                             
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(NSLocalizedString("scan_qr_code", comment: "Scan QR Code"))
@@ -290,7 +290,7 @@ struct AdminContentView: View {
                             
                             Spacer()
                             Image(systemName: "chevron.right")
-                                .foregroundColor(.red)
+                                .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                         }
                         .padding(12)
                         .background(Color.gray.opacity(0.1))
@@ -308,7 +308,7 @@ struct AdminContentView: View {
             ToolbarItem(placement: .navigationBarLeading) {
                 Button(action: { showDeviceManagement = false; showMainMenu = true }) {
                     Image(systemName: "chevron.left")
-                        .foregroundColor(.red)
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                 }
             }
         }
@@ -325,7 +325,7 @@ struct AdminContentView: View {
             HStack(spacing: 12) {
                 Image(systemName: icon)
                     .font(.title2)
-                    .foregroundColor(.red)
+                    .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                     .frame(width: 32, height: 32)
                 
                 VStack(alignment: .leading, spacing: 2) {
@@ -344,7 +344,7 @@ struct AdminContentView: View {
                         .foregroundColor(.green)
                 } else {
                     Image(systemName: "chevron.right")
-                        .foregroundColor(.red)
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                 }
             }
             .frame(maxWidth: .infinity)

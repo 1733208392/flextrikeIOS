@@ -31,7 +31,7 @@ struct ManualDeviceSelectionView: View {
                     VStack(spacing: 16) {
                         Spacer()
                         ProgressView()
-                            .tint(.red)
+                            .tint(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                         Text(NSLocalizedString("device_scanning", comment: "Scanning for devices..."))
                             .foregroundColor(.gray)
                         Spacer()
@@ -78,7 +78,7 @@ struct ManualDeviceSelectionView: View {
                         }
                         .frame(maxWidth: .infinity)
                         .padding(12)
-                        .background(Color.red)
+                        .background(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                         .foregroundColor(.white)
                         .cornerRadius(8)
                     }
@@ -121,7 +121,7 @@ struct ManualDeviceSelectionView: View {
             HStack(spacing: 12) {
                 Image(systemName: "antenna.radiowaves.left.and.right")
                     .font(.title3)
-                    .foregroundColor(.red)
+                    .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                     .frame(width: 32)
                 
                 VStack(alignment: .leading, spacing: 4) {
@@ -139,7 +139,7 @@ struct ManualDeviceSelectionView: View {
                 Spacer()
                 
                 Image(systemName: "chevron.right")
-                    .foregroundColor(.red)
+                    .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(12)

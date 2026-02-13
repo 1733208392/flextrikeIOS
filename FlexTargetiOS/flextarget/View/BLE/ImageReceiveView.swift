@@ -86,7 +86,7 @@ struct ImageReceiveView: View {
                                 .foregroundColor(.white)
                                 .frame(maxWidth: .infinity)
                                 .padding()
-                                .background(Color.red.opacity(0.7))
+                                .background(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433).opacity(0.7))
                                 .cornerRadius(8)
                         }
                     }

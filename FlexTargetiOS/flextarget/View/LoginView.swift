@@ -33,7 +33,7 @@ struct LoginView: View {
             VStack(spacing: 20) {
                 Image(systemName: "person.circle")
                     .font(.system(size: 64))
-                    .foregroundColor(.red)
+                    .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                 
                 Text(NSLocalizedString("user_login", comment: "User login title"))
                     .font(.title)
@@ -51,7 +51,7 @@ struct LoginView: View {
                     
                     if showError {
                         Text(errorMessage)
-                            .foregroundColor(.red)
+                            .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                             .font(.caption)
                     }
                     
@@ -64,7 +64,7 @@ struct LoginView: View {
                                 .foregroundColor(.white)
                                 .frame(maxWidth: .infinity)
                                 .padding()
-                                .background(Color.red)
+                                .background(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                                 .cornerRadius(8)
                         }
                     }
@@ -73,7 +73,7 @@ struct LoginView: View {
                     // Forgot Password button
                     Button(action: { showForgotPassword = true }) {
                         Text(NSLocalizedString("forgot_password", comment: "Forgot password button"))
-                            .foregroundColor(.red)
+                            .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                             .font(.caption)
                     }
                     .disabled(isLoading)
@@ -81,12 +81,12 @@ struct LoginView: View {
                     // Register button
                     Button(action: { showRegistration = true }) {
                         Text(NSLocalizedString("login_register_button", comment: "Register button"))
-                            .foregroundColor(.red)
+                            .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                             .frame(maxWidth: .infinity)
                             .padding()
                             .overlay(
                                 RoundedRectangle(cornerRadius: 8)
-                                    .stroke(Color.red, lineWidth: 2)
+                                    .stroke(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433), lineWidth: 2)
                             )
                     }
                     .disabled(isLoading)
@@ -102,7 +102,7 @@ struct LoginView: View {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button(action: onDismiss) {
                         Image(systemName: "chevron.left")
-                            .foregroundColor(.red)
+                            .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                     }
                 }
             }

@@ -435,15 +435,15 @@ struct DrillSummaryView: View {
                                                 .font(.system(size: 14, weight: .bold))
                                                 .kerning(0.5)
                                         }
-                                        .foregroundColor(.red)
+                                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                                         .padding(.vertical, 10)
                                         .frame(maxWidth: .infinity)
                                         .background(
                                             RoundedRectangle(cornerRadius: 12)
-                                                .fill(Color.red.opacity(0.1))
+                                                .fill(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433).opacity(0.1))
                                                 .overlay(
                                                     RoundedRectangle(cornerRadius: 12)
-                                                        .stroke(Color.red.opacity(0.3), lineWidth: 1)
+                                                        .stroke(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433).opacity(0.3), lineWidth: 1)
                                                 )
                                         )
                                     }
@@ -464,7 +464,7 @@ struct DrillSummaryView: View {
                                             HStack(spacing: 8) {
                                                 if isSubmitting {
                                                     ProgressView()
-                                                        .tint(.red)
+                                                        .tint(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                                                 } else {
                                                     Image(systemName: "paperplane.fill")
                                                         .font(.system(size: 16, weight: .bold))
@@ -473,15 +473,15 @@ struct DrillSummaryView: View {
                                                     .font(.system(size: 14, weight: .bold))
                                                     .kerning(0.5)
                                             }
-                                            .foregroundColor(.red)
+                                            .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                                             .padding(.vertical, 10)
                                             .frame(maxWidth: .infinity)
                                             .background(
                                                 RoundedRectangle(cornerRadius: 12)
-                                                    .fill(Color.red.opacity(0.1))
+                                                    .fill(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433).opacity(0.1))
                                                     .overlay(
                                                         RoundedRectangle(cornerRadius: 12)
-                                                            .stroke(Color.red.opacity(0.3), lineWidth: 1)
+                                                            .stroke(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433).opacity(0.3), lineWidth: 1)
                                                     )
                                             )
                                         }
@@ -567,14 +567,14 @@ struct DrillSummaryView: View {
                         .frame(width: 40, height: 40)
                         .overlay(
                             Circle()
-                                .stroke(Color.red, lineWidth: 2)
+                                .stroke(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433), lineWidth: 2)
                         )
 
                     Image(systemName: "chevron.left")
                         .font(.system(size: 18, weight: .semibold))
-                        .foregroundColor(.red)
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                 }
-                .shadow(color: Color.red.opacity(0.3), radius: 8, x: 0, y: 4)
+                .shadow(color: Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433).opacity(0.3), radius: 8, x: 0, y: 4)
             }
 
             Text(NSLocalizedString("drill_result_summary_title", comment: "Drill result summary title"))
@@ -587,7 +587,7 @@ struct DrillSummaryView: View {
                     .foregroundColor(.white)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
-                    .background(Color.red)
+                    .background(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                     .cornerRadius(4)
             }
 
@@ -604,7 +604,7 @@ struct DrillSummaryView: View {
             Spacer()
             Image(systemName: "chart.xyaxis.line")
                 .font(.system(size: 48, weight: .medium))
-                .foregroundColor(.red)
+                .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                 .padding()
 
             Text(NSLocalizedString("no_summary_data_title", comment: "No summary data title"))
@@ -629,12 +629,12 @@ struct DrillSummaryView: View {
                         .frame(width: 48, height: 48)
                         .overlay(
                             Circle()
-                                .stroke(Color.red, lineWidth: 2)
+                                .stroke(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433), lineWidth: 2)
                         )
 
                     Image(systemName: iconName)
                         .font(.system(size: 22, weight: .semibold))
-                        .foregroundColor(.red)
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                 }
 
                 VStack(alignment: .leading, spacing: 4) {
@@ -686,10 +686,10 @@ struct DrillSummaryView: View {
         .background(cardGradient)
         .overlay(
             RoundedRectangle(cornerRadius: 24)
-                .stroke(Color.red.opacity(0.2), lineWidth: 1)
+                .stroke(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433).opacity(0.2), lineWidth: 1)
         )
         .cornerRadius(24)
-        .shadow(color: Color.red.opacity(0.15), radius: 12, x: 0, y: 8)
+        .shadow(color: Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433).opacity(0.15), radius: 12, x: 0, y: 8)
     }
 
     private func metricView(_ metric: SummaryMetric) -> some View {
@@ -697,7 +697,7 @@ struct DrillSummaryView: View {
             HStack(spacing: 6) {
                 Image(systemName: metric.iconName)
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(.red)
+                    .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
 
                 Text(metric.label.uppercased())
                     .font(.system(size: 12, weight: .semibold))
@@ -727,10 +727,10 @@ struct DrillSummaryView: View {
         .background(metricGradient)
         .overlay(
             RoundedRectangle(cornerRadius: 18)
-                .stroke(Color.red.opacity(0.3), lineWidth: 1)
+                .stroke(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433).opacity(0.3), lineWidth: 1)
         )
         .cornerRadius(18)
-        .shadow(color: Color.red.opacity(0.12), radius: 8, x: 0, y: 6)
+        .shadow(color: Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433).opacity(0.12), radius: 8, x: 0, y: 6)
     }
 
     private var cardGradient: LinearGradient {
@@ -939,7 +939,7 @@ struct SummaryEditSheet: View {
                     Button(NSLocalizedString("cancel_button", comment: "Cancel button text")) {
                         onCancel()
                     }
-                    .foregroundColor(.red)
+                    .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(Color.gray.opacity(0.2))
@@ -985,7 +985,7 @@ struct SummaryEditSheet: View {
     private func zoneStepper(label: String, icon: String, count: Binding<Int>) -> some View {
         HStack {
             Image(systemName: icon)
-                .foregroundColor(.red)
+                .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                 .frame(width: 30)
             
             Text(label)
@@ -997,7 +997,7 @@ struct SummaryEditSheet: View {
             HStack {
                 Button(action: { if count.wrappedValue > 0 { count.wrappedValue -= 1 } }) {
                     Image(systemName: "minus.circle")
-                        .foregroundColor(.red)
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                 }
                 
                 Text("\(count.wrappedValue)")
@@ -1006,7 +1006,7 @@ struct SummaryEditSheet: View {
                 
                 Button(action: { count.wrappedValue += 1 }) {
                     Image(systemName: "plus.circle")
-                        .foregroundColor(.red)
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                 }
             }
         }

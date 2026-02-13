@@ -38,7 +38,7 @@ struct CompetitionDetailView: View {
                         }
                         Spacer()
                         Text(competition.date ?? Date(), style: .date)
-                            .foregroundColor(.red)
+                            .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                     }
                     
                     if let drill = competition.drillSetup {
@@ -90,7 +90,7 @@ struct CompetitionDetailView: View {
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(bleManager.isConnected ? Color.red : Color.gray)
+                        .background(bleManager.isConnected ? Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433) : Color.gray)
                         .cornerRadius(10)
                 }
                 .disabled(!bleManager.isConnected)
@@ -139,7 +139,7 @@ struct CompetitionDetailView: View {
             ToolbarItem(placement: .navigationBarTrailing) {
                 if isLoadingSyncResults {
                     ProgressView()
-                        .tint(.red)
+                        .tint(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                 } else {
                     Button(action: {
                         Task {
@@ -147,7 +147,7 @@ struct CompetitionDetailView: View {
                         }
                     }) {
                         Image(systemName: "arrow.clockwise")
-                            .foregroundColor(.red)
+                            .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                     }
                 }
             }
@@ -473,7 +473,7 @@ struct CompetitionResultRow: View {
                 Text(String(format: "%.3f", displayValue))
                     .font(.title3)
                     .fontWeight(.bold)
-                    .foregroundColor(.red)
+                    .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
             }
         }
         .padding(.vertical, 5)

@@ -493,7 +493,7 @@ struct DrillResultView: View {
                                 )
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                        .stroke(selectedShotIndex == idx ? Color.red.opacity(0.95) : Color.clear, lineWidth: 2)
+                                        .stroke(selectedShotIndex == idx ? Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433).opacity(0.95) : Color.clear, lineWidth: 2)
                                 )
                                 .contentShape(Rectangle())
                                 .onTapGesture {
@@ -573,7 +573,7 @@ struct DrillResultView: View {
                 VStack {
                     Spacer()
                     ZStack {
-                        Color.red.opacity(0.7)
+                        Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433).opacity(0.7)
                         Text(NSLocalizedString("drill_in_progress", comment: "Drill in progress message") + dots)
                             .font(.system(size: 48, weight: .bold))
                             .foregroundColor(.white)

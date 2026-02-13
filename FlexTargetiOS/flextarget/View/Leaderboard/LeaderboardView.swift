@@ -46,7 +46,7 @@ struct LeaderboardView: View {
                             Spacer()
                             Image(systemName: "chevron.down")
                         }
-                        .foregroundColor(.red)
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                         .padding(12)
                         .background(Color.gray.opacity(0.2))
                         .cornerRadius(8)
@@ -66,7 +66,7 @@ struct LeaderboardView: View {
                 if isLoadingRanking {
                     VStack {
                         ProgressView()
-                            .tint(.red)
+                            .tint(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                         Text(NSLocalizedString("loading_ranking", comment: "Loading ranking"))
                             .foregroundColor(.gray)
                     }
@@ -75,7 +75,7 @@ struct LeaderboardView: View {
                     VStack(spacing: 12) {
                         Image(systemName: "exclamationmark.circle.fill")
                             .font(.title)
-                            .foregroundColor(.red)
+                            .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                         Text(NSLocalizedString("ranking_error", comment: "Error loading ranking"))
                             .foregroundColor(.white)
                         Text(error)
@@ -86,7 +86,7 @@ struct LeaderboardView: View {
                                 .foregroundColor(.white)
                                 .padding(.horizontal, 20)
                                 .padding(.vertical, 10)
-                                .background(Color.red)
+                                .background(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                                 .cornerRadius(6)
                         }
                     }
@@ -102,7 +102,7 @@ struct LeaderboardView: View {
                 }
             }
         }
-        .navigationTitle(Text(NSLocalizedString("leaderboard_title", comment: "Leaderboard title")).foregroundColor(.red))
+        .navigationTitle(Text(NSLocalizedString("leaderboard_title", comment: "Leaderboard title")).foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433)))
         .navigationBarTitleDisplayMode(.inline)
     }
     

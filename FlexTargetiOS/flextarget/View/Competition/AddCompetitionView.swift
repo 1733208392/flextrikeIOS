@@ -35,13 +35,13 @@ struct AddCompetitionView: View {
                             Button(NSLocalizedString("change", comment: "")) {
                                 showDrillPicker = true
                             }
-                            .foregroundColor(.red)
+                            .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                         }
                     } else {
                         Button(NSLocalizedString("select_drill", comment: "")) {
                             showDrillPicker = true
                         }
-                        .foregroundColor(.red)
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                     }
                 }
                 .listRowBackground(Color.white.opacity(0.1))
@@ -53,7 +53,7 @@ struct AddCompetitionView: View {
                             .foregroundColor(.white)
                             .fontWeight(.bold)
                     }
-                    .listRowBackground(isSaveDisabled ? Color.gray.opacity(0.5) : Color.red)
+                    .listRowBackground(isSaveDisabled ? Color.gray.opacity(0.5) : Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                     .disabled(isSaveDisabled)
                 }
             }
@@ -62,7 +62,7 @@ struct AddCompetitionView: View {
         }
         .navigationTitle(NSLocalizedString("add_competition", comment: ""))
         .navigationBarTitleDisplayMode(.inline)
-        .tint(.red)
+        .tint(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
         .preferredColorScheme(.dark)
         .sheet(isPresented: $showDrillPicker) {
             DrillPickerView(selectedDrill: $selectedDrillSetup)
@@ -115,7 +115,7 @@ struct DrillPickerView: View {
                             Spacer()
                             if selectedDrill?.id == drill.id {
                                 Image(systemName: "checkmark")
-                                    .foregroundColor(.red)
+                                    .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                             }
                         }
                     }
@@ -128,8 +128,8 @@ struct DrillPickerView: View {
             .navigationBarItems(trailing: Button(NSLocalizedString("cancel", comment: "")) {
                 dismiss()
             }
-            .foregroundColor(.red))
-            .tint(.red)
+            .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433)))
+            .tint(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
         }
     }
 }

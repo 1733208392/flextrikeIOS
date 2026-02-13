@@ -50,7 +50,7 @@ struct RemoteControlView: View {
                 if bleManager.provisionInProgress {
                     HStack {
                         ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle(tint: .red))
+                            .progressViewStyle(CircularProgressViewStyle(tint: Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433)))
                         Text("Provisioning: Connecting to WiFi...")
                             .foregroundColor(.white)
                             .font(.body)
@@ -295,7 +295,7 @@ struct PasswordDialogView: View {
                     .padding(.horizontal)
                 HStack {
                     Button("Cancel", action: onCancel)
-                        .foregroundColor(.red)
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                     Spacer()
                     Button("Connect", action: onConnect)
                         .foregroundColor(.blue)
@@ -325,7 +325,7 @@ struct NameDialogView: View {
                     .padding(.horizontal)
                 HStack {
                     Button("Cancel", action: onCancel)
-                        .foregroundColor(.red)
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                     Spacer()
                     Button("OK", action: onConfirm)
                         .foregroundColor(.blue)

@@ -61,7 +61,7 @@ struct ImageCropExampleView: View {
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
-                    .background(Color.red)
+                    .background(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                     .foregroundColor(.white)
                     .cornerRadius(8)
                 }
@@ -152,7 +152,7 @@ struct ImageCropViewWithCallback: View {
                                 .foregroundColor(.gray)
                         }
                         Slider(value: $viewModel.scale, in: 1.0...5.0)
-                            .tint(.red)
+                            .tint(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                     }
                     .padding(.horizontal, 16)
                     .padding(.top, 16)
@@ -170,7 +170,7 @@ struct ImageCropViewWithCallback: View {
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 12)
-                        .background(Color.red)
+                        .background(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                         .foregroundColor(.white)
                         .cornerRadius(8)
                     }
@@ -225,7 +225,7 @@ struct ImageCropViewWithCallback: View {
                             }
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 12)
-                            .background(Color.red)
+                            .background(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                             .foregroundColor(.white)
                             .cornerRadius(8)
                         }

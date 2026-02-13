@@ -248,7 +248,7 @@ struct ImageCropView: View {
                 }
                 .padding(.vertical, 12)
                 .padding(.horizontal, 18)
-                .background(Color.red)
+                .background(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                 .foregroundColor(.white)
                 .cornerRadius(8)
                 .contentShape(Rectangle())
@@ -471,7 +471,7 @@ struct ImageCropView: View {
                                             .padding(.horizontal, 16)
                                             .padding(.vertical, 10)
                                             .background(Color.white)
-                                            .foregroundColor(.red)
+                                            .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                                             .cornerRadius(8)
                                     }
                                 case .transferring:
@@ -479,7 +479,7 @@ struct ImageCropView: View {
                                         .font(.headline)
                                         .foregroundColor(.white)
                                     ProgressView(value: Double(transferProgress), total: 100)
-                                        .progressViewStyle(LinearProgressViewStyle(tint: .red))
+                                        .progressViewStyle(LinearProgressViewStyle(tint: Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433)))
                                         .frame(maxWidth: 300)
                                     Text("\(transferProgress)%")
                                         .foregroundColor(.white)
@@ -492,7 +492,7 @@ struct ImageCropView: View {
                                                 .padding(.horizontal, 16)
                                                 .padding(.vertical, 10)
                                                 .background(Color.white)
-                                                .foregroundColor(.red)
+                                                .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                                                 .cornerRadius(8)
                                         }
                                     }

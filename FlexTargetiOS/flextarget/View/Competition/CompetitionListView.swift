@@ -61,7 +61,7 @@ struct CompetitionListView: View {
             ToolbarItem(placement: .navigationBarTrailing) {
                 NavigationLink(destination: AddCompetitionView()) {
                     Image(systemName: "plus")
-                        .foregroundColor(.red)
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                 }
             }
         }
@@ -112,9 +112,9 @@ struct CompetitionRow: View {
                 Text(drillName)
                     .font(.caption)
                     .padding(5)
-                    .background(Color.red.opacity(0.2))
+                    .background(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433).opacity(0.2))
                     .cornerRadius(5)
-                    .foregroundColor(.red)
+                    .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
             }
         }
         .padding(.vertical, 5)
