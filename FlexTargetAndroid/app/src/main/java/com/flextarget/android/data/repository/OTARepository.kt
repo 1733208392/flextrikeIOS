@@ -16,6 +16,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import retrofit2.HttpException
 import javax.inject.Inject
 import javax.inject.Singleton
 import java.util.Date
@@ -353,6 +354,15 @@ class OTARepository @Inject constructor(
                 
                 Log.d(TAG, "Fetched ${history.size} history entries")
                 Result.success(history)
+            } catch (e: retrofit2.HttpException) {
+                // Handle HTTP exceptions (e.g., 401 Unauthorized)
+                Log.e(TAG, "HTTP exception during OTA history fetch: ${e.code()} ${e.message}", e)
+                if (e.code() == 401) {
+                    Log.w(TAG, "Token expired during OTA history fetch (HTTP 401)")
+                    authManager.logout()
+                    return@withContext Result.failure(Exception("401"))
+                }
+                Result.failure(e)
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to get update history", e)
                 Result.failure(e)

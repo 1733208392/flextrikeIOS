@@ -6,6 +6,7 @@ import com.flextarget.android.data.remote.api.RefreshTokenRequest
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import retrofit2.HttpException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -69,9 +70,22 @@ class TokenRefreshQueue @Inject constructor(
             )
             
             Log.d(TAG, "Token refresh successful")
+        } catch (e: HttpException) {
+            when (e.code()) {
+                401 -> {
+                    // 401 on token refresh = refresh token is invalid
+                    // User's session is expired or token revoked
+                    Log.e(TAG, "Token refresh returned 401 - refresh token invalid. Clearing auth.")
+                    authManager.handleInvalidRefreshToken()
+                }
+                else -> {
+                    Log.e(TAG, "Token refresh failed with HTTP ${e.code()}: ${e.message()}", e)
+                    throw e
+                }
+            }
         } catch (e: Exception) {
             Log.e(TAG, "Token refresh failed: ${e.message}", e)
-            // Refresh failed - let caller handle error (will be converted to 401 by interceptor)
+            // Refresh failed - let caller handle error
             throw e
         }
     }

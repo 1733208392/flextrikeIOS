@@ -534,6 +534,28 @@ class AuthManager @Inject constructor(
     }
     
     /**
+     * Handle invalid refresh token (401 on token refresh endpoint)
+     * This means the refresh token is expired or revoked by server
+     * Clears auth state and forces re-login
+     * 
+     * Called synchronously from TokenRefreshQueue when 401 is received
+     */
+    fun handleInvalidRefreshToken() {
+        scope.launch {
+            try {
+                // Clear state without calling logout API (token is invalid)
+                stopTokenRefreshTimer()
+                preferences.clearUserToken()
+                _currentUser.value = null
+                
+                Log.w(TAG, "Invalid refresh token cleared - user must re-authenticate")
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to handle invalid refresh token", e)
+            }
+        }
+    }
+    
+    /**
      * Base64 encode password (matching iOS implementation)
      * Encodes UTF-8 string to Base64 and removes padding (=) characters
      */

@@ -13,6 +13,7 @@ import com.flextarget.android.data.remote.api.GamePlayRankingRequest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
+import retrofit2.HttpException
 import javax.inject.Inject
 import javax.inject.Singleton
 import java.text.SimpleDateFormat
@@ -191,6 +192,15 @@ class CompetitionRepository @Inject constructor(
             
             Log.d(TAG, "Game play submitted: ${response.data?.playUUID}")
             Result.success(response.data?.playUUID ?: gamePlay.id.toString())
+        } catch (e: retrofit2.HttpException) {
+            // Handle HTTP exceptions (e.g., 401 Unauthorized)
+            Log.e(TAG, "HTTP exception during game play submission: ${e.code()} ${e.message}", e)
+            if (e.code() == 401) {
+                Log.w(TAG, "Token expired during game play submission (HTTP 401)")
+                authManager.logout()
+                return@withContext Result.failure(Exception("401"))
+            }
+            Result.failure(e)
         } catch (e: Exception) {
             Log.e(TAG, "Failed to submit game play", e)
             Result.failure(e)
@@ -264,6 +274,15 @@ class CompetitionRepository @Inject constructor(
             
             Log.d(TAG, "Fetched rankings for competition: ${rankings.size} entries")
             Result.success(rankings)
+        } catch (e: retrofit2.HttpException) {
+            // Handle HTTP exceptions (e.g., 401 Unauthorized)
+            Log.e(TAG, "HTTP exception during ranking fetch: ${e.code()} ${e.message}", e)
+            if (e.code() == 401) {
+                Log.w(TAG, "Token expired during ranking fetch (HTTP 401)")
+                authManager.logout()
+                return@withContext Result.failure(Exception("401"))
+            }
+            Result.failure(e)
         } catch (e: Exception) {
             Log.e(TAG, "Failed to fetch competition ranking", e)
             Result.failure(e)
