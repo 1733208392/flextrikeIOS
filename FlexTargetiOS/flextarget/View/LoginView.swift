@@ -14,6 +14,12 @@ struct LoginView: View {
     @State private var showRegistration = false
     @State private var showForgotPassword = false
     
+    @FocusState private var focusedField: Field?
+    
+    enum Field {
+        case mobile, password
+    }
+    
     var body: some View {
         if showRegistration {
             RegistrationView(
@@ -40,14 +46,16 @@ struct LoginView: View {
                     .foregroundColor(.white)
                 
                 VStack(spacing: 16) {
-                    TextField(NSLocalizedString("mobile_number", comment: "Mobile number placeholder"), text: $mobile)
+                    TextField(NSLocalizedString("account", comment: "Account placeholder"), text: $mobile)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                         .keyboardType(.default)
                         .autocapitalization(.none)
                         .disableAutocorrection(true)
+                        .focused($focusedField, equals: .mobile)
                     
                     SecureField(NSLocalizedString("password", comment: "Password placeholder"), text: $password)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .focused($focusedField, equals: .password)
                     
                     if showError {
                         Text(errorMessage)
@@ -70,30 +78,31 @@ struct LoginView: View {
                     }
                     .disabled(isLoading || mobile.isEmpty || password.isEmpty)
                     
-                    // Forgot Password button
-                    Button(action: { showForgotPassword = true }) {
-                        Text(NSLocalizedString("forgot_password", comment: "Forgot password button"))
-                            .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
-                            .font(.caption)
+                    HStack {
+                        Button(action: { showForgotPassword = true }) {
+                            Text(NSLocalizedString("forgot_password", comment: "Forgot password button"))
+                                .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+                                .font(.caption)
+                        }
+                        .disabled(isLoading)
+                        
+                        Spacer()
+                        
+                        Button(action: { showRegistration = true }) {
+                            Text(NSLocalizedString("login_register_button", comment: "Register button"))
+                                .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+                                .font(.caption)
+                        }
+                        .disabled(isLoading)
                     }
-                    .disabled(isLoading)
-                    
-                    // Register button
-                    Button(action: { showRegistration = true }) {
-                        Text(NSLocalizedString("login_register_button", comment: "Register button"))
-                            .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .stroke(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433), lineWidth: 2)
-                            )
-                    }
-                    .disabled(isLoading)
                 }
                 .padding(.horizontal, 32)
                 
                 Spacer()
+            }
+            .contentShape(Rectangle())
+            .onTapGesture {
+                focusedField = nil
             }
             .background(Color.black.ignoresSafeArea())
             .navigationTitle(NSLocalizedString("login_title", comment: "Login navigation title"))

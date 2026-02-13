@@ -287,10 +287,11 @@
 
 /* User Management */
 "user_login" = "User Login";
-"mobile_number" = "Mobile Number";
+"account" = "Account";
 "password" = "Password";
 "login" = "Login";
 "login_title" = "Login";
+"forgot_password" = "Forgot Password";
 /* Competition Submission */
 "error_title" = "Error";
 "no_competition_error" = "No competition associated with this result";

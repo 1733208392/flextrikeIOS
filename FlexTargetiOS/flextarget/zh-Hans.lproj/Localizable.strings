@@ -341,10 +341,11 @@
 "logout_confirm" = "您确定要登出吗？";
 "user_logout" = "用户登出";
 "user_login" = "用户登录";
-"mobile_number" = "手机号码";
+"account" = "账户";
 "password" = "密码";
 "login" = "登录";
 "login_title" = "登录";
+"forgot_password" = "忘记密码";
 "manage_profile" = "管理用户资料";
 
 /* Competition Submission */

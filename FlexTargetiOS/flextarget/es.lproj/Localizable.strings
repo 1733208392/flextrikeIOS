@@ -338,10 +338,11 @@
 "logout_confirm" = "¿Estás seguro de que quieres cerrar sesión?";
 "user_logout" = "Cerrar sesión del usuario";
 "user_login" = "Inicio de sesión de usuario";
-"mobile_number" = "Número de móvil";
+"account" = "Cuenta";
 "password" = "Contraseña";
 "login" = "Iniciar sesión";
 "login_title" = "Iniciar sesión";
+"forgot_password" = "Olvidé mi contraseña";
 "manage_profile" = "Gestionar perfil de usuario";
 
 /* Competition Submission */

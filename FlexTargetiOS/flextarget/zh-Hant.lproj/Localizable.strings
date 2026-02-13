@@ -337,10 +337,11 @@
 "logout_confirm" = "您確定要登出嗎？";
 "user_logout" = "用戶登出";
 "user_login" = "用戶登錄";
-"mobile_number" = "手機號碼";
+"account" = "帳戶";
 "password" = "密碼";
 "login" = "登錄";
 "login_title" = "登錄";
+"forgot_password" = "忘記密碼";
 "manage_profile" = "管理用戶資料";
 
 /* Competition Submission */

@@ -319,6 +319,9 @@
 "login" = "Login";
 "login_register_button" = "Register New Account";
 "user_login" = "User login";
+"login_title" = "Login";
+"forgot_password" = "Forgot Password";
+"account" = "Account";
 "information" = "Information";
 "app_info" = "App information";
 "connected_device" = "Connected device";

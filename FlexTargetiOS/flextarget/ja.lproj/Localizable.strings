@@ -337,10 +337,11 @@
 "logout_confirm" = "ログアウトしてもよろしいですか？";
 "user_logout" = "ユーザーログアウト";
 "user_login" = "ユーザーログイン";
-"mobile_number" = "携帯電話番号";
+"account" = "アカウント";
 "password" = "パスワード";
 "login" = "ログイン";
 "login_title" = "ログイン";
+"forgot_password" = "パスワードを忘れた";
 "manage_profile" = "ユーザープロフィールを管理";
 
 /* Competition Submission */
