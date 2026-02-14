@@ -1,11 +1,11 @@
 {
   "images" : [
     {
+      "filename" : "GRWOLF-LOGO.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "GrwolfLogo.png",
       "idiom" : "universal",
       "scale" : "2x"
     },

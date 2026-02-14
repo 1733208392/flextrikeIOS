@@ -29,10 +29,6 @@ struct DrillFormView: View {
     
     @State private var drillName: String = ""
     @State private var description: String = ""
-    @State private var demoVideoURL: URL? = nil
-    @State private var demoVideoThumbnail: UIImage? = nil
-    @State private var thumbnailFileURL: URL? = nil
-    @State private var showVideoPlayer: Bool = false
     // delayType removed; only random mode is supported now
     // Default to be 2-5s non configurable
     @State private var repeatsValue: Int = 1
@@ -84,8 +80,6 @@ struct DrillFormView: View {
         if case .edit(let drillSetup) = mode {
             _drillName = State(initialValue: drillSetup.name ?? "")
             _description = State(initialValue: drillSetup.desc ?? "")
-            _demoVideoURL = State(initialValue: drillSetup.demoVideoURL)
-            _thumbnailFileURL = State(initialValue: drillSetup.thumbnailURL)
 //            _delayValue = State(initialValue: drillSetup.delay)
             _repeatsValue = State(initialValue: Int(drillSetup.repeats))
             _pauseValue = State(initialValue: Int(drillSetup.pause))
@@ -123,23 +117,14 @@ struct DrillFormView: View {
                                 .padding(.top, 8)
                             }
                             
-                            // Grouped Section: Drill Name, Description, Add Video
+                            // Grouped Section: Drill Name, Description
                             VStack(spacing: 20) {
                                 DrillNameSectionView(drillName: $drillName, disabled: isEditingDisabled)
                                 
-                                DescriptionVideoSectionView(
+                                DescriptionSectionView(
                                     description: $description,
-                                    demoVideoURL: $demoVideoURL,
-                                    demoVideoThumbnail: $demoVideoThumbnail,
-                                    thumbnailFileURL: $thumbnailFileURL,
-                                    showVideoPlayer: $showVideoPlayer,
                                     disabled: isEditingDisabled
                                 )
-                                .sheet(isPresented: $showVideoPlayer) {
-                                    if let url = demoVideoURL {
-                                        VideoPlayerView(url: url)
-                                    }
-                                }
                             }
                             .padding()
                             .background(Color.gray.opacity(0.2))
@@ -197,7 +182,6 @@ struct DrillFormView: View {
                             }
                             
                             queryDeviceList()
-                            loadThumbnailIfNeeded()
                         }
                         .onReceive(NotificationCenter.default.publisher(for: .bleDeviceListUpdated)) { notification in
                             handleDeviceListUpdate(notification)
@@ -340,22 +324,6 @@ struct DrillFormView: View {
         targets = targetConfigs
         
         do {
-            // Ensure any picked temp files are moved into app Documents for persistence
-            if let tempVideo = demoVideoURL, tempVideo.path.starts(with: FileManager.default.temporaryDirectory.path) {
-                if let moved = moveFileToDocuments(from: tempVideo) {
-                    demoVideoURL = moved
-                } else {
-                    print("Warning: Failed to move video from temp to Documents, keeping temp path")
-                }
-            }
-            if let tempThumb = thumbnailFileURL, tempThumb.path.starts(with: FileManager.default.temporaryDirectory.path) {
-                if let moved = moveFileToDocuments(from: tempThumb) {
-                    thumbnailFileURL = moved
-                } else {
-                    print("Warning: Failed to move thumbnail from temp to Documents, keeping temp path")
-                }
-            }
-
             switch mode {
             case .add:
                 createNewDrillSetup()
@@ -491,22 +459,6 @@ struct DrillFormView: View {
         var drillSetupToStart: DrillSetup?
         
         do {
-            // Ensure any picked temp files are moved into app Documents for persistence
-            if let tempVideo = demoVideoURL, tempVideo.path.starts(with: FileManager.default.temporaryDirectory.path) {
-                if let moved = moveFileToDocuments(from: tempVideo) {
-                    demoVideoURL = moved
-                } else {
-                    print("Warning: Failed to move video from temp to Documents, keeping temp path")
-                }
-            }
-            if let tempThumb = thumbnailFileURL, tempThumb.path.starts(with: FileManager.default.temporaryDirectory.path) {
-                if let moved = moveFileToDocuments(from: tempThumb) {
-                    thumbnailFileURL = moved
-                } else {
-                    print("Warning: Failed to move thumbnail from temp to Documents, keeping temp path")
-                }
-            }
-
             switch mode {
             case .add:
                 createNewDrillSetup()
@@ -555,29 +507,6 @@ struct DrillFormView: View {
         drillSetup.id = UUID()
         drillSetup.name = drillName
         drillSetup.desc = description
-        
-        // Set URLs - ensure they're valid file URLs
-        if let videoURL = demoVideoURL {
-            print("Setting demoVideoURL: \(videoURL.absoluteString)")
-            print("  isFileURL: \(videoURL.isFileURL)")
-            print("  path: \(videoURL.path)")
-            
-            // Try standardizing the URL to ensure it's properly formatted
-            let standardizedURL = videoURL.standardized
-            print("  standardized: \(standardizedURL.absoluteString)")
-            drillSetup.demoVideoURL = standardizedURL
-        }
-        
-        if let thumbURL = thumbnailFileURL {
-            print("Setting thumbnailURL: \(thumbURL.absoluteString)")
-            print("  isFileURL: \(thumbURL.isFileURL)")
-            print("  path: \(thumbURL.path)")
-            
-            // Try standardizing the URL to ensure it's properly formatted
-            let standardizedURL = thumbURL.standardized
-            print("  standardized: \(standardizedURL.absoluteString)")
-            drillSetup.thumbnailURL = standardizedURL
-        }
         
         drillSetup.repeats = Int32(repeatsValue)
         drillSetup.pause = Int32(pauseValue)
@@ -630,38 +559,8 @@ struct DrillFormView: View {
     }
     
     private func updateExistingDrillSetup(_ drillSetup: DrillSetup) {
-        // Clean up old video file if we're replacing it with a new one
-        if let oldVideoURL = drillSetup.demoVideoURL,
-           let newVideoURL = demoVideoURL,
-           oldVideoURL != newVideoURL {
-            do {
-                if FileManager.default.fileExists(atPath: oldVideoURL.path) {
-                    try FileManager.default.removeItem(at: oldVideoURL)
-                    print("Deleted old video file: \(oldVideoURL.lastPathComponent)")
-                }
-            } catch {
-                print("Failed to delete old video file: \(error)")
-            }
-        }
-        
-        // Clean up old thumbnail file if we're replacing it with a new one
-        if let oldThumbnailURL = drillSetup.thumbnailURL,
-           let newThumbnailURL = thumbnailFileURL,
-           oldThumbnailURL != newThumbnailURL {
-            do {
-                if FileManager.default.fileExists(atPath: oldThumbnailURL.path) {
-                    try FileManager.default.removeItem(at: oldThumbnailURL)
-                    print("Deleted old thumbnail file: \(oldThumbnailURL.lastPathComponent)")
-                }
-            } catch {
-                print("Failed to delete old thumbnail file: \(error)")
-            }
-        }
-        
         drillSetup.name = drillName
         drillSetup.desc = description
-        drillSetup.demoVideoURL = demoVideoURL
-        drillSetup.thumbnailURL = thumbnailFileURL
         drillSetup.repeats = Int32(repeatsValue)
         drillSetup.pause = Int32(pauseValue)
         drillSetup.drillDuration = drillDuration
@@ -713,148 +612,6 @@ struct DrillFormView: View {
             print("Removing orphaned target: \(target.targetName ?? "unknown")")
             drillSetup.removeFromTargets(target)
             viewContext.delete(target)
-        }
-    }
-    
-    // MARK: - File Storage Methods
-    
-    /// Get the appropriate directory for persistent file storage (iCloud Drive if available, otherwise Documents)
-    private func getPersistentStorageDirectory() -> URL? {
-        let fileManager = FileManager.default
-        
-        // Try iCloud Drive first
-        if let iCloudURL = fileManager.url(forUbiquityContainerIdentifier: nil)?.appendingPathComponent("Documents") {
-            // Check if iCloud is available
-            if fileManager.fileExists(atPath: iCloudURL.path) || (try? fileManager.createDirectory(at: iCloudURL, withIntermediateDirectories: true)) != nil {
-                print("Using iCloud Drive for file storage: \(iCloudURL.path)")
-                return iCloudURL
-            }
-        }
-        
-        // Fall back to local Documents directory
-        let docs = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        print("Using local Documents directory for file storage: \(docs.path)")
-        return docs
-    }
-
-    // Save JPEG data into persistent storage and return URL
-    private func saveThumbnailDataToDocuments(_ data: Data) -> URL? {
-        guard let storageDir = getPersistentStorageDirectory() else {
-            print("Failed to get storage directory")
-            return nil
-        }
-        
-        let dest = storageDir.appendingPathComponent(UUID().uuidString + ".jpg")
-        do {
-            try data.write(to: dest)
-            print("Successfully saved thumbnail to persistent storage: \(dest.lastPathComponent)")
-            return dest
-        } catch {
-            print("Failed to write thumbnail data to persistent storage: \(error)")
-            return nil
-        }
-    }
-
-    // Move a file from temp directory into persistent storage and return new URL
-    private func moveFileToDocuments(from url: URL) -> URL? {
-        let fileManager = FileManager.default
-        
-        // Check if source file exists
-        guard fileManager.fileExists(atPath: url.path) else {
-            print("Source file does not exist at: \(url.path)")
-            return nil
-        }
-        
-        guard let storageDir = getPersistentStorageDirectory() else {
-            print("Failed to get storage directory")
-            return nil
-        }
-        
-        let dest = storageDir.appendingPathComponent(UUID().uuidString + "." + (url.pathExtension.isEmpty ? "dat" : url.pathExtension))
-        do {
-            if fileManager.fileExists(atPath: dest.path) {
-                try fileManager.removeItem(at: dest)
-            }
-            try fileManager.copyItem(at: url, to: dest)
-            print("Successfully moved file to persistent storage: \(dest.lastPathComponent)")
-            // Try to remove the original temp file after successful copy
-            do { try fileManager.removeItem(at: url) } catch { print("Could not remove temp file: \(error)") }
-            return dest
-        } catch {
-            print("Failed to move file to persistent storage: \(error.localizedDescription)")
-            print("Source: \(url.path)")
-            print("Destination: \(dest.path)")
-            return nil
-        }
-    }
-
-    // Synchronous thumbnail generation helper (used from background thread)
-    private func generateThumbnailSync(for url: URL) -> UIImage? {
-        let asset = AVAsset(url: url)
-        let imageGenerator = AVAssetImageGenerator(asset: asset)
-        imageGenerator.appliesPreferredTrackTransform = true
-        let time = CMTime(seconds: 0.1, preferredTimescale: 600)
-        do {
-            let cgImage = try imageGenerator.copyCGImage(at: time, actualTime: nil)
-            let uiImage = UIImage(cgImage: cgImage)
-            // Optionally crop or scale if needed; return as-is for now
-            return uiImage
-        } catch {
-            print("generateThumbnailSync error: \(error)")
-            return nil
-        }
-    }
-
-    // Load thumbnail if we have a URL for it, or try to regenerate from video
-    private func loadThumbnailIfNeeded() {
-        // If we have a thumbnail URL, try to load it and validate existence
-        if let url = thumbnailFileURL {
-            // Check if file exists before attempting to load
-            if !FileManager.default.fileExists(atPath: url.path) {
-                print("Thumbnail file does not exist at: \(url.path)")
-                print("Clearing invalid thumbnail reference")
-                thumbnailFileURL = nil
-                demoVideoThumbnail = nil
-            } else {
-                do {
-                    let data = try Data(contentsOf: url)
-                    if let image = UIImage(data: data) {
-                        demoVideoThumbnail = image
-                        print("Successfully loaded thumbnail: \(url.lastPathComponent)")
-                    } else {
-                        print("Failed to create UIImage from thumbnail data")
-                        thumbnailFileURL = nil
-                        demoVideoThumbnail = nil
-                    }
-                } catch {
-                    print("Failed to load thumbnail: \(error)")
-                    print("Clearing invalid thumbnail reference")
-                    thumbnailFileURL = nil
-                    demoVideoThumbnail = nil
-                }
-            }
-            return
-        }
-
-        // If there's no thumbnail file but we do have a saved demo video, try to regenerate the thumbnail
-        if let videoURL = demoVideoURL, FileManager.default.fileExists(atPath: videoURL.path) {
-            print("No thumbnail file found, attempting to regenerate from video: \(videoURL.lastPathComponent)")
-            DispatchQueue.global(qos: .userInitiated).async {
-                if let image = self.generateThumbnailSync(for: videoURL), let jpeg = image.jpegData(compressionQuality: 0.8) {
-                    if let saved = self.saveThumbnailDataToDocuments(jpeg) {
-                        DispatchQueue.main.async {
-                            self.thumbnailFileURL = saved
-                            self.demoVideoThumbnail = image
-                            print("Regenerated and saved thumbnail: \(saved.lastPathComponent)")
-                        }
-                        return
-                    } else {
-                        print("Failed to save regenerated thumbnail to Documents")
-                    }
-                } else {
-                    print("Failed to generate thumbnail from video: \(videoURL)")
-                }
-            }
         }
     }
     
