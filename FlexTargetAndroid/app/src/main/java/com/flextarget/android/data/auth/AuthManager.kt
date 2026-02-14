@@ -242,10 +242,9 @@ class AuthManager @Inject constructor(
                 Log.d(TAG, "Registration successful for email: $email, now logging in...")
                 
                 // Step 2: Login with email and password to get tokens
-                // Note: The login endpoint accepts email or mobile, so we use email
-                val loginResponse = userApiService.login(
-                    LoginRequest(
-                        mobile = email, // Server accepts email as mobile parameter
+                val loginResponse = userApiService.loginWithEmail(
+                    LoginWithEmailRequest(
+                        email = email,
                         password = encodedPassword
                     )
                 )

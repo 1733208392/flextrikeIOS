@@ -63,7 +63,7 @@ fun ForgotPasswordScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text(stringResource(R.string.reset_password), color = redColor, style = MaterialTheme.typography.titleSmall) },
+                title = { Text(stringResource(R.string.reset_password), color = redColor, style = MaterialTheme.typography.titleMedium) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = redColor)

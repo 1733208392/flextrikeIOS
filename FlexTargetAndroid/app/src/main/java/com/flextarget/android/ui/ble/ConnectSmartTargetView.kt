@@ -54,6 +54,7 @@ fun ConnectSmartTargetView(
             "multiple_found" -> "Multiple devices found, select one"
             "bluetooth_service_not_found" -> stringResource(R.string.bluetooth_service_not_found)
             "bluetooth_off" -> "Bluetooth turned off"
+            "bluetooth_unauthorized" -> "Bluetooth permissions not granted"
             else -> stringResource(R.string.connecting)
         }
     }
@@ -136,6 +137,13 @@ fun ConnectSmartTargetView(
                 delay(2000)
                 onDismiss()
             }
+        } else if (bleManager.error is BLEError.Unauthorized) {
+            // Bluetooth permissions not granted
+            statusTextKey = "bluetooth_unauthorized"
+            showProgress = false
+            showReconnect = false
+            selectedPeripheral = null
+            bleManager.stopScan()
         } else if (!bleManager.isConnected && hasHandledInitialConnection && !showReconnect) {
             // Unexpected disconnection
             showProgress = false

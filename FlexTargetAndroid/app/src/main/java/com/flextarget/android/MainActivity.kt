@@ -69,7 +69,7 @@ class MainActivity : ComponentActivity() {
                     LaunchedEffect(Unit) {
                         if (!BLEManager.shared.isConnected) {
                             val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
-                            if (bluetoothAdapter?.isEnabled == true) {
+                            if (bluetoothAdapter?.isEnabled == true && hasRequiredPermissions()) {
                                 BLEManager.shared.autoDetectMode = true
                                 BLEManager.shared.startScan()
                                 showAutoConnect.value = true
@@ -96,6 +96,12 @@ class MainActivity : ComponentActivity() {
 
         if (permissionsToRequest.isNotEmpty()) {
             requestPermissionsLauncher.launch(permissionsToRequest)
+        }
+    }
+
+    private fun hasRequiredPermissions(): Boolean {
+        return requiredPermissions.all {
+            ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
         }
     }
 }

@@ -8,6 +8,8 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -60,6 +62,8 @@ fun RegistrationScreen(
     val isPasswordValid = password.length >= 6
     val isVerifyCodeValid = verifyCode.length == 6 && verifyCode.all { it.isDigit() }
     
+    val customRed = Color(0xFFDE3823)
+
     // Navigate on successful registration
     LaunchedEffect(authUiState.isAuthenticated) {
         if (authUiState.isAuthenticated) {
@@ -75,43 +79,41 @@ fun RegistrationScreen(
         }
     }
     
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black)
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 24.dp)
-            .padding(top = 48.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // Back button and title
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 32.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Button(
-                onClick = onBackClick,
-                colors = ButtonDefaults.textButtonColors(),
-                modifier = Modifier.wrapContentSize()
-            ) {
-                Text(
-                    stringResource(R.string.registration_back),
-                    color = Color.Red,
-                    fontWeight = FontWeight.Bold
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text(stringResource(R.string.registration_title), color = customRed, style = MaterialTheme.typography.titleMedium) },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back", tint = customRed)
+                    }
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = Color.Black,
+                    titleContentColor = customRed
                 )
-            }
-            Text(
-                stringResource(R.string.registration_title),
-                style = MaterialTheme.typography.displaySmall,
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 16.dp)
             )
-        }
+        },
+        containerColor = Color.Black
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 24.dp)
+                .padding(top = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Title icon and text
+            Icon(
+                imageVector = Icons.Filled.PersonAdd,
+                contentDescription = "Register",
+                modifier = Modifier
+                    .size(64.dp)
+                    .padding(bottom = 24.dp),
+                tint = customRed
+            )
         
         // Email input field
         OutlinedTextField(
@@ -124,16 +126,16 @@ fun RegistrationScreen(
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White,
-                focusedBorderColor = Color.Red,
+                focusedBorderColor = customRed,
                 unfocusedBorderColor = Color.Gray,
-                cursorColor = Color.Red
+                cursorColor = customRed
             ),
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Email,
                 imeAction = ImeAction.Next
             ),
             singleLine = true,
-            enabled = !authUiState.isLoading && !codeSent
+            enabled = !authUiState.isLoading
         )
         
         // Email error message
@@ -150,51 +152,12 @@ fun RegistrationScreen(
                     imageVector = Icons.Filled.Error,
                     contentDescription = "Error",
                     modifier = Modifier.size(16.dp),
-                    tint = Color.Red
+                    tint = customRed
                 )
                 Text(
                     stringResource(R.string.registration_email_invalid),
-                    color = Color.Red,
+                    color = customRed,
                     style = MaterialTheme.typography.bodySmall
-                )
-            }
-        }
-        
-        // Send verification code button
-        Button(
-            onClick = {
-                authViewModel.sendVerifyCode(email)
-                codeSent = true
-                codeCountdown = 60
-                showSendCodeError = false
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp)
-                .padding(bottom = 20.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Red,
-                disabledContainerColor = Color.Red.copy(alpha = 0.5f)
-            ),
-            shape = RoundedCornerShape(8.dp),
-            enabled = isEmailValid && !authUiState.isLoading && codeCountdown == 0 && !codeSent
-        ) {
-            if (authUiState.isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(20.dp),
-                    color = Color.White,
-                    strokeWidth = 2.dp
-                )
-            } else {
-                Text(
-                    if (codeCountdown > 0) {
-                        stringResource(R.string.registration_resend_code, codeCountdown)
-                    } else {
-                        stringResource(R.string.registration_send_code)
-                    },
-                    style = MaterialTheme.typography.labelLarge,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold
                 )
             }
         }
@@ -213,7 +176,7 @@ fun RegistrationScreen(
                     imageVector = Icons.Filled.Error,
                     contentDescription = "Error",
                     modifier = Modifier.size(16.dp),
-                    tint = Color.Red
+                    tint = customRed
                 )
                 Text(
                     sendCodeErrorMessage,
@@ -222,8 +185,6 @@ fun RegistrationScreen(
                 )
             }
         }
-        
-        Divider(color = Color.Gray.copy(alpha = 0.3f), thickness = 1.dp, modifier = Modifier.padding(vertical = 20.dp))
         
         // Verification code input field (6 digits only)
         OutlinedTextField(
@@ -241,9 +202,9 @@ fun RegistrationScreen(
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White,
-                focusedBorderColor = Color.Red,
+                focusedBorderColor = customRed,
                 unfocusedBorderColor = Color.Gray,
-                cursorColor = Color.Red
+                cursorColor = customRed
             ),
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Number,
@@ -265,9 +226,9 @@ fun RegistrationScreen(
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White,
-                focusedBorderColor = Color.Red,
+                focusedBorderColor = customRed,
                 unfocusedBorderColor = Color.Gray,
-                cursorColor = Color.Red
+                cursorColor = customRed
             ),
             visualTransformation = if (showPassword) {
                 VisualTransformation.None
@@ -317,6 +278,57 @@ fun RegistrationScreen(
             }
         }
         
+        // Combined button
+        Button(
+            onClick = {
+                if (!codeSent) {
+                    authViewModel.sendVerifyCode(email)
+                    codeSent = true
+                    codeCountdown = 60
+                    showSendCodeError = false
+                } else {
+                    authViewModel.registerWithEmail(email, password, verifyCode)
+                }
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp)
+                .padding(bottom = 8.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = customRed,
+                disabledContainerColor = customRed.copy(alpha = 0.5f)
+            ),
+            shape = RoundedCornerShape(8.dp),
+            enabled = if (!codeSent) {
+                isEmailValid && !authUiState.isLoading && codeCountdown == 0
+            } else {
+                isEmailValid && isPasswordValid && isVerifyCodeValid && !authUiState.isLoading
+            }
+        ) {
+            if (authUiState.isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    color = Color.White,
+                    strokeWidth = 2.dp
+                )
+            } else {
+                Text(
+                    if (!codeSent) {
+                        if (codeCountdown > 0) {
+                            stringResource(R.string.registration_resend_code, codeCountdown)
+                        } else {
+                            stringResource(R.string.registration_send_code)
+                        }
+                    } else {
+                        stringResource(R.string.registration_register_button)
+                    },
+                    style = MaterialTheme.typography.labelLarge,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+        
         // General error message display
         if (!authUiState.error.isNullOrEmpty()) {
             Row(
@@ -331,48 +343,17 @@ fun RegistrationScreen(
                     imageVector = Icons.Filled.Error,
                     contentDescription = "Error",
                     modifier = Modifier.size(24.dp),
-                    tint = Color.Red
+                    tint = customRed
                 )
                 Text(
                     text = authUiState.error ?: "Unknown error",
-                    color = Color.Red,
+                    color = customRed,
                     style = MaterialTheme.typography.bodySmall
                 )
             }
         }
         
-        // Register button
-        Button(
-            onClick = {
-                authViewModel.registerWithEmail(email, password, verifyCode)
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
-                .padding(bottom = 8.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Red,
-                disabledContainerColor = Color.Red.copy(alpha = 0.5f)
-            ),
-            shape = RoundedCornerShape(8.dp),
-            enabled = isEmailValid && isPasswordValid && isVerifyCodeValid && !authUiState.isLoading && codeSent
-        ) {
-            if (authUiState.isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(24.dp),
-                    color = Color.White,
-                    strokeWidth = 2.dp
-                )
-            } else {
-                Text(
-                    stringResource(R.string.registration_register_button),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+            Spacer(modifier = Modifier.height(32.dp))
         }
-        
-        Spacer(modifier = Modifier.height(32.dp))
     }
 }
