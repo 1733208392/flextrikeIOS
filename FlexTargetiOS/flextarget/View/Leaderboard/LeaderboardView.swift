@@ -3,6 +3,7 @@ import CoreData
 
 struct LeaderboardView: View {
     @Environment(\.managedObjectContext) private var viewContext
+    @Environment(\.dismiss) private var dismiss
     @FetchRequest(
         entity: Competition.entity(),
         sortDescriptors: [NSSortDescriptor(keyPath: \Competition.date, ascending: false)],
@@ -104,6 +105,15 @@ struct LeaderboardView: View {
         }
         .navigationTitle(Text(NSLocalizedString("leaderboard_title", comment: "Leaderboard title")).foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433)))
         .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button(action: { dismiss() }) {
+                    Image(systemName: "chevron.left")
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+                }
+            }
+        }
     }
     
     private var rankingList: some View {

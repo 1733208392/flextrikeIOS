@@ -93,7 +93,14 @@
 "fastest_label" = "Schnellster";
 "first_shot_label" = "Erster Schuss";
 "score_label" = "Punktzahl";
-"factor_label" = "Faktor";\"submit_result\" = \"Ergebnis einreichen\";
+"factor_label" = "Faktor";
+"time_acronym" = "TIME";
+"shots_acronym" = "SHOT";
+"fastest_acronym" = "FAST";
+"first_shot_acronym" = "FRST";
+"score_acronym" = "PTS";
+"factor_acronym" = "FACT";
+\"submit_result\" = \"Ergebnis einreichen\";
 /* SubViews */
 "history_record" = "Verlauf";
 "delay_seconds_label" = "Verzögerung(s)";

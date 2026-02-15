@@ -96,7 +96,14 @@
 "fastest_label" = "最速";
 "first_shot_label" = "最初のショット";
 "score_label" = "スコア";
-"factor_label" = "ファクター";\"submit_result\" = \"成績を送信\";
+"factor_label" = "ファクター";
+"time_acronym" = "TIME";
+"shots_acronym" = "SHOT";
+"fastest_acronym" = "FAST";
+"first_shot_acronym" = "FRST";
+"score_acronym" = "PTS";
+"factor_acronym" = "FACT";
+\"submit_result\" = \"成績を送信\";
 /* SubViews */
 "history_record" = "履歴記録";
 "delay_seconds_label" = "遅延(秒)";

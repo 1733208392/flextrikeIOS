@@ -92,7 +92,14 @@
 "fastest_label" = "Fastest";
 "first_shot_label" = "First Shot";
 "score_label" = "Score";
-"factor_label" = "Factor";\"submit_result\" = \"Submit Result\";
+"factor_label" = "Factor";
+"time_acronym" = "TIME";
+"shots_acronym" = "SHOT";
+"fastest_acronym" = "FAST";
+"first_shot_acronym" = "FRST";
+"score_acronym" = "PTS";
+"factor_acronym" = "FACT";
+\"submit_result\" = \"Submit Result\";
 /* SubViews */
 "history_record" = "History Record";
 "delay_seconds_label" = "Delay(s)";
@@ -305,6 +312,8 @@
 "success_title" = "Success";
 "submit_success_message" = "Competition result submitted successfully";
 "submit_failed_title" = "Submission Failed";
+"already_submitted_title" = "Already Submitted";
+"result_already_submitted_message" = "This result has already been submitted";
 "alert_title" = "Alert";
 "ok_button" = "OK";
 

@@ -85,6 +85,12 @@
 "first_shot_label" = "First Shot";
 "score_label" = "Score";
 "factor_label" = "Factor";
+"time_acronym" = "TIME";
+"shots_acronym" = "SHOT";
+"fastest_acronym" = "FAST";
+"first_shot_acronym" = "FRST";
+"score_acronym" = "PTS";
+"factor_acronym" = "FACT";
 "submit_result" = "Submit Result";
 "watch_replay_button" = "Watch Replay";
 
@@ -265,6 +271,16 @@
 "duplicate_submission_message" = "This drill is already submitted to the leaderboard for this athlete.";
 "missing_drill_result_id_message" = "Missing drill result id";
 "no_drill_result_found_message" = "No drill result found";
+
+/* History Tab */
+"all_modes" = "All Modes";
+"all_time" = "All Time";
+"past_week" = "Past Week";
+"past_month" = "Past Month";
+"custom_date" = "Custom Date";
+"no_results" = "No Results";
+"no_results_hint" = "Perform drills to see history";
+"unknown_date" = "Unknown Date";
 
 /* Tab Navigation */
 "history" = "History";

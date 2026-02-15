@@ -96,7 +96,14 @@
 "fastest_label" = "最快";
 "first_shot_label" = "首枪";
 "score_label" = "分数";
-"factor_label" = "系数";"submit_result" = "提交成绩";"watch_replay_button" = "观看回放";
+"factor_label" = "系数";
+"time_acronym" = "TIME";
+"shots_acronym" = "SHOT";
+"fastest_acronym" = "FAST";
+"first_shot_acronym" = "FRST";
+"score_acronym" = "PTS";
+"factor_acronym" = "FACT";
+"submit_result" = "提交成绩";"watch_replay_button" = "观看回放";
 
 /* SubViews */
 "history_record" = "历史记录";
@@ -362,6 +369,8 @@
 "success_title" = "成功";
 "submit_success_message" = "竞赛结果已成功提交";
 "submit_failed_title" = "提交失败";
+"already_submitted_title" = "已提交";
+"result_already_submitted_message" = "此结果已提交";
 "alert_title" = "提示";
 "ok_button" = "确定";
 

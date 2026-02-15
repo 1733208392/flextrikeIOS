@@ -68,6 +68,17 @@ struct DrillSummaryView: View {
         drillSetup.mode?.lowercased() == "cqb"
     }
 
+    private var isResultAlreadySubmitted: Bool {
+        guard let drillResultId = summaries.first?.drillResultId else { return false }
+        let fetchRequest = NSFetchRequest<DrillResult>(entityName: "DrillResult")
+        fetchRequest.predicate = NSPredicate(format: "id == %@", drillResultId as CVarArg)
+        fetchRequest.fetchLimit = 1
+        if let result = try? viewContext.fetch(fetchRequest).first {
+            return result.submittedAt != nil
+        }
+        return false
+    }
+
     private func metrics(for summary: DrillRepeatSummary) -> [SummaryMetric] {
         // Calculate effective score using adjusted hit zones if available
         let effectiveScore: Int
@@ -83,12 +94,12 @@ struct DrillSummaryView: View {
         let factor = calculateFactor(score: effectiveScore, time: summary.totalTime)
         
         return [
-            SummaryMetric(iconName: "clock.arrow.circlepath", label: NSLocalizedString("total_time_label", comment: "Total time metric label"), value: format(time: summary.totalTime)),
-            SummaryMetric(iconName: "scope", label: NSLocalizedString("shots_metric_label", comment: "Shots metric label"), value: "\(summary.numShots)"),
-            SummaryMetric(iconName: "bolt.circle", label: NSLocalizedString("fastest_label", comment: "Fastest shot label"), value: format(time: summary.fastest)),
-            SummaryMetric(iconName: "timer", label: NSLocalizedString("first_shot_label", comment: "First shot label"), value: format(time: summary.firstShot)),
-            SummaryMetric(iconName: "flame.fill", label: NSLocalizedString("score_label", comment: "Score label"), value: "\(effectiveScore)"),
-            SummaryMetric(iconName: "percent", label: NSLocalizedString("factor_label", comment: "Factor label"), value: String(format: "%.3f", factor))
+            SummaryMetric(iconName: "clock.arrow.circlepath", label: NSLocalizedString("time_acronym", comment: "Time acronym"), value: format(time: summary.totalTime)),
+            SummaryMetric(iconName: "scope", label: NSLocalizedString("shots_acronym", comment: "Shots acronym"), value: "\(summary.numShots)"),
+            SummaryMetric(iconName: "bolt.circle", label: NSLocalizedString("fastest_acronym", comment: "Fastest acronym"), value: format(time: summary.fastest)),
+            SummaryMetric(iconName: "timer", label: NSLocalizedString("first_shot_acronym", comment: "First shot acronym"), value: format(time: summary.firstShot)),
+            SummaryMetric(iconName: "flame.fill", label: NSLocalizedString("score_acronym", comment: "Score acronym"), value: "\(effectiveScore)"),
+            SummaryMetric(iconName: "percent", label: NSLocalizedString("factor_acronym", comment: "Factor acronym"), value: String(format: "%.3f", factor))
         ]
     }
 
@@ -244,6 +255,12 @@ struct DrillSummaryView: View {
     // MARK: - Submission Methods
     
     private func submitCompetitionResult() {
+        // Check if already submitted
+        if isResultAlreadySubmitted {
+            showSubmitError(title: NSLocalizedString("already_submitted_title", comment: "Already Submitted"), message: NSLocalizedString("result_already_submitted_message", comment: "This result has already been submitted"))
+            return
+        }
+        
         // Validate prerequisites
         guard let competition = competition else {
             showSubmitError(title: NSLocalizedString("error_title", comment: "Error"), message: NSLocalizedString("no_competition_error", comment: "No competition associated with this result"))
@@ -335,7 +352,7 @@ struct DrillSummaryView: View {
                 // Submit to server
                 let response = try await CompetitionResultAPIService.shared.addGamePlay(
                     gameType: competitionId.uuidString,  // Competition ID
-                    gameVer: "1.0",
+                    gameVer: "1.0.0",
                     score: Float(rankingScore),
                     detail: detail,
                     playTime: playTime,
@@ -454,7 +471,7 @@ struct DrillSummaryView: View {
                                         let isSubmittingNow = isSubmitting
                                         let isDeviceConnected = bleManager.isConnected
                                         let deviceTokenExists = DeviceAuthManager.shared.deviceToken != nil
-                                        let isButtonDisabled = isSubmittingNow || !isDeviceConnected || !deviceTokenExists
+                                        let isButtonDisabled = isSubmittingNow || !isDeviceConnected || !deviceTokenExists || isResultAlreadySubmitted
                                         
                                         Button(action: {
                                             if !isButtonDisabled {
@@ -641,6 +658,7 @@ struct DrillSummaryView: View {
                     Text(title)
                         .font(.system(size: 18, weight: .semibold))
                         .foregroundColor(.white)
+                        .lineLimit(1)
 
                     subtitle
                 }
@@ -700,7 +718,7 @@ struct DrillSummaryView: View {
                     .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
 
                 Text(metric.label.uppercased())
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(.system(size: 8, weight: .semibold))
                     .kerning(0.6)
                     .foregroundColor(.white.opacity(0.7))
             }

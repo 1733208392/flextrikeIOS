@@ -3,6 +3,7 @@ import CoreData
 
 struct CompetitionListView: View {
     @Environment(\.managedObjectContext) private var viewContext
+    @Environment(\.dismiss) private var dismiss
     @FetchRequest(
         entity: Competition.entity(),
         sortDescriptors: [NSSortDescriptor(keyPath: \Competition.date, ascending: false)],
@@ -57,7 +58,16 @@ struct CompetitionListView: View {
         }
         .navigationTitle(NSLocalizedString("competitions", comment: "Competitions title"))
         .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
+        .accentColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+        .tint(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
         .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button(action: { dismiss() }) {
+                    Image(systemName: "chevron.left")
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+                }
+            }
             ToolbarItem(placement: .navigationBarTrailing) {
                 NavigationLink(destination: AddCompetitionView()) {
                     Image(systemName: "plus")

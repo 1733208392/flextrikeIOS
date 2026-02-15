@@ -5,6 +5,7 @@ import Foundation
 struct CompetitionDetailView: View {
     @ObservedObject var competition: Competition
     @Environment(\.managedObjectContext) private var viewContext
+    @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var bleManager: BLEManager
     
     @State private var showAthletePicker = false
@@ -135,6 +136,7 @@ struct CompetitionDetailView: View {
         }
         .navigationTitle(NSLocalizedString("competition_details", comment: ""))
         .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 if isLoadingSyncResults {
@@ -149,6 +151,14 @@ struct CompetitionDetailView: View {
                         Image(systemName: "arrow.clockwise")
                             .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                     }
+                }
+            }
+        }
+        .toolbar{
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button(action: { dismiss() }) {
+                    Image(systemName: "chevron.left")
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                 }
             }
         }
