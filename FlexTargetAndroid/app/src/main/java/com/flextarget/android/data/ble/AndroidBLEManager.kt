@@ -266,43 +266,60 @@ class AndroidBLEManager(private val context: Context) {
         override fun onCharacteristicChanged(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic) {
             val data = characteristic.value ?: return
 
-            // Process received data (similar to iOS implementation)
+            // Accumulate received data in buffer
             messageBuffer.addAll(data.toList())
 
-            // First, try to process if the buffer contains a complete JSON message
-            val currentString = String(messageBuffer.toByteArray(), Charsets.UTF_8)
-            try {
-                JSONObject(currentString)
-                // If parsing succeeds, it's a complete JSON message
-                processMessage(currentString)
-                messageBuffer.clear()
-                return
-            } catch (e: Exception) {
-                // Not a complete JSON, check for separators
-            }
-
-            // Look for message separators (\r\r or \r\n)
-            val separator1 = listOf(0x0D.toByte(), 0x0D.toByte()) // \r\r
-            val separator2 = listOf(0x0D.toByte(), 0x0A.toByte()) // \r\n
-
-            val index1 = findLastSeparator(messageBuffer, separator1)
-            val index2 = findLastSeparator(messageBuffer, separator2)
-
-            val separatorIndex = maxOf(index1, index2)
-            if (separatorIndex >= 0) {
-                val completeBytes = messageBuffer.take(separatorIndex).toByteArray()
-                val remaining = messageBuffer.drop(separatorIndex + 2)
-                messageBuffer.clear()
-                messageBuffer.addAll(remaining)
-
-                val message = String(completeBytes, Charsets.UTF_8)
-                processMessage(message)
-            }
+            // FW Workaround: Process complete JSON messages from buffer using brace-counting
+            // This handles cases where BLE chunks split JSON messages in the middle
+            processBufferedMessages()
         }
 
         override fun onCharacteristicWrite(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic, status: Int) {
             writeCompletion?.invoke(status == BluetoothGatt.GATT_SUCCESS)
             writeCompletion = null
+        }
+    }
+
+    private fun processBufferedMessages() {
+        // FW Workaround: Extract complete JSON objects from buffer using brace-counting
+        // This prevents corrupted partial messages from being parsed
+        var currentIndex = 0
+        var braceCount = 0
+        var messageStart = -1
+
+        val bufferString = String(messageBuffer.toByteArray(), Charsets.UTF_8)
+
+        for (i in bufferString.indices) {
+            val char = bufferString[i]
+
+            if (char == '{') {
+                if (braceCount == 0) {
+                    messageStart = i
+                }
+                braceCount++
+            } else if (char == '}') {
+                braceCount--
+
+                // Complete message found
+                if (braceCount == 0 && messageStart != -1) {
+                    val completeMessage = bufferString.substring(messageStart, i + 1)
+                    try {
+                        processMessage(completeMessage)
+                    } catch (e: Exception) {
+                        println("Failed to parse BLE message: $completeMessage, error: ${e.message}")
+                    }
+                    currentIndex = i + 1
+                }
+            }
+        }
+
+        // Remove processed messages from buffer
+        if (currentIndex > 0) {
+            repeat(currentIndex.coerceAtMost(messageBuffer.size)) {
+                if (messageBuffer.isNotEmpty()) {
+                    messageBuffer.removeAt(0)
+                }
+            }
         }
     }
 

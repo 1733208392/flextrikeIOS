@@ -16,6 +16,8 @@
   "godotTools.editorPath.godot4": "/Applications/Godot_gd.app",
   "chat.tools.terminal.autoApprove": {
     "git commit": true,
-    "swiftc": true
+    "swiftc": true,
+    "comm": true,
+    "git add": true
   }
 }

@@ -175,9 +175,9 @@ fun TimerSessionView(
     fun transitionToRunning(timestamp: Date) {
         timerState = TimerState.RUNNING
         timerStartDate = timestamp
-        playHighBeep()
         executionManager?.setBeepTime(timestamp)
         executionManager?.startExecution()
+        playHighBeep()
     }
 
     fun resetTimer() {

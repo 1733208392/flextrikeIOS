@@ -249,7 +249,7 @@ fun DrillFormView(
                                     targets = targets + DrillTargetsConfigData(
                                         seqNo = nextSeqNo,
                                         targetName = "",
-                                        targetType = "ipsc",
+                                        targetType = DrillTargetsConfigData.getDefaultTargetTypeForDrillMode(drillMode),
                                         timeout = 30.0,
                                         countedShots = 5
                                     )

@@ -298,6 +298,9 @@
     <string name="popper">Popper</string>
     <string name="rotation">Rotación</string>
     <string name="idpa">IDPA</string>
+    <string name="idpa_ns">IDPA NS</string>
+    <string name="idpa_black_1">IDPA Cobertura Dura 1</string>
+    <string name="idpa_black_2">IDPA Cobertura Dura 2</string>
     <string name="cqb">CQB</string>
     <!-- CQB Target Types -->
     <string name="cqb_swing">Mirando</string>
@@ -342,4 +345,36 @@
     <!-- Upload Target Image -->
     <string name="upload_target_image_title">Cargar imagen del objetivo</string>
     <string name="upload_target_image_subtitle">Carga una imagen de objetivo personalizada en el dispositivo</string>
+    
+    <!-- Missing translations -->
+    <string name="edit_idpa_zones">Editar Zonas IDPA</string>
+    <string name="edit_zones">Editar Zonas</string>
+    <string name="forgot_password">¿Olvidaste tu contraseña?</string>
+    <string name="idpa_final_time">Tiempo Final</string>
+    <string name="idpa_points_down">Puntos Abajo</string>
+    <string name="idpa_raw_time">Tiempo Bruto</string>
+    <string name="idpa_total_points_down">Total de Puntos Abajo</string>
+    <string name="idpa_zone_body">Cuerpo</string>
+    <string name="idpa_zone_head">Cabeza</string>
+    <string name="idpa_zone_miss">Fallo</string>
+    <string name="idpa_zone_other">Otro</string>
+    <string name="idpa_zones_breakdown">Desglose de Zonas</string>
+    <string name="login_email">Dirección de Correo Electrónico</string>
+    <string name="new_password">Nueva Contraseña</string>
+    <string name="registration_back">← Atrás</string>
+    <string name="registration_email">Dirección de Correo Electrónico</string>
+    <string name="registration_email_invalid">Por favor ingrese una dirección de correo electrónico válida</string>
+    <string name="registration_password">Contraseña</string>
+    <string name="registration_password_invalid">La contraseña debe tener al menos 6 caracteres</string>
+    <string name="registration_register_button">Completar Registro</string>
+    <string name="registration_resend_code">Reenviar Código (%d)</string>
+    <string name="registration_send_code">Enviar Código de Verificación</string>
+    <string name="registration_success">¡Registro exitoso! Iniciando sesión...</string>
+    <string name="registration_title">Registrarse</string>
+    <string name="registration_verify_code">Código de Verificación</string>
+    <string name="repeat_number">Repetición #%d</string>
+    <string name="reset_password">Restablecer Contraseña</string>
+    <string name="reset_password_button">Restablecer Contraseña</string>
+    <string name="send_code">Enviar Código</string>
+    <string name="verify_code">Código de Verificación</string>
 </resources>

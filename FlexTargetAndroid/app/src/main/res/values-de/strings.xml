@@ -341,4 +341,39 @@
     <!-- Upload Target Image -->
     <string name="upload_target_image_title">Zielbild hochladen</string>
     <string name="upload_target_image_subtitle">Laden Sie ein benutzerdefiniertes Zielbild auf das Gerät</string>
+    
+    <!-- Missing translations -->
+    <string name="edit_idpa_zones">IDPA-Zonen bearbeiten</string>
+    <string name="edit_zones">Zonen bearbeiten</string>
+    <string name="forgot_password">Passwort vergessen?</string>
+    <string name="idpa_black_1">IDPA Hartdeckel 1</string>
+    <string name="idpa_black_2">IDPA Hartdeckel 2</string>
+    <string name="idpa_final_time">Endzeit</string>
+    <string name="idpa_ns">IDPA NS</string>
+    <string name="idpa_points_down">Punkte Abzug</string>
+    <string name="idpa_raw_time">Rohzeit</string>
+    <string name="idpa_total_points_down">Gesamte Punkte Abzug</string>
+    <string name="idpa_zone_body">Körper</string>
+    <string name="idpa_zone_head">Kopf</string>
+    <string name="idpa_zone_miss">Fehlschuss</string>
+    <string name="idpa_zone_other">Andere</string>
+    <string name="idpa_zones_breakdown">Zonenaufschlüsselung</string>
+    <string name="login_email">E-Mail-Adresse</string>
+    <string name="new_password">Neues Passwort</string>
+    <string name="registration_back">← Zurück</string>
+    <string name="registration_email">E-Mail-Adresse</string>
+    <string name="registration_email_invalid">Bitte geben Sie eine gültige E-Mail-Adresse ein</string>
+    <string name="registration_password">Passwort</string>
+    <string name="registration_password_invalid">Das Passwort muss mindestens 6 Zeichen lang sein</string>
+    <string name="registration_register_button">Registrierung abschließen</string>
+    <string name="registration_resend_code">Code erneut senden (%d)</string>
+    <string name="registration_send_code">Bestätigungscode senden</string>
+    <string name="registration_success">Registrierung erfolgreich! Anmeldung läuft...</string>
+    <string name="registration_title">Registrieren</string>
+    <string name="registration_verify_code">Bestätigungscode</string>
+    <string name="repeat_number">Wiederholung #%d</string>
+    <string name="reset_password">Passwort zurücksetzen</string>
+    <string name="reset_password_button">Passwort zurücksetzen</string>
+    <string name="send_code">Code senden</string>
+    <string name="verify_code">Bestätigungscode</string>
 </resources>

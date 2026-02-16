@@ -245,8 +245,8 @@ struct TargetRowView: View {
             return [
                 "idpa",
                 "idpa_ns",
-                "idpa_hard_cover_1",
-                "idpa_hard_cover_2"
+                "idpa_black_1",
+                "idpa_black_2"
             ]
         case "cqb":
             return [

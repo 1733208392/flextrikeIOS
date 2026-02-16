@@ -31,6 +31,10 @@ private fun getIconForTargetType(type: String): String {
         "paddle" -> "ipsc-paddle.svg"
         "popper" -> "ipsc-popper.svg"
         "rotation" -> "rotation.svg"
+        "idpa" -> "idpa.svg"
+        "idpa_ns" -> "idpa-ns.svg"
+        "idpa_black_1" -> "idpa-hard-cover-1.svg"
+        "idpa_black_2" -> "idpa-hard-cover-2.svg"
         "cqb_front" -> "cqb_front.svg"
         "cqb_hostage" -> "cqb_hostoage.svg"
         "cqb_swing" -> "cqb_swing.svg"
@@ -50,6 +54,10 @@ fun getDisplayNameForTargetType(type: String): String {
             "paddle" -> R.string.paddle
             "popper" -> R.string.popper
             "rotation" -> R.string.rotation
+            "idpa" -> R.string.idpa
+            "idpa_ns" -> R.string.idpa_ns
+            "idpa_black_1" -> R.string.idpa_black_1
+            "idpa_black_2" -> R.string.idpa_black_2
             "cqb_front" -> R.string.cqb_front
             "cqb_hostage" -> R.string.cqb_hostage
             "cqb_swing" -> R.string.cqb_swing

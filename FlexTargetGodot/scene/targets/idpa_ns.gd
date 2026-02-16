@@ -41,7 +41,7 @@ const DEBUG_DISABLED = false
 # Scoring system
 var total_score: int = 0
 @export var drill_active: bool = false  # Flag to ignore shots before drill starts
-signal target_hit(zone: String, points: int, hit_position: Vector2)
+signal target_hit(zone: String, points: int, hit_position: Vector2, t: int)
 signal target_disappeared
 
 func _ready():
@@ -406,9 +406,9 @@ func _on_websocket_bullet_hit(pos: Vector2, a: int = 0, t: int = 0):
 			print("[IDPA-NS] Ignoring WebSocket hit - drill not active")
 		return
 
-	handle_websocket_bullet_hit_ns(pos)
+	handle_websocket_bullet_hit_ns(pos, t)
 
-func handle_websocket_bullet_hit_ns(world_pos: Vector2):
+func handle_websocket_bullet_hit_ns(world_pos: Vector2, t: int = 0):
 	"""Handle WebSocket bullet hits with IDPA-NS specific scoring logic
 	
 	Scoring logic:
@@ -484,7 +484,7 @@ func handle_websocket_bullet_hit_ns(world_pos: Vector2):
 
 	# 4. Update score and emit signal
 	total_score += points
-	target_hit.emit(zone_hit, points, world_pos)
+	target_hit.emit(zone_hit, points, world_pos, t)
 	if not DEBUG_DISABLED:
 		print("[IDPA-NS] Emitted target_hit signal: zone=", zone_hit, " points=", points, " pos=", world_pos)
 

@@ -18,5 +18,6 @@ data class DrillRepeatSummary(
     val cqbResults: List<CQBShotResult>? = null,
     val cqbPassed: Boolean? = null,
     var adjustedHitZones: Map<String, Int>? = null,
+    var idpaZones: Map<String, Int>? = null,
     val drillResultId: UUID? = null
 )

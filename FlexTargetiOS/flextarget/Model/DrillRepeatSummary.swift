@@ -13,6 +13,7 @@ struct DrillRepeatSummary: Identifiable, Codable {
     let shots: [ShotData]
     var drillResultId: UUID?
     var adjustedHitZones: [String: Int]?
+    var idpaZones: [String: Int]?  // IDPA-specific zones: Head, Body, Other, Miss
     var cqbResults: [CQBShotResult]?
     var cqbPassed: Bool?
 
@@ -27,6 +28,7 @@ struct DrillRepeatSummary: Identifiable, Codable {
         shots: [ShotData],
         drillResultId: UUID? = nil,
         adjustedHitZones: [String: Int]? = nil,
+        idpaZones: [String: Int]? = nil,
         cqbResults: [CQBShotResult]? = nil,
         cqbPassed: Bool? = nil
     ) {
@@ -40,6 +42,7 @@ struct DrillRepeatSummary: Identifiable, Codable {
         self.shots = shots
         self.drillResultId = drillResultId
         self.adjustedHitZones = adjustedHitZones
+        self.idpaZones = idpaZones
         self.cqbResults = cqbResults
         self.cqbPassed = cqbPassed
     }

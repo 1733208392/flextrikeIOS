@@ -298,6 +298,9 @@
     <string name="popper">ポッパー</string>
     <string name="rotation">ローテーション</string>
     <string name="idpa">IDPA</string>
+    <string name="idpa_ns">IDPA NS</string>
+    <string name="idpa_black_1">IDPA ハードカバー 1</string>
+    <string name="idpa_black_2">IDPA ハードカバー 2</string>
     <string name="cqb">CQB</string>
     <!-- CQB Target Types -->
     <string name="cqb_swing">覗く</string>
@@ -342,4 +345,36 @@
     <!-- Upload Target Image -->
     <string name="upload_target_image_title">ターゲット画像をアップロード</string>
     <string name="upload_target_image_subtitle">カスタムターゲット画像をデバイスにアップロード</string>
+    
+    <!-- Missing translations -->
+    <string name="edit_idpa_zones">IDPAゾーンを編集</string>
+    <string name="edit_zones">ゾーンを編集</string>
+    <string name="forgot_password">パスワードをお忘れですか？</string>
+    <string name="idpa_final_time">最終時間</string>
+    <string name="idpa_points_down">ポイントダウン</string>
+    <string name="idpa_raw_time">生時間</string>
+    <string name="idpa_total_points_down">合計ポイントダウン</string>
+    <string name="idpa_zone_body">ボディ</string>
+    <string name="idpa_zone_head">ヘッド</string>
+    <string name="idpa_zone_miss">ミス</string>
+    <string name="idpa_zone_other">その他</string>
+    <string name="idpa_zones_breakdown">ゾーン内訳</string>
+    <string name="login_email">メールアドレス</string>
+    <string name="new_password">新しいパスワード</string>
+    <string name="registration_back">← 戻る</string>
+    <string name="registration_email">メールアドレス</string>
+    <string name="registration_email_invalid">有効なメールアドレスを入力してください</string>
+    <string name="registration_password">パスワード</string>
+    <string name="registration_password_invalid">パスワードは6文字以上でなければなりません</string>
+    <string name="registration_register_button">登録を完了</string>
+    <string name="registration_resend_code">コードを再送信 (%d)</string>
+    <string name="registration_send_code">確認コードを送信</string>
+    <string name="registration_success">登録成功！ログイン中...</string>
+    <string name="registration_title">登録</string>
+    <string name="registration_verify_code">確認コード</string>
+    <string name="repeat_number">リピート #%d</string>
+    <string name="reset_password">パスワードをリセット</string>
+    <string name="reset_password_button">パスワードをリセット</string>
+    <string name="send_code">コードを送信</string>
+    <string name="verify_code">確認コード</string>
 </resources>

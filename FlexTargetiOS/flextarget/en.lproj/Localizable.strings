@@ -484,3 +484,16 @@
 
 /* Logout */
 "logout_confirm" = "Are you sure you want to logout?";
+/* IDPA Drill Summary */
+"idpa_raw_time" = "Raw Time";
+"idpa_points_down" = "Points Down";
+"idpa_final_time" = "Final Time";
+"idpa_zones_breakdown" = "Zones Breakdown";
+"idpa_total_points_down" = "Total Points Down";
+"idpa_zone_head" = "Head";
+"idpa_zone_body" = "Body";
+"idpa_zone_other" = "Other";
+"idpa_zone_miss" = "Miss";
+"edit_idpa_zones" = "Edit IDPA Zones";
+"edit_zones" = "Edit Zones";
+"save" = "Save";

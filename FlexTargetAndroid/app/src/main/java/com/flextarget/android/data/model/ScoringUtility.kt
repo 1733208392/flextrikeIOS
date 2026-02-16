@@ -248,4 +248,88 @@ object ScoringUtility {
         // Ensure score never goes below 0
         return maxOf(0, totalScore)
     }
+
+    // MARK: IDPA Scoring Methods
+
+    /**
+     * Map IDPA hit areas to IDPA zones (Head=0, Body=-1, Other=-3)
+     */
+    private fun mapToIDPAZone(hitArea: String): String? {
+        val trimmed = hitArea.trim().lowercase()
+        
+        // Map based on IDPA NS target definition
+        return when (trimmed) {
+            "head-0", "heart-0" -> "Head"
+            "body-1" -> "Body"
+            "other-3", "ns-5" -> "Other"
+            else -> null  // Miss is handled per-target, not per-shot
+        }
+    }
+
+    /**
+     * Get IDPA zone breakdown from shots
+     * Returns map with counts: Head, Body, Other, Miss
+     * Miss is only counted for targets that received no hits
+     */
+    fun getIDPAZoneBreakdown(shots: List<ShotData>): Map<String, Int> {
+        var head = 0
+        var body = 0
+        var other = 0
+        var miss = 0
+
+        // Group shots by target
+        val shotsByTarget = mutableMapOf<String, MutableList<ShotData>>()
+        for (shot in shots) {
+            val target = shot.target ?: "unknown"
+            shotsByTarget.getOrPut(target) { mutableListOf() }.add(shot)
+        }
+
+        // For each target, count zone hits
+        for ((_, targetShots) in shotsByTarget) {
+            var hasHits = false
+
+            for (shot in targetShots) {
+                val zone = mapToIDPAZone(shot.content.actualHitArea)
+                if (zone != null) {
+                    hasHits = true
+                    when (zone) {
+                        "Head" -> head += 1
+                        "Body" -> body += 1
+                        "Other" -> other += 1
+                    }
+                }
+            }
+
+            // If target received no valid hits, count as miss
+            if (!hasHits) {
+                miss += 1
+            }
+        }
+
+        return mapOf("Head" to head, "Body" to body, "Other" to other, "Miss" to miss)
+    }
+
+    /**
+     * Calculate IDPA points down
+     * Returns negative value representing total points down (negative because it's a deduction)
+     */
+    fun calculateIDPAPointsDown(shots: List<ShotData>): Int {
+        val breakdown = getIDPAZoneBreakdown(shots)
+
+        val head = breakdown["Head"] ?: 0
+        val body = breakdown["Body"] ?: 0
+        val other = breakdown["Other"] ?: 0
+        val miss = breakdown["Miss"] ?: 0
+
+        // IDPA scoring: Head=0, Body=-1, Other=-3, Miss=-5
+        return (head * 0) + (body * -1) + (other * -3) + (miss * -5)
+    }
+
+    /**
+     * Calculate IDPA final time (score)
+     * Final Time = Raw Time + |Points Down| + Penalties
+     */
+    fun calculateIDPAFinalTime(rawTime: Double, pointsDown: Int, penalties: Double = 0.0): Double {
+        return rawTime + kotlin.math.abs(pointsDown).toDouble() + penalties
+    }
 }

@@ -67,6 +67,10 @@ struct DrillSummaryView: View {
     private var isCQBMode: Bool {
         drillSetup.mode?.lowercased() == "cqb"
     }
+    
+    private var isIDPAMode: Bool {
+        drillSetup.mode?.lowercased() == "idpa"
+    }
 
     private var isResultAlreadySubmitted: Bool {
         guard let drillResultId = summaries.first?.drillResultId else { return false }
@@ -412,6 +416,8 @@ struct DrillSummaryView: View {
     var body: some View {
         if isCQBMode {
             CQBDrillSummaryView(drillSetup: drillSetup, summaries: summaries)
+        } else if isIDPAMode {
+            IDPADrillSummaryView(drillSetup: drillSetup, summaries: summaries)
         } else {
             ipscDrillSummaryViewWithAllModifiers
         }

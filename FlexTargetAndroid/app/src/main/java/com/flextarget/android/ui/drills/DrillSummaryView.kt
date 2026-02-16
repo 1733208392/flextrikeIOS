@@ -65,6 +65,7 @@ fun DrillSummaryView(
 
     val drillName = drillSetup.name ?: "Untitled Drill"
     val isCQBMode = drillSetup.mode?.lowercase() == "cqb"
+    val isIDPAMode = drillSetup.mode?.lowercase() == "idpa"
 
     Column(
         modifier = Modifier
@@ -116,6 +117,8 @@ fun DrillSummaryView(
                     EmptyStateView()
                 } else if (isCQBMode) {
                     CQBDrillSummaryView(summaries = summaries)
+                } else if (isIDPAMode) {
+                    IDPADrillSummaryView(summaries = summaries)
                 } else {
                     val bottomPadding = if (isCompetitionDrill) 16.dp else 24.dp
                     LazyColumn(

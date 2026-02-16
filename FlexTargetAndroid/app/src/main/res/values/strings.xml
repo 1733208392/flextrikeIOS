@@ -176,6 +176,7 @@
     <string name="enter_drill_name">Enter drill name</string>
     <string name="enter_drill_description">Enter drill description (optional)</string>
     <string name="repeats">Repeats:</string>
+    <string name="repeat_number">Repeat #%d</string>
     <string name="pause_seconds">Pause (seconds):</string>
     <string name="no_shots_to_display">No shots to display</string>
     <string name="replay">Replay</string>
@@ -318,6 +319,9 @@
     <string name="popper">Popper</string>
     <string name="rotation">Rotation</string>
     <string name="idpa">IDPA</string>
+    <string name="idpa_ns">IDPA NS</string>
+    <string name="idpa_black_1">IDPA Hard Cover 1</string>
+    <string name="idpa_black_2">IDPA Hard Cover 2</string>
     <string name="cqb">CQB</string>
     <!-- CQB Target Types -->
     <string name="cqb_swing">Peeking</string>
@@ -365,4 +369,17 @@
     <!-- Upload Target Image -->
     <string name="upload_target_image_title">Upload Target Image</string>
     <string name="upload_target_image_subtitle">Upload a custom target image to the device</string>
+    
+    <!-- IDPA Drill Summary -->
+    <string name="idpa_raw_time">Raw Time</string>
+    <string name="idpa_points_down">Points Down</string>
+    <string name="idpa_final_time">Final Time</string>
+    <string name="idpa_zones_breakdown">Zones Breakdown</string>
+    <string name="idpa_total_points_down">Total Points Down</string>
+    <string name="idpa_zone_head">Head</string>
+    <string name="idpa_zone_body">Body</string>
+    <string name="idpa_zone_other">Other</string>
+    <string name="idpa_zone_miss">Miss</string>
+    <string name="edit_idpa_zones">Edit IDPA Zones</string>
+    <string name="edit_zones">Edit Zones</string>
 </resources>

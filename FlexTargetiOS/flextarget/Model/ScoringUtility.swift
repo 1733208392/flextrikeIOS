@@ -189,4 +189,92 @@ class ScoringUtility {
         return max(0, totalScore)
     }
     
+    // MARK: - IDPA Scoring Methods
+    
+    /// Map IDPA hit areas to IDPA zones (Head=0, Body=-1, Other=-3, miss only for targets with no hits)
+    static func mapToIDPAZone(_ hitArea: String) -> String? {
+        let trimmed = hitArea.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        
+        // Map based on IDPA NS target definition
+        switch trimmed {
+        case "head-0", "heart-0":
+            return "Head"
+        case "body-1":
+            return "Body"
+        case "other-3", "ns-5":
+            return "Other"
+        default:
+            return nil  // Miss is handled per-target, not per-shot
+        }
+    }
+    
+    /// Get IDPA zone breakdown from shots
+    /// Returns dictionary with counts: Head, Body, Other, Miss
+    static func getIDPAZoneBreakdown(shots: [ShotData]) -> [String: Int] {
+        var head = 0
+        var body = 0
+        var other = 0
+        var miss = 0
+        
+        // Group shots by target
+        var shotsByTarget: [String: [ShotData]] = [:]
+        for shot in shots {
+            let target = shot.target ?? "unknown"
+            if shotsByTarget[target] == nil {
+                shotsByTarget[target] = []
+            }
+            shotsByTarget[target]?.append(shot)
+        }
+        
+        // For each target, count zone hits
+        for (_, targetShots) in shotsByTarget {
+            var hasHits = false
+            
+            for shot in targetShots {
+                if let zone = mapToIDPAZone(shot.content.hitArea) {
+                    hasHits = true
+                    switch zone {
+                    case "Head":
+                        head += 1
+                    case "Body":
+                        body += 1
+                    case "Other":
+                        other += 1
+                    default:
+                        break
+                    }
+                }
+            }
+            
+            // If target received no valid hits, count as miss
+            if !hasHits {
+                miss += 1
+            }
+        }
+        
+        return ["Head": head, "Body": body, "Other": other, "Miss": miss]
+    }
+    
+    /// Calculate IDPA points down
+    /// Returns negative value representing total points down (negative because it's a deduction)
+    static func calculateIDPAPointsDown(shots: [ShotData]) -> Int {
+        let breakdown = getIDPAZoneBreakdown(shots: shots)
+        
+        let head = breakdown["Head"] ?? 0
+        let body = breakdown["Body"] ?? 0
+        let other = breakdown["Other"] ?? 0
+        let miss = breakdown["Miss"] ?? 0
+        
+        // IDPA scoring: Head=0, Body=-1, Other=-3, Miss=-5
+        let pointsDown = (head * 0) + (body * -1) + (other * -3) + (miss * -5)
+        
+        return pointsDown
+    }
+    
+    /// Calculate IDPA final time (score)
+    /// Final Time = Raw Time + |Points Down| + Penalties
+    static func calculateIDPAFinalTime(rawTime: TimeInterval, pointsDown: Int, penalties: TimeInterval = 0) -> TimeInterval {
+        return rawTime + TimeInterval(abs(pointsDown)) + penalties
+    }
+    
 }

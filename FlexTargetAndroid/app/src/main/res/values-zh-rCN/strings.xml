@@ -299,6 +299,9 @@
     <string name="popper">爆破器</string>
     <string name="rotation">旋转</string>
     <string name="idpa">IDPA</string>
+    <string name="idpa_ns">IDPA NS</string>
+    <string name="idpa_black_1">IDPA 硬掩体 1</string>
+    <string name="idpa_black_2">IDPA 硬掩体 2</string>
     <string name="cqb">CQB</string>
     <!-- CQB Target Types -->
     <string name="cqb_swing">窥视</string>
@@ -343,4 +346,36 @@
     <!-- Upload Target Image -->
     <string name="upload_target_image_title">上传标靶图像</string>
     <string name="upload_target_image_subtitle">将自定义目标图像上传到设备</string>
+    
+    <!-- Missing translations -->
+    <string name="edit_idpa_zones">编辑 IDPA 区域</string>
+    <string name="edit_zones">编辑区域</string>
+    <string name="forgot_password">忘记密码？</string>
+    <string name="idpa_final_time">最终时间</string>
+    <string name="idpa_points_down">扣分</string>
+    <string name="idpa_raw_time">原始时间</string>
+    <string name="idpa_total_points_down">总扣分</string>
+    <string name="idpa_zone_body">身体</string>
+    <string name="idpa_zone_head">头部</string>
+    <string name="idpa_zone_miss">失误</string>
+    <string name="idpa_zone_other">其他</string>
+    <string name="idpa_zones_breakdown">区域细分</string>
+    <string name="login_email">电子邮件地址</string>
+    <string name="new_password">新密码</string>
+    <string name="registration_back">← 返回</string>
+    <string name="registration_email">电子邮件地址</string>
+    <string name="registration_email_invalid">请输入有效的电子邮件地址</string>
+    <string name="registration_password">密码</string>
+    <string name="registration_password_invalid">密码必须至少6个字符</string>
+    <string name="registration_register_button">完成注册</string>
+    <string name="registration_resend_code">重新发送代码 (%d)</string>
+    <string name="registration_send_code">发送验证码</string>
+    <string name="registration_success">注册成功！正在登录...</string>
+    <string name="registration_title">注册</string>
+    <string name="registration_verify_code">验证码</string>
+    <string name="repeat_number">重复 #%d</string>
+    <string name="reset_password">重置密码</string>
+    <string name="reset_password_button">重置密码</string>
+    <string name="send_code">发送代码</string>
+    <string name="verify_code">验证码</string>
 </resources>

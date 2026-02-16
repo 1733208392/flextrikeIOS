@@ -41,13 +41,9 @@ data class DrillTargetsConfigData(
                 )
                 "idpa" -> listOf(
                     "idpa",
-                    "hostage",
-                    "paddle",
-                    "popper",
-                    "rotation",
-                    "special_1",
-                    "special_2",
-                    "testTarget"
+                    "idpa_ns",
+                    "idpa_black_1",
+                    "idpa_black_2"
                 )
                 "cqb" -> listOf(
                     "cqb_front",
