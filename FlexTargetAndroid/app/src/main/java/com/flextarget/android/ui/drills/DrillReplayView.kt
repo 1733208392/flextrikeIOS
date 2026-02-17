@@ -56,7 +56,7 @@ fun DrillReplayView(
                         Icon(
                             Icons.Default.ArrowBack,
                             contentDescription = "Back",
-                            tint = Color.White
+                            tint = Color(0xffde3823)
                         )
                     }
                 },

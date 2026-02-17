@@ -75,7 +75,7 @@ fun DrillResultView(
                     Icon(
                         Icons.Default.ArrowBack,
                         contentDescription = "Back",
-                        tint = Color.White
+                        tint = Color(0xffde3823)
                     )
                 }
             },
@@ -87,16 +87,9 @@ fun DrillResultView(
         // Main content
         Column(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
                 .weight(1f),
             horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-        // Target display area
-        Box(
-            modifier = Modifier
-                .weight(0.7f)
-                .fillMaxWidth(),
-            contentAlignment = Alignment.Center
         ) {
             TargetDisplayView(
                 targets = targets,
@@ -104,46 +97,21 @@ fun DrillResultView(
                 selectedTargetIndex = selectedTargetIndex,
                 selectedShotIndex = selectedShotIndex,
                 onTargetSelected = { selectedTargetIndex = it },
-                onShotSelected = { selectedShotIndex = it },
-                frameWidth = frameWidth,
-                frameHeight = frameHeight,
-                modifier = Modifier
-                    .padding(16.dp)
+                modifier = Modifier.weight(0.7f).fillMaxWidth()
             )
-        }
 
-        // Shot list
-        Divider(color = Color.White.copy(alpha = 0.3f))
-        ShotListView(
-            shots = displayShots,
-            selectedTargetIndex = selectedTargetIndex,
-            selectedShotIndex = selectedShotIndex,
-            targets = targets,
-            onShotSelected = { selectedShotIndex = it },
-            modifier = Modifier
-                .weight(0.3f)
-                .padding(horizontal = 16.dp)
-        )
-
-        // Status bar
-//        Row(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .padding(horizontal = 20.dp, vertical = 20.dp),
-//            horizontalArrangement = Arrangement.SpaceBetween,
-//            verticalAlignment = Alignment.CenterVertically
-//        ) {
-//            Text(
-//                text = "Drill Completed",
-//                style = MaterialTheme.typography.headlineSmall,
-//                color = Color.White
-//            )
-//            Text(
-//                text = "${displayShots.size} shots",
-//                style = MaterialTheme.typography.bodyLarge,
-//                color = Color.White.copy(alpha = 0.85f)
-//            )
-//        }
+            // Shot list
+            Divider(color = Color.White.copy(alpha = 0.3f))
+            ShotListView(
+                shots = displayShots,
+                selectedTargetIndex = selectedTargetIndex,
+                selectedShotIndex = selectedShotIndex,
+                targets = targets,
+                onShotSelected = { selectedShotIndex = it },
+                modifier = Modifier
+                    .weight(0.3f)
+                    .fillMaxWidth()
+            )
         }
     }
 }
@@ -182,9 +150,6 @@ private fun TargetDisplayView(
     selectedTargetIndex: Int,
     selectedShotIndex: Int?,
     onTargetSelected: (Int) -> Unit,
-    onShotSelected: (Int?) -> Unit,
-    frameWidth: androidx.compose.ui.unit.Dp,
-    frameHeight: androidx.compose.ui.unit.Dp,
     modifier: Modifier = Modifier
 ) {
     val currentTarget = targets.getOrNull(selectedTargetIndex)
@@ -194,11 +159,8 @@ private fun TargetDisplayView(
     Box(modifier = modifier) {
         // Target background with image
         Box(
-            modifier = Modifier
-                .size(frameWidth, frameHeight)
-        //        .clip(RoundedCornerShape(8.dp))
-                .background(Color.Black)
-        //      .border(2.dp, Color.White, RoundedCornerShape(8.dp))
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
         ) {
             // Load and display target image from drawable resources
             val targetResIdLocal = targetResId
@@ -283,16 +245,6 @@ private fun TargetDisplayView(
                     }
                 }
             }
-
-            // Special handling for rotation targets
-            if (targetType.lowercase() == "rotation") {
-                RotationOverlay(
-                    shots = shots,
-                    selectedShotIndex = selectedShotIndex,
-                    frameWidth = frameWidth,
-                    frameHeight = frameHeight
-                )
-            }
         }
 
         // Target selector (if multiple targets)
@@ -373,12 +325,12 @@ private fun ShotListView(
         if (matchesTarget) index to shot else null
     }
 
-    Box(modifier = modifier) {
+    Box(modifier = modifier.fillMaxHeight()) {
         LazyColumn(
             state = scrollState,
             modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
         ) {
             itemsIndexed(targetShots) { position, (shotIndex, shot) ->
                 ShotListItem(
@@ -430,8 +382,8 @@ private fun ShotListItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp, horizontal = 16.dp)
-            .clip(RoundedCornerShape(10.dp))
+            .padding(vertical = 4.dp, horizontal = 8.dp)
+            .clip(RoundedCornerShape(8.dp))
             .background(
                 if (isEven) Color.White.copy(alpha = 0.03f)
                 else Color.White.copy(alpha = 0.06f)
@@ -439,7 +391,7 @@ private fun ShotListItem(
             .border(
                 width = if (isSelected) 2.dp else 0.dp,
                 color = if (isSelected) Color.Red.copy(alpha = 0.95f) else Color.Transparent,
-                shape = RoundedCornerShape(10.dp)
+                shape = RoundedCornerShape(8.dp)
             )
             .clickable(onClick = onClick),
         horizontalArrangement = Arrangement.SpaceEvenly,
