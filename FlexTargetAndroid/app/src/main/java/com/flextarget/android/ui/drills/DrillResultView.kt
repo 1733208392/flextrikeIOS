@@ -94,7 +94,7 @@ fun DrillResultView(
         // Target display area
         Box(
             modifier = Modifier
-                .wrapContentHeight()
+                .weight(0.7f)
                 .fillMaxWidth(),
             contentAlignment = Alignment.Center
         ) {
@@ -121,7 +121,7 @@ fun DrillResultView(
             targets = targets,
             onShotSelected = { selectedShotIndex = it },
             modifier = Modifier
-                .weight(1f)
+                .weight(0.3f)
                 .padding(horizontal = 16.dp)
         )
 
