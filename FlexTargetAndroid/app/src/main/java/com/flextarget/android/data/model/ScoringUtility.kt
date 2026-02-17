@@ -252,29 +252,31 @@ object ScoringUtility {
     // MARK: IDPA Scoring Methods
 
     /**
-     * Map IDPA hit areas to IDPA zones (Head=0, Body=-1, Other=-3)
+     * Map IDPA hit areas to IDPA zones (Head=0, Body=-1, Other=-3, NS5=-5)
      */
     private fun mapToIDPAZone(hitArea: String): String? {
-        val trimmed = hitArea.trim().lowercase()
+        val trimmed = hitArea.trim().lowercase().replace('_', '-')
         
         // Map based on IDPA NS target definition
-        return when (trimmed) {
-            "head-0", "heart-0" -> "Head"
-            "body-1" -> "Body"
-            "other-3", "ns-5" -> "Other"
+        return when {
+            trimmed == "head-0" || trimmed == "heart-0" -> "Head"
+            trimmed == "body-1" -> "Body"
+            trimmed == "other-3" -> "Other"
+            trimmed == "ns-5" || trimmed.contains("ns-5") || trimmed.contains("idpa-ns") -> "NS5"
             else -> null  // Miss is handled per-target, not per-shot
         }
     }
 
     /**
      * Get IDPA zone breakdown from shots
-     * Returns map with counts: Head, Body, Other, Miss
+     * Returns map with counts: Head, Body, Other, NS5, Miss
      * Miss is only counted for targets that received no hits
      */
     fun getIDPAZoneBreakdown(shots: List<ShotData>): Map<String, Int> {
         var head = 0
         var body = 0
         var other = 0
+        var ns5 = 0
         var miss = 0
 
         // Group shots by target
@@ -296,6 +298,7 @@ object ScoringUtility {
                         "Head" -> head += 1
                         "Body" -> body += 1
                         "Other" -> other += 1
+                        "NS5" -> ns5 += 1
                     }
                 }
             }
@@ -306,7 +309,7 @@ object ScoringUtility {
             }
         }
 
-        return mapOf("Head" to head, "Body" to body, "Other" to other, "Miss" to miss)
+        return mapOf("Head" to head, "Body" to body, "Other" to other, "NS5" to ns5, "Miss" to miss)
     }
 
     /**
@@ -319,10 +322,11 @@ object ScoringUtility {
         val head = breakdown["Head"] ?: 0
         val body = breakdown["Body"] ?: 0
         val other = breakdown["Other"] ?: 0
+        val ns5 = breakdown["NS5"] ?: 0
         val miss = breakdown["Miss"] ?: 0
 
-        // IDPA scoring: Head=0, Body=-1, Other=-3, Miss=-5
-        return (head * 0) + (body * -1) + (other * -3) + (miss * -5)
+        // IDPA scoring: Head=0, Body=-1, Other=-3, NS5=-5, Miss=-5
+        return (head * 0) + (body * -1) + (other * -3) + (ns5 * -5) + (miss * -5)
     }
 
     /**

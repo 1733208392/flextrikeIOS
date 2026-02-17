@@ -191,29 +191,33 @@ class ScoringUtility {
     
     // MARK: - IDPA Scoring Methods
     
-    /// Map IDPA hit areas to IDPA zones (Head=0, Body=-1, Other=-3, miss only for targets with no hits)
+    /// Map IDPA hit areas to IDPA zones (Head=0, Body=-1, Other=-3, NS5=-5)
     static func mapToIDPAZone(_ hitArea: String) -> String? {
-        let trimmed = hitArea.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let trimmed = hitArea.trimmingCharacters(in: .whitespacesAndNewlines).lowercased().replacingOccurrences(of: "_", with: "-")
         
         // Map based on IDPA NS target definition
-        switch trimmed {
-        case "head-0", "heart-0":
+        if trimmed == "head-0" || trimmed == "heart-0" {
             return "Head"
-        case "body-1":
-            return "Body"
-        case "other-3", "ns-5":
-            return "Other"
-        default:
-            return nil  // Miss is handled per-target, not per-shot
         }
+        if trimmed == "body-1" {
+            return "Body"
+        }
+        if trimmed == "other-3" {
+            return "Other"
+        }
+        if trimmed == "ns-5" || trimmed.contains("ns-5") || trimmed.contains("idpa-ns") {
+            return "NS5"
+        }
+        return nil  // Miss is handled per-target, not per-shot
     }
     
     /// Get IDPA zone breakdown from shots
-    /// Returns dictionary with counts: Head, Body, Other, Miss
+    /// Returns dictionary with counts: Head, Body, Other, NS5, Miss
     static func getIDPAZoneBreakdown(shots: [ShotData]) -> [String: Int] {
         var head = 0
         var body = 0
         var other = 0
+        var ns5 = 0
         var miss = 0
         
         // Group shots by target
@@ -240,6 +244,8 @@ class ScoringUtility {
                         body += 1
                     case "Other":
                         other += 1
+                    case "NS5":
+                        ns5 += 1
                     default:
                         break
                     }
@@ -252,7 +258,7 @@ class ScoringUtility {
             }
         }
         
-        return ["Head": head, "Body": body, "Other": other, "Miss": miss]
+        return ["Head": head, "Body": body, "Other": other, "NS5": ns5, "Miss": miss]
     }
     
     /// Calculate IDPA points down
@@ -263,10 +269,11 @@ class ScoringUtility {
         let head = breakdown["Head"] ?? 0
         let body = breakdown["Body"] ?? 0
         let other = breakdown["Other"] ?? 0
+        let ns5 = breakdown["NS5"] ?? 0
         let miss = breakdown["Miss"] ?? 0
         
-        // IDPA scoring: Head=0, Body=-1, Other=-3, Miss=-5
-        let pointsDown = (head * 0) + (body * -1) + (other * -3) + (miss * -5)
+        // IDPA scoring: Head=0, Body=-1, Other=-3, NS5=-5, Miss=-5
+        let pointsDown = (head * 0) + (body * -1) + (other * -3) + (ns5 * -5) + (miss * -5)
         
         return pointsDown
     }

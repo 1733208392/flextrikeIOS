@@ -162,7 +162,7 @@ private fun getTargetImageResId(targetType: String): Int? {
         "cqb_hostage" -> R.drawable.cqb_hostage_live_target
         "cqb_swing" -> R.drawable.cqb_swing_live_target
         "idpa" -> R.drawable.idpa_live_target
-        "idpa-ns" -> R.drawable.idpa_ns_live_target
+        "idpa_ns" -> R.drawable.idpa_ns_live_target
         "idpa-back-1" -> R.drawable.idpa_hard_cover_1_live_target
         "idpa-back-2" -> R.drawable.idpa_hard_cover_2_live_target
         "disguised_enemy" -> R.drawable.disguised_enemy_live_target

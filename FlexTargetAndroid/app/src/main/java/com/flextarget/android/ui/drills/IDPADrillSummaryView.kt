@@ -238,13 +238,15 @@ private fun IDPAZoneBreakdownView(
         "Head" to Color(0xFF80FF80),    // Light green
         "Body" to Color(0xFFFFCC33),    // Yellow
         "Other" to Color(0xFFFF8033),   // Orange
-        "Miss" to Color(0xFFFF5555)     // Red
+        "NS5" to Color(0xFFFF5555),     // Red
+        "Miss" to Color(0xFFBB33FF)     // Purple
     )
 
     val zonePoints = mapOf(
         "Head" to 0,
         "Body" to -1,
         "Other" to -3,
+        "NS5" to -5,
         "Miss" to -5
     )
 
@@ -269,7 +271,7 @@ private fun IDPAZoneBreakdownView(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            listOf("Head", "Body", "Other", "Miss").forEach { zone ->
+            listOf("Head", "Body", "Other", "NS5", "Miss").forEach { zone ->
                 val count = breakdown[zone] ?: 0
                 val points = zonePoints[zone] ?: 0
                 val color = zoneColors[zone] ?: Color.Gray
@@ -391,6 +393,7 @@ private fun IDPAZoneEditDialog(
     var headCount by remember { mutableStateOf(breakdown["Head"] ?: 0) }
     var bodyCount by remember { mutableStateOf(breakdown["Body"] ?: 0) }
     var otherCount by remember { mutableStateOf(breakdown["Other"] ?: 0) }
+    var ns5Count by remember { mutableStateOf(breakdown["NS5"] ?: 0) }
     var missCount by remember { mutableStateOf(breakdown["Miss"] ?: 0) }
 
     Dialog(onDismissRequest = onCancel) {
@@ -419,6 +422,7 @@ private fun IDPAZoneEditDialog(
                 ZoneEditorField(stringResource(R.string.idpa_zone_head), headCount) { headCount = it }
                 ZoneEditorField(stringResource(R.string.idpa_zone_body), bodyCount) { bodyCount = it }
                 ZoneEditorField(stringResource(R.string.idpa_zone_other), otherCount) { otherCount = it }
+                ZoneEditorField("NS5", ns5Count) { ns5Count = it }
                 ZoneEditorField(stringResource(R.string.idpa_zone_miss), missCount) { missCount = it }
 
                 Row(
@@ -441,6 +445,7 @@ private fun IDPAZoneEditDialog(
                                 "Head" to headCount,
                                 "Body" to bodyCount,
                                 "Other" to otherCount,
+                                "NS5" to ns5Count,
                                 "Miss" to missCount
                             )
                             onSave(updatedZones)

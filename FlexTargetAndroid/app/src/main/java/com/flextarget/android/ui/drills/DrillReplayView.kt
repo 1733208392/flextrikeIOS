@@ -47,32 +47,6 @@ fun DrillReplayView(
         }
     }
 
-    // Map target type to background image resource name
-    fun getBackgroundImageName(): String {
-        // Get target type from the first shot's targetType, or from drill setup mode
-        val targetType = shots.firstOrNull()?.content?.targetType?.takeIf { it.isNotEmpty() }
-            ?: drillSetup.mode ?: "idpa"
-        
-        return when (targetType) {
-            "idpa" -> "idpa_live_target"
-            "idpa-ns" -> "idpa_ns_live_target"
-            "idpa-back-1" -> "idpa_hard_cover_1_live_target"
-            "idpa-back-2" -> "idpa_hard_cover_2_live_target"
-            else -> "idpa_live_target"
-        }
-    }
-
-    // Map image name to drawable resource ID
-    fun getBackgroundImageResId(): Int {
-        return when (getBackgroundImageName()) {
-            "idpa_live_target" -> R.drawable.idpa_live_target
-            "idpa_ns_live_target" -> R.drawable.idpa_ns_live_target
-            "idpa_hard_cover_1_live_target" -> R.drawable.idpa_hard_cover_1_live_target
-            "idpa_hard_cover_2_live_target" -> R.drawable.idpa_hard_cover_2_live_target
-            else -> R.drawable.idpa_live_target
-        }
-    }
-
     Scaffold(
         topBar = {
             TopAppBar(

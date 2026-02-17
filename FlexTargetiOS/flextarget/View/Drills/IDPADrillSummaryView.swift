@@ -277,13 +277,15 @@ struct IDPAZoneBreakdownView: View {
         "Head": Color(red: 0.5, green: 1.0, blue: 0.5),  // Light green
         "Body": Color(red: 1.0, green: 0.8, blue: 0.2),  // Yellow
         "Other": Color(red: 1.0, green: 0.5, blue: 0.2), // Orange
-        "Miss": Color(red: 1.0, green: 0.3, blue: 0.3)   // Red
+        "NS5": Color(red: 1.0, green: 0.3, blue: 0.3),   // Red
+        "Miss": Color(red: 0.7, green: 0.2, blue: 0.7)   // Purple
     ]
     
     private let zonePoints: [String: Int] = [
         "Head": 0,
         "Body": -1,
         "Other": -3,
+        "NS5": -5,
         "Miss": -5
     ]
     
@@ -296,7 +298,7 @@ struct IDPAZoneBreakdownView: View {
                 .padding(.horizontal, 4)
             
             HStack(spacing: 8) {
-                ForEach(["Head", "Body", "Other", "Miss"], id: \.self) { zone in
+                ForEach(["Head", "Body", "Other", "NS5", "Miss"], id: \.self) { zone in
                     let count = breakdown[zone] ?? 0
                     let points = zonePoints[zone] ?? 0
                     
@@ -366,6 +368,7 @@ struct IDPAZoneEditDialog: View {
     @State private var headCount: Int
     @State private var bodyCount: Int
     @State private var otherCount: Int
+    @State private var ns5Count: Int
     @State private var missCount: Int
     
     init(summary: DrillRepeatSummary, onSave: @escaping ([String: Int]) -> Void, onCancel: @escaping () -> Void) {
@@ -377,6 +380,7 @@ struct IDPAZoneEditDialog: View {
         _headCount = State(initialValue: breakdown["Head"] ?? 0)
         _bodyCount = State(initialValue: breakdown["Body"] ?? 0)
         _otherCount = State(initialValue: breakdown["Other"] ?? 0)
+        _ns5Count = State(initialValue: breakdown["NS5"] ?? 0)
         _missCount = State(initialValue: breakdown["Miss"] ?? 0)
     }
     
@@ -393,6 +397,7 @@ struct IDPAZoneEditDialog: View {
                     zoneEditor(label: NSLocalizedString("idpa_zone_head", comment: "Head zone"), count: $headCount)
                     zoneEditor(label: NSLocalizedString("idpa_zone_body", comment: "Body zone"), count: $bodyCount)
                     zoneEditor(label: NSLocalizedString("idpa_zone_other", comment: "Other zone"), count: $otherCount)
+                    zoneEditor(label: "NS5", count: $ns5Count)
                     zoneEditor(label: NSLocalizedString("idpa_zone_miss", comment: "Miss zone"), count: $missCount)
                 }
                 
@@ -412,6 +417,7 @@ struct IDPAZoneEditDialog: View {
                             "Head": headCount,
                             "Body": bodyCount,
                             "Other": otherCount,
+                            "NS5": ns5Count,
                             "Miss": missCount
                         ]
                         onSave(updatedZones)
