@@ -355,6 +355,7 @@ private fun ShotListView(
     modifier: Modifier = Modifier
 ) {
     val currentTarget = targets.getOrNull(selectedTargetIndex)
+    val scrollState = rememberLazyListState()
 
     // Filter shots for current target
     val targetShots = shots.mapIndexedNotNull { index, shot ->
@@ -371,19 +372,44 @@ private fun ShotListView(
         if (matchesTarget) index to shot else null
     }
 
-    LazyColumn(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(6.dp)
-    ) {
-        itemsIndexed(targetShots) { position, (shotIndex, shot) ->
-            ShotListItem(
-                shotNumber = shotIndex + 1,
-                hitArea = translateHitArea(shot.content.actualHitArea),
-                timeDiff = shot.content.actualTimeDiff,
-                isSelected = selectedShotIndex == shotIndex,
-                isEven = position % 2 == 0,
-                onClick = { onShotSelected(if (selectedShotIndex == shotIndex) null else shotIndex) }
-            )
+    Box(modifier = modifier) {
+        LazyColumn(
+            state = scrollState,
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+        ) {
+            itemsIndexed(targetShots) { position, (shotIndex, shot) ->
+                ShotListItem(
+                    shotNumber = shotIndex + 1,
+                    hitArea = translateHitArea(shot.content.actualHitArea),
+                    timeDiff = shot.content.actualTimeDiff,
+                    isSelected = selectedShotIndex == shotIndex,
+                    isEven = position % 2 == 0,
+                    onClick = { onShotSelected(if (selectedShotIndex == shotIndex) null else shotIndex) }
+                )
+            }
+        }
+
+        // Scroll indicator (appears when content is scrollable)
+        if (targetShots.size > 0) {
+            val canScrollDown = scrollState.canScrollForward
+            if (canScrollDown) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 4.dp)
+                        .size(24.dp)
+                        .background(Color.White.copy(alpha = 0.3f), CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "▼",
+                        color = Color.White,
+                        fontSize = 10.sp
+                    )
+                }
+            }
         }
     }
 }
