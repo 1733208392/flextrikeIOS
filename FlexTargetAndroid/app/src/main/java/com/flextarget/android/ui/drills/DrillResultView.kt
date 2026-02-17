@@ -13,6 +13,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -93,7 +94,7 @@ fun DrillResultView(
         // Target display area
         Box(
             modifier = Modifier
-                .weight(1f)
+                .wrapContentHeight()
                 .fillMaxWidth(),
             contentAlignment = Alignment.Center
         ) {
@@ -120,7 +121,7 @@ fun DrillResultView(
             targets = targets,
             onShotSelected = { selectedShotIndex = it },
             modifier = Modifier
-                .height(200.dp)
+                .weight(1f)
                 .padding(horizontal = 16.dp)
         )
 
