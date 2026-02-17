@@ -332,26 +332,51 @@ struct DrillReplayView: View {
         }
     }
 
+    private var backgroundImageName: String {
+        // Get the first target type from the drill setup
+        guard let firstTarget = drillSetup.sortedTargets.first,
+              let targetType = firstTarget.targetType, !targetType.isEmpty else {
+            return "idpa_live_target"  // Default fallback
+        }
+        
+        // Map target type to background image name
+        let imageMap: [String: String] = [
+            "idpa": "idpa_live_target",
+            "idpa-ns": "idpa_ns_live_target",
+            "idpa-back-1": "idpa_hard_cover_1_live_target",
+            "idpa-back-2": "idpa_hard_cover_2_live_target"
+        ]
+        
+        return imageMap[targetType] ?? "idpa_live_target"  // Default fallback
+    }
+    
     var body: some View {
         GeometryReader { geometry in
             let screenHeight = geometry.size.height
             let frameHeight = screenHeight * 0.6
             let frameWidth = frameHeight * 9 / 16
             
-            VStack(spacing: 20) {
-                // Target Display
-                ReplayTargetDisplayView(
-                    targetDisplays: targetDisplays,
-                    selectedTargetKey: $selectedTargetKey,
-                    shots: shots,
-                    selectedShotIndex: selectedShotIndex,
-                    pulsingShotIndex: pulsingShotIndex,
-                    pulseScale: pulseScale,
-                    frameWidth: frameWidth,
-                    frameHeight: frameHeight,
-                    currentTime: currentProgress
-                )
-                .frame(width: frameWidth, height: frameHeight)
+            ZStack {
+                // Background image
+                Image(backgroundImageName)
+                    .resizable()
+                    .scaledToFill()
+                    .ignoresSafeArea()
+                
+                VStack(spacing: 20) {
+                    // Target Display
+                    ReplayTargetDisplayView(
+                        targetDisplays: targetDisplays,
+                        selectedTargetKey: $selectedTargetKey,
+                        shots: shots,
+                        selectedShotIndex: selectedShotIndex,
+                        pulsingShotIndex: pulsingShotIndex,
+                        pulseScale: pulseScale,
+                        frameWidth: frameWidth,
+                        frameHeight: frameHeight,
+                        currentTime: currentProgress
+                    )
+                    .frame(width: frameWidth, height: frameHeight)
                 
                 // Timeline and Controls
                 VStack(spacing: 15) {
@@ -417,6 +442,7 @@ struct DrillReplayView: View {
                 .padding(.bottom, 30)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
             .background(Color.black.edgesIgnoringSafeArea(.all))
         }
         .navigationTitle("Replay")

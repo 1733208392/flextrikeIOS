@@ -11,7 +11,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -22,10 +21,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.foundation.shape.RoundedCornerShape
-import android.graphics.BitmapFactory
 import com.flextarget.android.data.model.ShotData
 
 /**
@@ -37,9 +33,8 @@ import com.flextarget.android.data.model.ShotData
 fun TargetPreviewView(
     shots: List<ShotData>,
     currentShotIndex: Int,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
-    val context = LocalContext.current
     val parentWidthPx = remember { mutableFloatStateOf(0f) }
     val parentHeightPx = remember { mutableFloatStateOf(0f) }
     
@@ -75,13 +70,12 @@ fun TargetPreviewView(
         Box(
             modifier = Modifier.fillMaxSize()
         ) {
-            // Target image from assets
-            val assetName = TargetAssetMapper.getTargetImageAssetName(activeTargetType)
-            val imageBitmap = loadImageFromAssets(context, assetName)
+            // Target image from drawable resources
+            val targetImageResId = getTargetImageResId(activeTargetType)
 
-            if (imageBitmap != null) {
+            if (targetImageResId != null) {
                 Image(
-                    bitmap = imageBitmap,
+                    painter = painterResource(id = targetImageResId),
                     contentDescription = "Target",
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Fit,
@@ -205,15 +199,24 @@ private fun isScoringZone(hitArea: String): Boolean {
 }
 
 /**
- * Load image from assets folder
+ * Map target type to drawable resource ID
  */
-private fun loadImageFromAssets(context: android.content.Context, assetName: String): ImageBitmap? {
-    return try {
-        val inputStream = context.assets.open(assetName)
-        val bitmap = BitmapFactory.decodeStream(inputStream)
-        inputStream.close()
-        bitmap?.asImageBitmap()
-    } catch (e: Exception) {
-        null
+private fun getTargetImageResId(targetType: String): Int? {
+    return when (targetType.lowercase()) {
+        "ipsc" -> R.drawable.ipsc_live_target
+        "hostage" -> R.drawable.hostage_live_target
+        "popper" -> R.drawable.popper_live_target
+        "paddle" -> R.drawable.paddle_live_target
+        "special_1" -> R.drawable.ipsc_special_1_live_target
+        "special_2" -> R.drawable.ipsc_special_2_live_target
+        "cqb_front" -> R.drawable.cqb_front_live_target
+        "cqb_hostage" -> R.drawable.cqb_hostage_live_target
+        "cqb_swing" -> R.drawable.cqb_swing_live_target
+        "idpa" -> R.drawable.idpa_live_target
+        "idpa-ns" -> R.drawable.idpa_ns_live_target
+        "idpa-back-1" -> R.drawable.idpa_hard_cover_1_live_target
+        "idpa-back-2" -> R.drawable.idpa_hard_cover_2_live_target
+        "disguised_enemy" -> R.drawable.disguised_enemy_live_target
+        else -> null  // Unknown target type - will show fallback gray
     }
 }

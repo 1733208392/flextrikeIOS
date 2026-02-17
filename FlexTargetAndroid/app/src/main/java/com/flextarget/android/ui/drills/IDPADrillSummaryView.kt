@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -32,7 +33,9 @@ import kotlin.math.abs
 @Composable
 fun IDPADrillSummaryView(
     summaries: List<DrillRepeatSummary>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onViewResult: (DrillRepeatSummary) -> Unit = {},
+    onReplay: (DrillRepeatSummary) -> Unit = {}
 ) {
     var showEditDialog by remember { mutableStateOf(false) }
     var editingSummary by remember { mutableStateOf<DrillRepeatSummary?>(null) }
@@ -55,7 +58,9 @@ fun IDPADrillSummaryView(
                         onEditZones = {
                             editingSummary = summary
                             showEditDialog = true
-                        }
+                        },
+                        onViewResult = { onViewResult(summary) },
+                        onReplay = { onReplay(summary) }
                     )
                 }
             }
@@ -84,7 +89,9 @@ private fun IDPADrillCard(
     summary: DrillRepeatSummary,
     index: Int,
     modifier: Modifier = Modifier,
-    onEditZones: () -> Unit = {}
+    onEditZones: () -> Unit = {},
+    onViewResult: () -> Unit = {},
+    onReplay: () -> Unit = {}
 ) {
     val breakdown = ScoringUtility.getIDPAZoneBreakdown(summary.shots)
     val pointsDown = ScoringUtility.calculateIDPAPointsDown(summary.shots)
@@ -117,7 +124,8 @@ private fun IDPADrillCard(
                     .fillMaxWidth()
                     .padding(12.dp)
                     .background(Color.White.copy(alpha = 0.05f), RoundedCornerShape(8.dp))
-                    .padding(12.dp),
+                    .padding(12.dp)
+                    .clickable(onClick = onViewResult),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 MetricBox(
@@ -142,6 +150,31 @@ private fun IDPADrillCard(
 
             // Zone breakdown
             IDPAZoneBreakdownView(breakdown = breakdown, pointsDown = pointsDown)
+
+            // Replay button
+            Button(
+                onClick = onReplay,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Red.copy(alpha = 0.3f),
+                    contentColor = Color.White
+                ),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.PlayArrow,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.drill_replay),
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 14.sp
+                )
+            }
 
             // Edit zones button
             Button(

@@ -382,4 +382,5 @@
     <string name="idpa_zone_miss">Miss</string>
     <string name="edit_idpa_zones">Edit IDPA Zones</string>
     <string name="edit_zones">Edit Zones</string>
+    <string name="drill_replay">Replay</string>
 </resources>

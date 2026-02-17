@@ -10,7 +10,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.res.stringResource
 import com.flextarget.android.R
 import androidx.compose.ui.unit.dp
@@ -48,6 +47,32 @@ fun DrillReplayView(
         }
     }
 
+    // Map target type to background image resource name
+    fun getBackgroundImageName(): String {
+        // Get target type from the first shot's targetType, or from drill setup mode
+        val targetType = shots.firstOrNull()?.content?.targetType?.takeIf { it.isNotEmpty() }
+            ?: drillSetup.mode ?: "idpa"
+        
+        return when (targetType) {
+            "idpa" -> "idpa_live_target"
+            "idpa-ns" -> "idpa_ns_live_target"
+            "idpa-back-1" -> "idpa_hard_cover_1_live_target"
+            "idpa-back-2" -> "idpa_hard_cover_2_live_target"
+            else -> "idpa_live_target"
+        }
+    }
+
+    // Map image name to drawable resource ID
+    fun getBackgroundImageResId(): Int {
+        return when (getBackgroundImageName()) {
+            "idpa_live_target" -> R.drawable.idpa_live_target
+            "idpa_ns_live_target" -> R.drawable.idpa_ns_live_target
+            "idpa_hard_cover_1_live_target" -> R.drawable.idpa_hard_cover_1_live_target
+            "idpa_hard_cover_2_live_target" -> R.drawable.idpa_hard_cover_2_live_target
+            else -> R.drawable.idpa_live_target
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -68,7 +93,13 @@ fun DrillReplayView(
         },
         containerColor = Color.Black
     ) { paddingValues ->
-        if (shots.isEmpty()) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black)
+        ) {
+            // Content
+            if (shots.isEmpty()) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -97,13 +128,13 @@ fun DrillReplayView(
                     currentShotIndex = currentShotIndex,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(0.50f)
+                        .weight(0.70f),
                 )
 
                 // Bottom: Timeline and controls (~50%)
                 Column(
                     modifier = Modifier
-                        .weight(0.50f)
+                        .weight(0.30f)
                         .fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
@@ -170,6 +201,7 @@ fun DrillReplayView(
                     )
                 }
             }
+        }
         }
     }
 }

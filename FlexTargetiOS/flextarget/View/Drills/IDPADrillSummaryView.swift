@@ -10,6 +10,9 @@ struct IDPADrillSummaryView: View {
     
     @State private var showEditDialog = false
     @State private var editingSummary: DrillRepeatSummary?
+    @State private var showDrillResult = false
+    @State private var showDrillReplay = false
+    @State private var selectedSummary: DrillRepeatSummary?
     
     private var viewContext: NSManagedObjectContext {
         if let coordinator = environmentContext.persistentStoreCoordinator,
@@ -24,44 +27,66 @@ struct IDPADrillSummaryView: View {
     }
     
     var body: some View {
-        ZStack {
-            Color.black.ignoresSafeArea()
-            
-            VStack(spacing: 0) {
-                navigationBar
+        NavigationView {
+            ZStack {
+                Color.black.ignoresSafeArea()
                 
-                if summaries.isEmpty {
-                    emptyState
-                } else {
-                    ScrollView(.vertical, showsIndicators: false) {
-                        VStack(spacing: 24) {
-                            ForEach(summaries.indices, id: \.self) { index in
-                                idpaDrillCard(for: summaries[index], index: index)
+                VStack(spacing: 0) {
+                    navigationBar
+                    
+                    if summaries.isEmpty {
+                        emptyState
+                    } else {
+                        ScrollView(.vertical, showsIndicators: false) {
+                            VStack(spacing: 24) {
+                                ForEach(summaries.indices, id: \.self) { index in
+                                    idpaDrillCard(for: summaries[index], index: index)
+                                }
                             }
+                            .padding(.vertical, 24)
                         }
-                        .padding(.vertical, 24)
                     }
                 }
             }
-        }
-        .navigationBarHidden(true)
-        
-        // Edit Dialog
-        if showEditDialog, let editingSummary = editingSummary {
-            IDPAZoneEditDialog(
-                summary: editingSummary,
-                onSave: { updatedZones in
-                    if let index = summaries.firstIndex(where: { $0.id == editingSummary.id }) {
-                        summaries[index].idpaZones = updatedZones
+            .navigationBarHidden(true)
+            
+            // Edit Dialog
+            if showEditDialog, let editingSummary = editingSummary {
+                IDPAZoneEditDialog(
+                    summary: editingSummary,
+                    onSave: { updatedZones in
+                        if let index = summaries.firstIndex(where: { $0.id == editingSummary.id }) {
+                            summaries[index].idpaZones = updatedZones
+                        }
+                        showEditDialog = false
+                        self.editingSummary = nil
+                    },
+                    onCancel: {
+                        showEditDialog = false
+                        self.editingSummary = nil
                     }
-                    showEditDialog = false
-                    self.editingSummary = nil
-                },
-                onCancel: {
-                    showEditDialog = false
-                    self.editingSummary = nil
+                )
+            }
+            
+            // Navigation to DrillResultView
+            if showDrillResult, let selectedSummary = selectedSummary {
+                NavigationLink(
+                    destination: DrillResultView(drillSetup: drillSetup, repeatSummary: selectedSummary),
+                    isActive: $showDrillResult
+                ) {
+                    EmptyView()
                 }
-            )
+            }
+            
+            // Navigation to DrillReplayView
+            if showDrillReplay, let selectedSummary = selectedSummary {
+                NavigationLink(
+                    destination: DrillReplayView(drillSetup: drillSetup, shots: selectedSummary.shots),
+                    isActive: $showDrillReplay
+                ) {
+                    EmptyView()
+                }
+            }
         }
     }
     
@@ -107,44 +132,50 @@ struct IDPADrillSummaryView: View {
                     Spacer()
                 }
                 
-                // Metrics grid: Raw Time, Final Time (Score)
-                HStack(spacing: 16) {
-                    VStack(spacing: 4) {
-                        Text(NSLocalizedString("idpa_raw_time", comment: "Raw time label"))
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundColor(.white.opacity(0.7))
-                        Text(format(time: summary.totalTime))
-                            .font(.system(size: 18, weight: .bold))
-                            .foregroundColor(.white)
-                    }
-                    .frame(minWidth: 80)
-                    
-                    VStack(spacing: 4) {
-                        Text(NSLocalizedString("idpa_points_down", comment: "Points down label"))
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundColor(.white.opacity(0.7))
-                        Text("\(abs(pointsDown))")
-                            .font(.system(size: 18, weight: .bold))
-                            .foregroundColor(.white)
-                    }
-                    .frame(minWidth: 80)
+                // Metrics grid: Raw Time, Final Time (Score) - CLICKABLE
+                Button(action: {
+                    selectedSummary = summary
+                    showDrillResult = true
+                }) {
+                    HStack(spacing: 16) {
+                        VStack(spacing: 4) {
+                            Text(NSLocalizedString("idpa_raw_time", comment: "Raw time label"))
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundColor(.white.opacity(0.7))
+                            Text(format(time: summary.totalTime))
+                                .font(.system(size: 18, weight: .bold))
+                                .foregroundColor(.white)
+                        }
+                        .frame(minWidth: 80)
+                        
+                        VStack(spacing: 4) {
+                            Text(NSLocalizedString("idpa_points_down", comment: "Points down label"))
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundColor(.white.opacity(0.7))
+                            Text("\(abs(pointsDown))")
+                                .font(.system(size: 18, weight: .bold))
+                                .foregroundColor(.white)
+                        }
+                        .frame(minWidth: 80)
 
-                    Spacer()
-                    
-                    VStack(spacing: 4) {
-                        Text(NSLocalizedString("idpa_final_time", comment: "Final time label"))
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundColor(.white.opacity(0.7))
-                        Text(format(time: finalTime))
-                            .font(.system(size: 18, weight: .bold))
-                            .foregroundColor(.red)
+                        Spacer()
+                        
+                        VStack(spacing: 4) {
+                            Text(NSLocalizedString("idpa_final_time", comment: "Final time label"))
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundColor(.white.opacity(0.7))
+                            Text(format(time: finalTime))
+                                .font(.system(size: 18, weight: .bold))
+                                .foregroundColor(.red)
+                        }
+                        .frame(minWidth: 80)
                     }
-                    .frame(minWidth: 80)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .frame(maxWidth: .infinity)
+                    .background(Color.white.opacity(0.05))
+                    .cornerRadius(8)
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
-                .background(Color.white.opacity(0.05))
-                .cornerRadius(8)
             }
             .padding(16)
             .background(
@@ -160,6 +191,25 @@ struct IDPADrillSummaryView: View {
             // Zone breakdown
             IDPAZoneBreakdownView(breakdown: breakdown, pointsDown: pointsDown)
                 .padding(.horizontal, 20)
+            
+            // Replay button
+            Button(action: {
+                selectedSummary = summary
+                showDrillReplay = true
+            }) {
+                HStack {
+                    Image(systemName: "play.circle.fill")
+                        .font(.system(size: 16, weight: .semibold))
+                    Text(NSLocalizedString("drill_replay", comment: "Replay button"))
+                        .font(.system(size: 14, weight: .semibold))
+                }
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .background(Color.red.opacity(0.3))
+                .cornerRadius(8)
+            }
+            .padding(.horizontal, 20)
             
             // Edit zones button
             Button(action: {

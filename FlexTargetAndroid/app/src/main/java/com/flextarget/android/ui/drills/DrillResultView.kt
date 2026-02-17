@@ -4,11 +4,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.foundation.background
 import androidx.compose.foundation.Canvas
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
+import androidx.compose.ui.res.painterResource
+import com.flextarget.android.R
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -23,16 +22,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.flextarget.android.R
 import com.flextarget.android.data.local.entity.DrillSetupEntity
 import com.flextarget.android.data.model.*
-import java.util.*
 
 /**
  * View for displaying drill results with target visualization and shot details.
@@ -47,7 +43,6 @@ fun DrillResultView(
     shots: List<ShotData> = emptyList(),
     onBack: () -> Unit = {}
 ) {
-    val context = LocalContext.current
     val displayShots = repeatSummary?.shots ?: shots
 
     // State for target selection and shot selection
@@ -153,18 +148,25 @@ fun DrillResultView(
 }
 
 /**
- * Maps target types to their corresponding image asset filenames.
+ * Map target type to drawable resource ID
  */
-private fun getTargetImageAssetName(targetType: String): String {
+private fun getTargetImageResId(targetType: String): Int? {
     return when (targetType.lowercase()) {
-        "ipsc" -> "ipsc.live.target.png"
-        "hostage" -> "hostage.live.target.png"
-        "popper" -> "popper.live.target.png"
-        "paddle" -> "paddle.live.target.png"
-        "special_1" -> "ipsc.special.1.live.target.png"
-        "special_2" -> "ipsc.special.2.live.target.png"
-        "rotation" -> "drills_back.jpg"
-        else -> "ipsc.live.target.png" // Default to IPSC
+        "ipsc" -> R.drawable.ipsc_live_target
+        "hostage" -> R.drawable.hostage_live_target
+        "popper" -> R.drawable.popper_live_target
+        "paddle" -> R.drawable.paddle_live_target
+        "special_1" -> R.drawable.ipsc_special_1_live_target
+        "special_2" -> R.drawable.ipsc_special_2_live_target
+        "cqb_front" -> R.drawable.cqb_front_live_target
+        "cqb_hostage" -> R.drawable.cqb_hostage_live_target
+        "cqb_swing" -> R.drawable.cqb_swing_live_target
+        "idpa" -> R.drawable.idpa_live_target
+        "idpa-ns" -> R.drawable.idpa_ns_live_target
+        "idpa-back-1" -> R.drawable.idpa_hard_cover_1_live_target
+        "idpa-back-2" -> R.drawable.idpa_hard_cover_2_live_target
+        "disguised_enemy" -> R.drawable.disguised_enemy_live_target
+        else -> null
     }
 }
 
@@ -184,10 +186,9 @@ private fun TargetDisplayView(
     frameHeight: androidx.compose.ui.unit.Dp,
     modifier: Modifier = Modifier
 ) {
-    val context = LocalContext.current
     val currentTarget = targets.getOrNull(selectedTargetIndex)
     val targetType = currentTarget?.targetType ?: "ipsc"
-    val imageAssetName = getTargetImageAssetName(targetType)
+    val targetResId = getTargetImageResId(targetType)
 
     Box(modifier = modifier) {
         // Target background with image
@@ -198,16 +199,16 @@ private fun TargetDisplayView(
                 .background(Color.Black)
         //      .border(2.dp, Color.White, RoundedCornerShape(8.dp))
         ) {
-            // Load and display target image from assets
-            AsyncImage(
-                model = ImageRequest.Builder(context)
-                    .data("file:///android_asset/$imageAssetName")
-                    .crossfade(true)
-                    .build(),
-                contentDescription = "Target image",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
-            )
+            // Load and display target image from drawable resources
+            val targetResIdLocal = targetResId
+            if (targetResIdLocal != null) {
+                androidx.compose.foundation.Image(
+                    painter = painterResource(id = targetResIdLocal),
+                    contentDescription = "Target image",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
 
             // Target name overlay
             currentTarget?.targetName?.let { name ->

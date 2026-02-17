@@ -118,7 +118,11 @@ fun DrillSummaryView(
                 } else if (isCQBMode) {
                     CQBDrillSummaryView(summaries = summaries)
                 } else if (isIDPAMode) {
-                    IDPADrillSummaryView(summaries = summaries)
+                    IDPADrillSummaryView(
+                        summaries = summaries,
+                        onViewResult = onViewResult,
+                        onReplay = onReplay
+                    )
                 } else {
                     val bottomPadding = if (isCompetitionDrill) 16.dp else 24.dp
                     LazyColumn(

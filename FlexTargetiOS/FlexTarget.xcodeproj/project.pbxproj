@@ -58,22 +58,9 @@
 		2AF12A3C2E5B1A0100000005 /* zh-Hant */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hant"; path = "flextarget/zh-Hant.lproj/Localizable.strings"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		2A28BB9C2F273038000A6A39 /* Exceptions for "FlexTargetTests" folder in "FlexTargetTests" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				FlexTargetTests.swift,
-			);
-			target = 2A28B4A92F272A78000A6A39 /* FlexTargetTests */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		2A28B4AB2F272A78000A6A39 /* FlexTargetTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				2A28BB9C2F273038000A6A39 /* Exceptions for "FlexTargetTests" folder in "FlexTargetTests" target */,
-			);
 			path = FlexTargetTests;
 			sourceTree = "<group>";
 		};
