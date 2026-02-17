@@ -56,9 +56,29 @@ func _ready():
 	if ws_listener:
 		ws_listener.bullet_hit.connect(_on_websocket_bullet_hit)
 
-	# If loaded by drills_network (networked drills loader), set max_shots high for testing
-	var drills_network = get_node_or_null("/root/drills_network")
-	if drills_network:
+	# If loaded by drills_network (networked drills loader), set max_shots high so
+	# network drills don't remove the target after the default two valid hits.
+	# Some setups may parent the target under a drills_network node rather than
+	# exposing it at /root, so walk the parent chain and look for the drills
+	# network script/resource name as a reliable indicator.
+	var ancestor = get_parent()
+	var found_drills_network := false
+	while ancestor != null:
+		var anc_script = null
+		if ancestor.get_script() != null:
+			anc_script = ancestor.get_script().resource_path
+		if anc_script and anc_script.find("drills_network.gd") != -1:
+			found_drills_network = true
+			break
+		ancestor = ancestor.get_parent()
+
+	if not found_drills_network:
+		# Fallback: check for a root-level node named "drills_network"
+		var drills_network = get_node_or_null("/root/drills_network")
+		if drills_network:
+			found_drills_network = true
+
+	if found_drills_network:
 		max_shots = 1000
 	
 	# Play reset animation to ensure scene starts in clean state

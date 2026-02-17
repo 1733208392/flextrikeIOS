@@ -70,6 +70,28 @@ func _ready():
 	if ws_listener:
 		ws_listener.bullet_hit.connect(_on_websocket_bullet_hit)
 
+	# If loaded by drills_network (networked drills loader), set max_shots high so
+	# network drills don't remove the target after the default two valid hits.
+	# Walk the parent chain to detect if this target is under a drills_network node.
+	var ancestor = get_parent()
+	var found_drills_network := false
+	while ancestor != null:
+		var anc_script = null
+		if ancestor.get_script() != null:
+			anc_script = ancestor.get_script().resource_path
+		if anc_script and anc_script.find("drills_network.gd") != -1:
+			found_drills_network = true
+			break
+		ancestor = ancestor.get_parent()
+
+	if not found_drills_network:
+		var drills_network = get_node_or_null("/root/drills_network")
+		if drills_network:
+			found_drills_network = true
+
+	if found_drills_network:
+		max_shots = 1000
+
 func _on_websocket_bullet_hit(pos: Vector2, a: int = 0, t: int = 0) -> void:
 	# Ignore shots if drill is not active yet
 	if not drill_active:
