@@ -1,6 +1,7 @@
 package com.flextarget.android.data.model
 
 import com.flextarget.android.data.local.entity.DrillTargetsConfigEntity
+import org.json.JSONArray
 import java.util.UUID
 
 /**
@@ -17,6 +18,27 @@ data class DrillTargetsConfigData(
     val action: String = "",
     val duration: Double = 3.0
 ) {
+    fun parseTargetTypes(): List<String> {
+        val raw = targetType.trim()
+        if (raw.isEmpty()) return emptyList()
+
+        return if (raw.startsWith("[")) {
+            try {
+                val json = JSONArray(raw)
+                (0 until json.length())
+                    .mapNotNull { index -> json.optString(index).takeIf { it.isNotBlank() } }
+            } catch (e: Exception) {
+                emptyList()
+            }
+        } else {
+            listOf(raw)
+        }
+    }
+
+    fun primaryTargetType(default: String = "ipsc"): String {
+        return parseTargetTypes().firstOrNull() ?: default
+    }
+
     companion object {
         val DEFAULT_TARGET_TYPES = listOf(
             "hostage",
@@ -88,6 +110,12 @@ data class DrillTargetsConfigData(
         fun getDefaultActionForTargetType(targetType: String, drillMode: String = "cqb"): String {
             val allowed = allowedActions(targetType, drillMode)
             return allowed.firstOrNull() ?: ""
+        }
+
+        fun encodeTargetTypes(types: List<String>): String {
+            val arr = JSONArray()
+            types.filter { it.isNotBlank() }.forEach { arr.put(it) }
+            return arr.toString()
         }
 
         fun fromEntity(entity: DrillTargetsConfigEntity): DrillTargetsConfigData {

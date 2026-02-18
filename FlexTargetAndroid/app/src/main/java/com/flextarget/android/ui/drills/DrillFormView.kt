@@ -598,7 +598,7 @@ private fun FormScreen(
                                     id = target.id,
                                     seqNo = target.seqNo,
                                     targetName = target.targetName.takeIf { it.isNotBlank() },
-                                    targetType = target.targetType,
+                                    targetType = target.primaryTargetType(),
                                     timeout = target.timeout,
                                     countedShots = target.countedShots,
                                     drillSetupId = sessionDrill.id

@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct TargetConfigListView: View {
     let deviceList: [NetworkDevice]
@@ -665,4 +666,344 @@ struct ActionDurationPickerView: View {
     ]
     
     TargetConfigListView(deviceList: mockDevices, targetConfigs: .constant(mockConfigs), onDone: {}, drillMode: "ipsc")
+}
+
+struct TargetConfigListViewV2: View {
+    let deviceList: [NetworkDevice]
+    @Binding var targetConfigs: [DrillTargetsConfigData]
+    let onDone: () -> Void
+    let drillMode: String
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var currentTypeIndex: Int = 0
+    @State private var randomEnabled: Bool = true
+    @State private var draggingTypeFromRect: String? = nil
+    @State private var isDraggingOverSelection: Bool = false
+
+    var body: some View {
+        ZStack {
+            // Use #191919 as background color
+//            Color(red: 0.098, green: 0.098, blue: 0.098).ignoresSafeArea()
+            Color.black.ignoresSafeArea()
+
+            VStack(spacing: 20) {
+                Spacer(minLength: 10)
+                targetRectSection
+//                randomToggleSection
+                Spacer(minLength: 0)
+                targetTypeSelectionView
+                RoundedRectangle(cornerRadius: 2)
+                     .fill(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+    //                .stroke(Color.white, lineWidth: 8)
+                    .frame(width: 240)
+                    .frame(height: 4)
+                Spacer(minLength: 0)
+//                saveButton
+            }
+            .padding(.horizontal, 24)
+            .padding(.top, 16)
+            .padding(.bottom, 8)
+        }
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button(action: {
+                    onDone()
+                    dismiss()
+                }) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+                }
+            }
+            ToolbarItem(placement: .principal) {
+                Text(currentTargetName)
+                    .font(.headline)
+                    .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+                    .lineLimit(1)
+            }
+        }
+        .onAppear {
+            ensurePrimaryTarget()
+            clampCurrentTypeIndex()
+        }
+    }
+
+    private var availableTargetTypes: [String] {
+        switch drillMode {
+        case "ipsc":
+            return ["ipsc", "hostage", "paddle", "popper", "rotation", "special_1", "special_2"]
+        case "idpa":
+            return ["idpa", "idpa_ns", "idpa_black_1", "idpa_black_2"]
+        case "cqb":
+            return ["cqb_swing", "cqb_front", "cqb_move", "disguised_enemy", "cqb_hostage"]
+        default:
+            return ["ipsc"]
+        }
+    }
+
+    private var defaultTargetType: String {
+        switch drillMode {
+        case "ipsc":
+            return "ipsc"
+        case "idpa":
+            return "idpa"
+        case "cqb":
+            return "cqb_front"
+        default:
+            return "ipsc"
+        }
+    }
+
+    private var currentTargetName: String {
+        guard let config = primaryConfig else {
+            return NSLocalizedString("targets", comment: "Targets label")
+        }
+        return config.targetName.isEmpty ? NSLocalizedString("targets", comment: "Targets label") : config.targetName
+    }
+
+    private var primaryConfigIndex: Int? {
+        guard !targetConfigs.isEmpty else { return nil }
+        return 0
+    }
+
+    private var primaryConfig: DrillTargetsConfigData? {
+        guard let index = primaryConfigIndex else { return nil }
+        return targetConfigs[index]
+    }
+
+    private var selectedTargetTypes: [String] {
+        primaryConfig?.parseTargetTypes() ?? []
+    }
+
+    private var badgeCount: Int {
+        selectedTargetTypes.count
+    }
+
+    private var targetRectSection: some View {
+        VStack(spacing: 16) {
+            ZStack(alignment: .topTrailing) {
+                RoundedRectangle(cornerRadius: 0)
+                     .stroke(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433), lineWidth: 8)
+    //                .stroke(Color.white, lineWidth: 8)
+                    .frame(width: 180)
+                    .frame(height: 320)
+                    .overlay(targetRectContent)
+                    .onDrop(of: [UTType.plainText], isTargeted: nil) { providers in
+                        handleDropToRect(providers: providers)
+                    }
+
+                if badgeCount > 0 {
+                    Text("\(badgeCount)")
+                        .font(.system(size: 36, weight: .bold))
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+                        .padding(.trailing, 20)
+                        .padding(.top, 20)
+                }
+            }
+            
+            if selectedTargetTypes.count > 1 {
+                HStack(spacing: 8) {
+                    ForEach(0..<selectedTargetTypes.count, id: \.self) { index in
+                        Circle()
+                            .fill(index == currentTypeIndex ? Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433) : Color(red: 0.098, green: 0.098, blue: 0.098))
+                            .frame(width: 8, height: 8)
+                    }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var targetRectContent: some View {
+        if selectedTargetTypes.isEmpty {
+            Image(systemName: "document.badge.plus")
+                .font(.system(size: 80, weight: .light))
+                .foregroundColor(.white.opacity(0.75))
+        } else {
+            TabView(selection: Binding(
+                get: { min(currentTypeIndex, max(0, selectedTargetTypes.count - 1)) },
+                set: { newValue in currentTypeIndex = newValue }
+            )) {
+                ForEach(Array(selectedTargetTypes.enumerated()), id: \.offset) { index, type in
+                    Image(type)
+                        .resizable()
+                        .scaledToFit()
+                        .padding(18)
+                        .tag(index)
+                        .onDrag {
+                            draggingTypeFromRect = type
+                            return NSItemProvider(object: type as NSString)
+                        }
+                }
+            }
+            .tabViewStyle(.page(indexDisplayMode: .never))
+            .animation(.easeInOut(duration: 0.2), value: selectedTargetTypes)
+        }
+    }
+
+    private var randomToggleSection: some View {
+        HStack(spacing: 14) {
+            Spacer()
+            Text("RANDOM")
+                .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+                .font(.system(size: 24, weight: .bold))
+
+            Toggle("", isOn: $randomEnabled)
+                .labelsHidden()
+                .tint(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+                .frame(width: 86)
+        }
+    }
+
+    private var targetTypeSelectionView: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 18) {
+                ForEach(availableTargetTypes, id: \.self) { type in
+                    RoundedRectangle(cornerRadius: 0)
+                        .stroke(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433), lineWidth: 0)
+                        .frame(width: 90, height: 160)
+                        .overlay(
+                            Image(type)
+                                .resizable()
+                                .scaledToFit()
+                                .padding(10)
+                        )
+                        .onDrag {
+                            NSItemProvider(object: type as NSString)
+                        }
+                }
+            }
+            .padding(.horizontal, 2)
+            .padding(.vertical, 2)
+        }
+        .frame(height: 160)
+        .onDrop(of: [UTType.plainText], isTargeted: $isDraggingOverSelection) { providers in
+            return handleDropToSelection(providers: providers)
+        }
+    }
+
+    private var saveButton: some View {
+        Button(action: {
+            onDone()
+            dismiss()
+        }) {
+            Text(NSLocalizedString("save", comment: "Save button"))
+                .font(.title3)
+                .fontWeight(.semibold)
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .frame(height: 44)
+                .background(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+                .cornerRadius(8)
+        }
+    }
+
+    private func ensurePrimaryTarget() {
+        if targetConfigs.isEmpty {
+            let targetName = deviceList.first?.name ?? NSLocalizedString("targets", comment: "Targets label")
+            var config = DrillTargetsConfigData(
+                seqNo: 1,
+                targetName: targetName,
+                targetType: defaultTargetType,
+                timeout: 30.0,
+                countedShots: 5
+            )
+            config.setTargetTypes([])
+            targetConfigs = [config]
+            return
+        }
+
+        if targetConfigs[0].targetName.isEmpty {
+            targetConfigs[0].targetName = deviceList.first?.name ?? targetConfigs[0].targetName
+        }
+
+        let parsed = targetConfigs[0].parseTargetTypes()
+        if parsed.isEmpty, !targetConfigs[0].targetType.isEmpty, !targetConfigs[0].targetType.trimmingCharacters(in: .whitespacesAndNewlines).hasPrefix("[") {
+            targetConfigs[0].setTargetTypes([targetConfigs[0].targetType])
+        }
+    }
+
+    private func clampCurrentTypeIndex() {
+        let maxIndex = max(0, selectedTargetTypes.count - 1)
+        currentTypeIndex = min(currentTypeIndex, maxIndex)
+    }
+
+    private func updateSelectedTargetTypes(_ newValues: [String]) {
+        guard let index = primaryConfigIndex else { return }
+        targetConfigs[index].setTargetTypes(newValues)
+        if newValues.isEmpty {
+            targetConfigs[index].targetVariant = nil
+        }
+
+        if drillMode == "cqb", let first = newValues.first {
+            targetConfigs[index].action = defaultAction(for: first)
+            if first == "disguised_enemy" {
+                targetConfigs[index].duration = -1.0
+                let variants: [TargetVariant] = [
+                    TargetVariant(targetType: "disguised_enemy_surrender", startTime: 0, endTime: 5),
+                    TargetVariant(targetType: "disguised_enemy", startTime: 5.1, endTime: 10)
+                ]
+                targetConfigs[index].targetVariant = DrillTargetsConfigData.encodeVariants(variants)
+            }
+        }
+
+        clampCurrentTypeIndex()
+    }
+
+    private func defaultAction(for targetType: String) -> String {
+        guard drillMode == "cqb" else { return "" }
+        switch targetType {
+        case "cqb_front":
+            return "flash"
+        case "cqb_swing":
+            return "swing_right"
+        case "cqb_move":
+            return "run_through"
+        case "cqb_hostage":
+            return "flash"
+        case "disguised_enemy":
+            return "disguised_enemy_flash"
+        default:
+            return ""
+        }
+    }
+
+    private func handleDropToRect(providers: [NSItemProvider]) -> Bool {
+        guard let provider = providers.first(where: { $0.canLoadObject(ofClass: NSString.self) }) else {
+            return false
+        }
+
+        provider.loadObject(ofClass: NSString.self) { object, _ in
+            guard let targetType = object as? String else { return }
+            DispatchQueue.main.async {
+                var updated = selectedTargetTypes
+                updated.append(targetType)
+                updateSelectedTargetTypes(updated)
+                currentTypeIndex = max(0, updated.count - 1)
+            }
+        }
+        return true
+    }
+
+    private func handleDropToSelection(providers: [NSItemProvider]) -> Bool {
+        guard let provider = providers.first(where: { $0.canLoadObject(ofClass: NSString.self) }) else {
+            return false
+        }
+
+        provider.loadObject(ofClass: NSString.self) { object, _ in
+            guard let targetType = object as? String else { return }
+            DispatchQueue.main.async {
+                guard let fromRectType = draggingTypeFromRect, fromRectType == targetType else { return }
+                var updated = selectedTargetTypes
+                if let removeIndex = updated.firstIndex(of: targetType) {
+                    updated.remove(at: removeIndex)
+                    updateSelectedTargetTypes(updated)
+                    currentTypeIndex = max(0, min(currentTypeIndex, updated.count - 1))
+                }
+                draggingTypeFromRect = nil
+            }
+        }
+        return true
+    }
 }

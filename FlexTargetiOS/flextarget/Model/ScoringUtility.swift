@@ -108,7 +108,7 @@ class ScoringUtility {
             
             // Find target config to determine type
             let config = expectedTargets.first { $0.targetName == targetName }
-            let targetType = config?.targetType?.lowercased() ?? targetShots.first?.content.targetType.lowercased() ?? ""
+            let targetType = config?.primaryTargetType().lowercased() ?? targetShots.first?.content.targetType.lowercased() ?? ""
             let isPaddleOrPopper = targetType == "paddle" || targetType == "popper"
             
             let noShootZoneShots = targetShots.filter { shot in

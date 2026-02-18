@@ -46,4 +46,26 @@ extension DrillTargetsConfig {
             targetVariant: targetVariant
         )
     }
+
+    func parsedTargetTypes() -> [String] {
+        let raw = (targetType ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !raw.isEmpty else { return [] }
+
+        if raw.hasPrefix("[") {
+            guard let data = raw.data(using: .utf8) else { return [] }
+            do {
+                let values = try JSONDecoder().decode([String].self, from: data)
+                return values.filter { !$0.isEmpty }
+            } catch {
+                print("Failed to parse CoreData targetType JSON: \(error)")
+                return []
+            }
+        }
+
+        return [raw]
+    }
+
+    func primaryTargetType(default fallback: String = "ipsc") -> String {
+        parsedTargetTypes().first ?? fallback
+    }
 }

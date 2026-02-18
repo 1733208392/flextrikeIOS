@@ -195,7 +195,8 @@ class DrillExecutionManager {
         for (index, target) in sortedTargets.enumerated() {
             do {
                 let content: [String: Any]
-                if target.targetType == "disguised_enemy" {
+                let primaryTargetType = target.primaryTargetType()
+                if primaryTargetType == "disguised_enemy" {
                     content = [
                         "command": "ready",
                         "mode": "cqb",
@@ -207,7 +208,7 @@ class DrillExecutionManager {
                     content = [
                         "command": "ready",
                         "delay": roundedDelay,
-                        "targetType": target.targetType ?? "",
+                        "targetType": primaryTargetType,
                         "timeout": 1200,
                         "countedShots": target.countedShots,
                         "repeat": currentRepeat,
@@ -258,7 +259,7 @@ class DrillExecutionManager {
                             "hit_area": "center",
                             "hit_position": ["x": 200, "y": 400],
                             "rotation_angle": 0,
-                            "target_type": target.targetType ?? "ipsc",
+                            "target_type": primaryTargetType,
                             "time_diff": Double(index + 1) * 1.5
                         ]
                     ]
@@ -281,7 +282,7 @@ class DrillExecutionManager {
                                 "hit_area": "edge",
                                 "hit_position": ["x": 220, "y": 430],
                                 "rotation_angle": 15,
-                                "target_type": target.targetType ?? "ipsc",
+                                "target_type": primaryTargetType,
                                 "time_diff": Double(index + 1) * 1.5 + 1.0
                             ]
                         ]
@@ -432,7 +433,7 @@ class DrillExecutionManager {
 
         // Handle 'disguised_enemy' targets separately
         let targets = drillSetup.targets as? Set<DrillTargetsConfig> ?? []
-        for target in targets where target.targetType == "disguised_enemy" {
+        for target in targets where target.primaryTargetType() == "disguised_enemy" {
             let content: [String: Any] = [
                 "command": "start",
                 "mode": "cqb",

@@ -51,7 +51,7 @@ struct TargetsSectionView: View {
                     .opacity(isTargetListReceived ? 1.0 : 0.6)
                 }
             } else {
-                NavigationLink(destination: TargetConfigListView(deviceList: bleManager.networkDevices, targetConfigs: $targetConfigs, onDone: onTargetConfigDone, drillMode: drillMode)) {
+                NavigationLink(destination: TargetConfigListViewV2(deviceList: bleManager.networkDevices, targetConfigs: $targetConfigs, onDone: onTargetConfigDone, drillMode: drillMode)) {
                     HStack(spacing: 8) {
                         // Shield icon on the left
                         Image(systemName: "shield")
