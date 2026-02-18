@@ -3,7 +3,6 @@ package com.flextarget.android.ui.drills
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -17,25 +16,18 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.flextarget.android.R
 import com.flextarget.android.data.ble.BLEManager
 import com.flextarget.android.data.ble.NetworkDevice
 import com.flextarget.android.data.model.DrillTargetsConfigData
-import com.google.accompanist.pager.ExperimentalPagerApi
-import com.google.accompanist.pager.HorizontalPager
-import com.google.accompanist.pager.rememberPagerState
 import org.json.JSONObject
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalPagerApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TargetConfigListViewV2(
     bleManager: BLEManager,
@@ -54,16 +46,6 @@ fun TargetConfigListViewV2(
         mutableStateOf(primaryConfig.parseTargetTypes())
     }
     var currentTypeIndex by remember { mutableStateOf(0) }
-    var isDraggingOverSelection by remember { mutableStateOf(false) }
-    
-    val pagerState = rememberPagerState()
-    
-    // Update pager state when selected types change
-    LaunchedEffect(selectedTargetTypes) {
-        if (selectedTargetTypes.isNotEmpty()) {
-            pagerState.scrollToPage(minOf(currentTypeIndex, selectedTargetTypes.size - 1))
-        }
-    }
 
     val availableTargetTypes = when (drillMode) {
         "ipsc" -> listOf("ipsc", "hostage", "paddle", "popper", "rotation", "special_1", "special_2")
@@ -109,10 +91,9 @@ fun TargetConfigListViewV2(
                 selectedTargetTypes = selectedTargetTypes,
                 currentTypeIndex = currentTypeIndex,
                 onTypeIndexChange = { currentTypeIndex = it },
-                pagerState = pagerState,
                 accentColor = accentRed,
                 darkGrayColor = darkGray,
-                isDraggingOver = isDraggingOverSelection
+                isDraggingOver = false
             )
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -124,7 +105,6 @@ fun TargetConfigListViewV2(
                 drillMode = drillMode,
                 accentColor = accentRed,
                 darkGrayColor = darkGray,
-                onDragOver = { isDraggingOverSelection = it },
                 onTypesChanged = { newTypes ->
                     selectedTargetTypes = newTypes
                     onUpdateTargetTypes(0, newTypes)
@@ -144,13 +124,11 @@ fun TargetConfigListViewV2(
     }
 }
 
-@OptIn(ExperimentalPagerApi::class)
 @Composable
 private fun TargetRectSection(
     selectedTargetTypes: List<String>,
     currentTypeIndex: Int,
     onTypeIndexChange: (Int) -> Unit,
-    pagerState: com.google.accompanist.pager.PagerState,
     accentColor: Color,
     darkGrayColor: Color,
     isDraggingOver: Boolean
@@ -167,7 +145,7 @@ private fun TargetRectSection(
                     val borderStroke = 8.dp.toPx()
                     drawRect(
                         color = accentColor,
-                        topLeft = Offset(borderStroke / 2, borderStroke / 2),
+                        topLeft = androidx.compose.ui.geometry.Offset(borderStroke / 2, borderStroke / 2),
                         size = androidx.compose.ui.geometry.Size(
                             size.width - borderStroke,
                             size.height - borderStroke
@@ -185,25 +163,21 @@ private fun TargetRectSection(
                     tint = if (isDraggingOver) accentColor else Color.White.copy(alpha = 0.75f)
                 )
             } else {
-                HorizontalPager(
-                    count = selectedTargetTypes.size,
-                    state = pagerState,
-                    modifier = Modifier.fillMaxSize()
-                ) { page ->
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        val typeIcon = getIconResourceId(selectedTargetTypes[page])
-                        Icon(
-                            painter = painterResource(id = typeIcon),
-                            contentDescription = selectedTargetTypes[page],
-                            modifier = Modifier
-                                .size(120.dp)
-                                .padding(18.dp),
-                            tint = Color.White
-                        )
-                    }
+                // Show current type image
+                val currentType = selectedTargetTypes[minOf(currentTypeIndex, selectedTargetTypes.size - 1)]
+                val typeIcon = getIconResourceId(currentType)
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(id = typeIcon),
+                        contentDescription = currentType,
+                        modifier = Modifier
+                            .size(120.dp)
+                            .padding(18.dp),
+                        tint = Color.White
+                    )
                 }
             }
 
@@ -232,9 +206,12 @@ private fun TargetRectSection(
                         modifier = Modifier
                             .size(8.dp)
                             .background(
-                                color = if (index == pagerState.currentPage) accentColor else darkGrayColor,
+                                color = if (index == currentTypeIndex) accentColor else darkGrayColor,
                                 shape = androidx.compose.foundation.shape.CircleShape
                             )
+                            .clickable {
+                                onTypeIndexChange(index)
+                            }
                     )
                 }
             }
@@ -249,7 +226,6 @@ private fun TargetTypeSelectionViewV2(
     drillMode: String,
     accentColor: Color,
     darkGrayColor: Color,
-    onDragOver: (Boolean) -> Unit,
     onTypesChanged: (List<String>) -> Unit
 ) {
     Column(
