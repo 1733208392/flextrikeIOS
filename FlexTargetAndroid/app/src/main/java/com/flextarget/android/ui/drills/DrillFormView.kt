@@ -392,7 +392,7 @@ fun DrillFormView(
                             if (index < targets.size) {
                                 targets = targets.toMutableList().apply {
                                     this[index] = this[index].copy(
-                                        targetType = targets[index].encodeTargetTypes(types)
+                                        targetType = DrillTargetsConfigData.encodeTargetTypes(types)
                                     )
                                 }.toList()
                             }
