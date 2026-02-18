@@ -72,8 +72,10 @@ fun TargetConfigRow(
     config: DrillTargetsConfigData,
     availableDevices: List<NetworkDevice>,
     isDragging: Boolean,
+    drillMode: String = "ipsc",
     onDeviceClick: () -> Unit,
     onTypeClick: () -> Unit,
+    onActionClick: () -> Unit = {},
     onDelete: () -> Unit
 ) {
     Card(
@@ -169,6 +171,44 @@ fun TargetConfigRow(
                 }
             }
 
+            // Action selection (CQB mode only)
+            val allowedActions = DrillTargetsConfigData.allowedActions(config.targetType, drillMode)
+            if (drillMode.lowercase() == "cqb" && allowedActions.isNotEmpty()) {
+                Text(
+                    text = "•",
+                    color = Color.Gray,
+                    style = MaterialTheme.typography.bodyLarge
+                )
+
+                Column(modifier = Modifier.weight(0.8f)) {
+                    Text(
+                        text = stringResource(R.string.action),
+                        color = Color.Gray,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable(onClick = onActionClick)
+                            .background(Color.Black.copy(alpha = 0.3f))
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = if (config.action.isEmpty()) stringResource(R.string.select_action) else config.action,
+                            color = if (config.action.isEmpty()) Color.Gray else Color.White,
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Icon(
+                            Icons.Filled.ArrowDropDown,
+                            contentDescription = "Select action",
+                            tint = Color.White
+                        )
+                    }
+                }
+            }
+
             // Delete button
             IconButton(onClick = onDelete) {
                 Icon(
@@ -261,6 +301,53 @@ fun TargetTypePickerDialog(
                             modifier = Modifier.weight(1f)
                         )
                         if (selectedType == type) {
+                            Icon(
+                                Icons.Filled.Check,
+                                contentDescription = "Selected",
+                                tint = Color.Red
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel))
+            }
+        },
+        containerColor = Color.Black,
+        titleContentColor = Color.White,
+        textContentColor = Color.White
+    )
+}
+
+@Composable
+fun ActionPickerDialog(
+    actions: List<String>,
+    selectedAction: String,
+    onActionSelected: (String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.select_action)) },
+        text = {
+            Column {
+                actions.forEach { action ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onActionSelected(action) }
+                            .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = action,
+                            color = Color.White,
+                            modifier = Modifier.weight(1f)
+                        )
+                        if (selectedAction == action) {
                             Icon(
                                 Icons.Filled.Check,
                                 contentDescription = "Selected",

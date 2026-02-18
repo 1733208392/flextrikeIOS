@@ -34,12 +34,14 @@ fun TargetConfigListView(
     onDeleteTarget: (Int) -> Unit,
     onUpdateTargetDevice: (Int, String) -> Unit,
     onUpdateTargetType: (Int, String) -> Unit,
+    onUpdateTargetAction: (Int, String) -> Unit,
     onDone: () -> Unit,
     onBack: () -> Unit
 ) {
     var showMaxTargetsAlert by remember { mutableStateOf(false) }
     var showDevicePicker by remember { mutableStateOf<DrillTargetsConfigData?>(null) }
     var showTypePicker by remember { mutableStateOf<DrillTargetsConfigData?>(null) }
+    var showActionPicker by remember { mutableStateOf<DrillTargetsConfigData?>(null) }
 
     // Query device list on appear
     LaunchedEffect(Unit) {
@@ -91,8 +93,10 @@ fun TargetConfigListView(
                         config = config,
                         availableDevices = getAvailableDevices(bleManager.networkDevices, targetConfigs, config),
                         isDragging = false,
+                        drillMode = drillMode,
                         onDeviceClick = { showDevicePicker = config },
                         onTypeClick = { showTypePicker = config },
+                        onActionClick = { showActionPicker = config },
                         onDelete = { onDeleteTarget(index) }
                     )
                 }
@@ -155,6 +159,25 @@ fun TargetConfigListView(
             },
             onDismiss = { showTypePicker = null }
         )
+    }
+
+    // Action picker
+    showActionPicker?.let { config ->
+        val allowedActions = DrillTargetsConfigData.allowedActions(config.targetType, drillMode)
+        if (allowedActions.isNotEmpty()) {
+            ActionPickerDialog(
+                actions = allowedActions,
+                selectedAction = config.action,
+                onActionSelected = { action ->
+                    val configIndex = targetConfigs.indexOfFirst { it.id == config.id }
+                    if (configIndex != -1) {
+                        onUpdateTargetAction(configIndex, action)
+                    }
+                    showActionPicker = null
+                },
+                onDismiss = { showActionPicker = null }
+            )
+        }
     }
 }
 

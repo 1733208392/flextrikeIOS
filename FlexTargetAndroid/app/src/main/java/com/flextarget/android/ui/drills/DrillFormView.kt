@@ -417,6 +417,11 @@ fun DrillFormView(
                                 if (i == index) config.copy(targetType = type) else config
                             }
                         },
+                        onUpdateTargetAction = { index, action ->
+                            targets = targets.mapIndexed { i, config ->
+                                if (i == index) config.copy(action = action) else config
+                            }
+                        },
                         onDone = { currentScreen = DrillFormScreen.FORM },
                         onBack = { currentScreen = DrillFormScreen.FORM },
                         paddingValues = paddingValues
@@ -643,6 +648,7 @@ private fun TargetConfigScreen(
     onDeleteTarget: (Int) -> Unit,
     onUpdateTargetDevice: (Int, String) -> Unit,
     onUpdateTargetType: (Int, String) -> Unit,
+    onUpdateTargetAction: (Int, String) -> Unit,
     onDone: () -> Unit,
     onBack: () -> Unit,
     paddingValues: PaddingValues
@@ -661,6 +667,7 @@ private fun TargetConfigScreen(
             onDeleteTarget = onDeleteTarget,
             onUpdateTargetDevice = onUpdateTargetDevice,
             onUpdateTargetType = onUpdateTargetType,
+            onUpdateTargetAction = onUpdateTargetAction,
             onDone = onDone,
             onBack = onBack
         )

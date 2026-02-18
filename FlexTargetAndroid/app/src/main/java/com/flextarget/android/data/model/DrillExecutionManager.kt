@@ -113,13 +113,15 @@ class DrillExecutionManager(
     }
 
     fun completeDrill() {
+        println("[DrillExecutionManager] completeDrill() called")
+        println("[DrillExecutionManager] currentRepeat=$currentRepeat, totalRepeats=$totalRepeats")
         println("[DrillExecutionManager] completeDrill() - drill fully completed")
-        println("[DrillExecutionManager] completeDrill() - returning ${summaries.size} summaries")
-        summaries.forEach { summary ->
-            println("[DrillExecutionManager] Summary ${summary.repeatIndex}: ${summary.numShots} shots, score: ${summary.score}")
+        println("[DrillExecutionManager] completeDrill() - returning ${repeatSummaries.size} summaries")
+        repeatSummaries.forEach { summary ->
+            println("[DrillExecutionManager] Summary ${summary.repeatIndex}: ${summary.numShots} shots, score: ${summary.score}, cqbPassed=${summary.cqbPassed}")
         }
         stopExecution()
-        onComplete(summaries)
+        onComplete(repeatSummaries)
     }
 
     fun manualStopRepeat() {
@@ -143,12 +145,15 @@ class DrillExecutionManager(
     }
 
     private fun completeManualStopRepeat() {
+        println("[DrillExecutionManager] completeManualStopRepeat() called - about to finalize repeat $currentRepeat")
         gracePeriodTimer?.cancel()
         gracePeriodTimer = null
         // DO NOT stop observing shots here - let them continue arriving during grace period
         // stopObservingShots() will be called when stopping execution or leaving the view
         val repeatIndex = currentRepeat
+        println("[DrillExecutionManager] completeManualStopRepeat() - calling finalizeRepeat for repeat $repeatIndex")
         finalizeRepeat(repeatIndex)
+        println("[DrillExecutionManager] completeManualStopRepeat() - finalizeRepeat completed, repeatSummaries.size=${repeatSummaries.size}")
         // NOTE: Do NOT call onRepeatFinalized here - it's already called in completeRepeat via finalizeRepeat completion
         // NOTE: Do NOT call onComplete here - UI will call completeDrill() when ready
     }
@@ -588,8 +593,14 @@ class DrillExecutionManager(
         var cqbResults: List<CQBShotResult>? = null
         var cqbPassed: Boolean? = null
 
-        if ((drillSetup.mode ?: "").lowercase() == "cqb") {
+        val drillMode = (drillSetup.mode ?: "").lowercase()
+        println("[DrillExecutionManager] Repeat $repeatIndex: drillMode='$drillMode', checking if == 'cqb'")
+        
+        if (drillMode == "cqb") {
             val targetDevices = targets.mapNotNull { it.targetName }.filter { it.isNotEmpty() }
+            println("[DrillExecutionManager] CQB Mode detected! targetDevices=$targetDevices, count=${targetDevices.size}")
+            println("[DrillExecutionManager] Processing ${adjustedShots.size} shots for CQB validation")
+            
             val cqbDrillResult = CQBScoringUtility.generateCQBDrillResult(
                 shots = adjustedShots,
                 drillDuration = totalTime,
@@ -597,6 +608,9 @@ class DrillExecutionManager(
             )
             cqbResults = cqbDrillResult.shotResults
             cqbPassed = cqbDrillResult.drilPassed
+            println("[DrillExecutionManager] CQB Result: drilPassed=$cqbPassed, shotResults count=${cqbResults?.size}")
+        } else {
+            println("[DrillExecutionManager] Not a CQB drill (mode='$drillMode'), skipping CQB calculation")
         }
 
         val summary = DrillRepeatSummary(

@@ -13,7 +13,9 @@ data class DrillTargetsConfigData(
     val targetName: String = "",
     val targetType: String = "ipsc",
     val timeout: Double = 30.0,
-    val countedShots: Int = 5
+    val countedShots: Int = 5,
+    val action: String = "",
+    val duration: Double = 3.0
 ) {
     companion object {
         val DEFAULT_TARGET_TYPES = listOf(
@@ -47,9 +49,10 @@ data class DrillTargetsConfigData(
                 )
                 "cqb" -> listOf(
                     "cqb_front",
+                    "cqb_move",
+                    "cqb_swing",
                     "cqb_hostage",
-                    "disguised_enemy",
-                    "cqb_swing"
+                    "disguised_enemy"
                 )
                 else -> DEFAULT_TARGET_TYPES
             }
@@ -64,6 +67,29 @@ data class DrillTargetsConfigData(
             }
         }
 
+        /**
+         * Get allowed actions for a given target type in CQB mode
+         */
+        fun allowedActions(targetType: String, drillMode: String = "cqb"): List<String> {
+            if (drillMode.lowercase() != "cqb") return emptyList()
+            return when (targetType.lowercase()) {
+                "cqb_front" -> listOf("flash")
+                "cqb_swing" -> listOf("swing_right")
+                "cqb_move" -> listOf("run_through")
+                "cqb_hostage" -> listOf("flash")
+                "disguised_enemy" -> listOf("disguised_enemy_flash")
+                else -> emptyList()
+            }
+        }
+
+        /**
+         * Get the default action for a given target type
+         */
+        fun getDefaultActionForTargetType(targetType: String, drillMode: String = "cqb"): String {
+            val allowed = allowedActions(targetType, drillMode)
+            return allowed.firstOrNull() ?: ""
+        }
+
         fun fromEntity(entity: DrillTargetsConfigEntity): DrillTargetsConfigData {
             return DrillTargetsConfigData(
                 id = entity.id,
@@ -71,7 +97,9 @@ data class DrillTargetsConfigData(
                 targetName = entity.targetName ?: "",
                 targetType = entity.targetType ?: "ipsc",
                 timeout = entity.timeout,
-                countedShots = entity.countedShots
+                countedShots = entity.countedShots,
+                action = entity.action ?: "",
+                duration = entity.duration
             )
         }
     }

@@ -106,22 +106,36 @@ object CQBScoringUtility {
     ): CQBDrillResult {
         val shotResults = mutableListOf<CQBShotResult>()
         
+        println("[CQBScoringUtility] generateCQBDrillResult called: targetDevices=$targetDevices (count=${targetDevices.size}), shots=${shots.size}")
+        
         // Group shots by device
         val shotsByDevice = shots.groupBy { it.device ?: it.target ?: "unknown" }
+        println("[CQBScoringUtility] Shots grouped by device: $shotsByDevice")
         
         for (targetName in targetDevices) {
             val targetShots = shotsByDevice[targetName] ?: emptyList()
+            println("[CQBScoringUtility] Processing target='$targetName': isThreat=${isThreatTarget(targetName)}, isNonThreat=${isNonThreatTarget(targetName)}, shotCount=${targetShots.size}")
             
             if (isThreatTarget(targetName)) {
                 val validHits = targetShots.count { isValidCQBHit(it.content.actualHitArea) }
+                println("[CQBScoringUtility]   -> Threat target: validHits=$validHits")
                 shotResults.add(validateThreatTarget(targetName, validHits))
             } else if (isNonThreatTarget(targetName)) {
+                println("[CQBScoringUtility]   -> Non-threat target: totalShots=${targetShots.size}")
                 shotResults.add(validateNonThreatTarget(targetName, targetShots.size))
+            } else {
+                println("[CQBScoringUtility]   -> Unknown target type, skipping")
             }
+        }
+        
+        println("[CQBScoringUtility] Total shotResults: ${shotResults.size}")
+        shotResults.forEach { result ->
+            println("[CQBScoringUtility]   - ${result.targetName}: cardStatus=${result.cardStatus}, validShots=${result.actualValidShots}/${result.expectedShots}")
         }
         
         // Drill passes only if all targets have green card
         val drillPassed = shotResults.all { it.cardStatus == CQBShotResult.CardStatus.green }
+        println("[CQBScoringUtility] drillPassed=$drillPassed (all green: ${shotResults.all { it.cardStatus == CQBShotResult.CardStatus.green }})")
         
         return CQBDrillResult(shotResults, drillPassed)
     }

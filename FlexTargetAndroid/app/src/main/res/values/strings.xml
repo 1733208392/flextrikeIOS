@@ -147,6 +147,8 @@
     <string name="select_device">Select Device</string>
     <string name="type">Type</string>
     <string name="select_type">Select Type</string>
+    <string name="action">Action</string>
+    <string name="select_action">Select Action</string>
     <string name="edit">Edit</string>
     <string name="close">Close</string>
     <string name="loading">Loading...</string>
