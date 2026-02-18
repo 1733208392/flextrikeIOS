@@ -33,6 +33,7 @@ import com.flextarget.android.ui.viewmodel.DrillFormViewModel
 import com.flextarget.android.data.model.DrillRepeatSummary
 import com.flextarget.android.data.model.DrillTargetsConfigData
 import com.flextarget.android.ui.drills.TargetConfigListView
+import com.flextarget.android.ui.drills.TargetConfigListViewV2
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.json.JSONObject
@@ -383,48 +384,25 @@ fun DrillFormView(
                     )
                 }
                 DrillFormScreen.TARGET_CONFIG -> {
-                    TargetConfigScreen(
+                    TargetConfigListViewV2(
                         bleManager = bleManager,
                         targetConfigs = targets,
                         drillMode = drillMode,
-                        onAddTarget = {
-                            val availableDevices = bleManager.networkDevices.filter { device ->
-                                targets.none { it.targetName == device.name }
-                            }
-                            if (availableDevices.isNotEmpty()) {
-                                val nextSeqNo = targets.size + 1
-                                val newTarget = DrillTargetsConfigData(
-                                    seqNo = nextSeqNo,
-                                    targetName = availableDevices.first().name,
-                                    targetType = DrillTargetsConfigData.getDefaultTargetTypeForDrillMode(drillMode),
-                                    timeout = 30.0,
-                                    countedShots = 5
-                                )
-                                targets = targets + newTarget
+                        onUpdateTargetTypes = { index, types ->
+                            if (index < targets.size) {
+                                targets = targets.toMutableList().apply {
+                                    this[index] = this[index].copy(
+                                        targetType = targets[index].encodeTargetTypes(types)
+                                    )
+                                }.toList()
                             }
                         },
-                        onDeleteTarget = { index ->
-                            targets = targets.filterIndexed { i, _ -> i != index }
-                                .mapIndexed { i, config -> config.copy(seqNo = i + 1) }
+                        onDone = {
+                            currentScreen = DrillFormScreen.FORM
                         },
-                        onUpdateTargetDevice = { index, deviceName ->
-                            targets = targets.mapIndexed { i, config ->
-                                if (i == index) config.copy(targetName = deviceName) else config
-                            }
-                        },
-                        onUpdateTargetType = { index, type ->
-                            targets = targets.mapIndexed { i, config ->
-                                if (i == index) config.copy(targetType = type) else config
-                            }
-                        },
-                        onUpdateTargetAction = { index, action ->
-                            targets = targets.mapIndexed { i, config ->
-                                if (i == index) config.copy(action = action) else config
-                            }
-                        },
-                        onDone = { currentScreen = DrillFormScreen.FORM },
-                        onBack = { currentScreen = DrillFormScreen.FORM },
-                        paddingValues = paddingValues
+                        onBack = {
+                            currentScreen = DrillFormScreen.FORM
+                        }
                     )
                 }
             }
@@ -639,40 +617,7 @@ private fun FormScreen(
     }
 }
 
-@Composable
-private fun TargetConfigScreen(
-    bleManager: BLEManager,
-    targetConfigs: List<DrillTargetsConfigData>,
-    drillMode: String,
-    onAddTarget: () -> Unit,
-    onDeleteTarget: (Int) -> Unit,
-    onUpdateTargetDevice: (Int, String) -> Unit,
-    onUpdateTargetType: (Int, String) -> Unit,
-    onUpdateTargetAction: (Int, String) -> Unit,
-    onDone: () -> Unit,
-    onBack: () -> Unit,
-    paddingValues: PaddingValues
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black)
-            .padding(paddingValues)
-    ) {
-        TargetConfigListView(
-            bleManager = bleManager,
-            targetConfigs = targetConfigs,
-            drillMode = drillMode,
-            onAddTarget = onAddTarget,
-            onDeleteTarget = onDeleteTarget,
-            onUpdateTargetDevice = onUpdateTargetDevice,
-            onUpdateTargetType = onUpdateTargetType,
-            onUpdateTargetAction = onUpdateTargetAction,
-            onDone = onDone,
-            onBack = onBack
-        )
-    }
-}
+
 
 private fun queryDeviceList(bleManager: BLEManager) {
     if (!bleManager.isConnected) {
