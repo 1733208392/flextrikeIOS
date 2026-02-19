@@ -59,7 +59,7 @@ fun TargetConfigListViewV2(
             TopAppBar(
                 title = {
                     Text(
-                        primaryConfig.targetName.ifEmpty { stringResource(R.string.targets) },
+                        primaryConfig.targetName.ifEmpty { stringResource(R.string.targets_screen) },
                         color = accentRed
                     )
                 },
@@ -165,18 +165,16 @@ private fun TargetRectSection(
             } else {
                 // Show current type image
                 val currentType = selectedTargetTypes[minOf(currentTypeIndex, selectedTargetTypes.size - 1)]
-                val typeIcon = getIconResourceId(currentType)
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        painter = painterResource(id = typeIcon),
-                        contentDescription = currentType,
-                        modifier = Modifier
-                            .size(120.dp)
-                            .padding(18.dp),
-                        tint = Color.White
+                    Text(
+                        text = currentType.take(2).uppercase(),
+                        fontSize = 48.sp,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                        color = Color.White,
+                        modifier = Modifier.padding(18.dp)
                     )
                 }
             }
@@ -267,14 +265,12 @@ private fun TargetTypeSelectionViewV2(
                         },
                     contentAlignment = Alignment.Center
                 ) {
-                    val typeIcon = getIconResourceId(type)
-                    Icon(
-                        painter = painterResource(id = typeIcon),
-                        contentDescription = type,
-                        modifier = Modifier
-                            .size(70.dp)
-                            .padding(10.dp),
-                        tint = Color.White
+                    Text(
+                        text = type.take(4).uppercase(),
+                        fontSize = 16.sp,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                        color = accentColor,
+                        modifier = Modifier.padding(10.dp)
                     )
                 }
             }
@@ -287,27 +283,5 @@ private fun TargetTypeSelectionViewV2(
                 .height(1.dp),
             color = accentColor
         )
-    }
-}
-
-private fun getIconResourceId(targetType: String): Int {
-    return when (targetType) {
-        "ipsc" -> R.drawable.ic_ipsc
-        "hostage" -> R.drawable.ic_hostage
-        "paddle" -> R.drawable.ic_paddle
-        "popper" -> R.drawable.ic_popper
-        "rotation" -> R.drawable.ic_rotation
-        "special_1" -> R.drawable.ic_special_1
-        "special_2" -> R.drawable.ic_special_2
-        "idpa" -> R.drawable.ic_idpa
-        "idpa_ns" -> R.drawable.ic_idpa_ns
-        "idpa_black_1" -> R.drawable.ic_idpa_black_1
-        "idpa_black_2" -> R.drawable.ic_idpa_black_2
-        "cqb_swing" -> R.drawable.ic_cqb_swing
-        "cqb_front" -> R.drawable.ic_cqb_front
-        "cqb_move" -> R.drawable.ic_cqb_move
-        "disguised_enemy" -> R.drawable.ic_disguised_enemy
-        "cqb_hostage" -> R.drawable.ic_cqb_hostage
-        else -> R.drawable.ic_ipsc
     }
 }
