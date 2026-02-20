@@ -3,19 +3,15 @@ package com.flextarget.android.data.model
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import com.google.gson.Gson
 import java.util.*
-import com.flextarget.android.data.ble.BLEManager
 import java.util.Timer
 import java.util.Date
 import java.util.TimerTask
 import com.flextarget.android.data.local.entity.DrillSetupEntity
 import com.flextarget.android.data.local.entity.DrillTargetsConfigEntity
 import com.flextarget.android.data.ble.AndroidBLEManager
-import kotlin.math.max
+import com.flextarget.android.data.local.entity.parseTargetTypes
 
 /**
  * Drill Execution Manager for Android - ported from iOS DrillExecutionManager
@@ -208,11 +204,19 @@ class DrillExecutionManager(
         val sortedTargets = targets.sortedBy { it.seqNo }
 
         for ((index, target) in sortedTargets.withIndex()) {
-            val content = if (target.targetType == "disguised_enemy") {
+            // Parse all targetTypes from the target configuration using the extension function
+            val allTargetTypes = target.parseTargetTypes().ifEmpty { listOf("ipsc") }  // Default to ["ipsc"] if parsing fails or results in empty list
+            val primaryType = allTargetTypes.firstOrNull() ?: ""
+            println("[DrillExecutionManager] sendReadyCommands() - target: ${target.targetName}, raw targetType: '${target.targetType}', parsed targetTypes: $allTargetTypes, primary: $primaryType")
+
+            // For backward compatibility: send single type as string, multiple types as array
+            val targetTypeValue: Any = if (allTargetTypes.size == 1) primaryType else allTargetTypes
+
+            val content = if (primaryType == "disguised_enemy") {
                 mapOf(
                     "command" to "ready",
                     "mode" to "cqb",
-                    "targetType" to "disguised_enemy"
+                    "targetType" to targetTypeValue  // String if single type, array if multiple
                 )
             } else {
                 val delayValue = 0.0  // Always 0 for ready command, matching iOS
@@ -221,7 +225,7 @@ class DrillExecutionManager(
                 mapOf(
                     "command" to "ready",
                     "delay" to roundedDelay,
-                    "targetType" to (target.targetType ?: ""),
+                    "targetType" to targetTypeValue,  // String if single type, array if multiple
                     "timeout" to 1200,
                     "countedShots" to target.countedShots,
                     "repeat" to currentRepeat,
@@ -238,7 +242,7 @@ class DrillExecutionManager(
             )
 
             val messageData = Gson().toJson(message)
-            Log.d("DrillExecutionManager","Sending ready message for target ${target.targetName}, Data: ${messageData}")
+            Log.d("DrillExecutionManager","Sending ready message for target ${target.targetName}, targetType: $targetTypeValue, Data: ${messageData}")
             bleManager.writeJSON(messageData)
 
             // Send animation_config if CQB mode and action is set

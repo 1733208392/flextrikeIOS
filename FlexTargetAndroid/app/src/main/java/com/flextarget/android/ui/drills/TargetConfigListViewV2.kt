@@ -470,7 +470,7 @@ private fun TargetTypeSelectionViewV2(
                                     modifier = Modifier
                                         .fillMaxSize()
                                         .padding(8.dp),
-                                    contentScale = ContentScale.Fit
+                                    contentScale = ContentScale.Inside
                                 )
                             }
                         } else {

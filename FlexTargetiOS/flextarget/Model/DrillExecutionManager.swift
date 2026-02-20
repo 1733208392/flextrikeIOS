@@ -195,12 +195,18 @@ class DrillExecutionManager {
         for (index, target) in sortedTargets.enumerated() {
             do {
                 let content: [String: Any]
-                let primaryTargetType = target.primaryTargetType()
+                let allTargetTypes = target.parseTargetTypes()
+                let primaryTargetType = allTargetTypes.first ?? "ipsc"
+                print("[DrillExecutionManager] sendReadyCommands() - target: \(target.targetName ?? ""), targetTypes: \(allTargetTypes), primary: \(primaryTargetType)")
+                
+                // For backward compatibility: send single type as string, multiple types as array
+                let targetTypeValue: Any = allTargetTypes.count == 1 ? primaryTargetType : allTargetTypes
+                
                 if primaryTargetType == "disguised_enemy" {
                     content = [
                         "command": "ready",
                         "mode": "cqb",
-                        "targetType": "disguised_enemy"
+                        "targetType": targetTypeValue  // String if single type, array if multiple
                     ]
                 } else {
                     let delayValue = randomDelay > 0 ? randomDelay : drillSetup.delay
@@ -208,7 +214,7 @@ class DrillExecutionManager {
                     content = [
                         "command": "ready",
                         "delay": roundedDelay,
-                        "targetType": primaryTargetType,
+                        "targetType": targetTypeValue,  // String if single type, array if multiple
                         "timeout": 1200,
                         "countedShots": target.countedShots,
                         "repeat": currentRepeat,
@@ -224,7 +230,7 @@ class DrillExecutionManager {
                 ]
                 let messageData = try JSONSerialization.data(withJSONObject: message, options: [])
                 let messageString = String(data: messageData, encoding: .utf8)!
-                print("Sending ready message for target \(target.targetName ?? ""), length: \(messageData.count)")
+                print("Sending ready message for target \(target.targetName ?? ""), targetType: \(targetTypeValue), length: \(messageData.count)")
                 bleManager.writeJSON(messageString)
                 
                 // Send animation_config if CQB mode and action is set

@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
@@ -273,36 +272,7 @@ fun DrillFormView(
                     }
                 },
                 actions = {
-                    if (currentScreen == DrillFormScreen.TARGET_CONFIG) {
-                        val maxTargets = bleManager.networkDevices.size
-                        val canAddMore = targets.size < maxTargets
-                        IconButton(
-                            onClick = {
-                                val maxTargets = bleManager.networkDevices.size
-                                // Only add if we haven't already auto-added all devices
-                                val assignedDevices = targets.mapNotNull { it.targetName.takeIf { name -> name.isNotBlank() } }.toSet()
-                                val availableDeviceNames = bleManager.networkDevices.map { it.name }.filter { !assignedDevices.contains(it) }
-                                
-                                if (availableDeviceNames.isNotEmpty()) {
-                                    val nextSeqNo = (targets.maxOfOrNull { it.seqNo } ?: 0) + 1
-                                    targets = targets + DrillTargetsConfigData(
-                                        seqNo = nextSeqNo,
-                                        targetName = availableDeviceNames.first(),  // Assign first available device
-                                        targetType = DrillTargetsConfigData.getDefaultTargetTypeForDrillMode(drillMode),
-                                        timeout = 30.0,
-                                        countedShots = 5
-                                    )
-                                }
-                            },
-                            enabled = targets.size < bleManager.networkDevices.size
-                        ) {
-                            Icon(
-                                Icons.Default.Add,
-                                contentDescription = stringResource(R.string.add_target),
-                                tint = if (canAddMore) Color.Red else Color.Gray
-                            )
-                        }
-                    }
+                    // Top-right add action removed to hide '+' icon; manual adds remain available in the UI
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Black
@@ -639,7 +609,7 @@ private fun FormScreen(
                                     id = target.id,
                                     seqNo = target.seqNo,
                                     targetName = target.targetName.takeIf { it.isNotBlank() },
-                                    targetType = target.primaryTargetType(),
+                                    targetType = target.targetType,  // Preserve full targetType (may contain JSON array with multiple types)
                                     timeout = target.timeout,
                                     countedShots = target.countedShots,
                                     drillSetupId = sessionDrill.id

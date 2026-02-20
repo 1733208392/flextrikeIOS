@@ -65,7 +65,12 @@ extension DrillTargetsConfig {
         return [raw]
     }
 
+    /// Alias for parsedTargetTypes() to match Android naming convention
+    func parseTargetTypes() -> [String] {
+        return parsedTargetTypes()
+    }
+
     func primaryTargetType(default fallback: String = "ipsc") -> String {
-        parsedTargetTypes().first ?? fallback
+        parseTargetTypes().first ?? fallback
     }
 }

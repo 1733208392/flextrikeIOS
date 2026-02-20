@@ -5,6 +5,7 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import java.util.UUID
+import org.json.JSONArray
 
 /**
  * Room entity representing target configuration for a drill.
@@ -50,3 +51,38 @@ data class DrillTargetsConfigEntity(
     
     val targetVariant: String? = null
 )
+
+/**
+ * Parses targetType which can be either a legacy single value ("ipsc")
+ * or a JSON array string ("[\"ipsc\",\"hostage\"]")
+ */
+fun DrillTargetsConfigEntity.parseTargetTypes(): List<String> {
+    val raw = targetType?.trim() ?: return emptyList()
+    if (raw.isEmpty()) return emptyList()
+
+    return if (raw.startsWith("[")) {
+        try {
+            val json = JSONArray(raw)
+            val parsed = (0 until json.length())
+                .mapNotNull { index -> json.optString(index).takeIf { it.isNotBlank() } }
+            if (parsed.isEmpty()) {
+                println("[DrillTargetsConfigEntity] WARNING: JSON array parsed but resulted in empty list, falling back to single value")
+                listOf(raw)
+            } else {
+                parsed
+            }
+        } catch (e: Exception) {
+            println("[DrillTargetsConfigEntity] ERROR parsing JSON array: ${e.message}, raw='$raw', falling back to single value")
+            listOf(raw)
+        }
+    } else {
+        listOf(raw)
+    }
+}
+
+/**
+ * Gets the primary (first) targetType, with optional fallback
+ */
+fun DrillTargetsConfigEntity.primaryTargetType(default: String = "ipsc"): String {
+    return parseTargetTypes().firstOrNull() ?: default
+}
