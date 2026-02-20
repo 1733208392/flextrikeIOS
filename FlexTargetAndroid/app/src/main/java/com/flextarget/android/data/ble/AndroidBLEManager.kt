@@ -70,6 +70,7 @@ class AndroidBLEManager(private val context: Context) {
 
     internal var writeCompletion: ((Boolean) -> Unit)? = null
     private val messageBuffer = mutableListOf<Byte>()
+    private val messageBufferLock = Any()
     private var pendingPeripheral: DiscoveredPeripheral? = null
     
     // Multi-device discovery properties
@@ -266,12 +267,20 @@ class AndroidBLEManager(private val context: Context) {
         override fun onCharacteristicChanged(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic) {
             val data = characteristic.value ?: return
 
-            // Accumulate received data in buffer
-            messageBuffer.addAll(data.toList())
+            // Accumulate received data in buffer and extract complete messages atomically.
+            // BLE callbacks can arrive on multiple Binder threads.
+            val completeMessages = synchronized(messageBufferLock) {
+                messageBuffer.addAll(data.toList())
+                extractCompleteMessagesFromBuffer()
+            }
 
-            // FW Workaround: Process complete JSON messages from buffer using brace-counting
-            // This handles cases where BLE chunks split JSON messages in the middle
-            processBufferedMessages()
+            completeMessages.forEach { completeMessage ->
+                try {
+                    processMessage(completeMessage)
+                } catch (e: Exception) {
+                    println("Failed to parse BLE message: $completeMessage, error: ${e.message}")
+                }
+            }
         }
 
         override fun onCharacteristicWrite(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic, status: Int) {
@@ -280,12 +289,13 @@ class AndroidBLEManager(private val context: Context) {
         }
     }
 
-    private fun processBufferedMessages() {
+    private fun extractCompleteMessagesFromBuffer(): List<String> {
         // FW Workaround: Extract complete JSON objects from buffer using brace-counting
         // This prevents corrupted partial messages from being parsed
         var currentIndex = 0
         var braceCount = 0
         var messageStart = -1
+        val completeMessages = mutableListOf<String>()
 
         val bufferString = String(messageBuffer.toByteArray(), Charsets.UTF_8)
 
@@ -302,12 +312,7 @@ class AndroidBLEManager(private val context: Context) {
 
                 // Complete message found
                 if (braceCount == 0 && messageStart != -1) {
-                    val completeMessage = bufferString.substring(messageStart, i + 1)
-                    try {
-                        processMessage(completeMessage)
-                    } catch (e: Exception) {
-                        println("Failed to parse BLE message: $completeMessage, error: ${e.message}")
-                    }
+                    completeMessages.add(bufferString.substring(messageStart, i + 1))
                     currentIndex = i + 1
                 }
             }
@@ -321,6 +326,8 @@ class AndroidBLEManager(private val context: Context) {
                 }
             }
         }
+
+        return completeMessages
     }
 
     private fun findLastSeparator(buffer: List<Byte>, separator: List<Byte>): Int {

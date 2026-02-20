@@ -9,7 +9,7 @@
    id="svg1"
    xml:space="preserve"
    inkscape:version="1.4.2 (ebf0e940, 2025-05-08)"
-   sodipodi:docname="ipsc.svg"
+   sodipodi:docname="ipsc-black-2.svg"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
@@ -24,15 +24,15 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
      inkscape:lockguides="false"
-     inkscape:zoom="2.3920869"
-     inkscape:cx="663.64646"
-     inkscape:cy="742.0299"
+     inkscape:zoom="1.7538125"
+     inkscape:cx="133.42361"
+     inkscape:cy="121.73479"
      inkscape:window-width="1352"
-     inkscape:window-height="815"
+     inkscape:window-height="820"
      inkscape:window-x="0"
-     inkscape:window-y="35"
+     inkscape:window-y="30"
      inkscape:window-maximized="1"
-     inkscape:current-layer="layer3"
+     inkscape:current-layer="layer1"
      showgrid="false"><inkscape:page
        x="2.5080624e-15"
        y="0"
@@ -51,9 +51,9 @@
      inkscape:groupmode="layer"
      id="layer1"
      style="display:inline"
-     transform="translate(-30.829697,-119.11689)"><g
+     transform="translate(-51.77403,-27.581544)"><g
        id="g18-2-4"
-       transform="matrix(0.06412931,0,0,0.06412931,27.777161,96.549798)"
+       transform="matrix(0.06412931,0,0,0.06412931,48.721486,5.0144329)"
        inkscape:export-filename="../Documents/flextrikeIOS/flextarget/Assets.xcassets/special_2.imageset/special.2.pdf"
        inkscape:export-xdpi="10.311548"
        inkscape:export-ydpi="10.311548">
@@ -179,7 +179,7 @@
 </g><path
        id="rect18-3-2"
        style="fill:#000000;stroke:none;stroke-width:0.121189;stroke-linecap:round"
-       d="m 93.994176,144.96112 -20.5342,-25.60683 v 0 l -22.17301,77.76309 22.13744,-0.20521 20.34823,-25.50423 c 0,0 0.22158,-9.12732 0.22148,-26.44682 z"
+       d="M 115.16441,53.432214 94.630209,27.825384 v 0 l -22.17301,77.763096 22.13744,-0.20521 20.348231,-25.504236 c 0,0 0.22158,-9.12732 0.22148,-26.44682 z"
        sodipodi:nodetypes="cccccccc" /></g><style
      type="text/css"
      id="style1">

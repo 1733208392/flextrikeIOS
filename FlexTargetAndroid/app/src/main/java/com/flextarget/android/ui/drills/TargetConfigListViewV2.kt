@@ -1,8 +1,15 @@
 package com.flextarget.android.ui.drills
 
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.RepeatMode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -11,22 +18,27 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.Image
+import coil.compose.AsyncImage
 import com.flextarget.android.R
 import com.flextarget.android.data.ble.BLEManager
 import com.flextarget.android.data.ble.NetworkDevice
 import com.flextarget.android.data.model.DrillTargetsConfigData
 import org.json.JSONObject
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TargetConfigListViewV2(
@@ -34,6 +46,7 @@ fun TargetConfigListViewV2(
     targetConfigs: List<DrillTargetsConfigData>,
     drillMode: String,
     onUpdateTargetTypes: (Int, List<String>) -> Unit,
+    onAddTarget: () -> Unit = {},
     onDone: () -> Unit,
     onBack: () -> Unit
 ) {
@@ -46,9 +59,10 @@ fun TargetConfigListViewV2(
         mutableStateOf(primaryConfig.parseTargetTypes())
     }
     var currentTypeIndex by remember { mutableStateOf(0) }
+    var isDeleteMode by remember { mutableStateOf(false) }
 
     val availableTargetTypes = when (drillMode) {
-        "ipsc" -> listOf("ipsc", "hostage", "paddle", "popper", "rotation", "special_1", "special_2")
+        "ipsc" -> listOf("ipsc", "hostage", "paddle", "popper", "special_1", "special_2")
         "idpa" -> listOf("idpa", "idpa_ns", "idpa_black_1", "idpa_black_2")
         "cqb" -> listOf("cqb_swing", "cqb_front", "cqb_move", "disguised_enemy", "cqb_hostage")
         else -> listOf("ipsc")
@@ -93,7 +107,13 @@ fun TargetConfigListViewV2(
                 onTypeIndexChange = { currentTypeIndex = it },
                 accentColor = accentRed,
                 darkGrayColor = darkGray,
-                isDraggingOver = false
+                isDeleteMode = isDeleteMode,
+                onDeleteModeChange = { isDeleteMode = it },
+                onRemoveType = { index ->
+                    selectedTargetTypes = selectedTargetTypes.toMutableList().also { it.removeAt(index) }
+                    onUpdateTargetTypes(0, selectedTargetTypes)
+                    isDeleteMode = false
+                }
             )
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -102,9 +122,7 @@ fun TargetConfigListViewV2(
             TargetTypeSelectionViewV2(
                 availableTargetTypes = availableTargetTypes,
                 selectedTargetTypes = selectedTargetTypes,
-                drillMode = drillMode,
                 accentColor = accentRed,
-                darkGrayColor = darkGray,
                 onTypesChanged = { newTypes ->
                     selectedTargetTypes = newTypes
                     onUpdateTargetTypes(0, newTypes)
@@ -124,6 +142,40 @@ fun TargetConfigListViewV2(
     }
 }
 
+private fun getIconForTargetType(type: String): String {
+    return when (type) {
+        "hostage" -> "hostage.png"
+        "ipsc" -> "ipsc.png"
+        "special_1" -> "ipsc_black_1.png"
+        "special_2" -> "ipsc_black_2.png"
+        "paddle" -> "paddle.png"
+        "popper" -> "popper.png"
+        // "rotation" -> "rotation.svg"
+        "idpa" -> "idpa.svg"
+        "idpa_ns" -> "idpa-ns.svg"
+        "idpa_black_1" -> "idpa-hard-cover-1.svg"
+        "idpa_black_2" -> "idpa-hard-cover-2.svg"
+        "cqb_front" -> "cqb_front.svg"
+        "cqb_hostage" -> "cqb_hostoage.svg"
+        "cqb_swing" -> "cqb_swing.svg"
+        "cqb_move" -> "cqb_move.svg"
+        "disguised_enemy" -> "disguise_enemy.svg"
+        else -> "ipsc.png" // default icon
+    }
+}
+
+private fun getDrawableResourceId(type: String): Int {
+    return when (type) {
+        "hostage" -> R.drawable.hostage
+        "ipsc" -> R.drawable.ipsc
+        "special_1" -> R.drawable.ipsc_black_1
+        "special_2" -> R.drawable.ipsc_black_2
+        "paddle" -> R.drawable.paddle
+        "popper" -> R.drawable.popper
+        else -> 0
+    }
+}
+
 @Composable
 private fun TargetRectSection(
     selectedTargetTypes: List<String>,
@@ -131,8 +183,30 @@ private fun TargetRectSection(
     onTypeIndexChange: (Int) -> Unit,
     accentColor: Color,
     darkGrayColor: Color,
-    isDraggingOver: Boolean
+    isDeleteMode: Boolean,
+    onDeleteModeChange: (Boolean) -> Unit,
+    onRemoveType: (Int) -> Unit
 ) {
+    // Wiggle animation for delete mode 
+    var rotationState by remember { mutableStateOf(-2f) }
+    
+    if (isDeleteMode) {
+        LaunchedEffect(isDeleteMode) {
+            var isForward = true
+            while (isDeleteMode) {
+                for (i in 0 until 10) {
+                    rotationState = if (isForward) -2f + (i * 0.4f) else 2f - (i * 0.4f)
+                    kotlinx.coroutines.delay(10)
+                }
+                isForward = !isForward
+            }
+        }
+    } else {
+        rotationState = 0f
+    }
+    
+    val displayRotation = rotationState
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -152,6 +226,37 @@ private fun TargetRectSection(
                         ),
                         style = androidx.compose.ui.graphics.drawscope.Stroke(borderStroke)
                     )
+                }
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onLongPress = {
+                            if (!selectedTargetTypes.isEmpty()) {
+                                onDeleteModeChange(!isDeleteMode)
+                            }
+                        }
+                    )
+                }
+                .pointerInput(currentTypeIndex) {
+                    var totalDragX = 0f
+                    detectDragGestures(
+                        onDragStart = {
+                            totalDragX = 0f
+                        },
+                        onDragEnd = {
+                            // Check total drag distance
+                            if (totalDragX < 50 && currentTypeIndex < selectedTargetTypes.size - 1) {
+                                // Swiped Left - go to next target
+                                onTypeIndexChange(currentTypeIndex + 1)
+                            } else if (totalDragX > -50 && currentTypeIndex > 0) {
+                                // Swiped Right - go to previous target
+                                onTypeIndexChange(currentTypeIndex - 1)
+                            }
+                            totalDragX = 0f
+                        }
+                    ) { change, dragAmount ->
+                        totalDragX += dragAmount.x
+                        change.consume()
+                    }
                 },
             contentAlignment = Alignment.Center
         ) {
@@ -160,22 +265,52 @@ private fun TargetRectSection(
                     imageVector = Icons.Default.Add,
                     contentDescription = "Add target type",
                     modifier = Modifier.size(80.dp),
-                    tint = if (isDraggingOver) accentColor else Color.White.copy(alpha = 0.75f)
+                    tint = Color.White.copy(alpha = 0.75f)
                 )
             } else {
-                // Show current type image
+                // Show current type icon with wiggle if in delete mode
                 val currentType = selectedTargetTypes[minOf(currentTypeIndex, selectedTargetTypes.size - 1)]
+                val fileName = getIconForTargetType(currentType)
+                
+                val maxHeight = 316.dp  // 320dp - 4dp padding on each side
+                
                 Box(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .rotate(displayRotation),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = currentType.take(2).uppercase(),
-                        fontSize = 48.sp,
-                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-                        color = Color.White,
-                        modifier = Modifier.padding(18.dp)
-                    )
+                    if (fileName.endsWith(".png")) {
+                        // Load PNG from drawable resources
+                        val drawableResId = getDrawableResourceId(currentType)
+                        if (drawableResId != 0) {
+                            Image(
+                                painter = painterResource(id = drawableResId),
+                                contentDescription = currentType,
+                                modifier = Modifier
+                                    .fillMaxWidth(0.9f)
+//                                    .fillMaxWidth(
+//                                        fraction = if (currentType == "paddle" || currentType == "popper") 0.8f else 1f
+//                                    )
+                                    .heightIn(max = maxHeight)
+                                    .padding(2.dp),
+                                contentScale = ContentScale.FillWidth
+                            )
+                        }
+                    } else {
+                        // Load SVG from assets
+                        AsyncImage(
+                            model = "file:///android_asset/$fileName",
+                            contentDescription = currentType,
+                            modifier = Modifier
+                                .fillMaxWidth(
+                                    fraction = if (currentType == "paddle" || currentType == "popper") 0.5f else 1f
+                                )
+                                .heightIn(max = maxHeight)
+                                .padding(4.dp),
+                            contentScale = ContentScale.Fit
+                        )
+                    }
                 }
             }
 
@@ -191,10 +326,30 @@ private fun TargetRectSection(
                         .padding(end = 20.dp, top = 20.dp)
                 )
             }
+
+            // Delete button in delete mode - TOP RIGHT
+            if (isDeleteMode && selectedTargetTypes.isNotEmpty()) {
+                IconButton(
+                    onClick = {
+                        onRemoveType(currentTypeIndex)
+                    },
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(end = 8.dp, top = 8.dp)
+                        .background(accentColor, shape = androidx.compose.foundation.shape.CircleShape)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Delete",
+                        tint = Color.Black,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
         }
 
         // Page Indicator Dots
-        if (selectedTargetTypes.size > 1) {
+        if (selectedTargetTypes.isNotEmpty()) {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.padding(top = 8.dp)
@@ -221,67 +376,156 @@ private fun TargetRectSection(
 private fun TargetTypeSelectionViewV2(
     availableTargetTypes: List<String>,
     selectedTargetTypes: List<String>,
-    drillMode: String,
     accentColor: Color,
-    darkGrayColor: Color,
     onTypesChanged: (List<String>) -> Unit
 ) {
+    var isSelectingMode by remember { mutableStateOf(false) }
+    var rotationState by remember { mutableStateOf(0f) }
+
+    // Shared wiggle animation for all target type icons
+    if (isSelectingMode) {
+        LaunchedEffect(isSelectingMode) {
+            var isForward = true
+            while (isSelectingMode) {
+                for (i in 0 until 10) {
+                    rotationState = if (isForward) -2f + (i * 0.4f) else 2f - (i * 0.4f)
+                    kotlinx.coroutines.delay(10)
+                }
+                isForward = !isForward
+            }
+        }
+    } else {
+        rotationState = 0f
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 24.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Instruction Text
-        Text(
-            "Please drag the target type into above rectangle to complete the selection",
-            color = Color.Gray,
-            fontSize = 12.sp,
-            modifier = Modifier.padding(horizontal = 24.dp)
+        // Tap area above LazyRow to close selection
+        Spacer(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(12.dp)
+                .clickable(
+                    enabled = isSelectingMode,
+                    indication = null,
+                    interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+                ) {
+                    if (isSelectingMode) {
+                        isSelectingMode = false
+                    }
+                }
         )
 
-        // Type Icons Grid/Row
+        // Type Icons Grid/Row - scrollable with swipe anywhere
         LazyRow(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(160.dp)
                 .background(
-                    color = Color(red = 0.098f, green = 0.098f, blue = 0.098f),
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(4.dp)
+                    color = Color.Black,
                 )
                 .padding(8.dp),
             horizontalArrangement = Arrangement.spacedBy(18.dp),
             contentPadding = PaddingValues(2.dp)
         ) {
             itemsIndexed(availableTargetTypes) { _, type ->
+                val svgFileName = getIconForTargetType(type)
+                val displayRotation = if (isSelectingMode) rotationState else 0f
+
                 Box(
                     modifier = Modifier
                         .size(90.dp, 160.dp)
-                        .border(1.dp, accentColor, androidx.compose.foundation.shape.RoundedCornerShape(4.dp))
-                        .clickable {
-                            if (!selectedTargetTypes.contains(type)) {
-                                onTypesChanged(selectedTargetTypes + type)
-                            }
+                        .pointerInput(type) {
+                            detectTapGestures(
+                                onTap = {
+                                    // Any tap closes selection mode
+                                    if (isSelectingMode) {
+                                        isSelectingMode = false
+                                    }
+                                },
+                                onLongPress = {
+                                    isSelectingMode = !isSelectingMode
+                                }
+                            )
                         },
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = type.take(4).uppercase(),
-                        fontSize = 16.sp,
-                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-                        color = accentColor,
-                        modifier = Modifier.padding(10.dp)
-                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .rotate(displayRotation),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (svgFileName.endsWith(".png")) {
+                            // Load PNG from drawable resources
+                            val drawableResId = getDrawableResourceId(type)
+                            if (drawableResId != 0) {
+                                Image(
+                                    painter = painterResource(id = drawableResId),
+                                    contentDescription = type,
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(8.dp),
+                                    contentScale = ContentScale.Fit
+                                )
+                            }
+                        } else {
+                            // Load SVG from assets
+                            AsyncImage(
+                                model = "file:///android_asset/$svgFileName",
+                                contentDescription = type,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(8.dp),
+                                contentScale = ContentScale.Fit
+                            )
+                        }
+                    }
+
+                    // Plus button when in selecting mode - TOP RIGHT
+                    if (isSelectingMode) {
+                        IconButton(
+                            onClick = {
+                                if (!selectedTargetTypes.contains(type)) {
+                                    onTypesChanged(selectedTargetTypes + type)
+                                }
+                            },
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(end = 4.dp, top = 4.dp)
+                                .background(accentColor, shape = androidx.compose.foundation.shape.CircleShape)
+                                .size(28.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = "Add",
+                                tint = Color.Black,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
                 }
             }
         }
 
-        // Divider
-        Divider(
+        // Tap area below LazyRow to close selection
+        Spacer(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(1.dp),
-            color = accentColor
+                .height(12.dp)
+                .clickable(
+                    enabled = isSelectingMode,
+                    indication = null,
+                    interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+                ) {
+                    if (isSelectingMode) {
+                        isSelectingMode = false
+                    }
+                }
         )
     }
 }

@@ -76,6 +76,7 @@ fun DrillFormView(
     var repeats by remember(existingDrill) { mutableStateOf(existingDrill?.repeats ?: 1) }
     var pause by remember(existingDrill) { mutableStateOf(existingDrill?.pause ?: 5) }
     var targets by remember { mutableStateOf<List<DrillTargetsConfigData>>(emptyList()) }
+    var autoAddedDeviceIds by remember { mutableStateOf(setOf<String>()) }
     val isTargetListReceivedDerived by derivedStateOf { bleManager.networkDevices.isNotEmpty() }
     var currentScreen by remember { mutableStateOf(DrillFormScreen.FORM) }
     var showEditDisabledAlert by remember { mutableStateOf(false) }
@@ -114,6 +115,39 @@ fun DrillFormView(
                 targets = loadedTargets
             } catch (e: Exception) {
                 e.printStackTrace()
+            }
+        }
+    }
+
+    // Auto-add targets from available devices when devices are detected
+    LaunchedEffect(bleManager.networkDevices) {
+        if (bleManager.networkDevices.isNotEmpty() && existingDrill == null) {
+            // Only auto-populate for new drills
+            // Find devices that haven't been auto-added yet
+            val devicesToAdd = bleManager.networkDevices.filter { 
+                !autoAddedDeviceIds.contains(it.id.toString())
+            }
+            
+            println("[DrillFormView.LaunchedEffect] networkDevices.size=${bleManager.networkDevices.size}, devicesToAdd.size=${devicesToAdd.size}, currentTargets.size=${targets.size}")
+            
+            // Add a target for each new device with the device name assigned
+            devicesToAdd.forEach { device ->
+                val nextSeqNo = (targets.maxOfOrNull { it.seqNo } ?: 0) + 1
+                println("[DrillFormView] Auto-adding target for device: ${device.name} (${device.id})")
+                targets = targets + DrillTargetsConfigData(
+                    seqNo = nextSeqNo,
+                    targetName = device.name,  // Assign device name directly
+                    targetType = DrillTargetsConfigData.getDefaultTargetTypeForDrillMode(drillMode),
+                    timeout = 30.0,
+                    countedShots = 5
+                )
+                // Mark this device as auto-added
+                autoAddedDeviceIds = autoAddedDeviceIds + device.id.toString()
+                println("[DrillFormView] Auto-added targets count: ${targets.size}")
+            }
+            println("[DrillFormView.LaunchedEffect] FINAL targets.size=${targets.size}")
+            targets.forEachIndexed { index, target ->
+                println("[DrillFormView.LaunchedEffect] FinalTarget[$index]: name='${target.targetName}', type='${target.targetType}'")
             }
         }
     }
@@ -245,11 +279,15 @@ fun DrillFormView(
                         IconButton(
                             onClick = {
                                 val maxTargets = bleManager.networkDevices.size
-                                if (targets.size < maxTargets) {
+                                // Only add if we haven't already auto-added all devices
+                                val assignedDevices = targets.mapNotNull { it.targetName.takeIf { name -> name.isNotBlank() } }.toSet()
+                                val availableDeviceNames = bleManager.networkDevices.map { it.name }.filter { !assignedDevices.contains(it) }
+                                
+                                if (availableDeviceNames.isNotEmpty()) {
                                     val nextSeqNo = (targets.maxOfOrNull { it.seqNo } ?: 0) + 1
                                     targets = targets + DrillTargetsConfigData(
                                         seqNo = nextSeqNo,
-                                        targetName = "",
+                                        targetName = availableDeviceNames.first(),  // Assign first available device
                                         targetType = DrillTargetsConfigData.getDefaultTargetTypeForDrillMode(drillMode),
                                         timeout = 30.0,
                                         countedShots = 5
@@ -349,6 +387,10 @@ fun DrillFormView(
             // Normal form view
             when (currentScreen) {
                 DrillFormScreen.FORM -> {
+                    println("[DrillFormView.FormScreen] Rendering FORM screen - targets count: ${targets.size}")
+                    targets.forEachIndexed { index, target ->
+                        println("[DrillFormView.FormScreen] Target[$index]: name='${target.targetName}', type='${target.targetType}'")
+                    }
                     FormScreen(
                         drillName = drillName,
                         onDrillNameChange = { drillName = it },
@@ -395,6 +437,22 @@ fun DrillFormView(
                                         targetType = DrillTargetsConfigData.encodeTargetTypes(types)
                                     )
                                 }.toList()
+                            }
+                        },
+                        onAddTarget = {
+                            // Only add if we haven't already auto-added all devices
+                            val assignedDevices = targets.mapNotNull { it.targetName.takeIf { name -> name.isNotBlank() } }.toSet()
+                            val availableDeviceNames = bleManager.networkDevices.map { it.name }.filter { !assignedDevices.contains(it) }
+                            
+                            if (availableDeviceNames.isNotEmpty()) {
+                                val nextSeqNo = (targets.maxOfOrNull { it.seqNo } ?: 0) + 1
+                                targets = targets + DrillTargetsConfigData(
+                                    seqNo = nextSeqNo,
+                                    targetName = availableDeviceNames.first(),  // Assign first available device
+                                    targetType = DrillTargetsConfigData.getDefaultTargetTypeForDrillMode(drillMode),
+                                    timeout = 30.0,
+                                    countedShots = 5
+                                )
                             }
                         },
                         onDone = {
@@ -562,6 +620,11 @@ private fun FormScreen(
                 Button(
                     onClick = {
                         coroutineScope.launch {
+                            println("[FormScreen] START DRILL BUTTON CLICKED - targets count: ${targets.size}")
+                            targets.forEachIndexed { index, target ->
+                                println("[FormScreen] Target[$index]: name='${target.targetName}', type='${target.targetType}', seqNo=${target.seqNo}")
+                            }
+                            
                             val sessionDrill = (existingDrill ?: DrillSetupEntity()).copy(
                                 name = drillName,
                                 desc = description,
@@ -581,6 +644,11 @@ private fun FormScreen(
                                     countedShots = target.countedShots,
                                     drillSetupId = sessionDrill.id
                                 )
+                            }
+                            
+                            println("[FormScreen] SESSION TARGETS CREATED - count: ${sessionTargets.size}")
+                            sessionTargets.forEachIndexed { index, target ->
+                                println("[FormScreen] SessionTarget[$index]: name='${target.targetName}', type='${target.targetType}', seqNo=${target.seqNo}")
                             }
 
                             // Auto-save if new drill
