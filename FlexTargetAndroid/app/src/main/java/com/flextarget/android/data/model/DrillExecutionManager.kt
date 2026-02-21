@@ -203,14 +203,25 @@ class DrillExecutionManager(
 
         val sortedTargets = targets.sortedBy { it.seqNo }
 
-        for ((index, target) in sortedTargets.withIndex()) {
-            // Parse all targetTypes from the target configuration using the extension function
-            val allTargetTypes = target.parseTargetTypes().ifEmpty { listOf("ipsc") }  // Default to ["ipsc"] if parsing fails or results in empty list
-            val primaryType = allTargetTypes.firstOrNull() ?: ""
-            println("[DrillExecutionManager] sendReadyCommands() - target: ${target.targetName}, raw targetType: '${target.targetType}', parsed targetTypes: $allTargetTypes, primary: $primaryType")
+        // CRITICAL FIX: Group by device to avoid sending duplicate ready commands
+        // When a drill is expanded (e.g., ["ipsc", "hostage", "paddle"]), it creates 3 separate
+        // targets all with the same deviceId. We should send only ONE ready command per device.
+        val targetsByDevice = sortedTargets.groupBy { it.targetName }
+        val deviceList = sortedTargets.map { it.targetName }.distinct()
+
+        for ((deviceIndex, deviceId) in deviceList.withIndex()) {
+            // Get all targets for this device
+            val deviceTargets = targetsByDevice[deviceId] ?: emptyList()
+            // Use the first target's config as the representative
+            val target = deviceTargets.firstOrNull() ?: continue
+
+            // Collect all targetTypes from all targets on this device
+            val allDeviceTargetTypes = deviceTargets.flatMap { it.parseTargetTypes() }.distinct()
+            val primaryType = allDeviceTargetTypes.firstOrNull() ?: ""
+            println("[DrillExecutionManager] sendReadyCommands() - device: $deviceId, targetTypes: $allDeviceTargetTypes, primary: $primaryType")
 
             // For backward compatibility: send single type as string, multiple types as array
-            val targetTypeValue: Any = if (allTargetTypes.size == 1) primaryType else allTargetTypes
+            val targetTypeValue: Any = if (allDeviceTargetTypes.size == 1) primaryType else allDeviceTargetTypes
 
             val content = if (primaryType == "disguised_enemy") {
                 mapOf(
@@ -229,8 +240,8 @@ class DrillExecutionManager(
                     "timeout" to 1200,
                     "countedShots" to target.countedShots,
                     "repeat" to currentRepeat,
-                    "isFirst" to (index == 0),
-                    "isLast" to (index == sortedTargets.size - 1),
+                    "isFirst" to (deviceIndex == 0),
+                    "isLast" to (deviceIndex == deviceList.size - 1),
                     "mode" to (drillSetup.mode ?: "ipsc")
                 )
             }
@@ -242,7 +253,7 @@ class DrillExecutionManager(
             )
 
             val messageData = Gson().toJson(message)
-            Log.d("DrillExecutionManager","Sending ready message for target ${target.targetName}, targetType: $targetTypeValue, Data: ${messageData}")
+            Log.d("DrillExecutionManager","Sending ready message for device $deviceId, targetTypes: $targetTypeValue, Data: ${messageData}")
             bleManager.writeJSON(messageData)
 
             // Send animation_config if CQB mode and action is set

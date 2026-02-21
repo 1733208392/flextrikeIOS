@@ -33,6 +33,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.flextarget.android.R
 import com.flextarget.android.data.model.DrillTargetsConfigData
+import com.flextarget.android.data.model.toExpandedDataObjects
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -272,9 +273,7 @@ private fun HistoryTabContent(navController: NavHostController) {
     LaunchedEffect(selectedDrillSetup) {
         selectedDrillSetup?.let { setup ->
             val setupWithTargets = drillSetupRepository.getDrillSetupWithTargets(setup.id)
-            drillTargets = DrillTargetsConfigData.expandMultiTargetEntities(
-                setupWithTargets?.targets ?: emptyList()
-            )
+            drillTargets = (setupWithTargets?.targets ?: emptyList()).toExpandedDataObjects()
         }
     }
 

@@ -36,6 +36,7 @@ import com.flextarget.android.ui.drills.TimingCalculator
 import com.flextarget.android.data.ble.AndroidBLEManager
 import com.flextarget.android.data.model.DrillRepeatSummary
 import com.flextarget.android.data.model.DrillTargetsConfigData
+import com.flextarget.android.data.model.toExpandedDataObjects
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.flextarget.android.R
@@ -117,7 +118,7 @@ fun CompetitionDetailView(
         )
     } else if (showResultDetails && selectedResultDrill != null && selectedDetailsSummary != null) {
         // Show drill result details from competition results
-        val targetsData = DrillTargetsConfigData.expandMultiTargetEntities(resultDrillTargets)
+        val targetsData = resultDrillTargets.toExpandedDataObjects()
         
         DrillResultView(
             drillSetup = selectedResultDrill!!,

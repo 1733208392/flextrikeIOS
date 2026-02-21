@@ -48,11 +48,21 @@ fun DrillResultView(
     onBack: () -> Unit = {}
 ) {
     val displayShots = repeatSummary?.shots ?: shots
+    
+    // Convert to type-safe display format using new architecture
+    val displayTargets = targets.toDisplayTargets()
 
     // DEBUG: Log initialization
-    println("[DrillResultView] Initialized with ${targets.size} targets, ${displayShots.size} shots")
-    targets.forEachIndexed { index, target ->
-        println("[DrillResultView]   Target $index: name=${target.targetName}, type=${target.targetType}, seqNo=${target.seqNo}")
+    println("[DrillResultView] Initialized with ${displayTargets.size} targets, ${displayShots.size} shots")
+    displayTargets.forEachIndexed { index, target ->
+        when (target) {
+            is DrillTargetState.SingleTarget -> {
+                println("[DrillResultView]   Target $index (Single): name=${target.targetName}, type=${target.targetType.value}")
+            }
+            is DrillTargetState.ExpandedMultiTarget -> {
+                println("[DrillResultView]   Target $index (Expanded): deviceId=${target.deviceId.value}, type=${target.targetType.value}, seqNo=${target.seqNo}")
+            }
+        }
     }
 
     // State for target selection and shot selection
@@ -101,7 +111,7 @@ fun DrillResultView(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             TargetDisplayView(
-                targets = targets,
+                targets = displayTargets,
                 shots = displayShots,
                 selectedTargetIndex = selectedTargetIndex,
                 selectedShotIndex = selectedShotIndex,
@@ -115,7 +125,7 @@ fun DrillResultView(
                 shots = displayShots,
                 selectedTargetIndex = selectedTargetIndex,
                 selectedShotIndex = selectedShotIndex,
-                targets = targets,
+                targets = displayTargets,
                 onShotSelected = { selectedShotIndex = it },
                 modifier = Modifier
                     .weight(0.3f)
@@ -151,33 +161,25 @@ private fun getTargetImageResId(targetType: String): Int? {
 
 /**
  * Determines if a shot matches a target configuration.
- * Ported from iOS TargetDisplay.matches() method.
+ * Uses explicit type-based matching for expanded multi-targets,
+ * device name matching for single targets.
  * 
- * For multi-target: matches ONLY by targetType (after expansion)
- * For single-target: matches by targetType, falls back to device name if no type match
+ * This function is the SAME as in ShotMatchingTests - they must stay in sync!
  */
-private fun shotMatchesTarget(
-    shot: ShotData,
-    target: DrillTargetsConfigData
-): Boolean {
+private fun shotMatchesTarget(shot: ShotData, target: DrillTargetState): Boolean {
     val shotDevice = shot.device?.trim()?.lowercase()
-    val targetName = target.targetName?.trim()?.lowercase()
     val shotTargetType = shot.content.actualTargetType.lowercase()
-    val targetType = target.targetType.lowercase()
 
-    // Check if targetType is a JSON array (not properly expanded)
-    val isExpandedTarget = !targetType.startsWith("[")
-
-    return when {
-        // For expanded targets (single type, not JSON array), match ONLY by type
-        // This prevents fallback device matching from incorrectly matching all shots to all targets
-        isExpandedTarget && targetType == shotTargetType -> true
-        
-        // For unexpanded targets (JSON array) or as fallback, match by device name
-        // Only use this fallback if we didn't already match by type above
-        !isExpandedTarget && targetName != null && shotDevice == targetName -> true
-        
-        else -> false
+    return when (target) {
+        is DrillTargetState.ExpandedMultiTarget -> {
+            // For expanded targets, ONLY match by type
+            // Never use device fallback (prevents all-shots-on-all-targets bug)
+            shotTargetType == target.targetType.value.lowercase()
+        }
+        is DrillTargetState.SingleTarget -> {
+            // For single targets, match by device name
+            shotDevice == target.targetName.lowercase()
+        }
     }
 }
 
@@ -187,7 +189,7 @@ private fun shotMatchesTarget(
  */
 @Composable
 private fun TargetDisplayView(
-    targets: List<DrillTargetsConfigData>,
+    targets: List<DrillTargetState>,
     shots: List<ShotData>,
     selectedTargetIndex: Int,
     selectedShotIndex: Int?,
@@ -195,10 +197,20 @@ private fun TargetDisplayView(
     modifier: Modifier = Modifier
 ) {
     val currentTarget = targets.getOrNull(selectedTargetIndex)
-    val targetType = currentTarget?.targetType ?: "ipsc"
+    val targetType = when (currentTarget) {
+        is DrillTargetState.SingleTarget -> currentTarget.targetType.value
+        is DrillTargetState.ExpandedMultiTarget -> currentTarget.targetType.value
+        null -> "ipsc"
+    }
     val targetResId = getTargetImageResId(targetType)
     
-    println("[TargetDisplayView] Displaying target ${selectedTargetIndex + 1}/${targets.size}: targetType=$targetType, resId=$targetResId, targetName=${currentTarget?.targetName}")
+    println("[TargetDisplayView] Displaying target ${selectedTargetIndex + 1}/${targets.size}: targetType=$targetType, resId=$targetResId")
+    if (currentTarget != null) {
+        when (currentTarget) {
+            is DrillTargetState.SingleTarget -> println("[TargetDisplayView]   Type: SingleTarget(name=${currentTarget.targetName})")
+            is DrillTargetState.ExpandedMultiTarget -> println("[TargetDisplayView]   Type: ExpandedMultiTarget(deviceId=${currentTarget.deviceId.value}, seqNo=${currentTarget.seqNo})")
+        }
+    }
 
     Box(
         modifier = modifier
@@ -237,14 +249,18 @@ private fun TargetDisplayView(
             }
 
             // Target name overlay in top right corner
-            val displayName = currentTarget?.targetName ?: currentTarget?.targetType ?: "Target"
+            val displayName = when (currentTarget) {
+                is DrillTargetState.SingleTarget -> currentTarget.targetName
+                is DrillTargetState.ExpandedMultiTarget -> currentTarget.targetName
+                null -> "Target"
+            }
             Text(
                 text = displayName,
                 color = Color.White,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier
-                    .align(Alignment.TopEnd)
+                    .align(Alignment.TopCenter)
                     .padding(8.dp)
             )
 
@@ -347,7 +363,7 @@ private fun ShotListView(
     shots: List<ShotData>,
     selectedTargetIndex: Int,
     selectedShotIndex: Int?,
-    targets: List<DrillTargetsConfigData>,
+    targets: List<DrillTargetState>,
     onShotSelected: (Int?) -> Unit,
     modifier: Modifier = Modifier
 ) {

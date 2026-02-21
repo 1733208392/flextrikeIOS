@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.flextarget.android.data.local.entity.DrillResultWithShots
 import com.flextarget.android.data.model.DrillRepeatSummary
 import com.flextarget.android.data.model.ShotData
+import com.flextarget.android.data.model.toExpandedDataObjects
 import com.flextarget.android.data.repository.DrillResultRepository
 import com.flextarget.android.data.repository.DrillSetupRepository
 import com.google.gson.Gson
@@ -137,9 +138,7 @@ class DrillRecordViewModel(
 
     suspend fun getTargetsForDrill(drillId: UUID): List<com.flextarget.android.data.model.DrillTargetsConfigData> {
         val drillWithTargets = drillSetupRepository.getDrillSetupWithTargets(drillId)
-        return com.flextarget.android.data.model.DrillTargetsConfigData.expandMultiTargetEntities(
-            drillWithTargets?.targets ?: emptyList()
-        )
+        return (drillWithTargets?.targets ?: emptyList()).toExpandedDataObjects()
     }
 
     class Factory(

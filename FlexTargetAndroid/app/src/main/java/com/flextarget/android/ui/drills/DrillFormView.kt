@@ -31,6 +31,7 @@ import com.flextarget.android.data.repository.DrillSetupRepository
 import com.flextarget.android.ui.viewmodel.DrillFormViewModel
 import com.flextarget.android.data.model.DrillRepeatSummary
 import com.flextarget.android.data.model.DrillTargetsConfigData
+import com.flextarget.android.data.model.toExpandedDataObjects
 import com.flextarget.android.ui.drills.TargetConfigListView
 import com.flextarget.android.ui.drills.TargetConfigListViewV2
 import kotlinx.coroutines.CoroutineScope
@@ -332,7 +333,7 @@ fun DrillFormView(
                     if (timerSessionDrill != null && selectedResultSummary != null) {
                         DrillResultView(
                             drillSetup = timerSessionDrill!!,
-                            targets = DrillTargetsConfigData.expandMultiTargets(timerSessionTargets.map { DrillTargetsConfigData.fromEntity(it) }),
+                            targets = timerSessionTargets.toExpandedDataObjects(),
                             repeatSummary = selectedResultSummary,
                             onBack = onBackFromResultCallback
                         )

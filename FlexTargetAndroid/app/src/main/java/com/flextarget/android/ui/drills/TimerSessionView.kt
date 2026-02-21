@@ -40,6 +40,7 @@ import com.flextarget.android.data.local.entity.DrillTargetsConfigEntity
 import com.flextarget.android.data.model.DrillExecutionManager
 import com.flextarget.android.data.model.DrillRepeatSummary
 import com.flextarget.android.data.model.DrillTargetsConfigData
+import com.flextarget.android.data.model.toExpandedDataObjects
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.random.Random
@@ -320,9 +321,12 @@ fun TimerSessionView(
         executionManager?.stopExecution()
 
         // Extract expected devices from drill targets
-        // Convert entities to data objects and expand multi-targets first
-        val expandedTargets = DrillTargetsConfigData.expandMultiTargetEntities(targets)
-        val expectedDevicesList = expandedTargets.mapNotNull { it.targetName }
+        // Convert entities to data objects and expand multi-targets using centralized extension function
+        val expandedTargets = targets.toExpandedDataObjects()
+        // CRITICAL: Use distinct() to avoid duplicate devices in expectedDevices
+        // When a drill is multi-target (e.g., 3 types on same device), this creates 3 target objects
+        // all with the same deviceId. We only send ONE ready per device, so we expect ONE ACK per device.
+        val expectedDevicesList = expandedTargets.mapNotNull { it.targetName }.distinct()
         expectedDevices = expectedDevicesList
 
         // Initialize state

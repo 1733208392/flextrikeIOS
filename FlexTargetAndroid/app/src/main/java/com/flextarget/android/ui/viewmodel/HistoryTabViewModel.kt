@@ -8,6 +8,7 @@ import com.flextarget.android.data.model.DrillRepeatSummary
 import com.flextarget.android.data.model.DrillTargetsConfigData
 import com.flextarget.android.data.model.ShotData
 import com.flextarget.android.data.model.ScoringUtility
+import com.flextarget.android.data.model.toExpandedDataObjects
 import com.flextarget.android.data.repository.DrillResultRepository
 import com.flextarget.android.data.repository.DrillSetupRepository
 import com.flextarget.android.ui.drills.DrillSession
@@ -143,8 +144,8 @@ class HistoryTabViewModel(
             val firstShot = sortedShots.firstOrNull()?.content?.actualTimeDiff ?: 0.0
             
             // Calculate score using ScoringUtility
-            // Convert and expand targets from entities to data objects
-            val expandedTargets = DrillTargetsConfigData.expandMultiTargetEntities(targets)
+            // Convert and expand targets from entities to data objects using extension function
+            val expandedTargets = targets.toExpandedDataObjects()
             val totalScore = ScoringUtility.calculateTotalScore(sortedShots, expandedTargets).toInt()
 
             return DrillRepeatSummary(
