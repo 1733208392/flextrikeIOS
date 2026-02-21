@@ -572,6 +572,7 @@ struct DrillResultView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(Color.black.edgesIgnoringSafeArea(.all))
             }
+            .accentColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
             .navigationTitle("Result")
             .tint(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                 .onAppear {
