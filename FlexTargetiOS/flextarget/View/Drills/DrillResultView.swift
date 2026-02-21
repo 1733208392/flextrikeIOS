@@ -567,25 +567,13 @@ struct DrillResultView: View {
                     }
                     .frame(maxHeight: 200)
 
-                    // Simple status row
-                    HStack(spacing: 12) {
-                        Text(drillStatus)
-                            .font(.headline)
-                            .foregroundColor(.white)
-                        Spacer()
-                        Text("\(shots.count) shots")
-                            .font(.subheadline)
-                            .foregroundColor(.white.opacity(0.85))
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 20)
-
                     Spacer()
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(Color.black.edgesIgnoringSafeArea(.all))
             }
-            .navigationTitle(NSLocalizedString("drill_replay", comment: "Drill Replay navigation title"))
+            .navigationTitle("Result")
+            .tint(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                 .onAppear {
                     ensureSelectedTargetIsValid()
 
