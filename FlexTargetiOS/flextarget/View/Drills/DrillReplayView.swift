@@ -262,6 +262,8 @@ struct DrillReplayView: View {
     let drillSetup: DrillSetup
     let shots: [ShotData]
     
+    @Environment(\.dismiss) private var dismiss
+    
     @State private var currentProgress: Double = 0
     @State private var isPlaying: Bool = false
     @State private var selectedTargetKey: String = ""
@@ -541,20 +543,11 @@ struct DrillReplayView: View {
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
                 Button(action: { 
-                    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                       let window = windowScene.windows.first {
-                        if let navController = window.rootViewController as? UINavigationController {
-                            navController.popViewController(animated: true)
-                        }
-                    }
+                    dismiss()
                 }) {
-                    HStack(spacing: 5) {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 16, weight: .semibold))
-                        Text("Back")
-                            .font(.system(size: 16, weight: .regular))
-                    }
-                    .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                 }
             }
         }

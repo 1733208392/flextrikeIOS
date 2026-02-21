@@ -252,6 +252,8 @@ struct DrillResultView: View {
     let drillSetup: DrillSetup
     let repeatSummary: DrillRepeatSummary?
     
+    @Environment(\.dismiss) private var dismiss
+    
     // Array to store received shots
     @State private var shots: [ShotData] = []
     
@@ -576,21 +578,11 @@ struct DrillResultView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button(action: { 
-                        // Use the environment's dismiss if available, otherwise use NavigationView's back
-                        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                           let window = windowScene.windows.first {
-                            if let navController = window.rootViewController as? UINavigationController {
-                                navController.popViewController(animated: true)
-                            }
-                        }
+                        dismiss()
                     }) {
-                        HStack(spacing: 5) {
-                            Image(systemName: "chevron.left")
-                                .font(.system(size: 16, weight: .semibold))
-                            Text("Back")
-                                .font(.system(size: 16, weight: .regular))
-                        }
-                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                     }
                 }
             }
