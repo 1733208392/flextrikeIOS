@@ -20,7 +20,7 @@ import com.flextarget.android.data.local.entity.parseTargetTypes
 class DrillExecutionManager(
     private val bleManager: AndroidBLEManager,
     private val drillSetup: DrillSetupEntity,
-    private val targets: List<DrillTargetsConfigEntity>,
+    private val targets: List<DrillTargetsConfigData>,
     private val expectedDevices: List<String>,
     private val onComplete: (List<DrillRepeatSummary>) -> Unit,
     private val onFailure: () -> Unit,
@@ -355,9 +355,12 @@ class DrillExecutionManager(
                     drillDuration = duration
                     println("Drill duration received: $duration")
                 }
-                // Only process end message from the last target
-                if (device == lastTargetName) {
-                    println("Last device end received: $device")
+                // Only process end message from the last expected device
+                // For single device drills, any end message completes the repeat
+                // For multi-device drills, wait for the last device in expectedDevices
+                val lastExpectedDevice = expectedDevices.lastOrNull()
+                if (lastExpectedDevice == null || device == lastExpectedDevice) {
+                    println("Last device end received: $device (expected: $lastExpectedDevice)")
                     endCommandTime = Date()  // Record when end command is received
                     sendEndCommand()
                     completeRepeat()
@@ -443,10 +446,6 @@ class DrillExecutionManager(
         }
 
         println("[DrillExecutionManager] beginWaitingForEnd() - starting to listen for shots in repeat $currentRepeat")
-
-        // Get the last target name
-        val sortedTargets = targets.sortedBy { it.seqNo }
-        lastTargetName = sortedTargets.lastOrNull()?.targetName
 
         isWaitingForEnd = true
 
@@ -537,97 +536,97 @@ class DrillExecutionManager(
 
             println("[DrillExecutionManager] ✅ finalizeRepeat($repeatIndex) - found ${sortedShots.size} shots")
 
-        // Use hardware-originated timeDiff from the shot data message (preferred over receivedAt timestamp)
-        // timeDiff = timing of shot on target device - timing when repeat starts
-        val totalTime = sortedShots.lastOrNull()?.shot?.content?.actualTimeDiff ?: 0.0
+            // Use hardware-originated timeDiff from the shot data message (preferred over receivedAt timestamp)
+            // timeDiff = timing of shot on target device - timing when repeat starts
+            val totalTime = sortedShots.lastOrNull()?.shot?.content?.actualTimeDiff ?: 0.0
 
-        // Create adjusted shots with calculated split times (relative to previous shot)
-        // matching the iOS DrillExecutionManager behavior
-        val adjustedShots = sortedShots.mapIndexed { index, event ->
-            val hardwareAbsoluteTime = event.shot.content.actualTimeDiff
-            val newTimeDiff = if (index == 0) {
-                // First shot keeps original absolute timeDiff
-                hardwareAbsoluteTime
-            } else {
-                // Subsequent shots: difference from previous shot's absolute timeDiff
-                hardwareAbsoluteTime - sortedShots[index - 1].shot.content.actualTimeDiff
+            // Create adjusted shots with calculated split times (relative to previous shot)
+            // matching the iOS DrillExecutionManager behavior
+            val adjustedShots = sortedShots.mapIndexed { index, event ->
+                val hardwareAbsoluteTime = event.shot.content.actualTimeDiff
+                val newTimeDiff = if (index == 0) {
+                    // First shot keeps original absolute timeDiff
+                    hardwareAbsoluteTime
+                } else {
+                    // Subsequent shots: difference from previous shot's absolute timeDiff
+                    hardwareAbsoluteTime - sortedShots[index - 1].shot.content.actualTimeDiff
+                }
+
+                val adjustedContent = Content(
+                    command = event.shot.content.actualCommand,
+                    hitArea = event.shot.content.actualHitArea,
+                    hitPosition = event.shot.content.actualHitPosition,
+                    rotationAngle = event.shot.content.actualRotationAngle,
+                    targetType = event.shot.content.actualTargetType,
+                    timeDiff = newTimeDiff,
+                    device = event.shot.device ?: event.shot.content.device,
+                    targetPos = event.shot.content.actualTargetPos,
+                    `repeat` = event.shot.content.actualRepeat
+                )
+
+                ShotData(
+                    target = event.shot.target,
+                    content = adjustedContent,
+                    type = event.shot.type,
+                    action = event.shot.action,
+                    device = event.shot.device
+                )
             }
 
-            val adjustedContent = Content(
-                command = event.shot.content.actualCommand,
-                hitArea = event.shot.content.actualHitArea,
-                hitPosition = event.shot.content.actualHitPosition,
-                rotationAngle = event.shot.content.actualRotationAngle,
-                targetType = event.shot.content.actualTargetType,
-                timeDiff = newTimeDiff,
-                device = event.shot.device ?: event.shot.content.device,
-                targetPos = event.shot.content.actualTargetPos,
-                `repeat` = event.shot.content.actualRepeat
-            )
+            val firstShot = adjustedShots.firstOrNull()?.content?.timeDiff ?: 0.0
+            val fastest = (adjustedShots.map { it.content.timeDiff }.minOrNull() ?: 0.0).coerceAtLeast(0.0)
 
-            ShotData(
-                target = event.shot.target,
-                content = adjustedContent,
-                type = event.shot.type,
-                action = event.shot.action,
-                device = event.shot.device
-            )
-        }
+            // Log original timing data and adjusted timing data
+            println("[DrillExecutionManager] ========== TIMING DEBUG ==========")
+            println("[DrillExecutionManager] Original hardware timeDiff values (from shot data):")
+            sortedShots.forEachIndexed { index, event ->
+                println("[DrillExecutionManager]   Shot ${index + 1}: originalTimeDiff = ${event.shot.content.actualTimeDiff}s")
+            }
+            println("[DrillExecutionManager] Adjusted timeDiff values (split times):")
+            adjustedShots.forEachIndexed { index, shot ->
+                println("[DrillExecutionManager]   Shot ${index + 1}: adjustedTimeDiff = ${shot.content.timeDiff}s")
+            }
+            println("[DrillExecutionManager] Summary metrics - totalTime: $totalTime, firstShot: $firstShot, fastest: $fastest")
+            println("[DrillExecutionManager] ==================================")
 
-        val firstShot = adjustedShots.firstOrNull()?.content?.timeDiff ?: 0.0
-        val fastest = (adjustedShots.map { it.content.timeDiff }.minOrNull() ?: 0.0).coerceAtLeast(0.0)
+            val numShots = adjustedShots.size
 
-        // Log original timing data and adjusted timing data
-        println("[DrillExecutionManager] ========== TIMING DEBUG ==========")
-        println("[DrillExecutionManager] Original hardware timeDiff values (from shot data):")
-        sortedShots.forEachIndexed { index, event ->
-            println("[DrillExecutionManager]   Shot ${index + 1}: originalTimeDiff = ${event.shot.content.actualTimeDiff}s")
-        }
-        println("[DrillExecutionManager] Adjusted timeDiff values (split times):")
-        adjustedShots.forEachIndexed { index, shot ->
-            println("[DrillExecutionManager]   Shot ${index + 1}: adjustedTimeDiff = ${shot.content.timeDiff}s")
-        }
-        println("[DrillExecutionManager] Summary metrics - totalTime: $totalTime, firstShot: $firstShot, fastest: $fastest")
-        println("[DrillExecutionManager] ==================================")
+            val totalScore = ScoringUtility.calculateTotalScore(adjustedShots, targets).toInt()
 
-        val numShots = adjustedShots.size
+            var cqbResults: List<CQBShotResult>? = null
+            var cqbPassed: Boolean? = null
 
-        val totalScore = ScoringUtility.calculateTotalScore(adjustedShots, targets).toInt()
-
-        var cqbResults: List<CQBShotResult>? = null
-        var cqbPassed: Boolean? = null
-
-        val drillMode = (drillSetup.mode ?: "").lowercase()
-        println("[DrillExecutionManager] Repeat $repeatIndex: drillMode='$drillMode', checking if == 'cqb'")
-        
-        if (drillMode == "cqb") {
-            val targetDevices = targets.mapNotNull { it.targetName }.filter { it.isNotEmpty() }
-            println("[DrillExecutionManager] CQB Mode detected! targetDevices=$targetDevices, count=${targetDevices.size}")
-            println("[DrillExecutionManager] Processing ${adjustedShots.size} shots for CQB validation")
+            val drillMode = (drillSetup.mode ?: "").lowercase()
+            println("[DrillExecutionManager] Repeat $repeatIndex: drillMode='$drillMode', checking if == 'cqb'")
             
-            val cqbDrillResult = CQBScoringUtility.generateCQBDrillResult(
-                shots = adjustedShots,
-                drillDuration = totalTime,
-                targetDevices = targetDevices
-            )
-            cqbResults = cqbDrillResult.shotResults
-            cqbPassed = cqbDrillResult.drilPassed
-            println("[DrillExecutionManager] CQB Result: drilPassed=$cqbPassed, shotResults count=${cqbResults?.size}")
-        } else {
-            println("[DrillExecutionManager] Not a CQB drill (mode='$drillMode'), skipping CQB calculation")
-        }
+            if (drillMode == "cqb") {
+                val targetDevices = targets.mapNotNull { it.targetName }.filter { it.isNotEmpty() }
+                println("[DrillExecutionManager] CQB Mode detected! targetDevices=$targetDevices, count=${targetDevices.size}")
+                println("[DrillExecutionManager] Processing ${adjustedShots.size} shots for CQB validation")
+                
+                val cqbDrillResult = CQBScoringUtility.generateCQBDrillResult(
+                    shots = adjustedShots,
+                    drillDuration = totalTime,
+                    targetDevices = targetDevices
+                )
+                cqbResults = cqbDrillResult.shotResults
+                cqbPassed = cqbDrillResult.drilPassed
+                println("[DrillExecutionManager] CQB Result: drilPassed=$cqbPassed, shotResults count=${cqbResults?.size}")
+            } else {
+                println("[DrillExecutionManager] Not a CQB drill (mode='$drillMode'), skipping CQB calculation")
+            }
 
-        val summary = DrillRepeatSummary(
-            repeatIndex = repeatIndex,
-            totalTime = totalTime,
-            numShots = numShots,
-            firstShot = firstShot,
-            fastest = fastest,
-            score = totalScore,
-            shots = adjustedShots,
-            cqbResults = cqbResults,
-            cqbPassed = cqbPassed
-        )
+            val summary = DrillRepeatSummary(
+                repeatIndex = repeatIndex,
+                totalTime = totalTime,
+                numShots = numShots,
+                firstShot = firstShot,
+                fastest = fastest,
+                score = totalScore,
+                shots = adjustedShots,
+                cqbResults = cqbResults,
+                cqbPassed = cqbPassed
+            )
             println("[DrillExecutionManager] Created summary for repeat $repeatIndex")
 
             if (repeatIndex - 1 < repeatSummaries.size) {

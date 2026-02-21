@@ -29,7 +29,7 @@ object ScoringUtility {
     /**
      * Calculate the number of missed targets (targets with NO valid hits)
      */
-    fun calculateMissedTargets(shots: List<ShotData>, targets: List<DrillTargetsConfigEntity>?): Int {
+    fun calculateMissedTargets(shots: List<ShotData>, targets: List<DrillTargetsConfigData>?): Int {
         val targetsSet = targets ?: return 0
         val expectedTargets = targetsSet.mapNotNull { it.targetName }.filter { it.isNotEmpty() }.toSet()
         
@@ -57,7 +57,7 @@ object ScoringUtility {
     /**
      * Calculate total score with drill rules applied
      */
-    fun calculateTotalScore(shots: List<ShotData>, targets: List<DrillTargetsConfigEntity>?): Double {
+    fun calculateTotalScore(shots: List<ShotData>, targets: List<DrillTargetsConfigData>?): Double {
         var aCount = 0
         var cCount = 0
         var dCount = 0
@@ -147,7 +147,7 @@ object ScoringUtility {
     /**
      * Calculate effective hit zone counts based on drill rules
      */
-    fun calculateEffectiveCounts(shots: List<ShotData>, targets: List<DrillTargetsConfigEntity>?): Map<String, Int> {
+    fun calculateEffectiveCounts(shots: List<ShotData>, targets: List<DrillTargetsConfigData>?): Map<String, Int> {
         var aCount = 0
         var cCount = 0
         var dCount = 0

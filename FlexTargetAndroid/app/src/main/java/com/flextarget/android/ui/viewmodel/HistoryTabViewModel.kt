@@ -5,11 +5,13 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.flextarget.android.data.local.entity.DrillSetupEntity
 import com.flextarget.android.data.model.DrillRepeatSummary
+import com.flextarget.android.data.model.DrillTargetsConfigData
 import com.flextarget.android.data.model.ShotData
 import com.flextarget.android.data.model.ScoringUtility
 import com.flextarget.android.data.repository.DrillResultRepository
 import com.flextarget.android.data.repository.DrillSetupRepository
 import com.flextarget.android.ui.drills.DrillSession
+import com.flextarget.android.ui.drills.TimingCalculator
 import com.google.gson.Gson
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -127,26 +129,32 @@ class HistoryTabViewModel(
 
             if (shots.isEmpty()) return null
 
+            // Sort shots by cumulative timestamp (iOS-compatible chronological ordering)
+            // This ensures shots are displayed in the correct temporal order
+            val sortedShots = TimingCalculator.sortShotsByTimestamp(shots)
+
             val totalTime = if (result.drillResult.totalTime > 0) {
                 result.drillResult.totalTime
             } else {
-                shots.sumOf { it.content.actualTimeDiff }
+                sortedShots.sumOf { it.content.actualTimeDiff }
             }
 
-            val fastestShot = shots.minOfOrNull { it.content.actualTimeDiff } ?: 0.0
-            val firstShot = shots.firstOrNull()?.content?.actualTimeDiff ?: 0.0
+            val fastestShot = sortedShots.minOfOrNull { it.content.actualTimeDiff } ?: 0.0
+            val firstShot = sortedShots.firstOrNull()?.content?.actualTimeDiff ?: 0.0
             
             // Calculate score using ScoringUtility
-            val totalScore = ScoringUtility.calculateTotalScore(shots, targets).toInt()
+            // Convert and expand targets from entities to data objects
+            val expandedTargets = DrillTargetsConfigData.expandMultiTargetEntities(targets)
+            val totalScore = ScoringUtility.calculateTotalScore(sortedShots, expandedTargets).toInt()
 
             return DrillRepeatSummary(
                 repeatIndex = 1, // Will be set by caller
                 totalTime = totalTime,
-                numShots = shots.size,
+                numShots = sortedShots.size,
                 firstShot = firstShot,
                 fastest = fastestShot,
                 score = totalScore,
-                shots = shots,
+                shots = sortedShots,
                 drillResultId = drillResultId
             )
         } catch (e: Exception) {

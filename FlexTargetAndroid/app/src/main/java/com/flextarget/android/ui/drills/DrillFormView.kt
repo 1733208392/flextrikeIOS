@@ -332,7 +332,7 @@ fun DrillFormView(
                     if (timerSessionDrill != null && selectedResultSummary != null) {
                         DrillResultView(
                             drillSetup = timerSessionDrill!!,
-                            targets = timerSessionTargets.map { DrillTargetsConfigData.fromEntity(it) },
+                            targets = DrillTargetsConfigData.expandMultiTargets(timerSessionTargets.map { DrillTargetsConfigData.fromEntity(it) }),
                             repeatSummary = selectedResultSummary,
                             onBack = onBackFromResultCallback
                         )

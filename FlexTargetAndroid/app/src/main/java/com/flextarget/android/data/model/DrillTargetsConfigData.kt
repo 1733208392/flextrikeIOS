@@ -130,5 +130,37 @@ data class DrillTargetsConfigData(
                 duration = entity.duration
             )
         }
+
+        /**
+         * Expand multi-target configurations into separate target objects.
+         * If a target has targetType = ["ipsc","hostage","paddle"], it creates 3 separate
+         * DrillTargetsConfigData objects, one for each target type.
+         * This implements the multi-target feature supported by iOS.
+         */
+        fun expandMultiTargets(targets: List<DrillTargetsConfigData>): List<DrillTargetsConfigData> {
+            return targets.flatMapIndexed { index, target ->
+                val targetTypes = target.parseTargetTypes()
+                if (targetTypes.size > 1) {
+                    // Multi-target: create separate object for each type
+                    targetTypes.mapIndexed { typeIndex, targetType ->
+                        target.copy(
+                            targetType = targetType,
+                            seqNo = index * 100 + typeIndex,  // Maintain ordering: index 0.0, 0.1, 0.2, etc.
+                            targetName = target.targetName  // Keep original target name (device identifier)
+                        )
+                    }
+                } else {
+                    // Single target: keep as is
+                    listOf(target)
+                }
+            }
+        }
+
+        /**
+         * Expand multi-target entities into non-expanded target data objects.
+         */
+        fun expandMultiTargetEntities(targets: List<DrillTargetsConfigEntity>): List<DrillTargetsConfigData> {
+            return expandMultiTargets(targets.map { fromEntity(it) })
+        }
     }
 }

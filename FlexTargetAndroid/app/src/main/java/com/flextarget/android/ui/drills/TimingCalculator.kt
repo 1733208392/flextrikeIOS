@@ -53,4 +53,27 @@ object TimingCalculator {
             acc + shot.content.actualTimeDiff
         }
     }
+
+    /**
+     * Sort shots by cumulative timestamp to ensure chronological ordering.
+     * Ported from iOS approach: shots are sorted by absolute timestamp calculated from timeDiff deltas.
+     * 
+     * This ensures that when shots are loaded from database or elsewhere, they are displayed
+     * in the correct temporal order matching iOS behavior.
+     */
+    fun sortShotsByTimestamp(shots: List<ShotData>): List<ShotData> {
+        if (shots.isEmpty()) return shots
+        
+        // Create a list of (index, shot, cumulativeTime) tuples
+        var cumulativeTime = 0.0
+        val shotsWithTime = shots.mapIndexed { index, shot ->
+            cumulativeTime += shot.content.actualTimeDiff
+            Triple(index, shot, cumulativeTime)
+        }
+        
+        // Sort by cumulative time, then by original index as tiebreaker
+        return shotsWithTime
+            .sortedWith(compareBy({ it.third }, { it.first }))
+            .map { it.second }
+    }
 }

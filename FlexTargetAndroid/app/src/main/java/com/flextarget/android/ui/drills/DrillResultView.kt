@@ -16,6 +16,8 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -28,6 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.times
 import com.flextarget.android.data.local.entity.DrillSetupEntity
 import com.flextarget.android.data.model.*
 
@@ -45,6 +48,12 @@ fun DrillResultView(
     onBack: () -> Unit = {}
 ) {
     val displayShots = repeatSummary?.shots ?: shots
+
+    // DEBUG: Log initialization
+    println("[DrillResultView] Initialized with ${targets.size} targets, ${displayShots.size} shots")
+    targets.forEachIndexed { index, target ->
+        println("[DrillResultView]   Target $index: name=${target.targetName}, type=${target.targetType}, seqNo=${target.seqNo}")
+    }
 
     // State for target selection and shot selection
     var selectedTargetIndex by remember { mutableStateOf(0) }
@@ -135,7 +144,40 @@ private fun getTargetImageResId(targetType: String): Int? {
         "idpa-back-1" -> R.drawable.idpa_hard_cover_1_live_target
         "idpa-back-2" -> R.drawable.idpa_hard_cover_2_live_target
         "disguised_enemy" -> R.drawable.disguised_enemy_live_target
+        "disguised_enemy_surrender" -> R.drawable.disguised_enemy_surrender_live_target
         else -> null
+    }
+}
+
+/**
+ * Determines if a shot matches a target configuration.
+ * Ported from iOS TargetDisplay.matches() method.
+ * 
+ * For multi-target: matches ONLY by targetType (after expansion)
+ * For single-target: matches by targetType, falls back to device name if no type match
+ */
+private fun shotMatchesTarget(
+    shot: ShotData,
+    target: DrillTargetsConfigData
+): Boolean {
+    val shotDevice = shot.device?.trim()?.lowercase()
+    val targetName = target.targetName?.trim()?.lowercase()
+    val shotTargetType = shot.content.actualTargetType.lowercase()
+    val targetType = target.targetType.lowercase()
+
+    // Check if targetType is a JSON array (not properly expanded)
+    val isExpandedTarget = !targetType.startsWith("[")
+
+    return when {
+        // For expanded targets (single type, not JSON array), match ONLY by type
+        // This prevents fallback device matching from incorrectly matching all shots to all targets
+        isExpandedTarget && targetType == shotTargetType -> true
+        
+        // For unexpanded targets (JSON array) or as fallback, match by device name
+        // Only use this fallback if we didn't already match by type above
+        !isExpandedTarget && targetName != null && shotDevice == targetName -> true
+        
+        else -> false
     }
 }
 
@@ -155,8 +197,29 @@ private fun TargetDisplayView(
     val currentTarget = targets.getOrNull(selectedTargetIndex)
     val targetType = currentTarget?.targetType ?: "ipsc"
     val targetResId = getTargetImageResId(targetType)
+    
+    println("[TargetDisplayView] Displaying target ${selectedTargetIndex + 1}/${targets.size}: targetType=$targetType, resId=$targetResId, targetName=${currentTarget?.targetName}")
 
-    Box(modifier = modifier) {
+    Box(
+        modifier = modifier
+            .pointerInput(selectedTargetIndex, targets.size) {
+                if (targets.size > 1) {
+                    detectHorizontalDragGestures { change, dragAmount ->
+                        change.consume()
+                        // Swipe threshold in pixels
+                        if (dragAmount < -50) {
+                            // Swipe left: go to next target
+                            val nextIndex = (selectedTargetIndex + 1) % targets.size
+                            onTargetSelected(nextIndex)
+                        } else if (dragAmount > 50) {
+                            // Swipe right: go to previous target
+                            val prevIndex = if (selectedTargetIndex == 0) targets.size - 1 else selectedTargetIndex - 1
+                            onTargetSelected(prevIndex)
+                        }
+                    }
+                }
+            }
+    ) {
         // Target background with image
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -168,80 +231,61 @@ private fun TargetDisplayView(
                 androidx.compose.foundation.Image(
                     painter = painterResource(id = targetResIdLocal),
                     contentDescription = "Target image",
-                    contentScale = ContentScale.Crop,
+                    contentScale = ContentScale.Fit,
                     modifier = Modifier.fillMaxSize()
                 )
             }
 
-            // Target name overlay
-            currentTarget?.targetName?.let { name ->
-                Text(
-                    text = name,
-                    color = Color.White,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(6.dp)
-//                        .background(Color.Black.copy(alpha = 0.8f), RoundedCornerShape(8.dp))
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                )
-            }
+            // Target name overlay in top right corner
+            val displayName = currentTarget?.targetName ?: currentTarget?.targetType ?: "Target"
+            Text(
+                text = displayName,
+                color = Color.White,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(8.dp)
+            )
 
-            // Bullet holes overlay
-            Canvas(modifier = Modifier.fillMaxSize()) {
-                val canvasWidth = size.width
-                val canvasHeight = size.height
-
+            // Bullet holes overlay using drawable images
+            BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
                 shots.forEachIndexed { index, shot ->
-                    // Check if shot matches current target
-                    val shotDevice = shot.device?.trim()?.lowercase()
-                    val targetName = currentTarget?.targetName?.trim()?.lowercase()
-                    val shotTargetType = shot.content.actualTargetType.lowercase()
-
-                    val matchesTarget = when {
-                        targetName != null && shotDevice == targetName -> true
-                        targetType == shotTargetType -> true
-                        else -> false
-                    }
+                    // Check if shot matches current target using consolidated logic
+                    val matchesTarget = currentTarget?.let { shotMatchesTarget(shot, it) } ?: false
 
                     if (matchesTarget) {
-                        // Transform coordinates from 720x1280 to canvas size
-                        val transformedX = (shot.content.actualHitPosition.x / 720.0) * canvasWidth.toDouble()
-                        val transformedY = (shot.content.actualHitPosition.y / 1280.0) * canvasHeight.toDouble()
+                        // Transform coordinates from 720x1280 to box size
+                        val transformedX = (shot.content.actualHitPosition.x / 720.0)
+                        val transformedY = (shot.content.actualHitPosition.y / 1280.0)
 
-                        val isScoring = isScoringZone(shot.content.actualHitArea)
                         val isSelected = selectedShotIndex == index
+                        val bulletHoleSize = if (isSelected) 32.dp else 24.dp
 
-                        // Draw bullet hole with different appearance for scoring vs non-scoring
-                        val holeColor = if (isScoring) Color.White else Color.Red.copy(alpha = 0.7f)
-                        val holeSize = if (isSelected) 21f else 15f
-
-                        // Draw selection circle if selected
-                        if (isSelected) {
-                            drawCircle(
-                                color = Color.Yellow.copy(alpha = 0.8f),
-                                radius = holeSize / 2 + 3,
-                                center = Offset(transformedX.toFloat(), transformedY.toFloat())
-                            )
-                        }
-
-                        // Draw bullet hole
-                        drawCircle(
-                            color = holeColor,
-                            radius = holeSize / 2,
-                            center = Offset(transformedX.toFloat(), transformedY.toFloat())
+                        // Render bullet hole drawable at transformed position
+                        androidx.compose.foundation.Image(
+                            painter = painterResource(id = R.drawable.bullet_hole2),
+                            contentDescription = "Bullet hole $index",
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier
+                                .size(bulletHoleSize)
+                                .align(Alignment.TopStart)
+                                .offset(
+                                    x = (transformedX * maxWidth) - bulletHoleSize / 2,
+                                    y = (transformedY * maxHeight) - bulletHoleSize / 2
+                                )
+                                .then(
+                                    if (isSelected) {
+                                        Modifier.border(
+                                            width = 2.dp,
+                                            color = Color.Yellow.copy(alpha = 0.8f),
+                                            shape = CircleShape
+                                        )
+                                    } else {
+                                        Modifier
+                                    }
+                                )
                         )
-
-                        // Add border for non-scoring shots
-                        if (!isScoring) {
-                            drawCircle(
-                                color = Color.Red,
-                                radius = holeSize / 2,
-                                center = Offset(transformedX.toFloat(), transformedY.toFloat()),
-                                style = Stroke(width = 2f)
-                            )
-                        }
                     }
                 }
             }
@@ -310,19 +354,16 @@ private fun ShotListView(
     val currentTarget = targets.getOrNull(selectedTargetIndex)
     val scrollState = rememberLazyListState()
 
-    // Filter shots for current target
+    // Calculate cumulative timestamps for all shots (iOS-compatible)
+    val shotTimestamps = TimingCalculator.calculateShotTimestamps(shots)
+
+    // Filter shots for current target using consolidated matching logic
     val targetShots = shots.mapIndexedNotNull { index, shot ->
-        val shotDevice = shot.device?.trim()?.lowercase()
-        val targetName = currentTarget?.targetName?.trim()?.lowercase()
-        val shotTargetType = shot.content.actualTargetType.lowercase()
-
-        val matchesTarget = when {
-            targetName != null && shotDevice == targetName -> true
-            currentTarget?.targetType == shotTargetType -> true
-            else -> false
+        if (currentTarget != null && shotMatchesTarget(shot, currentTarget)) {
+            index to shot
+        } else {
+            null
         }
-
-        if (matchesTarget) index to shot else null
     }
 
     Box(modifier = modifier.fillMaxHeight()) {
@@ -333,9 +374,13 @@ private fun ShotListView(
             contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
         ) {
             itemsIndexed(targetShots) { position, (shotIndex, shot) ->
+                // Get cumulative time for this shot from the timestamp map
+                val cumulativeTime = shotTimestamps.find { it.first == shotIndex }?.second ?: shot.content.actualTimeDiff
+                
                 ShotListItem(
                     shotNumber = shotIndex + 1,
                     hitArea = translateHitArea(shot.content.actualHitArea),
+                    cumulativeTime = cumulativeTime,
                     timeDiff = shot.content.actualTimeDiff,
                     isSelected = selectedShotIndex == shotIndex,
                     isEven = position % 2 == 0,
@@ -369,11 +414,13 @@ private fun ShotListView(
 
 /**
  * Individual shot item in the list.
+ * Displays cumulative time (matching iOS behavior) along with delta time.
  */
 @Composable
 private fun ShotListItem(
     shotNumber: Int,
     hitArea: String,
+    cumulativeTime: Double,
     timeDiff: Double,
     isSelected: Boolean,
     isEven: Boolean,
@@ -409,8 +456,9 @@ private fun ShotListItem(
             textAlign = TextAlign.Center,
             color = Color.White
         )
+        // Display cumulative time to match iOS chronological ordering
         Text(
-            text = String.format("%.2f", timeDiff),
+            text = String.format("%.2f", cumulativeTime),
             modifier = Modifier.width(80.dp),
             textAlign = TextAlign.Center,
             color = Color.White.copy(alpha = 0.9f)

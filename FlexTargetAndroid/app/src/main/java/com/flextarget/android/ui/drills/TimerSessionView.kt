@@ -39,6 +39,7 @@ import com.flextarget.android.data.local.entity.DrillSetupEntity
 import com.flextarget.android.data.local.entity.DrillTargetsConfigEntity
 import com.flextarget.android.data.model.DrillExecutionManager
 import com.flextarget.android.data.model.DrillRepeatSummary
+import com.flextarget.android.data.model.DrillTargetsConfigData
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.random.Random
@@ -319,7 +320,9 @@ fun TimerSessionView(
         executionManager?.stopExecution()
 
         // Extract expected devices from drill targets
-        val expectedDevicesList = targets.mapNotNull { it.targetName }
+        // Convert entities to data objects and expand multi-targets first
+        val expandedTargets = DrillTargetsConfigData.expandMultiTargetEntities(targets)
+        val expectedDevicesList = expandedTargets.mapNotNull { it.targetName }
         expectedDevices = expectedDevicesList
 
         // Initialize state
@@ -331,7 +334,7 @@ fun TimerSessionView(
         val manager = DrillExecutionManager(
             bleManager = bleManager,
             drillSetup = drillSetup,
-            targets = targets,
+            targets = expandedTargets,
             expectedDevices = expectedDevices,
             onComplete = { summaries ->
                 // This callback is ONLY called when completeDrill() is explicitly called by UI

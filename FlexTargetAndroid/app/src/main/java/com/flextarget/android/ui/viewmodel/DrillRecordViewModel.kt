@@ -137,16 +137,9 @@ class DrillRecordViewModel(
 
     suspend fun getTargetsForDrill(drillId: UUID): List<com.flextarget.android.data.model.DrillTargetsConfigData> {
         val drillWithTargets = drillSetupRepository.getDrillSetupWithTargets(drillId)
-        return drillWithTargets?.targets?.map { entity ->
-            com.flextarget.android.data.model.DrillTargetsConfigData(
-                id = entity.id,
-                seqNo = entity.seqNo,
-                targetName = entity.targetName ?: "",
-                targetType = entity.targetType ?: "ipsc",
-                timeout = entity.timeout,
-                countedShots = entity.countedShots
-            )
-        } ?: emptyList()
+        return com.flextarget.android.data.model.DrillTargetsConfigData.expandMultiTargetEntities(
+            drillWithTargets?.targets ?: emptyList()
+        )
     }
 
     class Factory(

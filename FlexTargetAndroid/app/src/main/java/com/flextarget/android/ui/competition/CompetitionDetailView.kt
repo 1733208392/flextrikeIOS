@@ -32,6 +32,7 @@ import com.flextarget.android.ui.drills.TimerSessionView
 import com.flextarget.android.ui.drills.DrillSummaryView
 import com.flextarget.android.ui.drills.DrillReplayView
 import com.flextarget.android.ui.drills.DrillResultView
+import com.flextarget.android.ui.drills.TimingCalculator
 import com.flextarget.android.data.ble.AndroidBLEManager
 import com.flextarget.android.data.model.DrillRepeatSummary
 import com.flextarget.android.data.model.DrillTargetsConfigData
@@ -116,22 +117,12 @@ fun CompetitionDetailView(
         )
     } else if (showResultDetails && selectedResultDrill != null && selectedDetailsSummary != null) {
         // Show drill result details from competition results
-        val targetsData = resultDrillTargets.map { entity ->
-            DrillTargetsConfigData(
-                id = entity.id,
-                seqNo = 0,
-                targetName = entity.targetType ?: "ipsc",
-                targetType = entity.targetType ?: "ipsc",
-                timeout = 30.0,
-                countedShots = 5
-            )
-        }
+        val targetsData = DrillTargetsConfigData.expandMultiTargetEntities(resultDrillTargets)
         
         DrillResultView(
             drillSetup = selectedResultDrill!!,
             targets = targetsData,
             repeatSummary = selectedDetailsSummary,
-            shots = selectedDetailsSummary!!.shots,
             onBack = {
                 showResultDetails = false
                 selectedDetailsSummary = null
@@ -379,16 +370,19 @@ fun CompetitionDetailView(
                                             }
                                         }
                                         
+                                        // Sort shots chronologically by cumulative timestamp (iOS-compatible)
+                                        val sortedShots = TimingCalculator.sortShotsByTimestamp(parsedShots)
+                                        
                                         // Calculate firstShot (time of first shot)
-                                        val firstShot = if (parsedShots.isNotEmpty()) {
-                                            parsedShots.first().content.actualTimeDiff
+                                        val firstShot = if (sortedShots.isNotEmpty()) {
+                                            sortedShots.first().content.actualTimeDiff
                                         } else {
                                             0.0
                                         }
                                         
                                         // Calculate fastest (minimum time between shots)
-                                        val fastest = if (parsedShots.isNotEmpty()) {
-                                            parsedShots.map { it.content.actualTimeDiff }.minOrNull() ?: 0.0
+                                        val fastest = if (sortedShots.isNotEmpty()) {
+                                            sortedShots.map { it.content.actualTimeDiff }.minOrNull() ?: 0.0
                                         } else {
                                             0.0
                                         }
@@ -401,7 +395,7 @@ fun CompetitionDetailView(
                                                 firstShot = firstShot,
                                                 fastest = fastest,
                                                 score = resultWithShots.totalScore.toInt(),
-                                                shots = parsedShots
+                                                shots = sortedShots
                                             )
                                         )
                                         
