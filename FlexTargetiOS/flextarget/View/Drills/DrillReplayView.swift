@@ -283,11 +283,15 @@ struct DrillReplayView: View {
     }
     
     private var shotTimelineData: [(index: Int, time: Double, diff: Double)] {
+        // Sort shots chronologically by timeDiff to ensure correct timeline ordering
+        let sortedShotsWithOriginalIndices = shots.enumerated()
+            .sorted { $0.element.content.timeDiff < $1.element.content.timeDiff }
+        
         var cumulativeTime = 0.0
-        return shots.enumerated().map { (index, shot) in
+        return sortedShotsWithOriginalIndices.map { (originalIndex, shot) in
             let interval = shot.content.timeDiff
             cumulativeTime += interval
-            return (index, cumulativeTime, interval)
+            return (originalIndex, cumulativeTime, interval)
         }
     }
     
@@ -508,8 +512,11 @@ struct DrillReplayView: View {
                         // Playback Controls
                         HStack(spacing: 40) {
                             Button(action: {
-                                currentProgress = 0
-                                updateSelectionForTime(0)
+                                let prevTime = previousShotTime()
+                                currentProgress = prevTime
+                                updateSelectionForTime(prevTime)
+                                isPlaying = false
+                                stopTimer()
                             }) {
                                 Image(systemName: "backward.fill")
                                     .font(.title2)
@@ -523,8 +530,11 @@ struct DrillReplayView: View {
                             }
                             
                             Button(action: {
-                                currentProgress = playingDuration
-                                updateSelectionForTime(playingDuration)
+                                let nextTime = nextShotTime()
+                                currentProgress = nextTime
+                                updateSelectionForTime(nextTime)
+                                isPlaying = false
+                                stopTimer()
                             }) {
                                 Image(systemName: "forward.fill")
                                     .font(.title2)
@@ -597,6 +607,39 @@ struct DrillReplayView: View {
         let fallbackId = targetDisplays.first?.id
         print("[DrillReplayView] activeTargetId: Using fallback display: \(fallbackId ?? "none")")
         return fallbackId
+    }
+    
+    // MARK: - Shot Navigation Helpers
+    
+    /// Get the time of the previous shot in the timeline, or 0 if at the first shot
+    private func previousShotTime() -> Double {
+        guard let currentIndex = selectedShotIndex, !shotTimelineData.isEmpty else {
+            return 0
+        }
+        
+        // Find the position of the current shot in the sorted timeline
+        if let timelinePosition = shotTimelineData.firstIndex(where: { $0.index == currentIndex }) {
+            if timelinePosition > 0 {
+                return shotTimelineData[timelinePosition - 1].time
+            }
+        }
+        return 0
+    }
+    
+    /// Get the time of the next shot in the timeline, or end if at the last shot
+    private func nextShotTime() -> Double {
+        guard let currentIndex = selectedShotIndex, !shotTimelineData.isEmpty else {
+            // If no shot is selected, jump to first shot
+            return shotTimelineData.first?.time ?? playingDuration
+        }
+        
+        // Find the position of the current shot in the sorted timeline
+        if let timelinePosition = shotTimelineData.firstIndex(where: { $0.index == currentIndex }) {
+            if timelinePosition < shotTimelineData.count - 1 {
+                return shotTimelineData[timelinePosition + 1].time
+            }
+        }
+        return playingDuration
     }
     
     private func togglePlayback() {

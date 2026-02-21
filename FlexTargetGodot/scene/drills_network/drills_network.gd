@@ -366,6 +366,11 @@ func spawn_target():
 				target_instance.cqb_target_hit.disconnect(_on_cqb_target_hit)
 				if DEBUG_ENABLED:
 					print("[DrillsNetwork] Disconnected cqb_target_hit signal from old target")
+		if target_instance.has_signal("target_disappeared"):
+			if target_instance.target_disappeared.is_connected(_on_target_disappeared):
+				target_instance.target_disappeared.disconnect(_on_target_disappeared)
+				if DEBUG_ENABLED:
+					print("[DrillsNetwork] Disconnected target_disappeared signal from old target")
 		
 		target_instance.queue_free()
 		target_instance = null
@@ -425,6 +430,15 @@ func spawn_target():
 			print("  - ", sig.name, "(", sig.args, ")")
 		if DEBUG_ENABLED:
 			print("[DrillsNetwork] WARNING: Target does not have expected signal")
+	
+	# Connect to target_disappeared signal for paddle and popper targets (all knock down transition)
+	if target_instance.has_signal("target_disappeared"):
+		if not target_instance.target_disappeared.is_connected(_on_target_disappeared):
+			var err = target_instance.target_disappeared.connect(_on_target_disappeared)
+			if err == OK:
+				print("[DrillsNetwork] spawn_target: ✓ Connected to target_disappeared signal for all knock down support!")
+			else:
+				print("[DrillsNetwork] spawn_target: ✗ FAILED to connect target_disappeared - Error code: ", err)
 	
 	# Connect to animation library's target_swapped signal for flash_sequence animations
 	if animation_lib and not animation_lib.target_swapped.is_connected(_on_animation_target_swapped):
@@ -517,6 +531,49 @@ func _on_final_target_hit(hit_position: Vector2):
 		if DEBUG_ENABLED:
 			print("[DrillsNetwork] HttpService not available; cannot send end ack")
 
+func _on_target_disappeared(disappeared_target_id: String):
+	"""Handle target_disappeared signal for paddle and popper targets (all knock down transition)"""
+	if DEBUG_ENABLED:
+		print("[DrillsNetwork] Target disappeared signal received for: ", disappeared_target_id)
+	
+	# Check if this is the last target in the sequence
+	var is_last_in_sequence = (current_target_index >= target_sequence.size() - 1)
+	
+	if DEBUG_ENABLED:
+		print("[DrillsNetwork] Checking transition: current_target_index=", current_target_index, ", sequence.size()=", target_sequence.size(), ", is_last_in_sequence=", is_last_in_sequence)
+	
+	if not is_last_in_sequence:
+		# Not the last target, transition to next
+		if DEBUG_ENABLED:
+			print("[DrillsNetwork] Target complete (all knocked down), transitioning to next target")
+		await _transition_to_next_target()
+		return
+	else:
+		# This is the last target in the sequence
+		if DEBUG_ENABLED:
+			print("[DrillsNetwork] Last target in sequence all knocked down")
+		
+		# Check if ending target is enabled in settings
+		var has_ending_target = false
+		if global_data and global_data.settings_dict.has("has_ending_target"):
+			has_ending_target = global_data.settings_dict.get("has_ending_target", false)
+			if DEBUG_ENABLED:
+				print("[DrillsNetwork] has_ending_target setting: ", has_ending_target)
+		else:
+			if DEBUG_ENABLED:
+				print("[DrillsNetwork] has_ending_target setting not found in GlobalData, using default: false")
+		
+		# Spawn final target if ending target is enabled
+		if has_ending_target:
+			if DEBUG_ENABLED:
+				print("[DrillsNetwork] Spawning final target after all knocked down on last target")
+			spawn_final_target()
+		else:
+			if DEBUG_ENABLED:
+				print("[DrillsNetwork] Ending target disabled in settings, waiting for mobile app to end the drill")
+			# Mark final_target_spawned to prevent re-entry, but don't complete the drill yet
+			final_target_spawned = true
+
 func _transition_to_next_target():
 	"""Transition from current target to the next target in the sequence"""
 	if DEBUG_ENABLED:
@@ -582,6 +639,11 @@ func _transition_to_next_target():
 				target_instance.cqb_target_hit.disconnect(_on_cqb_target_hit)
 				if DEBUG_ENABLED:
 					print("[DrillsNetwork] Disconnected cqb_target_hit signal from old target")
+		if target_instance.has_signal("target_disappeared"):
+			if target_instance.target_disappeared.is_connected(_on_target_disappeared):
+				target_instance.target_disappeared.disconnect(_on_target_disappeared)
+				if DEBUG_ENABLED:
+					print("[DrillsNetwork] Disconnected target_disappeared signal from old target")
 		
 		target_instance.queue_free()
 		target_instance = null
@@ -740,7 +802,9 @@ func _on_target_hit(zone_or_id, points_or_zone, hit_pos_or_points, target_pos_or
 		print("[DrillsNetwork] Shots on current target: ", shots_on_current_target, "/2")
 	
 	# Check if we should transition to the next target in the sequence
-	if shots_on_current_target >= 2:
+	# For paddle and popper targets, skip the 2-shot check and wait for target_disappeared signal
+	var is_paddle_or_popper = (current_target_type == "paddle" or current_target_type == "popper")
+	if shots_on_current_target >= 2 and not is_paddle_or_popper:
 		# Check if this is the last target in the sequence
 		var is_last_in_sequence = (current_target_index >= target_sequence.size() - 1)
 		
@@ -758,6 +822,8 @@ func _on_target_hit(zone_or_id, points_or_zone, hit_pos_or_points, target_pos_or
 			if DEBUG_ENABLED:
 				print("[DrillsNetwork] Last target in sequence reached 2 shots")
 			# Fall through to the old logic below
+	elif is_paddle_or_popper and DEBUG_ENABLED:
+		print("[DrillsNetwork] Paddle/popper target detected, skipping 2-shot transition check (waiting for target_disappeared signal)")
 	
 	# Track shots on the last target to trigger final spawn (legacy logic for single-target or last target in sequence)
 	if is_last and not final_target_spawned:

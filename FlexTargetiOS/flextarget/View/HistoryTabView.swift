@@ -339,14 +339,16 @@ struct HistoryTabView: View {
         var shotDataArray: [ShotData] = []
         let decoder = JSONDecoder()
         
-        for shot in shots {
+        // Sort shots by timestamp (absolute time from repeat start) before decoding
+        // This ensures correct order when loading from history
+        let sortedShots = shots.sorted { (a: Shot, b: Shot) in a.timestamp < b.timestamp }
+        
+        for shot in sortedShots {
             guard let data = shot.data else { continue }
             if let shotData = try? decoder.decode(ShotData.self, from: data.data(using: .utf8) ?? Data()) {
                 shotDataArray.append(shotData)
             }
         }
-        
-        shotDataArray.sort { (a: ShotData, b: ShotData) in a.content.timeDiff < b.content.timeDiff }
         
         guard !shotDataArray.isEmpty else { return nil }
         

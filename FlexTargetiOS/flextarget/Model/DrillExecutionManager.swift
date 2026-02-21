@@ -526,9 +526,9 @@ class DrillExecutionManager {
         
         isWaitingForEnd = true
 
-        // Start 30s guard timer in case end message doesn't arrive
+        // Start 5min guard timer in case end message doesn't arrive
         ackTimeoutTimer?.invalidate()
-        ackTimeoutTimer = Timer.scheduledTimer(withTimeInterval: 30.0, repeats: false) { [weak self] _ in
+        ackTimeoutTimer = Timer.scheduledTimer(withTimeInterval: 300.0, repeats: false) { [weak self] _ in
             self?.handleEndTimeout()
         }
 

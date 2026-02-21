@@ -451,14 +451,16 @@ struct DrillResultView: View {
         var convertedShots: [ShotData] = []
         if let shotSet = drillResult.shots as? Set<Shot> {
             let decoder = JSONDecoder()
-            for shot in shotSet {
+            // Sort shots by timestamp (absolute time) before decoding
+            // This ensures correct order when loading from history
+            let sortedShots = shotSet.sorted { (a: Shot, b: Shot) in a.timestamp < b.timestamp }
+            for shot in sortedShots {
                 guard let data = shot.data else { continue }
                 if let shotData = try? decoder.decode(ShotData.self, from: data.data(using: .utf8) ?? Data()) {
                     convertedShots.append(shotData)
                 }
             }
         }
-        convertedShots.sort { (a: ShotData, b: ShotData) in a.content.timeDiff < b.content.timeDiff }
         
         _shots = State(initialValue: convertedShots)
         _drillStatus = State(initialValue: NSLocalizedString("drill_status_completed", comment: "Drill completed status"))
