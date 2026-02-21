@@ -154,10 +154,15 @@ struct ReplayTargetDisplayView: View {
                                 .stroke(Color.white, lineWidth: 12)
                         )
 
-                    Image("\(display.icon).live.target")
+                    let imageName = "\(display.icon).live.target"
+                    Image(imageName)
                         .resizable()
                         .scaledToFit()
                         .frame(width: frameWidth, height: frameHeight)
+                        .onAppear {
+                            // Log when image is loaded
+                            print("[ReplayTargetDisplayView] Loading image: \(imageName)")
+                        }
                         .overlay(alignment: .topTrailing) {
                             if let targetName = display.targetName {
                                 Text(targetName)
@@ -290,9 +295,13 @@ struct DrillReplayView: View {
         
         for target in sortedTargets {
             let iconName = target.targetType ?? ""
-            let resolvedIcon = iconName.isEmpty ? "hostage" : iconName
             let baseId = target.id?.uuidString ?? UUID().uuidString
             let variants = target.toStruct().parseVariants()
+            
+            print("[DrillReplayView] Target: \(target.targetName ?? "unknown"), iconName: '\(iconName)', variants count: \(variants.count)")
+            
+            // Check if targetType is a JSON array string (multi-target-type feature)
+            let multiTargetTypes = parseMultiTargetTypes(iconName)
             
             if !variants.isEmpty {
                 // Create a display for each variant
@@ -306,10 +315,26 @@ struct DrillReplayView: View {
                         targetName: target.targetName,
                         variant: variant
                     )
+                    print("[DrillReplayView] Variant \(index): targetType='\(variant.targetType)', icon='\(variantIcon)', timeWindow: \(variant.startTime)-\(variant.endTime)")
+                    displays.append(display)
+                }
+            } else if !multiTargetTypes.isEmpty {
+                // Create a display for each target type in the multi-target array
+                for (index, targetType) in multiTargetTypes.enumerated() {
+                    let id = "\(baseId)-multitarget-\(index)"
+                    let display = ReplayTargetDisplay(
+                        id: id,
+                        config: target,
+                        icon: targetType,
+                        targetName: target.targetName,
+                        variant: nil
+                    )
+                    print("[DrillReplayView] Multi-target \(index): icon='\(targetType)'")
                     displays.append(display)
                 }
             } else {
-                // No variants: create single display (legacy behavior)
+                // No variants or multi-target types: create single display (legacy behavior)
+                let resolvedIcon = iconName.isEmpty ? "hostage" : iconName
                 let display = ReplayTargetDisplay(
                     id: baseId,
                     config: target,
@@ -317,6 +342,7 @@ struct DrillReplayView: View {
                     targetName: target.targetName,
                     variant: nil
                 )
+                print("[DrillReplayView] Single target: icon='\(resolvedIcon)'")
                 displays.append(display)
             }
         }
@@ -331,23 +357,94 @@ struct DrillReplayView: View {
             return t1 < t2
         }
     }
-
+    
+    /// Parses a JSON array string of target types (e.g., '["hostage","ipsc","paddle"]')
+    /// Returns array of target type strings, or empty array if not a valid JSON array
+    private func parseMultiTargetTypes(_ jsonString: String) -> [String] {
+        guard jsonString.hasPrefix("[") && jsonString.hasSuffix("]") else {
+            return []
+        }
+        
+        do {
+            if let data = jsonString.data(using: .utf8),
+               let jsonArray = try JSONSerialization.jsonObject(with: data) as? [String] {
+                print("[DrillReplayView] Parsed multi-target types: \(jsonArray)")
+                return jsonArray
+            }
+        } catch {
+            print("[DrillReplayView] Failed to parse multi-target types from '\(jsonString)': \(error)")
+        }
+        
+        return []
+    }
     private var backgroundImageName: String {
+        // Try to get the drill mode from drillSetup if available
+        let drillMode = drillSetup.mode?.lowercased() ?? ""
+        
         // Get the first target type from the drill setup
         guard let firstTarget = drillSetup.sortedTargets.first,
-              let targetType = firstTarget.targetType, !targetType.isEmpty else {
-            return "idpa_live_target"  // Default fallback
+              let targetTypeStr = firstTarget.targetType, !targetTypeStr.isEmpty else {
+            // Fallback based on drill mode
+            switch drillMode {
+            case "ipsc":
+                return "ipsc"
+            case "idpa":
+                return "idpa"
+            case "cqb":
+                return "cqb_swing"
+            default:
+                return "ipsc"
+            }
         }
+        
+        // Check if targetType is a JSON array (multi-target feature)
+        let multiTargetTypes = parseMultiTargetTypes(targetTypeStr)
+        let effectiveTargetType = multiTargetTypes.first ?? targetTypeStr
         
         // Map target type to background image name
         let imageMap: [String: String] = [
-            "idpa": "idpa_live_target",
-            "idpa-ns": "idpa_ns_live_target",
-            "idpa-back-1": "idpa_hard_cover_1_live_target",
-            "idpa-back-2": "idpa_hard_cover_2_live_target"
+            "ipsc": "ipsc",
+            "hostage": "ipsc",
+            "paddle": "ipsc",
+            "popper": "ipsc",
+            "rotation": "ipsc",
+            "special_1": "ipsc",
+            "special_2": "ipsc",
+            "idpa": "idpa",
+            "idpa_ns": "idpa_ns",
+            "idpa_black_1": "idpa_hard_cover_1",
+            "idpa_black_2": "idpa_hard_cover_2",
+            "idpa-back-1": "idpa_hard_cover_1",
+            "idpa-back-2": "idpa_hard_cover_2",
+            "cqb_swing": "cqb_swing",
+            "cqb_front": "cqb_front",
+            "cqb_move": "cqb_move",
+            "cqb_hostage": "cqb_swing",
+            "disguised_enemy": "cqb_swing",
+            "disguised_enemy_surrender": "cqb_swing"
         ]
         
-        return imageMap[targetType] ?? "idpa_live_target"  // Default fallback
+        // Try exact match first
+        if let image = imageMap[effectiveTargetType] {
+            print("[DrillReplayView] Background image: \(image) for target type: '\(effectiveTargetType)'")
+            return image
+        }
+        
+        // Fallback based on drill mode
+        switch drillMode {
+        case "ipsc":
+            print("[DrillReplayView] Background image fallback to ipsc for drill mode: \(drillMode)")
+            return "ipsc"
+        case "idpa":
+            print("[DrillReplayView] Background image fallback to idpa for drill mode: \(drillMode)")
+            return "idpa"
+        case "cqb":
+            print("[DrillReplayView] Background image fallback to cqb_swing for drill mode: \(drillMode)")
+            return "cqb_swing"
+        default:
+            print("[DrillReplayView] Background image fallback to ipsc (default)")
+            return "ipsc"
+        }
     }
     
     var body: some View {
@@ -357,12 +454,6 @@ struct DrillReplayView: View {
             let frameWidth = frameHeight * 9 / 16
             
             ZStack {
-                // Background image
-                Image(backgroundImageName)
-                    .resizable()
-                    .scaledToFill()
-                    .ignoresSafeArea()
-                
                 VStack(spacing: 20) {
                     // Target Display
                     ReplayTargetDisplayView(
@@ -378,78 +469,82 @@ struct DrillReplayView: View {
                     )
                     .frame(width: frameWidth, height: frameHeight)
                 
-                // Timeline and Controls
-                VStack(spacing: 15) {
-                    HStack {
-                        Text(String(format: "%.2f", min(currentProgress, totalDuration)))
-                            .font(.system(.body, design: .monospaced))
-                            .foregroundColor(.white)
+                    // Timeline and Controls
+                    VStack(spacing: 15) {
+                        HStack {
+                            Text(String(format: "%.2f", min(currentProgress, totalDuration)))
+                                .font(.system(.body, design: .monospaced))
+                                .foregroundColor(.white)
+                            
+                            Spacer()
+                            
+                            Text(String(format: "%.2f", totalDuration))
+                                .font(.system(.body, design: .monospaced))
+                                .foregroundColor(.white.opacity(0.6))
+                        }
+                        .padding(.horizontal)
                         
-                        Spacer()
+                        ShotTimelineView(
+                            shots: shotTimelineData,
+                            totalDuration: totalDuration,
+                            currentProgress: currentProgress,
+                            isEnabled: true,
+                            onProgressChange: { newProgress in
+                                currentProgress = newProgress
+                                updateSelectionForTime(newProgress)
+                            },
+                            onShotFocus: { index in
+                                selectedShotIndex = index
+                                pulsingShotIndex = index
+                                triggerPulse()
+                                playShotSound()
+                            }
+                        )
+                        .frame(height: 40)
+                        .padding(.horizontal)
                         
-                        Text(String(format: "%.2f", totalDuration))
-                            .font(.system(.body, design: .monospaced))
-                            .foregroundColor(.white.opacity(0.6))
+                        // Playback Controls
+                        HStack(spacing: 40) {
+                            Button(action: {
+                                currentProgress = 0
+                                updateSelectionForTime(0)
+                            }) {
+                                Image(systemName: "backward.fill")
+                                    .font(.title2)
+                                    .foregroundColor(.white)
+                            }
+                            
+                            Button(action: togglePlayback) {
+                                Image(systemName: isPlaying ? "pause.fill" : "play.fill")
+                                    .font(.system(size: 44))
+                                    .foregroundColor(.white)
+                            }
+                            
+                            Button(action: {
+                                currentProgress = playingDuration
+                                updateSelectionForTime(playingDuration)
+                            }) {
+                                Image(systemName: "forward.fill")
+                                    .font(.title2)
+                                    .foregroundColor(.white)
+                            }
+                        }
                     }
-                    .padding(.horizontal)
-                    
-                    ShotTimelineView(
-                        shots: shotTimelineData,
-                        totalDuration: totalDuration,
-                        currentProgress: currentProgress,
-                        isEnabled: true,
-                        onProgressChange: { newProgress in
-                            currentProgress = newProgress
-                            updateSelectionForTime(newProgress)
-                        },
-                        onShotFocus: { index in
-                            selectedShotIndex = index
-                            pulsingShotIndex = index
-                            triggerPulse()
-                            playShotSound()
-                        }
-                    )
-                    .frame(height: 40)
-                    .padding(.horizontal)
-                    
-                    // Playback Controls
-                    HStack(spacing: 40) {
-                        Button(action: {
-                            currentProgress = 0
-                            updateSelectionForTime(0)
-                        }) {
-                            Image(systemName: "backward.fill")
-                                .font(.title2)
-                                .foregroundColor(.white)
-                        }
-                        
-                        Button(action: togglePlayback) {
-                            Image(systemName: isPlaying ? "pause.fill" : "play.fill")
-                                .font(.system(size: 44))
-                                .foregroundColor(.white)
-                        }
-                        
-                        Button(action: {
-                            currentProgress = playingDuration
-                            updateSelectionForTime(playingDuration)
-                        }) {
-                            Image(systemName: "forward.fill")
-                                .font(.title2)
-                                .foregroundColor(.white)
-                        }
-                    }
+                    .padding(.bottom, 30)
                 }
-                .padding(.bottom, 30)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            }
             .background(Color.black.edgesIgnoringSafeArea(.all))
         }
         .navigationTitle("Replay")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             if let firstTarget = targetDisplays.first {
+                print("[DrillReplayView] onAppear - Setting initial target: \(firstTarget.id), icon: '\(firstTarget.icon)'")
                 selectedTargetKey = firstTarget.id
+            } else {
+                print("[DrillReplayView] onAppear - No targets available!")
             }
             // Configure audio session
             try? AVAudioSession.sharedInstance().setCategory(.ambient, mode: .default)
@@ -468,13 +563,26 @@ struct DrillReplayView: View {
             // Check variant time window if variant exists
             if let variant = display.variant {
                 if time >= variant.startTime && time < variant.endTime {
+                    print("[DrillReplayView] activeTargetId: time \(time) in range [\(variant.startTime), \(variant.endTime)) -> \(display.id)")
                     return display.id
                 }
             }
         }
         
+        // If we have variants but time is past all of them, return the last one
+        let variantDisplays = targetDisplays.filter { $0.variant != nil }
+        if !variantDisplays.isEmpty {
+            // Return the last variant (highest endTime)
+            if let lastVariant = variantDisplays.last {
+                print("[DrillReplayView] activeTargetId: time \(time) past all variants, returning last: \(lastVariant.id)")
+                return lastVariant.id
+            }
+        }
+        
         // Fallback: return first target (no time window constraints)
-        return targetDisplays.first?.id
+        let fallbackId = targetDisplays.first?.id
+        print("[DrillReplayView] activeTargetId: Using fallback display: \(fallbackId ?? "none")")
+        return fallbackId
     }
     
     private func togglePlayback() {
@@ -523,22 +631,43 @@ struct DrillReplayView: View {
                 // Enhancement: Match shot targetType to variant targetType
                 // This auto-switches the variant tab when a different type of shot is fired
                 let shotTargetType = lastShot.content.targetType.isEmpty ? "hostage" : lastShot.content.targetType
+                let shotDevice = lastShot.device?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "unknown"
+                print("[DrillReplayView] Shot received - targetType: '\(shotTargetType)', device: '\(shotDevice)'")
+                print("[DrillReplayView] Available displays: \(targetDisplays.map { "\($0.id): icon='\($0.icon)', targetName='\($0.targetName ?? "nil")'" }.joined(separator: ", "))")
+                
                 if let matchingDisplay = targetDisplays.first(where: { display in
                     // If variant exists, match its targetType
                     if let variant = display.variant {
-                        return variant.targetType == shotTargetType
+                        let matches = variant.targetType == shotTargetType
+                        print("[DrillReplayView] Checking variant: '\(variant.targetType)' vs '\(shotTargetType)' = \(matches)")
+                        return matches
                     }
                     // Fallback: match by icon for non-variant targets
-                    return display.icon == shotTargetType
+                    let matches = display.icon == shotTargetType
+                    if let targetName = display.targetName {
+                        // If display has targetName, also check device match
+                        let deviceMatches = shotDevice == targetName
+                        let finalMatch = matches && deviceMatches
+                        print("[DrillReplayView] Checking icon+device: icon '\(display.icon)' vs '\(shotTargetType)' = \(matches), device '\(shotDevice)' vs '\(targetName)' = \(deviceMatches), final=\(finalMatch)")
+                        return finalMatch
+                    } else {
+                        // No targetName constraint, just match icon
+                        print("[DrillReplayView] Checking icon: '\(display.icon)' vs '\(shotTargetType)' = \(matches)")
+                        return matches
+                    }
                 }) {
                     if selectedTargetKey != matchingDisplay.id {
+                        print("[DrillReplayView] Switching to target: \(matchingDisplay.id), icon: '\(matchingDisplay.icon)'")
                         selectedTargetKey = matchingDisplay.id
                     }
                 } else if let activeId = activeTargetId(forTime: time) {
                     // Fallback to time-based selection if no type match
+                    print("[DrillReplayView] No type match, using time-based selection: \(activeId)")
                     if selectedTargetKey != activeId {
                         selectedTargetKey = activeId
                     }
+                } else {
+                    print("[DrillReplayView] No matching display found for shot")
                 }
             }
         } else {

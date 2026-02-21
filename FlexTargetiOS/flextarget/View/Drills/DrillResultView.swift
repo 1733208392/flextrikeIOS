@@ -6,8 +6,16 @@ private struct TargetDisplay: Identifiable, Hashable {
     let config: DrillTargetsConfig
     let icon: String
     let targetName: String?
+    let index: Int?  // Position in multi-target array (nil for single target)
 
     func matches(_ shot: ShotData) -> Bool {
+        // For multi-target displays, always match by targetType (icon), not by device name
+        if index != nil {
+            let shotIcon = shot.content.targetType.isEmpty ? "hostage" : shot.content.targetType
+            return shotIcon == icon
+        }
+        
+        // For single-target displays, use original logic (targetName takes precedence if set)
         if let targetName = targetName {
             let shotTargetName = shot.device?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
             return shotTargetName == targetName
@@ -323,25 +331,67 @@ struct DrillResultView: View {
         return sortedShots.reduce(0) { $0 + $1.content.timeDiff }
     }
 
+    private func parseMultiTargetTypes(_ jsonString: String) -> [String] {
+        guard jsonString.hasPrefix("[") && jsonString.hasSuffix("]") else {
+            return []
+        }
+        
+        do {
+            if let data = jsonString.data(using: .utf8),
+               let jsonArray = try JSONSerialization.jsonObject(with: data) as? [String] {
+                print("[DrillResultView] Parsed multi-target types: \(jsonArray)")
+                return jsonArray
+            }
+        } catch {
+            print("[DrillResultView] Failed to parse multi-target types from '\(jsonString)': \(error)")
+        }
+        
+        return []
+    }
+    
     private var targetDisplays: [TargetDisplay] {
         let sortedTargets = drillSetup.sortedTargets
+        var displays: [TargetDisplay] = []
         
-        // Create TargetDisplay instances
-        let displays = sortedTargets.map { target in
-            let iconName = target.targetType ?? ""
-            let resolvedIcon = iconName.isEmpty ? "hostage" : iconName
-            let id = target.id?.uuidString ?? UUID().uuidString
-            return TargetDisplay(id: id, config: target, icon: resolvedIcon, targetName: target.targetName)
+        // Process each target configuration
+        for target in sortedTargets {
+            let targetTypeStr = target.targetType ?? ""
+            
+            // Try to parse as multi-target JSON array
+            let parsedTypes = parseMultiTargetTypes(targetTypeStr)
+            
+            if !parsedTypes.isEmpty {
+                // Multi-target: create separate display for each target type
+                for (index, targetType) in parsedTypes.enumerated() {
+                    let resolvedIcon = targetType.isEmpty ? "hostage" : targetType
+                    let id = (target.id?.uuidString ?? UUID().uuidString) + "-multitarget-\(index)"
+                    let display = TargetDisplay(
+                        id: id,
+                        config: target,
+                        icon: resolvedIcon,
+                        targetName: target.targetName,
+                        index: index
+                    )
+                    displays.append(display)
+                    print("[DrillResultView] Created multi-target display #\(index): \(targetType)")
+                }
+            } else {
+                // Single target (backward compatible)
+                let resolvedIcon = targetTypeStr.isEmpty ? "hostage" : targetTypeStr
+                let id = target.id?.uuidString ?? UUID().uuidString
+                let display = TargetDisplay(
+                    id: id,
+                    config: target,
+                    icon: resolvedIcon,
+                    targetName: target.targetName,
+                    index: nil
+                )
+                displays.append(display)
+                print("[DrillResultView] Created single-target display: \(resolvedIcon)")
+            }
         }
         
-        // Sort displays based on the earliest shot index for each target
-        let sortedDisplays = displays.sorted { display1, display2 in
-            let minIndex1 = shots.enumerated().first(where: { display1.matches($0.element) })?.offset ?? Int.max
-            let minIndex2 = shots.enumerated().first(where: { display2.matches($0.element) })?.offset ?? Int.max
-            return minIndex1 < minIndex2
-        }
-        
-        return sortedDisplays
+        return displays
     }
     
     var totalDuration: Double {

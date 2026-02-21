@@ -728,6 +728,12 @@ func _on_target_hit(zone_or_id, points_or_zone, hit_pos_or_points, target_pos_or
 	
 	total_score += points
 	
+	# Emit for performance tracking FIRST - before any transitions
+	# This ensures the shot data is sent to the mobile app before target changes
+	if DEBUG_ENABLED:
+		print("[DrillsNetwork] _on_target_hit: Emitting target_hit signal - target_type=", current_target_type, ", hit_area=", zone, ", hit_pos=", hit_position, ", t=", t)
+	emit_signal("target_hit", target_instance, current_target_type, hit_position, zone, rotation_angle, current_repeat, target_position, t)
+	
 	# Track shots on the current target for multi-target sequence support
 	shots_on_current_target += 1
 	if DEBUG_ENABLED:
@@ -780,11 +786,6 @@ func _on_target_hit(zone_or_id, points_or_zone, hit_pos_or_points, target_pos_or
 					print("[DrillsNetwork] Ending target disabled in settings, waiting for mobile app to end the drill")
 				# Mark final_target_spawned to prevent re-entry, but don't complete the drill yet
 				final_target_spawned = true
-	
-	# Emit for performance tracking
-	if DEBUG_ENABLED:
-		print("[DrillsNetwork] _on_target_hit: Emitting target_hit signal - target_type=", current_target_type, ", hit_area=", zone, ", hit_pos=", hit_position, ", t=", t)
-	emit_signal("target_hit", target_instance, current_target_type, hit_position, zone, rotation_angle, current_repeat, target_position, t)
 
 func _on_cqb_target_hit(zone: String, hit_position: Vector2, t: int = 0):
 	"""Handle CQB target hit - simplified handler for CQB targets.
@@ -827,6 +828,14 @@ func _on_cqb_target_hit(zone: String, hit_position: Vector2, t: int = 0):
 		if animation_lib and animation_lib.has_method("stop_all_sequences"):
 			animation_lib.stop_all_sequences()
 			print("[DrillsNetwork] Called animation_lib.stop_all_sequences()")
+	
+	# Emit for performance tracking FIRST - before any transitions
+	# This ensures the shot data is sent to the mobile app before target changes
+	# For CQB targets, hit_position serves as both hit_position and target_position
+	var target_position = target_instance.global_position if target_instance else Vector2.ZERO
+	if DEBUG_ENABLED:
+		print("[DrillsNetwork] _on_cqb_target_hit: Emitting target_hit signal - target_type=", current_target_type, ", hit_area=", zone, ", hit_pos=", hit_position, ", t=", t)
+	emit_signal("target_hit", target_instance, current_target_type, hit_position, zone, 0.0, current_repeat, target_position, t)
 	
 	# Track shots on the current target for multi-target sequence support
 	shots_on_current_target += 1
@@ -880,13 +889,6 @@ func _on_cqb_target_hit(zone: String, hit_position: Vector2, t: int = 0):
 					print("[DrillsNetwork] Ending target disabled in settings, waiting for mobile app to end the drill")
 				# Mark final_target_spawned to prevent re-entry, but don't complete the drill yet
 				final_target_spawned = true
-	
-	# Emit for performance tracking
-	# For CQB targets, hit_position serves as both hit_position and target_position
-	var target_position = target_instance.global_position if target_instance else Vector2.ZERO
-	if DEBUG_ENABLED:
-		print("[DrillsNetwork] _on_cqb_target_hit: Emitting target_hit signal - target_type=", current_target_type, ", hit_area=", zone, ", hit_pos=", hit_position, ", t=", t)
-	emit_signal("target_hit", target_instance, current_target_type, hit_position, zone, 0.0, current_repeat, target_position, t)
 
 func start_drill_timer():
 	"""Start the drill timer"""
