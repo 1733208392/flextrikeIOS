@@ -537,10 +537,29 @@ struct DrillReplayView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color.black.edgesIgnoringSafeArea(.all))
         }
-        .accentColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button(action: { 
+                    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                       let window = windowScene.windows.first {
+                        if let navController = window.rootViewController as? UINavigationController {
+                            navController.popViewController(animated: true)
+                        }
+                    }
+                }) {
+                    HStack(spacing: 5) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 16, weight: .semibold))
+                        Text("Back")
+                            .font(.system(size: 16, weight: .regular))
+                    }
+                    .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+                }
+            }
+        }
         .navigationTitle("Replay")
         .navigationBarTitleDisplayMode(.inline)
-        .tint(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
         .onAppear {
             if let firstTarget = targetDisplays.first {
                 print("[DrillReplayView] onAppear - Setting initial target: \(firstTarget.id), icon: '\(firstTarget.icon)'")
