@@ -99,6 +99,11 @@ var shots_on_last_target: int = 0
 var final_target_spawned: bool = false
 var final_target_instance: Node = null
 
+# Multi-target sequence support
+var target_sequence: Array = []  # Array of target types to cycle through
+var current_target_index: int = 0  # Index of current target in sequence
+var shots_on_current_target: int = 0  # Track shots on the current target
+
 # Animation configuration for targets
 var current_animation_action: Dictionary = {}  # Dictionary holding single animation action (for future sequence support)
 var animation_lib: Node = null  # Reference to TargetAnimationLibrary
@@ -346,15 +351,31 @@ func _get_netlink_identity() -> Dictionary:
 func spawn_target():
 	"""Spawn the single target"""
 	if DEBUG_ENABLED:
-		print("[DrillsNetwork] Spawning target")
+		print("[DrillsNetwork] Spawning target for type: ", current_target_type)
 	
-	# Clear any existing target
+	# Disconnect and clear any existing target first
 	if target_instance:
+		# Try to disconnect signals before queue_free
+		if target_instance.has_signal("target_hit"):
+			if target_instance.target_hit.is_connected(_on_target_hit):
+				target_instance.target_hit.disconnect(_on_target_hit)
+				if DEBUG_ENABLED:
+					print("[DrillsNetwork] Disconnected target_hit signal from old target")
+		if target_instance.has_signal("cqb_target_hit"):
+			if target_instance.cqb_target_hit.is_connected(_on_cqb_target_hit):
+				target_instance.cqb_target_hit.disconnect(_on_cqb_target_hit)
+				if DEBUG_ENABLED:
+					print("[DrillsNetwork] Disconnected cqb_target_hit signal from old target")
+		
 		target_instance.queue_free()
 		target_instance = null
 	
 	# Instance the target
 	target_instance = target_scene.instantiate()
+	if target_instance == null:
+		print("[DrillsNetwork] ERROR: Failed to instantiate target scene!")
+		return
+	
 	center_container.add_child(target_instance)
 
 	# Store target type as metadata for later retrieval by performance tracker
@@ -380,6 +401,7 @@ func spawn_target():
 		target_instance.set("drill_active", false)
 	
 	# Connect to appropriate signal based on target type
+	print("[DrillsNetwork] spawn_target: Checking for signals on target: ", target_instance.name, " (type: ", current_target_type, ")")
 	if normalize_game_mode(game_mode) == "cqb" and target_instance.has_signal("cqb_target_hit"):
 		# CQB targets use the cqb_target_hit signal (2 params: zone, hit_position)
 		print("[DrillsNetwork] spawn_target: CQB target detected, connecting to cqb_target_hit signal")
@@ -387,7 +409,7 @@ func spawn_target():
 		if err == OK:
 			print("[DrillsNetwork] spawn_target: ✓ Successfully connected cqb_target_hit signal!")
 		else:
-			print("[DrillsNetwork] spawn_target: ✗ FAILED to connect - Error code: ", err)
+			print("[DrillsNetwork] spawn_target: ✗ FAILED to connect cqb_target_hit - Error code: ", err)
 	elif target_instance.has_signal("target_hit"):
 		# Non-CQB targets use the standard target_hit signal
 		print("[DrillsNetwork] spawn_target: Standard target detected, connecting to target_hit signal")
@@ -395,9 +417,9 @@ func spawn_target():
 		if err == OK:
 			print("[DrillsNetwork] spawn_target: ✓ Successfully connected target_hit signal!")
 		else:
-			print("[DrillsNetwork] spawn_target: ✗ FAILED to connect - Error code: ", err)
+			print("[DrillsNetwork] spawn_target: ✗ FAILED to connect target_hit - Error code: ", err)
 	else:
-		print("[DrillsNetwork] spawn_target: Target does NOT have target_hit or cqb_target_hit signal!")
+		print("[DrillsNetwork] spawn_target: ✗✗✗ CRITICAL ERROR: Target does NOT have target_hit or cqb_target_hit signal!")
 		print("[DrillsNetwork] spawn_target: Available signals on target:")
 		for sig in target_instance.get_signal_list():
 			print("  - ", sig.name, "(", sig.args, ")")
@@ -494,6 +516,89 @@ func _on_final_target_hit(hit_position: Vector2):
 	else:
 		if DEBUG_ENABLED:
 			print("[DrillsNetwork] HttpService not available; cannot send end ack")
+
+func _transition_to_next_target():
+	"""Transition from current target to the next target in the sequence"""
+	if DEBUG_ENABLED:
+		print("[DrillsNetwork] Transitioning to next target in sequence")
+	
+	# Increment target index
+	current_target_index += 1
+	shots_on_current_target = 0
+	
+	# Check if we've reached the end of the sequence
+	if current_target_index >= target_sequence.size():
+		if DEBUG_ENABLED:
+			print("[DrillsNetwork] Reached end of target sequence (", current_target_index, " >= ", target_sequence.size(), ")")
+		# End the drill automatically
+		_on_ble_end_command({})
+		return
+	
+	# Get the next target type
+	var next_target_type = str(target_sequence[current_target_index])  # Ensure it's a string
+	if DEBUG_ENABLED:
+		print("[DrillsNetwork] Loading next target: ", next_target_type, " (index=", current_target_index, ")")
+	
+	# Validate the next target
+	if not validate_game_mode_and_target(game_mode, next_target_type):
+		if DEBUG_ENABLED:
+			print("[DrillsNetwork] ERROR: Invalid target in sequence: ", next_target_type, ", SKIPPING TO NEXT")
+		await _transition_to_next_target()  # Recursively try next target
+		return
+	
+	# Update current target type
+	current_target_type = next_target_type
+	
+	# Load the target scene
+	if target_type_to_scene.has(current_target_type):
+		target_scene = load(target_type_to_scene[current_target_type])
+		if DEBUG_ENABLED:
+			print("[DrillsNetwork] Loaded target scene for type '", current_target_type, "'")
+	else:
+		if DEBUG_ENABLED:
+			print("[DrillsNetwork] ERROR: Unknown target type: ", current_target_type, " - SKIPPING")
+		await _transition_to_next_target()  # Try next target
+		return
+	
+	# Remove the old target
+	if target_instance:
+		if DEBUG_ENABLED:
+			print("[DrillsNetwork] Removing previous target instance")
+		
+		# Disable the target first so it stops processing WebSocket hits
+		if target_instance.has_method("set"):
+			target_instance.set("drill_active", false)
+			if DEBUG_ENABLED:
+				print("[DrillsNetwork] Disabled drill_active on old target")
+		
+		# Disconnect signals from old target to prevent stray hits
+		if target_instance.has_signal("target_hit"):
+			if target_instance.target_hit.is_connected(_on_target_hit):
+				target_instance.target_hit.disconnect(_on_target_hit)
+				if DEBUG_ENABLED:
+					print("[DrillsNetwork] Disconnected target_hit signal from old target")
+		if target_instance.has_signal("cqb_target_hit"):
+			if target_instance.cqb_target_hit.is_connected(_on_cqb_target_hit):
+				target_instance.cqb_target_hit.disconnect(_on_cqb_target_hit)
+				if DEBUG_ENABLED:
+					print("[DrillsNetwork] Disconnected cqb_target_hit signal from old target")
+		
+		target_instance.queue_free()
+		target_instance = null
+		
+		# Wait one frame to ensure old target is removed from scene tree before spawning new one
+		await get_tree().process_frame
+	
+	# Spawn the new target
+	if DEBUG_ENABLED:
+		print("[DrillsNetwork] Spawning new target: ", current_target_type)
+	spawn_target()
+	
+	# Activate the newly spawned target for the ongoing drill
+	if target_instance and target_instance.has_method("set"):
+		target_instance.set("drill_active", true)
+		if DEBUG_ENABLED:
+			print("[DrillsNetwork] Activated drill_active on new target")
 
 func _on_animation_target_swapped(old_target: Node, new_target: Node):
 	"""Handle target swap during flash_sequence animation.
@@ -622,7 +727,33 @@ func _on_target_hit(zone_or_id, points_or_zone, hit_pos_or_points, target_pos_or
 		print("[DrillsNetwork] Target hit processed: zone=", zone, ", points=", points, ", hit_pos=", hit_position, ", t=", t)
 	
 	total_score += points
-	# Track shots on the last target to trigger final spawn
+	
+	# Track shots on the current target for multi-target sequence support
+	shots_on_current_target += 1
+	if DEBUG_ENABLED:
+		print("[DrillsNetwork] Shots on current target: ", shots_on_current_target, "/2")
+	
+	# Check if we should transition to the next target in the sequence
+	if shots_on_current_target >= 2:
+		# Check if this is the last target in the sequence
+		var is_last_in_sequence = (current_target_index >= target_sequence.size() - 1)
+		
+		if DEBUG_ENABLED:
+			print("[DrillsNetwork] Checking transition: current_target_index=", current_target_index, ", sequence.size()=", target_sequence.size(), ", is_last_in_sequence=", is_last_in_sequence)
+		
+		if not is_last_in_sequence:
+			# Not the last target, transition to next
+			if DEBUG_ENABLED:
+				print("[DrillsNetwork] Target complete with 2 shots, transitioning to next target")
+			await _transition_to_next_target()
+			return
+		else:
+			# This is the last target in the sequence, apply the old final target logic
+			if DEBUG_ENABLED:
+				print("[DrillsNetwork] Last target in sequence reached 2 shots")
+			# Fall through to the old logic below
+	
+	# Track shots on the last target to trigger final spawn (legacy logic for single-target or last target in sequence)
 	if is_last and not final_target_spawned:
 		shots_on_last_target += 1
 		if DEBUG_ENABLED:
@@ -697,7 +828,32 @@ func _on_cqb_target_hit(zone: String, hit_position: Vector2, t: int = 0):
 			animation_lib.stop_all_sequences()
 			print("[DrillsNetwork] Called animation_lib.stop_all_sequences()")
 	
-	# Track shots on the last target to trigger final spawn
+	# Track shots on the current target for multi-target sequence support
+	shots_on_current_target += 1
+	if DEBUG_ENABLED:
+		print("[DrillsNetwork] Shots on current target (CQB): ", shots_on_current_target, "/2")
+	
+	# Check if we should transition to the next target in the sequence
+	if shots_on_current_target >= 2:
+		# Check if this is the last target in the sequence
+		var is_last_in_sequence = (current_target_index >= target_sequence.size() - 1)
+		
+		if DEBUG_ENABLED:
+			print("[DrillsNetwork] CQB: Checking transition: current_target_index=", current_target_index, ", sequence.size()=", target_sequence.size(), ", is_last_in_sequence=", is_last_in_sequence)
+		
+		if not is_last_in_sequence:
+			# Not the last target, transition to next
+			if DEBUG_ENABLED:
+				print("[DrillsNetwork] CQB target complete with 2 shots, transitioning to next target")
+			await _transition_to_next_target()
+			return
+		else:
+			# This is the last target in the sequence, apply the old final target logic
+			if DEBUG_ENABLED:
+				print("[DrillsNetwork] Last target in sequence reached 2 shots (CQB)")
+			# Fall through to the old logic below
+	
+	# Track shots on the last target to trigger final spawn (legacy logic for single-target or last target in sequence)
 	if is_last and not final_target_spawned:
 		shots_on_last_target += 1
 		if DEBUG_ENABLED:
@@ -850,6 +1006,11 @@ func reset_drill_state():
 	final_target_spawned = false
 	current_animation_action.clear()
 	
+	# Reset multi-target sequence state
+	target_sequence.clear()
+	current_target_index = 0
+	shots_on_current_target = 0
+	
 	# Stop and clean up timeout timer
 	if timeout_timer:
 		timeout_timer.stop()
@@ -950,19 +1111,38 @@ func _on_ble_ready_command(content: Dictionary):
 
 	# Update current_target_type for informational purposes but do not instantiate or start anything
 	if saved_ble_ready_content.has("targetType"):
-		current_target_type = saved_ble_ready_content["targetType"]
+		var rawTargetType = saved_ble_ready_content["targetType"]
 		
-		# Validate target type for the game mode
-		if not validate_game_mode_and_target(game_mode, current_target_type):
-			# Use default target for the game mode
+		# Parse targetType as either string (backward compatible) or array (new multi-target feature)
+		if rawTargetType is Array:
+			target_sequence = rawTargetType as Array
+		else:
+			target_sequence = [rawTargetType as String]
+		
+		if DEBUG_ENABLED:
+			print("[DrillsNetwork] Target sequence loaded: ", target_sequence)
+		
+		# Validate all targets in the sequence
+		var all_valid = true
+		for target_type_to_check in target_sequence:
+			var target_str = str(target_type_to_check)  # Ensure it's a string
+			if not validate_game_mode_and_target(game_mode, target_str):
+				all_valid = false
+				if DEBUG_ENABLED:
+					print("[DrillsNetwork] Invalid target in sequence: ", target_str)
+		
+		# If any target is invalid, use default sequence for the game mode
+		if not all_valid:
+			target_sequence.clear()
 			if valid_targets_by_mode.has(game_mode) and valid_targets_by_mode[game_mode].size() > 0:
-				current_target_type = valid_targets_by_mode[game_mode][0]
+				target_sequence = [valid_targets_by_mode[game_mode][0]]
 				if DEBUG_ENABLED:
-					print("[DrillsNetwork] Using default target type '", current_target_type, "' for game_mode '", game_mode, "'")
-			else:
-				current_target_type = "ipsc"  # Ultimate fallback
-				if DEBUG_ENABLED:
-					print("[DrillsNetwork] Using ultimate fallback target type 'ipsc'")
+					print("[DrillsNetwork] Using default target sequence for game_mode '", game_mode, "': ", target_sequence)
+		
+		# Initialize to first target in sequence
+		current_target_index = 0
+		shots_on_current_target = 0
+		current_target_type = str(target_sequence[0])  # Ensure it's a string
 		
 		if target_type_to_scene.has(current_target_type):
 			target_scene = load(target_type_to_scene[current_target_type])
@@ -975,6 +1155,9 @@ func _on_ble_ready_command(content: Dictionary):
 		# No targetType provided: pick a default for the current game mode
 		if valid_targets_by_mode.has(game_mode) and valid_targets_by_mode[game_mode].size() > 0:
 			current_target_type = valid_targets_by_mode[game_mode][0]
+			target_sequence = [current_target_type]
+			current_target_index = 0
+			shots_on_current_target = 0
 			if target_type_to_scene.has(current_target_type):
 				target_scene = load(target_type_to_scene[current_target_type])
 				if DEBUG_ENABLED:
@@ -1007,7 +1190,8 @@ func _on_ble_ready_command(content: Dictionary):
 			print("[DrillsNetwork] HttpService not available; cannot send ready ack")
 
 	# If drill is completed, reset to fresh start
-	reset_drill_state()
+	if drill_completed:
+		reset_drill_state()
 
 func _on_ble_start_command(content: Dictionary) -> void:
 	"""Handle BLE start command: merge saved ready params with start payload and begin delay/start sequence."""
@@ -1051,28 +1235,64 @@ func _on_ble_start_command(content: Dictionary) -> void:
 
 	# Apply merged parameters similar to original ready behavior
 	if merged.has("targetType"):
-		var target_type = merged["targetType"]
+		var rawTargetType = merged["targetType"]
 		
-		# Validate target type for the game mode
-		if not validate_game_mode_and_target(game_mode, target_type):
-			# Use default target for the game mode
-			if valid_targets_by_mode.has(game_mode) and valid_targets_by_mode[game_mode].size() > 0:
-				target_type = valid_targets_by_mode[game_mode][0]
-				if DEBUG_ENABLED:
-					print("[DrillsNetwork] Using default target type '", target_type, "' for game_mode '", game_mode, "'")
-			else:
-				target_type = "ipsc"  # Ultimate fallback
-				if DEBUG_ENABLED:
-					print("[DrillsNetwork] Using ultimate fallback target type 'ipsc'")
-		
-		current_target_type = target_type
-		if target_type_to_scene.has(target_type):
-			target_scene = load(target_type_to_scene[target_type])
-			if DEBUG_ENABLED:
-				print("[DrillsNetwork] Set target scene for type '", target_type, "' to: ", target_type_to_scene[target_type])
+		# Parse targetType as either string (backward compatible) or array (multi-target feature)
+		var temp_sequence: Array = []
+		if rawTargetType is Array:
+			temp_sequence = rawTargetType as Array
 		else:
+			temp_sequence = [rawTargetType as String]
+		
+		if DEBUG_ENABLED:
+			print("[DrillsNetwork] Target sequence from start command: ", temp_sequence)
+		
+		# Validate all targets in the sequence
+		var all_valid = true
+		for target_type_to_check in temp_sequence:
+			var target_str = str(target_type_to_check)
+			if not validate_game_mode_and_target(game_mode, target_str):
+				all_valid = false
+				if DEBUG_ENABLED:
+					print("[DrillsNetwork] Invalid target in sequence: ", target_str)
+		
+		# If sequence is valid, update our target_sequence
+		if all_valid:
+			target_sequence = temp_sequence
+			current_target_index = 0
+			shots_on_current_target = 0
+		elif target_sequence.is_empty():
+			# No valid sequence saved from ready command either, use default
+			if valid_targets_by_mode.has(game_mode) and valid_targets_by_mode[game_mode].size() > 0:
+				target_sequence = [valid_targets_by_mode[game_mode][0]]
+				if DEBUG_ENABLED:
+					print("[DrillsNetwork] Using default target sequence for game_mode '", game_mode, "': ", target_sequence)
+		else:
+			# Keep existing target_sequence from ready command
 			if DEBUG_ENABLED:
-				print("[DrillsNetwork] Unknown targetType: ", target_type, ", using default")
+				print("[DrillsNetwork] Start command has invalid targets, keeping sequence from ready command")
+		
+		# Initialize current_target_type from the sequence
+		if target_sequence.size() > 0:
+			current_target_type = str(target_sequence[0])
+			if target_type_to_scene.has(current_target_type):
+				target_scene = load(target_type_to_scene[current_target_type])
+				if DEBUG_ENABLED:
+					print("[DrillsNetwork] Set target scene for type '", current_target_type, "' to: ", target_type_to_scene[current_target_type])
+			else:
+				if DEBUG_ENABLED:
+					print("[DrillsNetwork] Unknown targetType: ", current_target_type, ", using default")
+	elif target_sequence.is_empty():
+		# No targetType in start command and no sequence from ready command, use defaults
+		if valid_targets_by_mode.has(game_mode) and valid_targets_by_mode[game_mode].size() > 0:
+			current_target_type = valid_targets_by_mode[game_mode][0]
+			target_sequence = [current_target_type]
+			current_target_index = 0
+			shots_on_current_target = 0
+			if target_type_to_scene.has(current_target_type):
+				target_scene = load(target_type_to_scene[current_target_type])
+				if DEBUG_ENABLED:
+					print("[DrillsNetwork] No targetType in start command; defaulting to '", current_target_type, "' for game_mode '", game_mode, "'")
 
 	# Update UI target name if provided
 	if merged.has("dest"):
@@ -1126,6 +1346,25 @@ func _on_ble_end_command(content: Dictionary) -> void:
 	
 	# Complete the drill
 	complete_drill()
+	
+	# Send acknowledgement for end command
+	var http_service = get_node_or_null("/root/HttpService")
+	if http_service:
+		var drill_duration = elapsed_seconds
+		drill_duration = round(drill_duration * 100.0) / 100.0
+		
+		var content_dict = {"ack": "end", "drill_duration": drill_duration}
+		http_service.netlink_forward_data(func(result, response_code, _headers, _body):
+			if result == HTTPRequest.RESULT_SUCCESS and response_code == 200:
+				if DEBUG_ENABLED:
+					print("[DrillsNetwork] Sent end ack successfully")
+			else:
+				if DEBUG_ENABLED:
+					print("[DrillsNetwork] Failed to send end ack: ", result, response_code)
+		, content_dict)
+	else:
+		if DEBUG_ENABLED:
+			print("[DrillsNetwork] HttpService not available; cannot send end ack")
 
 func _on_animation_config(action: String, duration: float) -> void:
 	"""Handle animation configuration from mobile app"""
