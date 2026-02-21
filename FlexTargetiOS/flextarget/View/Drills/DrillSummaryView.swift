@@ -449,6 +449,7 @@ struct DrillSummaryView: View {
                                             summaryIndex: index
                                         )
                                     }
+                                    .tint(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                                     
                                     NavigationLink(destination: DrillReplayView(drillSetup: drillSetup, shots: summaries[index].shots)) {
                                         HStack(spacing: 8) {

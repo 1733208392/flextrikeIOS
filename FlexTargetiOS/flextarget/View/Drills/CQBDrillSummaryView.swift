@@ -164,6 +164,7 @@ struct CQBDrillSummaryView: View {
                 )
             }
             .padding(.horizontal, 20)
+            .tint(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
         }
     }
     
