@@ -19,6 +19,9 @@ import coil.compose.AsyncImage
 import androidx.compose.ui.res.stringResource
 import com.flextarget.android.R
 import com.flextarget.android.data.ble.BLEManager
+import com.flextarget.android.ui.viewmodel.BLEViewModel
+import com.flextarget.android.di.AppContainer
+import androidx.compose.runtime.collectAsState
 import com.flextarget.android.data.ble.DiscoveredPeripheral
 import com.flextarget.android.data.ble.BLEError
 import com.flextarget.android.ui.imagecrop.ImageCropViewV2
@@ -29,11 +32,13 @@ import kotlinx.coroutines.delay
 @Composable
 fun ConnectSmartTargetView(
     bleManager: BLEManager = BLEManager.shared,
+    bleViewModel: BLEViewModel = AppContainer.bleViewModel,
     onDismiss: () -> Unit,
     targetPeripheralName: String? = null,
     isAlreadyConnected: Boolean = false,
     onConnected: (() -> Unit)? = null
 ) {
+    val uiState by bleViewModel.bleUiState.collectAsState()
     var statusTextKey by remember { mutableStateOf("connecting") }
     var showReconnect by remember { mutableStateOf(false) }
     var showProgress by remember { mutableStateOf(false) }
@@ -117,16 +122,14 @@ fun ConnectSmartTargetView(
     var hasHandledInitialConnection by remember { mutableStateOf(false) }
 
     // Handle connection state changes
-    LaunchedEffect(bleManager.isConnected) {
-        if (bleManager.isConnected && !hasHandledInitialConnection) {
+    LaunchedEffect(uiState.isConnected) {
+        if (uiState.isConnected && !hasHandledInitialConnection) {
             hasHandledInitialConnection = true
-            // Always update status when connected to a specific target
             if (targetPeripheralName != null) {
                 statusTextKey = "target_connected"
                 showReconnect = false
                 showProgress = false
             }
-            // Only navigate away if we weren't already connected when view opened
             if (!isAlreadyConnected) {
                 statusTextKey = if (targetPeripheralName != null) "target_connected" else "connected"
                 showReconnect = false
@@ -137,7 +140,7 @@ fun ConnectSmartTargetView(
     }
 
     // Handle Bluetooth off state and disconnection
-    LaunchedEffect(bleManager.error, bleManager.isConnected) {
+    LaunchedEffect(bleManager.error, uiState.isConnected) {
         if (bleManager.error is BLEError.BluetoothOff) {
             // Bluetooth was turned off
             statusTextKey = "bluetooth_off"
@@ -210,8 +213,8 @@ fun ConnectSmartTargetView(
     LaunchedEffect(selectedPeripheral) {
         selectedPeripheral?.let { peripheral ->
             delay(10000)
-            if (!bleManager.isConnected && selectedPeripheral == peripheral) {
-                bleManager.disconnect()
+            if (!uiState.isConnected && selectedPeripheral == peripheral) {
+                bleViewModel.disconnectDevice()
                 statusTextKey = "bluetooth_service_not_found"
                 showReconnect = true
                 showProgress = false
@@ -329,7 +332,7 @@ fun ConnectSmartTargetView(
                     ) {
                         Button(
                             onClick = {
-                                bleManager.disconnect()
+                                                bleViewModel.disconnectDevice()
                                 onDismiss()
                             },
                             modifier = Modifier

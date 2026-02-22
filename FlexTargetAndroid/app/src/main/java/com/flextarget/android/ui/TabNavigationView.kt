@@ -35,6 +35,8 @@ import com.flextarget.android.R
 import com.flextarget.android.data.model.DrillTargetsConfigData
 import com.flextarget.android.data.model.toExpandedDataObjects
 import com.flextarget.android.ui.theme.FlexTargetTheme
+import android.net.Uri
+import com.flextarget.android.ui.Screen
 import com.flextarget.android.ui.theme.DarkColorScheme
 import com.flextarget.android.ui.theme.md_theme_dark_onPrimary
 
@@ -75,7 +77,7 @@ fun TabNavigationView(
     ) { paddingValues ->
         NavHost(
             navController = navController,
-            startDestination = "drills",
+            startDestination = Screen.Drills.route,
             modifier = Modifier
                 .background(Color.Black)
                 .padding(
@@ -84,9 +86,26 @@ fun TabNavigationView(
                     end = paddingValues.calculateRightPadding(LayoutDirection.Ltr)
                 )
         ) {
-            composable("drills") {
+            composable(Screen.Drills.route) {
                 DrillsTabContent(
                     bleManager = bleManager,
+                    navController = navController
+                )
+            }
+
+            // QR Scanner route
+            composable(Screen.QRScanner.route) {
+                com.flextarget.android.ui.qr.QRScannerView(
+                    onQRScanned = { scannedText ->
+                        // set auto connect target and navigate to connect view
+                        bleManager.setAutoConnectTarget(scannedText)
+                        val encoded = Uri.encode(scannedText)
+                        navController.navigate("${Screen.ConnectTarget.route}/$encoded") {
+                            popUpTo(Screen.Drills.route)
+                            launchSingleTop = true
+                        }
+                    },
+                    onDismiss = { navController.popBackStack() },
                     navController = navController
                 )
             }
@@ -105,12 +124,33 @@ fun TabNavigationView(
                 )
             }
 
-            composable("admin") {
+            composable(Screen.Admin.route) {
                 AdminTabView(
                     bleManager = bleManager,
                     authViewModel = AppContainer.authViewModel,
                     otaViewModel = AppContainer.otaViewModel,
                     bleViewModel = AppContainer.bleViewModel
+                )
+            }
+
+            // Connect target routes (no arg and with target arg)
+            composable("${Screen.ConnectTarget.route}") { backStackEntry ->
+                com.flextarget.android.ui.ble.ConnectSmartTargetView(
+                    bleManager = bleManager,
+                    onDismiss = { navController.popBackStack() },
+                    targetPeripheralName = null,
+                    isAlreadyConnected = bleManager.isConnected
+                )
+            }
+
+            composable("${Screen.ConnectTarget.route}/{target}") { backStackEntry ->
+                val encoded = backStackEntry.arguments?.getString("target")
+                val decoded = encoded?.let { Uri.decode(it) }
+                com.flextarget.android.ui.ble.ConnectSmartTargetView(
+                    bleManager = bleManager,
+                    onDismiss = { navController.popBackStack() },
+                    targetPeripheralName = decoded,
+                    isAlreadyConnected = bleManager.isConnected
                 )
             }
 
@@ -229,40 +269,24 @@ private fun DrillsTabContent(
     bleManager: BLEManager,
     navController: NavHostController
 ) {
-    var showConnectView by remember { mutableStateOf(false) }
-    var showQRScanner by remember { mutableStateOf(false) }
-    var scannedTargetName by remember { mutableStateOf<String?>(null) }
-
     DrillListView(
         bleManager = bleManager,
         onBack = null,
-        onShowConnectView = { showConnectView = true },
-        onShowQRScanner = { showQRScanner = true }
+        onShowConnectView = {
+            // Navigate to connect without a preselected target
+            navController.navigate(Screen.ConnectTarget.route) {
+                popUpTo(Screen.Drills.route)
+                launchSingleTop = true
+            }
+        },
+        onShowQRScanner = {
+            // Navigate to the full-screen QR scanner
+            navController.navigate(Screen.QRScanner.route) {
+                popUpTo(Screen.Drills.route)
+                launchSingleTop = true
+            }
+        }
     )
-
-    // Handle other views
-    if (showConnectView) {
-        com.flextarget.android.ui.ble.ConnectSmartTargetView(
-            bleManager = bleManager,
-            onDismiss = { showConnectView = false },
-            targetPeripheralName = scannedTargetName,
-            isAlreadyConnected = bleManager.isConnected
-        )
-    }
-
-    if (showQRScanner) {
-        com.flextarget.android.ui.qr.QRScannerView(
-            onQRScanned = { scannedText ->
-                // Set auto-connect target and show connect view
-                bleManager.setAutoConnectTarget(scannedText)
-                scannedTargetName = scannedText
-                showQRScanner = false
-                showConnectView = true
-            },
-            onDismiss = { showQRScanner = false },
-            navController = navController
-        )
-    }
 }
 
 @Composable
