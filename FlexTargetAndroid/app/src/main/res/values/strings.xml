@@ -109,7 +109,7 @@
     <string name="device_connected">Connected</string>
     <string name="device_disconnected">Disconnected</string>
     <string name="device_connect">Connect Device</string>
-    <string name="device_disconnect">Disconnect</string>
+    <string name="device_disconnect">DISCONNECT</string>
     <string name="device_auth">Device Authentication</string>
     
     <!-- BLE Connection -->
@@ -121,7 +121,7 @@
     <string name="target_not_found">Target not found</string>
     <string name="no_targets_found">No targets found</string>
     <string name="bluetooth_service_not_found">Bluetooth service not found</string>
-    <string name="reconnect">Reconnect</string>
+    <string name="reconnect">RECONNECT</string>
     <string name="my_target">My Target</string>
     <string name="ble_test_tool">BLE Test Tool</string>
     

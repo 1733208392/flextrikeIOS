@@ -22,6 +22,8 @@ import com.flextarget.android.data.ble.BLEManager
 import com.flextarget.android.data.ble.DiscoveredPeripheral
 import com.flextarget.android.data.ble.BLEError
 import com.flextarget.android.ui.imagecrop.ImageCropViewV2
+import com.flextarget.android.ui.theme.md_theme_dark_onPrimary
+import com.flextarget.android.ui.theme.md_theme_dark_primary
 import kotlinx.coroutines.delay
 
 @Composable
@@ -39,16 +41,20 @@ fun ConnectSmartTargetView(
     var activeTargetName by remember { mutableStateOf<String?>(null) }
     var showImageCrop by remember { mutableStateOf(false) }
 
+    fun formatDeviceName(name: String?): String {
+        return name?.removePrefix("GR-WOLF ET ") ?: "Device"
+    }
+
     @Composable
     fun getStatusText(): String {
         return when (statusTextKey) {
             "connecting" -> stringResource(R.string.connecting)
             "trying_to_connect" -> stringResource(R.string.trying_to_connect)
-            "target_connected" -> "${bleManager.connectedPeripheral?.name ?: "Device"} ${stringResource(R.string.target_connected)}"
-            "scanning_for" -> "${stringResource(R.string.scanning_for)} $activeTargetName"
+            "target_connected" -> stringResource(R.string.target_connected)
+            "scanning_for" -> stringResource(R.string.scanning_for)
             "scanning" -> "Scanning for devices"
             "ready_to_scan" -> stringResource(R.string.ready_to_scan)
-            "connected" -> "${bleManager.connectedPeripheral?.name ?: "Device"} ${stringResource(R.string.device_connected)}"
+            "connected" -> stringResource(R.string.device_connected)
             "target_not_found" -> stringResource(R.string.target_not_found)
             "no_targets_found" -> stringResource(R.string.no_targets_found)
             "multiple_found" -> "Multiple devices found, select one"
@@ -114,8 +120,15 @@ fun ConnectSmartTargetView(
     LaunchedEffect(bleManager.isConnected) {
         if (bleManager.isConnected && !hasHandledInitialConnection) {
             hasHandledInitialConnection = true
+            // Always update status when connected to a specific target
+            if (targetPeripheralName != null) {
+                statusTextKey = "target_connected"
+                showReconnect = false
+                showProgress = false
+            }
+            // Only navigate away if we weren't already connected when view opened
             if (!isAlreadyConnected) {
-                statusTextKey = "connected"
+                statusTextKey = if (targetPeripheralName != null) "target_connected" else "connected"
                 showReconnect = false
                 showProgress = false
                 goToMain()
@@ -153,7 +166,7 @@ fun ConnectSmartTargetView(
 
     // Handle scanning logic
     LaunchedEffect(bleManager.isScanning, activeTargetName, bleManager.discoveredPeripherals.size) {
-        if (bleManager.isScanning) {
+        if (bleManager.isScanning && !isAlreadyConnected) {
             delay(2000) // 2 second delay to allow BLE to power on
             if (bleManager.isScanning) {
                 if (activeTargetName != null) {
@@ -222,15 +235,30 @@ fun ConnectSmartTargetView(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+            // Device name text at top
+            if (bleManager.connectedPeripheral?.name != null || activeTargetName != null) {
+                Text(
+                    text = formatDeviceName(
+                        bleManager.connectedPeripheral?.name ?: activeTargetName
+                    ),
+                    color = md_theme_dark_onPrimary,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
+
             // Visual Target Frame (using SVG icon)
             AsyncImage(
                 model = "file:///android_asset/smart-target-icon.svg",
                 contentDescription = "Smart Target Icon",
                 modifier = Modifier
                     .height(iconHeight)
-                    .padding(top = 20.dp),
+                    .padding(top = 0.dp),
                 contentScale = ContentScale.Fit
             )
+
+            Spacer(modifier = Modifier.height(12.dp))
 
             Column(
                 modifier = Modifier
@@ -245,8 +273,8 @@ fun ConnectSmartTargetView(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = getStatusText(),
-                        color = Color.White,
+                        text = getStatusText().uppercase(),
+                        color = md_theme_dark_onPrimary,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium,
                         textAlign = TextAlign.Center
@@ -271,6 +299,8 @@ fun ConnectSmartTargetView(
                     )
                 }
 
+                Spacer(modifier = Modifier.height(12.dp))
+
                 // Reconnect button
                 if (showReconnect) {
                     Button(
@@ -278,12 +308,12 @@ fun ConnectSmartTargetView(
                         modifier = Modifier
                             .fillMaxWidth(0.75f)
                             .height(44.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFde3823)),
+                        colors = ButtonDefaults.buttonColors(containerColor = md_theme_dark_onPrimary),
                         shape = RoundedCornerShape(8.dp)
                     ) {
                         Text(
                             text = stringResource(R.string.reconnect),
-                            color = Color.White,
+                            color = md_theme_dark_primary,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Medium
                         )
@@ -303,15 +333,15 @@ fun ConnectSmartTargetView(
                                 onDismiss()
                             },
                             modifier = Modifier
-                                .fillMaxWidth()
+                                .fillMaxWidth(0.75f)
                                 .padding(horizontal = 16.dp)
                                 .height(44.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                            colors = ButtonDefaults.buttonColors(containerColor = md_theme_dark_onPrimary),
                             shape = RoundedCornerShape(8.dp)
                         ) {
                             Text(
                                 text = stringResource(R.string.device_disconnect),
-                                color = Color.White,
+                                color = md_theme_dark_primary,
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Medium
                             )

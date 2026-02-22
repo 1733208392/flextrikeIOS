@@ -231,6 +231,7 @@ private fun DrillsTabContent(
 ) {
     var showConnectView by remember { mutableStateOf(false) }
     var showQRScanner by remember { mutableStateOf(false) }
+    var scannedTargetName by remember { mutableStateOf<String?>(null) }
 
     DrillListView(
         bleManager = bleManager,
@@ -244,6 +245,7 @@ private fun DrillsTabContent(
         com.flextarget.android.ui.ble.ConnectSmartTargetView(
             bleManager = bleManager,
             onDismiss = { showConnectView = false },
+            targetPeripheralName = scannedTargetName,
             isAlreadyConnected = bleManager.isConnected
         )
     }
@@ -253,10 +255,12 @@ private fun DrillsTabContent(
             onQRScanned = { scannedText ->
                 // Set auto-connect target and show connect view
                 bleManager.setAutoConnectTarget(scannedText)
+                scannedTargetName = scannedText
                 showQRScanner = false
                 showConnectView = true
             },
-            onDismiss = { showQRScanner = false }
+            onDismiss = { showQRScanner = false },
+            navController = navController
         )
     }
 }

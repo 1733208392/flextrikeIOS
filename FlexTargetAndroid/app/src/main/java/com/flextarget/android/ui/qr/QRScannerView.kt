@@ -21,10 +21,13 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.navigation.NavHostController
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
@@ -49,6 +52,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.statusBars
 import com.flextarget.android.ui.theme.md_theme_dark_onPrimary
+import com.flextarget.android.ui.theme.md_theme_dark_primary
 
 private const val TAG = "QRScannerView"
 
@@ -78,7 +82,9 @@ fun extractBLENameFromQRCode(qrCode: String): String {
 @Composable
 fun QRScannerView(
     onQRScanned: (String) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onManualConnect: (() -> Unit)? = null,
+    navController: NavHostController? = null
 ) {
     val context = LocalContext.current
 
@@ -120,7 +126,9 @@ fun QRScannerView(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.statusBars)) {
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .windowInsetsPadding(WindowInsets.statusBars)) {
         if (hasCameraPermission) {
             // Camera preview with QR scanning
             QRScannerCameraView(
@@ -133,7 +141,10 @@ fun QRScannerView(
                         onQRScanned(bleName)
                     }
                 },
-                scanY = scanYAnimatable.value
+                scanY = scanYAnimatable.value,
+                onManualConnect = onManualConnect,
+                navController = navController,
+                onDismiss = onDismiss
             )
         } else {
             // Permission denied view
@@ -157,7 +168,10 @@ fun QRScannerView(
                 text = "←",
                 color = Color.Red,
                 fontSize = 24.sp,
-                modifier = Modifier.align(Alignment.TopStart).clickable { onDismiss() }.padding(16.dp)
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .clickable { onDismiss() }
+                    .padding(16.dp)
             )
         }
 
@@ -190,7 +204,7 @@ fun QRScannerView(
 
                     Button(
                         onClick = onDismiss,
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Green)
+                        colors = ButtonDefaults.buttonColors(containerColor = md_theme_dark_onPrimary)
                     ) {
                         Text(stringResource(R.string.done_button), color = Color.White)
                     }
@@ -203,7 +217,10 @@ fun QRScannerView(
 @Composable
 private fun QRScannerCameraView(
     onQRCodeScanned: (String) -> Unit,
-    scanY: Float
+    scanY: Float,
+    onManualConnect: (() -> Unit)? = null,
+    navController: NavHostController? = null,
+    onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -281,7 +298,7 @@ private fun QRScannerCameraView(
             // Create transparent scan area (75% of screen width)
             val scanAreaSize = size.width * 0.75f
             val scanAreaLeft = (size.width - scanAreaSize) / 2
-            val scanAreaTop = (size.height - scanAreaSize) / 2
+            val scanAreaTop = (size.height - scanAreaSize) / 2 - size.height / 10
 
             // Clear the scan area
             drawRect(
@@ -311,20 +328,51 @@ private fun QRScannerCameraView(
             }
         }
 
-        // Instructions
+        // Instructions positioned 24dp below scan area
+        val configuration = LocalConfiguration.current
+        val screenWidth = configuration.screenWidthDp.dp
+        val screenHeight = configuration.screenHeightDp.dp
+        val scanAreaSize = screenWidth * 0.75f
+        val scanAreaBottom = (screenHeight + scanAreaSize) / 2
+        val instructionsPaddingTop = scanAreaBottom + 12.dp
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = 100.dp),
-            verticalArrangement = Arrangement.Bottom,
+                .padding(top = instructionsPaddingTop, start = 16.dp, end = 16.dp),
+            verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = stringResource(R.string.align_qr_code_within_frame),
-                fontSize = 16.sp,
+                text = "SCAN THE QR CODE DISPLAYED AT DEVICE PROVISION OR ABOUT PAGE OF YOUR TARGET DEVICE TO CONNECT",
+                fontSize = 14.sp,
                 color = md_theme_dark_onPrimary,
-                style = MaterialTheme.typography.labelSmall
+                style = MaterialTheme.typography.labelSmall,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(bottom = 16.dp)
             )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Button(
+                onClick = {
+                    onDismiss()
+                    navController?.navigate("admin") {
+                        popUpTo("drills") { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = md_theme_dark_onPrimary),
+                shape = RoundedCornerShape(8.dp),
+                modifier = Modifier.height(40.dp)
+            ) {
+                Text(
+                    text = "MANUAL CONNECT",
+                    color = md_theme_dark_primary,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            } 
         }
     }
 }
