@@ -332,7 +332,15 @@ fun ConnectSmartTargetView(
                     ) {
                         Button(
                             onClick = {
-                                                bleViewModel.disconnectDevice()
+                                // Ensure the BLE stack is disconnected (BLEManager) and repository state synced
+                                try {
+                                    bleManager.disconnect()
+                                } catch (e: Exception) {
+                                    // best-effort: attempt ViewModel disconnect if manager fails
+                                    bleViewModel.disconnectDevice()
+                                }
+                                // Also request repository-level disconnect to keep state in sync
+                                bleViewModel.disconnectDevice()
                                 onDismiss()
                             },
                             modifier = Modifier
