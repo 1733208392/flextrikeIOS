@@ -121,19 +121,22 @@ fun ConnectSmartTargetView(
 
     var hasHandledInitialConnection by remember { mutableStateOf(false) }
 
-    // Handle connection state changes
-    LaunchedEffect(uiState.isConnected) {
-        if (uiState.isConnected && !hasHandledInitialConnection) {
+    // Handle connection state changes (react to either repository ViewModel or BLEManager)
+    LaunchedEffect(uiState.isConnected, bleManager.isConnected) {
+        val connected = uiState.isConnected || bleManager.isConnected
+        if (connected && !hasHandledInitialConnection) {
             hasHandledInitialConnection = true
+            // Update UI to connected state
             if (targetPeripheralName != null) {
                 statusTextKey = "target_connected"
-                showReconnect = false
-                showProgress = false
+            } else {
+                statusTextKey = "connected"
             }
+            showReconnect = false
+            showProgress = false
+
+            // Only navigate away if we weren't already connected when view opened
             if (!isAlreadyConnected) {
-                statusTextKey = if (targetPeripheralName != null) "target_connected" else "connected"
-                showReconnect = false
-                showProgress = false
                 goToMain()
             }
         }
