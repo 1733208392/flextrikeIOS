@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.res.stringResource
 import com.flextarget.android.R
+import com.flextarget.android.ui.theme.md_theme_dark_onPrimary
 import androidx.compose.ui.unit.dp
 import com.flextarget.android.data.local.entity.DrillSetupEntity
 import com.flextarget.android.data.model.ShotData
@@ -50,7 +51,7 @@ fun DrillReplayView(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.replay), color = Color.Red) },
+                title = { Text(stringResource(R.string.replay).uppercase(), color = md_theme_dark_onPrimary) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(

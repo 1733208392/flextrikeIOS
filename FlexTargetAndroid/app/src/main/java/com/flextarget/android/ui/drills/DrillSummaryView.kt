@@ -32,6 +32,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.window.Dialog
 import com.flextarget.android.R
+import com.flextarget.android.ui.theme.md_theme_dark_onPrimary
 import com.flextarget.android.data.local.entity.DrillSetupEntity
 import com.flextarget.android.data.model.DrillRepeatSummary
 import com.flextarget.android.data.model.ScoringUtility
@@ -75,8 +76,8 @@ fun DrillSummaryView(
         TopAppBar(
             title = {
                 Text(
-                    text = stringResource(R.string.drill_results_summary),
-                    color = Color.White,
+                    text = stringResource(R.string.drill_results_summary).uppercase(),
+                    color = md_theme_dark_onPrimary,
                     fontSize = 22.sp,
                     fontWeight = FontWeight.SemiBold
                 )

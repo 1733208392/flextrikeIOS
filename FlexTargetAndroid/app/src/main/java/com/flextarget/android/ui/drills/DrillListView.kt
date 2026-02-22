@@ -178,129 +178,168 @@ fun DrillListView(
                     )
                 )
 
-                // Drill list
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(horizontal = 16.dp)
-                ) {
-                    items(filteredDrills) { drillWithTargets ->
-                        // Inline drill row
-                        val drillWithTargetsItem = drillWithTargets
-                        var showMenu by remember { mutableStateOf(false) }
-
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable(onClick = {
-                                    drillFormMode = DrillFormMode.EDIT
-                                    selectedDrill = drillWithTargetsItem.drillSetup
-                                    showDrillForm = true
-                                })
-                                .padding(vertical = 12.dp, horizontal = 16.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                // Drill list or empty state
+                if (filteredDrills.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            // Status indicator
-                            Box(
-                                modifier = Modifier
-                                    .size(8.dp)
-                                    .background(Color.Gray, CircleShape)
+                            IconButton(
+                                onClick = {
+                                    if (bleManager.isConnected) {
+                                        drillFormMode = DrillFormMode.ADD
+                                        selectedDrill = null
+                                        showDrillForm = true
+                                    } else {
+                                        showConnectionAlert = true
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.TrackChanges,
+                                    contentDescription = "Add Drill",
+                                    tint = md_theme_dark_onPrimary,
+                                    modifier = Modifier.size(64.dp)
+                                )
+                            }
+                            Text(
+                                text = "No Drills Found",
+                                color = md_theme_dark_onPrimary,
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.Normal
                             )
+                            Text(
+                                text = "ADD YOUR FIRST DRILL",
+                                color = Color.Gray,
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+                        }
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(horizontal = 16.dp)
+                    ) {
+                        items(filteredDrills) { drillWithTargets ->
+                            // ...existing code for drill row...
+                            val drillWithTargetsItem = drillWithTargets
+                            var showMenu by remember { mutableStateOf(false) }
 
-                            Spacer(modifier = Modifier.width(12.dp))
-
-                            // Drill info
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = drillWithTargetsItem.drillSetup.name ?: stringResource(R.string.untitled),
-                                    color = Color.White,
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Bold
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable(onClick = {
+                                        drillFormMode = DrillFormMode.EDIT
+                                        selectedDrill = drillWithTargetsItem.drillSetup
+                                        showDrillForm = true
+                                    })
+                                    .padding(vertical = 12.dp, horizontal = 16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                // ...existing code for drill row content...
+                                Box(
+                                    modifier = Modifier
+                                        .size(8.dp)
+                                        .background(Color.Gray, CircleShape)
                                 )
 
-                                // Inline drill info
-                                val drill = drillWithTargetsItem.drillSetup
-                                val targetCount = drillWithTargetsItem.targets.size
+                                Spacer(modifier = Modifier.width(12.dp))
 
-                                Row(
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
+                                Column(modifier = Modifier.weight(1f)) {
                                     Text(
-                                        text = "$targetCount targets",
-                                        color = Color.Gray,
-                                        fontSize = 12.sp
+                                        text = drillWithTargetsItem.drillSetup.name ?: stringResource(R.string.untitled),
+                                        color = Color.White,
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Bold
                                     )
 
-                                    if (drill.repeats > 1) {
+                                    val drill = drillWithTargetsItem.drillSetup
+                                    val targetCount = drillWithTargetsItem.targets.size
+
+                                    Row(
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
                                         Text(
-                                            text = "Repeats: ${drill.repeats}",
+                                            text = "$targetCount targets",
                                             color = Color.Gray,
                                             fontSize = 12.sp
                                         )
+
+                                        if (drill.repeats > 1) {
+                                            Text(
+                                                text = "Repeats: ${drill.repeats}",
+                                                color = Color.Gray,
+                                                fontSize = 12.sp
+                                            )
+                                        }
+
+                                        drill.mode?.let { mode ->
+                                            val modeDisplay = when (mode.lowercase()) {
+                                                "ipsc" -> "IPSC"
+                                                "idpa" -> "IDPA"
+                                                "cqb" -> "CQB"
+                                                else -> mode.uppercase()
+                                            }
+                                            Text(
+                                                text = modeDisplay,
+                                                color = Color.Red,
+                                                fontSize = 12.sp,
+                                                fontWeight = FontWeight.Medium
+                                            )
+                                        }
+                                    }
+                                }
+
+                                Box {
+                                    IconButton(onClick = { showMenu = true }) {
+                                        Icon(
+                                            Icons.Default.MoreVert,
+                                            contentDescription = "Menu",
+                                            tint = Color.Gray
+                                        )
                                     }
 
-                                    drill.mode?.let { mode ->
-                                        val modeDisplay = when (mode.lowercase()) {
-                                            "ipsc" -> "IPSC"
-                                            "idpa" -> "IDPA"
-                                            "cqb" -> "CQB"
-                                            else -> mode.uppercase()
-                                        }
-                                        Text(
-                                            text = modeDisplay,
-                                            color = Color.Red,
-                                            fontSize = 12.sp,
-                                            fontWeight = FontWeight.Medium
+                                    DropdownMenu(
+                                        expanded = showMenu,
+                                        onDismissRequest = { showMenu = false }
+                                    ) {
+                                        DropdownMenuItem(
+                                            text = { Text(stringResource(R.string.copy)) },
+                                            onClick = {
+                                                coroutineScope.launch {
+                                                    viewModel.copyDrill(drillWithTargetsItem.drillSetup)
+                                                }
+                                                showMenu = false
+                                            },
+                                            leadingIcon = {
+                                                Icon(Icons.Default.Add, contentDescription = "Copy")
+                                            }
+                                        )
+                                        DropdownMenuItem(
+                                            text = { Text(stringResource(R.string.delete), color = Color.Red) },
+                                            onClick = {
+                                                showDeleteDialog = drillWithTargetsItem.drillSetup
+                                                showMenu = false
+                                            },
+                                            leadingIcon = {
+                                                Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Red)
+                                            }
                                         )
                                     }
                                 }
+
+                                Icon(
+                                    Icons.Default.ArrowForward,
+                                    contentDescription = "Navigate",
+                                    tint = Color.Gray
+                                )
                             }
-
-                            // Menu button
-                            Box {
-                                IconButton(onClick = { showMenu = true }) {
-                                    Icon(
-                                        Icons.Default.MoreVert,
-                                        contentDescription = "Menu",
-                                        tint = Color.Gray
-                                    )
-                                }
-
-                                DropdownMenu(
-                                    expanded = showMenu,
-                                    onDismissRequest = { showMenu = false }
-                                ) {
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(R.string.copy)) },
-                                        onClick = {
-                                            coroutineScope.launch {
-                                                viewModel.copyDrill(drillWithTargetsItem.drillSetup)
-                                            }
-                                            showMenu = false
-                                        },
-                                        leadingIcon = {
-                                            Icon(Icons.Default.Add, contentDescription = "Copy")
-                                        }
-                                    )
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(R.string.delete), color = Color.Red) },
-                                        onClick = {
-                                            showDeleteDialog = drillWithTargetsItem.drillSetup
-                                            showMenu = false
-                                        },
-                                        leadingIcon = {
-                                            Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Red)
-                                        }
-                                    )
-                                }
-                            }
-
-                            // Chevron
-                            Icon(
-                                Icons.Default.ArrowForward,
-                                contentDescription = "Navigate",
-                                tint = Color.Gray
-                            )
                         }
                     }
                 }

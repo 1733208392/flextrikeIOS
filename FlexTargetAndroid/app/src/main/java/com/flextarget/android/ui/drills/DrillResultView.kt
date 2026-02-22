@@ -31,6 +31,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
+import com.flextarget.android.ui.theme.md_theme_dark_onPrimary
 import com.flextarget.android.data.local.entity.DrillSetupEntity
 import com.flextarget.android.data.model.*
 
@@ -83,8 +84,8 @@ fun DrillResultView(
         TopAppBar(
             title = {
                 Text(
-                    text = "Drill Results",
-                    color = Color.White,
+                    text = "DRILL RESULTS",
+                    color = md_theme_dark_onPrimary,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.SemiBold
                 )

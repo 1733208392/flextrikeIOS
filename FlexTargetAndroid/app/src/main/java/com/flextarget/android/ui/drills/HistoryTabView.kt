@@ -25,6 +25,7 @@ import com.flextarget.android.data.model.DrillRepeatSummary
 import com.flextarget.android.data.repository.DrillResultRepository
 import com.flextarget.android.data.repository.DrillSetupRepository
 import com.flextarget.android.ui.viewmodel.HistoryTabViewModel
+import com.flextarget.android.ui.theme.md_theme_dark_onPrimary
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -123,7 +124,7 @@ fun HistoryTabView(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.history_title), color = Color.White) },
+                title = { Text(stringResource(R.string.history_title).uppercase(), color = md_theme_dark_onPrimary) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Black
                 )
@@ -190,7 +191,7 @@ fun HistoryTabView(
                         )
                         Text(
                             stringResource(R.string.no_results_found),
-                            color = Color.White,
+                            color = md_theme_dark_onPrimary,
                             style = MaterialTheme.typography.bodySmall
                         )
                         Text(
