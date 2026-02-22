@@ -1,10 +1,5 @@
 package com.flextarget.android.ui.drills
 
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.RepeatMode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -30,15 +25,20 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.Image
+import androidx.compose.ui.text.font.FontWeight
 import coil.compose.AsyncImage
 import com.flextarget.android.R
 import com.flextarget.android.data.ble.BLEManager
 import com.flextarget.android.data.ble.NetworkDevice
 import com.flextarget.android.data.model.DrillTargetsConfigData
+import org.intellij.lang.annotations.JdkConstants
 import org.json.JSONObject
+import ttNormFontFamily
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TargetConfigListViewV2(
@@ -51,7 +51,7 @@ fun TargetConfigListViewV2(
     onBack: () -> Unit
 ) {
     val accentRed = Color(red = 0.87f, green = 0.22f, blue = 0.14f)
-    val darkGray = Color(red = 0.098f, green = 0.098f, blue = 0.098f)
+    val darkGray = Color(red = 0.44f, green = 0.44f, blue = 0.44f)
 
     val primaryConfig = targetConfigs.firstOrNull() ?: return
     
@@ -60,6 +60,7 @@ fun TargetConfigListViewV2(
     }
     var currentTypeIndex by remember { mutableStateOf(0) }
     var isDeleteMode by remember { mutableStateOf(false) }
+    var isSelectingMode by remember { mutableStateOf(false) }
 
     val availableTargetTypes = when (drillMode) {
         "ipsc" -> listOf("ipsc", "hostage", "paddle", "popper", "special_1", "special_2")
@@ -73,8 +74,13 @@ fun TargetConfigListViewV2(
             TopAppBar(
                 title = {
                     Text(
-                        primaryConfig.targetName.ifEmpty { stringResource(R.string.targets_screen) },
-                        color = accentRed
+                        primaryConfig.targetName,
+                        color = accentRed,
+                        fontFamily = ttNormFontFamily,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Left
                     )
                 },
                 navigationIcon = {
@@ -94,51 +100,57 @@ fun TargetConfigListViewV2(
                 .fillMaxSize()
                 .background(Color.Black)
                 .padding(paddingValues)
-                .verticalScroll(rememberScrollState()),
+                .verticalScroll(rememberScrollState())
+                .pointerInput(isDeleteMode) {
+                    if (isDeleteMode) {
+                        detectTapGestures(onTap = { isDeleteMode = false })
+                    }
+                },
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
-            // Target Rectangle Section with Carousel
-            TargetRectSection(
-                selectedTargetTypes = selectedTargetTypes,
-                currentTypeIndex = currentTypeIndex,
-                onTypeIndexChange = { currentTypeIndex = it },
-                accentColor = accentRed,
-                darkGrayColor = darkGray,
-                isDeleteMode = isDeleteMode,
-                onDeleteModeChange = { isDeleteMode = it },
-                onRemoveType = { index ->
-                    selectedTargetTypes = selectedTargetTypes.toMutableList().also { it.removeAt(index) }
-                    onUpdateTargetTypes(0, selectedTargetTypes)
-                    isDeleteMode = false
-                }
-            )
+                // Target Rectangle Section with Carousel
+                TargetRectSection(
+                    selectedTargetTypes = selectedTargetTypes,
+                    currentTypeIndex = currentTypeIndex,
+                    onTypeIndexChange = { currentTypeIndex = it },
+                    accentColor = accentRed,
+                    darkGrayColor = darkGray,
+                    isDeleteMode = isDeleteMode && !isSelectingMode,
+                    onDeleteModeChange = { 
+                        isDeleteMode = it
+                        if (it) isSelectingMode = false
+                    },
+                    onRemoveType = { index ->
+                        selectedTargetTypes = selectedTargetTypes.toMutableList().also { it.removeAt(index) }
+                        onUpdateTargetTypes(0, selectedTargetTypes)
+                        isDeleteMode = false
+                    }
+                )
 
-            Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
-            // Target Type Selection View
-            TargetTypeSelectionViewV2(
-                availableTargetTypes = availableTargetTypes,
-                selectedTargetTypes = selectedTargetTypes,
-                accentColor = accentRed,
-                onTypesChanged = { newTypes ->
-                    selectedTargetTypes = newTypes
-                    onUpdateTargetTypes(0, newTypes)
-                }
-            )
+                // Target Type Selection View
+                TargetTypeSelectionViewV2(
+                    deviceName = primaryConfig.targetName,
+                    availableTargetTypes = availableTargetTypes,
+                    selectedTargetTypes = selectedTargetTypes,
+                    accentColor = accentRed,
+                    isSelectingMode = isSelectingMode && !isDeleteMode,
+                    onSelectingModeChange = { 
+                        isSelectingMode = it
+                        if (it) isDeleteMode = false
+                    },
+                    onTypesChanged = { newTypes ->
+                        selectedTargetTypes = newTypes
+                        onUpdateTargetTypes(0, newTypes)
+                    }
+                )
 
-            // Divider line
-            Divider(
-                modifier = Modifier
-                    .width(240.dp)
-                    .height(4.dp),
-                color = accentRed
-            )
-
-            Spacer(modifier = Modifier.weight(1f))
-        }
+                Spacer(modifier = Modifier.weight(1f))
+            }
     }
 }
 
@@ -265,7 +277,7 @@ private fun TargetRectSection(
                     imageVector = Icons.Default.Add,
                     contentDescription = "Add target type",
                     modifier = Modifier.size(80.dp),
-                    tint = Color.White.copy(alpha = 0.75f)
+                    tint = accentColor.copy(alpha = 0.75f)
                 )
             } else {
                 // Show current type icon with wiggle if in delete mode
@@ -289,9 +301,6 @@ private fun TargetRectSection(
                                 contentDescription = currentType,
                                 modifier = Modifier
                                     .fillMaxWidth(0.9f)
-//                                    .fillMaxWidth(
-//                                        fraction = if (currentType == "paddle" || currentType == "popper") 0.8f else 1f
-//                                    )
                                     .heightIn(max = maxHeight)
                                     .padding(2.dp),
                                 contentScale = ContentScale.FillWidth
@@ -314,19 +323,6 @@ private fun TargetRectSection(
                 }
             }
 
-            // Badge showing count
-            if (selectedTargetTypes.isNotEmpty()) {
-                Text(
-                    "${selectedTargetTypes.size}",
-                    fontSize = 36.sp,
-                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-                    color = accentColor,
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(end = 20.dp, top = 20.dp)
-                )
-            }
-
             // Delete button in delete mode - TOP RIGHT
             if (isDeleteMode && selectedTargetTypes.isNotEmpty()) {
                 IconButton(
@@ -335,51 +331,80 @@ private fun TargetRectSection(
                     },
                     modifier = Modifier
                         .align(Alignment.TopEnd)
-                        .padding(end = 8.dp, top = 8.dp)
+                        .padding(end = 16.dp, top = 16.dp)
                         .background(accentColor, shape = androidx.compose.foundation.shape.CircleShape)
+                        .size(28.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Close,
                         contentDescription = "Delete",
                         tint = Color.Black,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(14.dp)
                     )
+                }
+            }
+
+            // Page Indicator Dots - BOTTOM CENTER
+            if (selectedTargetTypes.isNotEmpty()) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 12.dp)
+                ) {
+                    repeat(selectedTargetTypes.size) { index ->
+                        Box(
+                            modifier = Modifier
+                                .size(8.dp)
+                                .background(
+                                    color = if (index == currentTypeIndex) accentColor else darkGrayColor,
+                                    shape = androidx.compose.foundation.shape.CircleShape
+                                )
+                                .clickable {
+                                    onTypeIndexChange(index)
+                                }
+                        )
+                    }
                 }
             }
         }
 
-        // Page Indicator Dots
+        // Instruction text when targets exist
         if (selectedTargetTypes.isNotEmpty()) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.padding(top = 8.dp)
-            ) {
-                repeat(selectedTargetTypes.size) { index ->
-                    Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .background(
-                                color = if (index == currentTypeIndex) accentColor else darkGrayColor,
-                                shape = androidx.compose.foundation.shape.CircleShape
-                            )
-                            .clickable {
-                                onTypeIndexChange(index)
-                            }
-                    )
-                }
-            }
+            Text(
+                "LONG PRESS TARGET ABOVE TO DELETE",
+                fontFamily = ttNormFontFamily,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                color = accentColor,
+                modifier = Modifier.padding(top = 12.dp)
+            )
+        } else {
+            // Instruction text when no targets
+            Text(
+                "LONG PRESS TARGET BELOW TO ADD",
+                fontFamily = ttNormFontFamily,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                color = accentColor,
+                modifier = Modifier.padding(top = 12.dp)
+            )
         }
     }
 }
 
 @Composable
 private fun TargetTypeSelectionViewV2(
+    deviceName: String,
     availableTargetTypes: List<String>,
     selectedTargetTypes: List<String>,
     accentColor: Color,
+    isSelectingMode: Boolean,
+    onSelectingModeChange: (Boolean) -> Unit,
     onTypesChanged: (List<String>) -> Unit
 ) {
-    var isSelectingMode by remember { mutableStateOf(false) }
     var rotationState by remember { mutableStateOf(0f) }
 
     // Shared wiggle animation for all target type icons
@@ -401,8 +426,9 @@ private fun TargetTypeSelectionViewV2(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+            .padding(horizontal = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Tap area above LazyRow to close selection
         Spacer(
@@ -415,7 +441,7 @@ private fun TargetTypeSelectionViewV2(
                     interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
                 ) {
                     if (isSelectingMode) {
-                        isSelectingMode = false
+                        onSelectingModeChange(false)
                     }
                 }
         )
@@ -444,11 +470,11 @@ private fun TargetTypeSelectionViewV2(
                                 onTap = {
                                     // Any tap closes selection mode
                                     if (isSelectingMode) {
-                                        isSelectingMode = false
+                                        onSelectingModeChange(false)
                                     }
                                 },
                                 onLongPress = {
-                                    isSelectingMode = !isSelectingMode
+                                    onSelectingModeChange(!isSelectingMode)
                                 }
                             )
                         },
@@ -490,9 +516,7 @@ private fun TargetTypeSelectionViewV2(
                     if (isSelectingMode) {
                         IconButton(
                             onClick = {
-                                if (!selectedTargetTypes.contains(type)) {
-                                    onTypesChanged(selectedTargetTypes + type)
-                                }
+                                onTypesChanged(selectedTargetTypes + type)
                             },
                             modifier = Modifier
                                 .align(Alignment.TopEnd)
@@ -512,6 +536,15 @@ private fun TargetTypeSelectionViewV2(
             }
         }
 
+        // Divider line - below target icons
+        Divider(
+            modifier = Modifier
+                .width(300.dp)
+                .height(3.dp)
+                .align(Alignment.CenterHorizontally),
+            color = accentColor,
+        )
+
         // Tap area below LazyRow to close selection
         Spacer(
             modifier = Modifier
@@ -523,7 +556,7 @@ private fun TargetTypeSelectionViewV2(
                     interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
                 ) {
                     if (isSelectingMode) {
-                        isSelectingMode = false
+                        onSelectingModeChange(false)
                     }
                 }
         )

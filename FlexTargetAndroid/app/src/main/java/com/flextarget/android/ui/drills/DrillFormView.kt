@@ -246,14 +246,14 @@ fun DrillFormView(
 
     Scaffold(
         topBar = {
-            // Only show TopAppBar when TimerSessionView or DrillSummaryView is not visible
-            if (showTopBar) {
+            // Only show TopAppBar when TimerSessionView or DrillSummaryView is not visible and not on TARGET_CONFIG
+            if (showTopBar && currentScreen != DrillFormScreen.TARGET_CONFIG) {
                 TopAppBar(
                 title = {
                     Text(
                         text = when (currentScreen) {
                             DrillFormScreen.FORM -> if (mode == DrillFormMode.ADD) stringResource(R.string.add_drill) else stringResource(R.string.edit_drill)
-                            DrillFormScreen.TARGET_CONFIG -> stringResource(R.string.targets_screen)
+                            DrillFormScreen.TARGET_CONFIG -> targets.firstOrNull()?.targetName.orEmpty()
                         },
                         color = Color.White
                     )
@@ -567,7 +567,7 @@ private fun FormScreen(
                                 }
 
                                 onDrillSaved(savedDrill)
-                                onBack()
+                                // onBack() // Removed to prevent dismissing the view after saving
                             } catch (e: Exception) {
                                 // Handle error
                                 e.printStackTrace()
