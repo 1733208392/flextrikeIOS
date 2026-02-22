@@ -35,6 +35,8 @@ import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
 import com.flextarget.android.ui.drills.DrillSummaryView
 import androidx.compose.foundation.clickable
+import com.flextarget.android.ui.theme.md_theme_dark_onPrimary
+import kotlin.math.abs
 
 // Placeholder data class for Ranking
 data class RankingRow(
@@ -350,7 +352,7 @@ private fun RankingListItem(ranking: RankingRow, onClick: () -> Unit) {
             ) {
                 Text(
                     text = ranking.rank.toString(),
-                    color = if (ranking.rank <= 3) Color.Black else Color.White,
+                    color = md_theme_dark_onPrimary,
                     style = MaterialTheme.typography.titleSmall
                 )
             }
@@ -370,7 +372,7 @@ private fun RankingListItem(ranking: RankingRow, onClick: () -> Unit) {
             // Score
             Text(
                 text = ranking.score,
-                color = Color.Red,
+                color = md_theme_dark_onPrimary,
                 style = MaterialTheme.typography.headlineSmall
             )
         }

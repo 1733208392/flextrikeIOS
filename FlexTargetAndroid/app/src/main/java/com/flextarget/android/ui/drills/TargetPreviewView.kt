@@ -23,6 +23,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.shape.RoundedCornerShape
 import com.flextarget.android.data.model.ShotData
+import com.flextarget.android.ui.theme.md_theme_dark_onPrimary
 
 /**
  * Preview display showing the target image with bullet hole overlays
@@ -91,7 +92,7 @@ fun TargetPreviewView(
                 ) {
                     Text(
                         text = activeTargetType.uppercase(),
-                        color = Color.White.copy(alpha = 0.5f),
+                        color = md_theme_dark_onPrimary,
                         style = MaterialTheme.typography.headlineSmall
                     )
                 }

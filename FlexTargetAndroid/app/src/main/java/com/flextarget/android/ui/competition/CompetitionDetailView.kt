@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.window.Dialog
+import com.flextarget.android.ui.theme.md_theme_dark_onPrimary
 import com.flextarget.android.data.local.entity.CompetitionEntity
 import com.flextarget.android.data.local.entity.DrillSetupEntity
 import com.flextarget.android.data.local.entity.DrillTargetsConfigEntity
@@ -215,9 +216,8 @@ fun CompetitionDetailView(
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         Text(
-                            text = competition.name,
-                            color = Color.White,
-                            style = MaterialTheme.typography.headlineMedium,
+                text = competition.name.uppercase(),
+                color = md_theme_dark_onPrimary,
                             fontWeight = FontWeight.Bold
                         )
 
@@ -289,8 +289,8 @@ fun CompetitionDetailView(
 
                 // Shooter selection card
                 Text(
-                    text = stringResource(R.string.active_shooter),
-                    color = Color.White,
+                    text = stringResource(R.string.active_shooter).uppercase(),
+                    color = md_theme_dark_onPrimary,
                     style = MaterialTheme.typography.titleSmall,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                 )
@@ -337,9 +337,8 @@ fun CompetitionDetailView(
                 // Results List Section
                 if (competitionResults.isNotEmpty()) {
                     Text(
-                        text = stringResource(R.string.results),
-                        color = Color.White,
-                        style = MaterialTheme.typography.titleSmall,
+                    text = stringResource(R.string.results).uppercase(),
+                    color = md_theme_dark_onPrimary,
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
                     )
 
@@ -549,9 +548,8 @@ fun AthletePickerDialog(
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    text = stringResource(R.string.select_athlete),
-                    color = Color.White,
-                    style = MaterialTheme.typography.titleLarge,
+                text = stringResource(R.string.select_athlete).uppercase(),
+                color = md_theme_dark_onPrimary,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 

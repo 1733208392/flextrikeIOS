@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import com.flextarget.android.R
 import com.flextarget.android.data.ble.BLEManager
+import com.flextarget.android.ui.theme.md_theme_dark_onPrimary
 
 @Composable
 fun ManualDeviceSelectionView(
@@ -161,8 +162,8 @@ private fun DeviceListItem(
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Text(
-                    text = name,
-                    color = Color.White,
+                    text = name.uppercase(),
+                    color = md_theme_dark_onPrimary,
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold
                 )

@@ -34,13 +34,17 @@ import androidx.compose.ui.unit.dp
 import com.flextarget.android.R
 import com.flextarget.android.data.model.DrillTargetsConfigData
 import com.flextarget.android.data.model.toExpandedDataObjects
+import com.flextarget.android.ui.theme.FlexTargetTheme
+import com.flextarget.android.ui.theme.DarkColorScheme
+import com.flextarget.android.ui.theme.md_theme_dark_onPrimary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TabNavigationView(
     bleManager: BLEManager = BLEManager.shared
 ) {
-    val navController = rememberNavController()
+    FlexTargetTheme {
+        val navController = rememberNavController()
 
     // Auto navigate to admin tab when shouldShowRemoteControl is true
     LaunchedEffect(bleManager.shouldShowRemoteControl) {
@@ -141,6 +145,7 @@ fun TabNavigationView(
             }
         }
     }
+    }
 }
 
 @Composable
@@ -166,7 +171,7 @@ private fun CompactBottomBar(
                 BottomBarItem(
                     route = "drills",
                     label = stringResource(R.string.tab_drills),
-                    icon = Icons.Default.SportsBaseball,
+                    icon = Icons.Default.TrackChanges,
                     selected = currentRoute == "drills",
                     onClick = onNavigate
                 )
@@ -204,8 +209,8 @@ private fun androidx.compose.foundation.layout.RowScope.BottomBarItem(
     selected: Boolean,
     onClick: (String) -> Unit
 ) {
-    val iconColor = if (selected) Color.Red else Color.Gray
-    val textColor = if (selected) Color.Red else Color.Gray
+    val iconColor = if (selected) md_theme_dark_onPrimary else Color.Gray
+    val textColor = if (selected) md_theme_dark_onPrimary else Color.Gray
     Column(
         modifier = Modifier
             .weight(1f)
@@ -336,8 +341,8 @@ private fun DrillSummaryScreen(
         contentAlignment = androidx.compose.ui.Alignment.Center
     ) {
         Text(
-            "Drill Summary\nSetup ID: $drillSetupId",
-            color = Color.White,
+            "DRILL SUMMARY\nSETUP ID: $drillSetupId".uppercase(),
+            color = md_theme_dark_onPrimary,
             style = MaterialTheme.typography.headlineMedium,
             textAlign = androidx.compose.ui.text.style.TextAlign.Center
         )
@@ -358,8 +363,8 @@ private fun DrillResultScreen(
         contentAlignment = androidx.compose.ui.Alignment.Center
     ) {
         Text(
-            "Drill Result\nSetup ID: $drillSetupId\nRepeat: $repeatIndex",
-            color = Color.White,
+            "DRILL RESULT\nSETUP ID: $drillSetupId\nREPEAT: $repeatIndex".uppercase(),
+            color = md_theme_dark_onPrimary,
             style = MaterialTheme.typography.headlineMedium,
             textAlign = androidx.compose.ui.text.style.TextAlign.Center
         )

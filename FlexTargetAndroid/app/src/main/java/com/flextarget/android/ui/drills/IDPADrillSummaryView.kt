@@ -29,6 +29,7 @@ import com.flextarget.android.data.local.entity.DrillSetupEntity
 import com.flextarget.android.data.model.DrillRepeatSummary
 import com.flextarget.android.data.model.ScoringUtility
 import kotlin.math.abs
+import com.flextarget.android.ui.theme.md_theme_dark_onPrimary
 
 @Composable
 fun IDPADrillSummaryView(
@@ -112,9 +113,9 @@ private fun IDPADrillCard(
         ) {
             // Header: Repeat number
             Text(
-                text = String.format(stringResource(R.string.repeat_number), summary.repeatIndex),
+                text = String.format(stringResource(R.string.repeat_number), summary.repeatIndex).uppercase(),
                 style = MaterialTheme.typography.titleMedium,
-                color = Color.White,
+                color = md_theme_dark_onPrimary,
                 fontWeight = FontWeight.SemiBold
             )
 
@@ -219,7 +220,7 @@ private fun MetricBox(
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            text = value,
+            text = value.uppercase(),
             style = MaterialTheme.typography.titleSmall,
             color = valueColor,
             fontWeight = FontWeight.Medium,
@@ -301,7 +302,7 @@ private fun IDPAZoneBreakdownView(
             Text(
                 text = "-${abs(pointsDown)}",
                 style = MaterialTheme.typography.titleSmall,
-                color = Color.Red,
+                color = md_theme_dark_onPrimary,
                 fontWeight = FontWeight.Bold
             )
         }

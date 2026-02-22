@@ -33,6 +33,7 @@ import android.provider.MediaStore
 import coil.compose.AsyncImage
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.platform.LocalContext
+import com.flextarget.android.ui.theme.md_theme_dark_onPrimary
 
 @Composable
 fun AthletesManagementView(
@@ -107,8 +108,8 @@ fun AthletesManagementView(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Text(
-                            text = stringResource(R.string.new_athlete),
-                            color = Color.White,
+                            text = stringResource(R.string.new_athlete).uppercase(),
+                            color = md_theme_dark_onPrimary,
                             style = MaterialTheme.typography.titleSmall
                         )
 
@@ -134,7 +135,11 @@ fun AthletesManagementView(
                                         contentScale = ContentScale.Crop
                                     )
                                 } else {
-                                    Icon(Icons.Default.Add, contentDescription = null, tint = Color.White)
+                                    Icon(
+                                        Icons.Default.Add,
+                                        contentDescription = null,
+                                        tint = Color.White
+                                    )
                                 }
                             }
 
@@ -142,7 +147,12 @@ fun AthletesManagementView(
                                 TextField(
                                     value = newAthleteNameInput.value,
                                     onValueChange = { newAthleteNameInput.value = it },
-                                    placeholder = { Text(stringResource(R.string.name), color = Color.Gray) },
+                                    placeholder = {
+                                        Text(
+                                            stringResource(R.string.name),
+                                            color = Color.Gray
+                                        )
+                                    },
                                     colors = TextFieldDefaults.colors(
                                         unfocusedContainerColor = Color.Transparent,
                                         focusedContainerColor = Color.Transparent,
@@ -154,7 +164,12 @@ fun AthletesManagementView(
                                 TextField(
                                     value = newAthleteClubInput.value,
                                     onValueChange = { newAthleteClubInput.value = it },
-                                    placeholder = { Text(stringResource(R.string.club_optional), color = Color.Gray) },
+                                    placeholder = {
+                                        Text(
+                                            stringResource(R.string.club_optional),
+                                            color = Color.Gray
+                                        )
+                                    },
                                     colors = TextFieldDefaults.colors(
                                         unfocusedContainerColor = Color.Transparent,
                                         focusedContainerColor = Color.Transparent,
@@ -235,7 +250,7 @@ fun AthleteRow(
                 } else {
                     Text(
                         text = athlete.name?.take(1)?.uppercase() ?: "?",
-                        color = Color.Red,
+                        color = md_theme_dark_onPrimary,
                         style = MaterialTheme.typography.titleMedium
                     )
                 }

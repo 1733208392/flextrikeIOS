@@ -25,6 +25,7 @@ import com.flextarget.android.data.ble.BLEManager
 import com.flextarget.android.data.repository.OTAState
 import android.util.Log
 import kotlinx.coroutines.launch
+import com.flextarget.android.ui.theme.md_theme_dark_onPrimary
 
 @Composable
 fun OTAUpdateView(
@@ -234,8 +235,8 @@ private fun DeviceNotConnectedCard(onNavigateToDeviceManagement: () -> Unit) {
                 modifier = Modifier.size(48.dp)
             )
             Text(
-                "Connect Device First",
-                color = Color.White,
+                "CONNECT DEVICE FIRST",
+                color = md_theme_dark_onPrimary,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
@@ -285,8 +286,8 @@ private fun StatusCard(
                 style = MaterialTheme.typography.labelSmall
             )
             Text(
-                version,
-                color = Color.White,
+                version.uppercase(),
+                color = md_theme_dark_onPrimary,
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold
             )
@@ -397,8 +398,8 @@ private fun ErrorCard(errorMessage: String, onRetry: () -> Unit) {
                 )
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        "Update Check Failed",
-                        color = Color.White,
+                        "UPDATE CHECK FAILED",
+                        color = md_theme_dark_onPrimary,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
@@ -454,8 +455,8 @@ private fun UpdateAvailableCard(
                 )
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        "Update Available",
-                        color = Color.White,
+                        "UPDATE AVAILABLE",
+                        color = md_theme_dark_onPrimary,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )

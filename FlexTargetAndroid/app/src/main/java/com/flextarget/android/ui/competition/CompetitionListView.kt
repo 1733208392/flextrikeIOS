@@ -26,6 +26,7 @@ import com.flextarget.android.data.local.entity.CompetitionEntity
 import com.flextarget.android.data.local.entity.DrillSetupEntity
 import com.flextarget.android.ui.viewmodel.CompetitionViewModel
 import com.flextarget.android.ui.viewmodel.DrillViewModel
+import com.flextarget.android.ui.theme.md_theme_dark_onPrimary
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.compose.ui.res.stringResource
@@ -155,9 +156,8 @@ fun CompetitionCard(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = competition.name,
-                    color = Color.White,
-                    style = MaterialTheme.typography.titleMedium
+                        text = competition.name.uppercase(),
+                        color = md_theme_dark_onPrimary,
                 )
                 
                 if (!competition.venue.isNullOrEmpty()) {
@@ -336,9 +336,8 @@ fun DrillPickerDialog(
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    text = stringResource(R.string.select_drill_setup),
-                    color = Color.White,
-                    style = MaterialTheme.typography.titleLarge,
+                text = stringResource(R.string.select_drill_setup).uppercase(),
+                color = md_theme_dark_onPrimary,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 

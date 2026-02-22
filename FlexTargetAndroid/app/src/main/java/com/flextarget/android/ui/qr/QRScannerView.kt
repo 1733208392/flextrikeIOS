@@ -40,10 +40,15 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.foundation.clickable
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.statusBars
+import com.flextarget.android.ui.theme.md_theme_dark_onPrimary
 
 private const val TAG = "QRScannerView"
 
@@ -80,7 +85,7 @@ fun QRScannerView(
     var hasCameraPermission by remember { mutableStateOf(false) }
     var scannedText by remember { mutableStateOf<String?>(null) }
     var showResult by remember { mutableStateOf(false) }
-    var scanY by remember { mutableStateOf(0f) }
+    val scanYAnimatable = remember { Animatable(0f) }
 
     // Camera permission launcher
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
@@ -99,13 +104,19 @@ fun QRScannerView(
         }
     }
 
-    // Animate scanning line
+    // Animate scanning line smoothly across the full scan area (uses actual canvas size)
     LaunchedEffect(Unit) {
         while (true) {
-            scanY = 0f
-            delay(2000)
-            scanY = 300f
-            delay(2000)
+            // Animate from 0 to 1 (normalized), actual distance handled in draw
+            scanYAnimatable.animateTo(
+                targetValue = 1f,
+                animationSpec = tween(durationMillis = 2000, easing = LinearEasing)
+            )
+            // Animate back from 1 to 0
+            scanYAnimatable.animateTo(
+                targetValue = 0f,
+                animationSpec = tween(durationMillis = 2000, easing = LinearEasing)
+            )
         }
     }
 
@@ -122,7 +133,7 @@ fun QRScannerView(
                         onQRScanned(bleName)
                     }
                 },
-                scanY = scanY
+                scanY = scanYAnimatable.value
             )
         } else {
             // Permission denied view
@@ -163,9 +174,9 @@ fun QRScannerView(
                     verticalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
                     Text(
-                        text = stringResource(R.string.qr_code_scanned),
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = Color.White
+                            text = stringResource(R.string.qr_code_scanned).uppercase(),
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = md_theme_dark_onPrimary
                     )
 
                     Text(
@@ -282,19 +293,19 @@ private fun QRScannerCameraView(
             // Draw corner brackets
             drawCornerBrackets(scanAreaLeft, scanAreaTop, scanAreaSize)
 
-            // Draw animated scanning line
-            val lineY = scanAreaTop + scanY
+            // Draw animated scanning line using normalized animation value (0-1)
+            val lineY = scanAreaTop + (scanY * scanAreaSize)
             if (lineY >= scanAreaTop && lineY <= scanAreaTop + scanAreaSize) {
                 drawLine(
-                    brush = Brush.verticalGradient(
+                    brush = Brush.horizontalGradient(
                         colors = listOf(
                             Color.Green.copy(alpha = 0f),
                             Color.Green.copy(alpha = 0.8f),
                             Color.Green.copy(alpha = 0f)
                         )
                     ),
-                    start = Offset(scanAreaLeft + 20, lineY),
-                    end = Offset(scanAreaLeft + scanAreaSize - 20, lineY),
+                    start = Offset(scanAreaLeft, lineY),
+                    end = Offset(scanAreaLeft + scanAreaSize, lineY),
                     strokeWidth = 3f
                 )
             }
@@ -310,9 +321,9 @@ private fun QRScannerCameraView(
         ) {
             Text(
                 text = stringResource(R.string.align_qr_code_within_frame),
-                color = Color.White,
                 fontSize = 16.sp,
-                style = MaterialTheme.typography.bodyMedium
+                color = md_theme_dark_onPrimary,
+                style = MaterialTheme.typography.labelSmall
             )
         }
     }

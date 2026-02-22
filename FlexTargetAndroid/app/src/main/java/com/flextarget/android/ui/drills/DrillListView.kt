@@ -19,9 +19,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.platform.LocalContext
 import com.flextarget.android.data.ble.BLEManager
-import com.flextarget.android.data.local.FlexTargetDatabase
 import com.flextarget.android.data.local.entity.DrillSetupEntity
-import com.flextarget.android.data.local.entity.DrillSetupWithTargets
 import com.flextarget.android.data.repository.DrillSetupRepository
 import com.flextarget.android.ui.viewmodel.DrillFormViewModel
 import com.flextarget.android.ui.viewmodel.DrillListViewModel
@@ -29,6 +27,7 @@ import kotlinx.coroutines.launch
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.painterResource
 import com.flextarget.android.R
+import com.flextarget.android.ui.theme.md_theme_dark_onPrimary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -76,7 +75,7 @@ fun DrillListView(
             if (showTopBar) {
                 TopAppBar(
                     title = {
-                        Text(if (onBack != null) stringResource(R.string.my_drills) else stringResource(R.string.drills), color = Color.White)
+                        Text(if (onBack != null) stringResource(R.string.my_drills) else stringResource(R.string.drills), color = md_theme_dark_onPrimary)
                     },
                     navigationIcon = {
                         if (onBack != null) {
@@ -98,9 +97,9 @@ fun DrillListView(
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier
-                                    .padding(start = 16.dp)
-                                    .background(Color.Gray.copy(alpha = 0.2f), androidx.compose.foundation.shape.RoundedCornerShape(16.dp))
-                                    .padding(vertical = 4.dp, horizontal = 12.dp)
+//                                    .padding(start = 16.dp)
+//                                    .background(Color.Gray.copy(alpha = 0.2f), androidx.compose.foundation.shape.RoundedCornerShape(16.dp))
+                                    .padding(horizontal = 12.dp)
                                     .clickable {
                                         if (bleManager.isConnected) {
                                             onShowConnectView()

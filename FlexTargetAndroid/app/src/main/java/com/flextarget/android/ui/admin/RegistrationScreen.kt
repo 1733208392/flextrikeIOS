@@ -82,7 +82,7 @@ fun RegistrationScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text(stringResource(R.string.registration_title), color = customRed, style = MaterialTheme.typography.titleMedium) },
+                title = { Text(stringResource(R.string.registration_title).uppercase(), color = customRed, style = MaterialTheme.typography.titleMedium) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.Filled.ArrowBack, contentDescription = "Back", tint = customRed)

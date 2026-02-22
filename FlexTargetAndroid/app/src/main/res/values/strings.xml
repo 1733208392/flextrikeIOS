@@ -163,10 +163,10 @@
     <string name="username">Username</string>
     
     <!-- Navigation -->
-    <string name="tab_drills">Drills</string>
-    <string name="tab_history">History</string>
-    <string name="tab_competition">Competition</string>
-    <string name="tab_admin">Admin</string>
+    <string name="tab_drills">DRILLS</string>
+    <string name="tab_history">HISTORY</string>
+    <string name="tab_competition">COMPETITION</string>
+    <string name="tab_admin">ADMIN</string>
     
     <!-- Drills -->
     <string name="drill_history">Drill History</string>
@@ -259,7 +259,7 @@
     
     <!-- Drill List -->
     <string name="my_drills">My Drills</string>
-    <string name="drills">Drills</string>
+    <string name="drills">DRILLS</string>
     <string name="are_you_sure_delete">Are you sure you want to delete \"%1$s\"?</string>
     <string name="untitled">Untitled</string>
     
@@ -358,7 +358,7 @@
     <!-- QR Scanner -->
     <string name="camera_permission_required_for_qr">Camera permission is required for QR scanning</string>
     <string name="qr_code_scanned">QR Code Scanned</string>
-    <string name="align_qr_code_within_frame">Align QR code within the frame</string>
+    <string name="align_qr_code_within_frame">ALIGN QR CODE WITHIN THE FRAME</string>
     <string name="done_button">Done</string>
     
     <!-- Remote Control -->

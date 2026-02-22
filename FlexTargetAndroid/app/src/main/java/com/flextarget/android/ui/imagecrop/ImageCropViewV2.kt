@@ -24,6 +24,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.ui.graphics.asImageBitmap
 import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
+import com.flextarget.android.ui.theme.md_theme_dark_onPrimary
 
 @Composable
 fun ImageCropViewV2(onDismiss: () -> Unit) {
@@ -183,8 +184,8 @@ fun ImageCropViewV2(onDismiss: () -> Unit) {
             enabled = selectedImage != null
         ) {
             Text(
-                "Confirm and Transfer",
-                color = Color.White,
+                "CONFIRM AND TRANSFER",
+                color = md_theme_dark_onPrimary,
                 fontSize = MaterialTheme.typography.titleMedium.fontSize
             )
         }

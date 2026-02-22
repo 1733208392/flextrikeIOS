@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import com.flextarget.android.ui.viewmodel.AuthViewModel
 import androidx.compose.ui.res.stringResource
 import com.flextarget.android.R
+import com.flextarget.android.ui.theme.md_theme_dark_onPrimary
 
 @Composable
 fun UserProfileView(
@@ -137,8 +138,8 @@ fun UserProfileView(
                         // Edit Profile Tab
                         item {
                             Text(
-                                stringResource(R.string.update_profile),
-                                color = Color.White,
+                                stringResource(R.string.update_profile).uppercase(),
+                                color = md_theme_dark_onPrimary,
                                 style = MaterialTheme.typography.headlineSmall,
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier.padding(bottom = 8.dp)
@@ -201,8 +202,8 @@ fun UserProfileView(
                         // Change Password Tab
                         item {
                             Text(
-                                stringResource(R.string.change_password),
-                                color = Color.White,
+                                stringResource(R.string.change_password).uppercase(),
+                                color = md_theme_dark_onPrimary,
                                 style = MaterialTheme.typography.headlineSmall,
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier.padding(bottom = 8.dp)
