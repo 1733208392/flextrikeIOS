@@ -171,7 +171,7 @@
     <!-- Drills -->
     <string name="drill_history">Drill History</string>
     <string name="search_drills">Search drills</string>
-    <string name="start_drill">Start Drill</string>
+    <string name="start_drill">START</string>
     <string name="end_drill">End drill</string>
     <string name="drill_in_progress">Drill in progress</string>
     <string name="delete_drill">Delete Drill</string>
@@ -198,8 +198,8 @@
     <string name="venue_optional">Venue (Optional)</string>
     
     <!-- Admin -->
-    <string name="admin">Admin</string>
-    <string name="device_management">Device Management</string>
+    <string name="admin">ADMIN</string>
+    <string name="device_management">DEV MANAGEMENT</string>
     <string name="device_connected_desc">Device is connected</string>
     <string name="connect_to_device_desc">Connect to a device</string>
     <string name="manage_user_profile">Manage user profile</string>
@@ -304,15 +304,15 @@
     <string name="information_page_placeholder">Information page - TODO</string>
     
     <!-- Drill Form View strings -->
-    <string name="add_drill">Add Drill</string>
-    <string name="edit_drill">Edit Drill</string>
+    <string name="add_drill">ADD DRILL</string>
+    <string name="edit_drill">EDIT DRILL</string>
     <string name="targets_screen">Targets</string>
     <string name="add_target">Add Target</string>
     <string name="lock">Lock</string>
     <string name="editing_disabled_message">Editing is disabled because this drill has results or is linked to a competition.</string>
-    <string name="drill_name">Drill Name</string>
-    <string name="description">Description</string>
-    <string name="drill_mode">Drill Mode</string>
+    <string name="drill_name">DRILL TITLE</string>
+    <string name="description">DESCRIPTION</string>
+    <string name="drill_mode">MODE</string>
     <string name="ipsc">IPSC</string>
     <string name="hostage">Hostage</string>
     <string name="special_1">Special 1</string>
@@ -339,13 +339,13 @@
     <string name="cqb_threat">THREAT</string>
     <string name="cqb_non_threat">NON-THREAT</string>
     <string name="cqb_shots_format">Shots: %1$d/%2$d</string>
-    <string name="configuration">Configuration</string>
-    <string name="saving">Saving...</string>
-    <string name="save_drill">Save Drill</string>
-    <string name="save_changes">Save Changes</string>
-    <string name="targets_count">%d targets</string>
+    <string name="configuration">SETTING</string>
+    <string name="saving">SAVING...</string>
+    <string name="save_drill">SAVE</string>
+    <string name="save_changes">SAVE CHANGES</string>
+    <string name="targets_count">%d</string>
     <string name="arrow_right">></string>
-    <string name="targets_section">Targets</string>
+    <string name="targets_section">TARGET</string>
     
     <!-- Results & Competition -->
     <string name="results">Results</string>
@@ -385,4 +385,20 @@
     <string name="edit_idpa_zones">Edit IDPA Zones</string>
     <string name="edit_zones">Edit Zones</string>
     <string name="drill_replay">Replay</string>
+
+    <!-- Timer Session -->
+    <string name="repeat_of_total">REPEAT %1$d OF %2$d</string>
+    <string name="standby">STANDBY</string>
+    <string name="stop_drill">STOP</string>
+    <string name="processing_shots">Processing shots</string>
+    <string name="pause_between_repeats">Pause between repeats</string>
+    <string name="targets_not_ready">Targets not ready</string>
+    <string name="targets_not_ready_message">Verify targets are powered on</string>
+    <string name="targets_ready_count_format">%1$d/%2$d targets ready</string>
+
+    <!-- Target Configuration V2 -->
+    <string name="add_target_type">Add target type</string>
+    <string name="instruction_long_press_delete">LONG PRESS TARGET ABOVE TO DELETE</string>
+    <string name="instruction_long_press_add">LONG PRESS TARGET BELOW TO ADD</string>
+    <string name="add">Add</string>
 </resources>

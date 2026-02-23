@@ -18,10 +18,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalConfiguration
 import com.flextarget.android.R
 import com.flextarget.android.data.local.entity.DrillResultEntity
 import com.flextarget.android.data.local.entity.ShotEntity
 import com.flextarget.android.data.repository.DrillResultRepository
+import com.flextarget.android.ui.theme.digitalDreamFontFamily
+import com.flextarget.android.ui.theme.md_theme_dark_onPrimary
+import com.flextarget.android.ui.theme.md_theme_dark_primary
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -41,6 +45,8 @@ import com.flextarget.android.data.model.DrillExecutionManager
 import com.flextarget.android.data.model.DrillRepeatSummary
 import com.flextarget.android.data.model.DrillTargetsConfigData
 import com.flextarget.android.data.model.toExpandedDataObjects
+import com.flextarget.android.ui.theme.AppTypography
+import com.flextarget.android.ui.theme.ttNormFontFamily
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.random.Random
@@ -122,9 +128,9 @@ fun TimerSessionView(
     val buttonText by remember(timerState) {
         derivedStateOf {
             when (timerState) {
-                TimerState.IDLE, TimerState.PAUSED -> "START"
-                TimerState.STANDBY -> "STANDBY"
-                TimerState.RUNNING -> "STOP"
+                TimerState.IDLE, TimerState.PAUSED -> context.getString(R.string.start_drill)
+                TimerState.STANDBY -> context.getString(R.string.standby)
+                TimerState.RUNNING -> context.getString(R.string.stop_drill)
             }
         }
     }
@@ -132,10 +138,10 @@ fun TimerSessionView(
     val buttonColor by remember(timerState) {
         derivedStateOf {
             when (timerState) {
-                TimerState.IDLE -> Color.Red
-                TimerState.STANDBY -> Color.Red
-                TimerState.RUNNING -> Color.Blue
-                TimerState.PAUSED -> Color.Red
+                TimerState.IDLE -> md_theme_dark_onPrimary
+                TimerState.STANDBY -> md_theme_dark_onPrimary
+                TimerState.RUNNING -> md_theme_dark_onPrimary
+                TimerState.PAUSED -> md_theme_dark_onPrimary
             }
         }
     }
@@ -548,61 +554,83 @@ fun TimerSessionView(
         }
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black)
-    ) {
-        // Back button
-        IconButton(
-            onClick = { handleBackButtonTap() },
+    @OptIn(ExperimentalMaterial3Api::class)
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = stringResource(R.string.repeat_of_total, currentRepeat, totalRepeats),
+                        color = md_theme_dark_onPrimary,
+                        style = AppTypography.titleLarge,
+                        fontFamily = ttNormFontFamily,
+                        maxLines = 1,
+                        softWrap = false
+                        // fontWeight = FontWeight.Bold
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = { handleBackButtonTap() }) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = stringResource(R.string.back),
+                            tint = md_theme_dark_onPrimary
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Black
+                )
+            )
+        }
+    ) { paddingValues ->
+        val configuration = LocalConfiguration.current
+        val screenHeight = configuration.screenHeightDp.dp
+        val topOffset = screenHeight / 6
+
+        Box(
             modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(16.dp)
+                .fillMaxSize()
+                .background(Color.Black)
+                .padding(paddingValues)
         ) {
-            Icon(
-                imageVector = Icons.Default.ArrowBack,
-                contentDescription = "Back",
-                tint = Color.Red
-            )
-        }
-        // Elapsed time at top
-        Column(
-            modifier = Modifier.align(Alignment.TopCenter).padding(top = 40.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            if (totalRepeats > 1) {
+            // Elapsed time at top
+            Column(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = topOffset),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
                 Text(
-                    text = "Repeat $currentRepeat of $totalRepeats",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color.White
+                    text = elapsedTimeText,
+                    fontSize = 48.sp,
+                    color = md_theme_dark_onPrimary,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 4.sp,
+                    fontFamily = digitalDreamFontFamily,
+                    maxLines = 1,
+                    softWrap = false
                 )
-            }
 
-            Text(
-                text = elapsedTimeText,
-                fontSize = 48.sp,
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 4.sp
-            )
-
-            if (timerState == TimerState.STANDBY) {
-                LinearProgressIndicator(
-                    progress = (1f - (delayRemaining / randomDelay)).toFloat(),
-                    modifier = Modifier
-                        .width(200.dp)
-                        .height(2.dp),
-                    color = Color.Red,
-                    trackColor = Color.White.copy(alpha = 0.2f)
-                )
-            }
+//            if (timerState == TimerState.STANDBY) {
+//                LinearProgressIndicator(
+//                    progress = (1f - (delayRemaining / randomDelay)).toFloat(),
+//                    modifier = Modifier
+//                        .width(200.dp)
+//                        .height(2.dp),
+//                    color = Color.Red,
+//                    trackColor = Color.White.copy(alpha = 0.2f)
+//                )
+//            }
         }
 
-        // Button in center
-        Box(modifier = Modifier.align(Alignment.Center)) {
+        // Button in center - shifted down by 1/6 height
+        Box(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .padding(top = topOffset)
+        ) {
             if (gracePeriodActive) {
                 Box(
                     contentAlignment = Alignment.Center,
@@ -626,9 +654,11 @@ fun TimerSessionView(
                             color = Color.White
                         )
                         Text(
-                            text = "Processing shots",
+                            text = stringResource(R.string.processing_shots),
                             fontSize = 12.sp,
-                            color = Color.White.copy(alpha = 0.7f)
+                            color = Color.White.copy(alpha = 0.7f),
+                            maxLines = 1,
+                            softWrap = false
                         )
                     }
                 }
@@ -655,9 +685,11 @@ fun TimerSessionView(
                             color = Color.White
                         )
                         Text(
-                            text = "Pause between repeats",
+                            text = stringResource(R.string.pause_between_repeats),
                             fontSize = 12.sp,
-                            color = Color.White.copy(alpha = 0.7f)
+                            color = Color.White.copy(alpha = 0.7f),
+                            maxLines = 1,
+                            softWrap = false
                         )
                     }
                 }
@@ -674,9 +706,12 @@ fun TimerSessionView(
                 ) {
                     Text(
                         text = buttonText,
-                        fontSize = 24.sp,
+                        fontSize = 32.sp,
+                        fontFamily = ttNormFontFamily,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        color = md_theme_dark_primary,
+                        maxLines = 1,
+                        softWrap = false
                     )
                 }
             }
@@ -687,18 +722,19 @@ fun TimerSessionView(
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(bottom = 40.dp),
+                    .padding(bottom = 90.dp)
+                    .navigationBarsPadding(),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 if (readinessTimeoutOccurred) {
                     Text(
-                        text = "Targets not ready",
+                        text = stringResource(R.string.targets_not_ready),
                         fontSize = 14.sp,
                         color = Color.Red
                     )
                     Text(
-                        text = "Targets not ready message",
+                        text = stringResource(R.string.targets_not_ready_message),
                         fontSize = 12.sp,
                         color = Color(0xFFFFA500)
                     )
@@ -709,7 +745,7 @@ fun TimerSessionView(
                     )
                 } else {
                     Text(
-                        text = "$readyTargetsCount/${expectedDevices.size} targets ready",
+                        text = stringResource(R.string.targets_ready_count_format, readyTargetsCount, expectedDevices.size),
                         fontSize = 14.sp,
                         color = if (readyTargetsCount == expectedDevices.size && expectedDevices.isNotEmpty()) Color.Green else Color.White
                     )
@@ -748,4 +784,5 @@ fun TimerSessionView(
             }
         }
     }
+}
 }

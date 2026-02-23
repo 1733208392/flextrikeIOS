@@ -37,7 +37,7 @@ import com.flextarget.android.data.ble.NetworkDevice
 import com.flextarget.android.data.model.DrillTargetsConfigData
 import org.intellij.lang.annotations.JdkConstants
 import org.json.JSONObject
-import ttNormFontFamily
+import com.flextarget.android.ui.theme.ttNormFontFamily
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -88,7 +88,7 @@ fun TargetConfigListViewV2(
                         onDone()
                         onBack()
                     }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = accentRed)
+                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back), tint = accentRed)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Black)
@@ -275,7 +275,7 @@ private fun TargetRectSection(
             if (selectedTargetTypes.isEmpty()) {
                 Icon(
                     imageVector = Icons.Default.Add,
-                    contentDescription = "Add target type",
+                    contentDescription = stringResource(R.string.add_target_type),
                     modifier = Modifier.size(80.dp),
                     tint = accentColor.copy(alpha = 0.75f)
                 )
@@ -337,7 +337,7 @@ private fun TargetRectSection(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Close,
-                        contentDescription = "Delete",
+                        contentDescription = stringResource(R.string.delete),
                         tint = Color.Black,
                         modifier = Modifier.size(14.dp)
                     )
@@ -372,7 +372,7 @@ private fun TargetRectSection(
         // Instruction text when targets exist
         if (selectedTargetTypes.isNotEmpty()) {
             Text(
-                "LONG PRESS TARGET ABOVE TO DELETE",
+                stringResource(R.string.instruction_long_press_delete),
                 fontFamily = ttNormFontFamily,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
@@ -383,7 +383,7 @@ private fun TargetRectSection(
         } else {
             // Instruction text when no targets
             Text(
-                "LONG PRESS TARGET BELOW TO ADD",
+                stringResource(R.string.instruction_long_press_add),
                 fontFamily = ttNormFontFamily,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
@@ -406,6 +406,10 @@ private fun TargetTypeSelectionViewV2(
     onTypesChanged: (List<String>) -> Unit
 ) {
     var rotationState by remember { mutableStateOf(0f) }
+
+    val filteredAvailableTargetTypes = remember(availableTargetTypes, selectedTargetTypes) {
+        availableTargetTypes.filter { it !in selectedTargetTypes }
+    }
 
     // Shared wiggle animation for all target type icons
     if (isSelectingMode) {
@@ -458,7 +462,7 @@ private fun TargetTypeSelectionViewV2(
             horizontalArrangement = Arrangement.spacedBy(18.dp),
             contentPadding = PaddingValues(2.dp)
         ) {
-            itemsIndexed(availableTargetTypes) { _, type ->
+            itemsIndexed(filteredAvailableTargetTypes) { _, type ->
                 val svgFileName = getIconForTargetType(type)
                 val displayRotation = if (isSelectingMode) rotationState else 0f
 
@@ -526,7 +530,7 @@ private fun TargetTypeSelectionViewV2(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Add,
-                                contentDescription = "Add",
+                                contentDescription = stringResource(R.string.add),
                                 tint = Color.Black,
                                 modifier = Modifier.size(16.dp)
                             )

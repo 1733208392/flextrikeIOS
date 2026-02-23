@@ -378,4 +378,20 @@
     <string name="reset_password_button">重置密码</string>
     <string name="send_code">发送代码</string>
     <string name="verify_code">验证码</string>
+
+    <!-- Timer Session -->
+    <string name="repeat_of_total">第 %1$d 次（共 %2$d 次）</string>
+    <string name="standby">预备</string>
+    <string name="stop_drill">停止</string>
+    <string name="processing_shots">正在处理射击数据</string>
+    <string name="pause_between_repeats">每次演练间隔</string>
+    <string name="targets_not_ready">目标未就绪</string>
+    <string name="targets_not_ready_message">请确认目标已开启电源</string>
+    <string name="targets_ready_count_format">%1$d/%2$d 个目标已就绪</string>
+
+    <!-- Target Configuration V2 -->
+    <string name="add_target_type">新增目标类型</string>
+    <string name="instruction_long_press_delete">长按上方目标进行删除</string>
+    <string name="instruction_long_press_add">长按下方目标进行新增</string>
+    <string name="add">新增</string>
 </resources>

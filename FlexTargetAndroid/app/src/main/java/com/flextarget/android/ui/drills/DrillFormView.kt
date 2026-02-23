@@ -1,7 +1,7 @@
 package com.flextarget.android.ui.drills
 
+import com.flextarget.android.ui.theme.AppTypography
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.material.icons.filled.TrackChanges
 import com.flextarget.android.data.ble.AndroidBLEManager
 import com.flextarget.android.data.ble.BLEManager
 import com.flextarget.android.data.local.FlexTargetDatabase
@@ -34,6 +35,8 @@ import com.flextarget.android.data.model.DrillTargetsConfigData
 import com.flextarget.android.data.model.toExpandedDataObjects
 import com.flextarget.android.ui.drills.TargetConfigListView
 import com.flextarget.android.ui.drills.TargetConfigListViewV2
+import com.flextarget.android.ui.theme.md_theme_dark_onPrimary
+import com.flextarget.android.ui.theme.md_theme_dark_primary
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.json.JSONObject
@@ -63,7 +66,7 @@ fun DrillFormView(
     mode: DrillFormMode,
     existingDrill: DrillSetupEntity? = null,
     onBack: () -> Unit,
-    onDrillSaved: (DrillSetupEntity) -> Unit = {},
+//    onDrillSaved: (DrillSetupEntity) -> Unit = {},
     viewModel: DrillFormViewModel
 ) {
     val coroutineScope = rememberCoroutineScope()
@@ -123,9 +126,10 @@ fun DrillFormView(
     LaunchedEffect(bleManager.networkDevices) {
         if (bleManager.networkDevices.isNotEmpty() && existingDrill == null) {
             // Only auto-populate for new drills
-            // Find devices that haven't been auto-added yet
+            // Find devices that haven't been auto-added yet and aren't already in the targets list
+            val currentTargetNames = targets.map { it.targetName }.toSet()
             val devicesToAdd = bleManager.networkDevices.filter { 
-                !autoAddedDeviceIds.contains(it.id.toString())
+                !autoAddedDeviceIds.contains(it.id.toString()) && !currentTargetNames.contains(it.name)
             }
             
             println("[DrillFormView.LaunchedEffect] networkDevices.size=${bleManager.networkDevices.size}, devicesToAdd.size=${devicesToAdd.size}, currentTargets.size=${targets.size}")
@@ -161,7 +165,7 @@ fun DrillFormView(
             confirmButton = {
                 Button(
                     onClick = { bleManager.showErrorAlert = false },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                    colors = ButtonDefaults.buttonColors(containerColor = md_theme_dark_onPrimary)
                 ) {
                     Text(stringResource(R.string.ok))
                 }
@@ -178,7 +182,7 @@ fun DrillFormView(
             confirmButton = {
                 Button(
                     onClick = { showEditDisabledAlert = false },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                    colors = ButtonDefaults.buttonColors(containerColor = md_theme_dark_onPrimary)
                 ) {
                     Text(stringResource(R.string.ok))
                 }
@@ -255,7 +259,7 @@ fun DrillFormView(
                             DrillFormScreen.FORM -> if (mode == DrillFormMode.ADD) stringResource(R.string.add_drill) else stringResource(R.string.edit_drill)
                             DrillFormScreen.TARGET_CONFIG -> targets.firstOrNull()?.targetName.orEmpty()
                         },
-                        color = Color.White
+                        color = md_theme_dark_onPrimary
                     )
                 },
                 navigationIcon = {
@@ -268,7 +272,7 @@ fun DrillFormView(
                         Icon(
                             Icons.Default.ArrowBack,
                             contentDescription = stringResource(R.string.back),
-                            tint = Color.Red
+                            tint = md_theme_dark_onPrimary
                         )
                     }
                 },
@@ -378,10 +382,10 @@ fun DrillFormView(
                         bleManager = bleManager,
                         onNavigateToTargetConfig = { if (!isEditingDisabled) currentScreen = DrillFormScreen.TARGET_CONFIG else showEditDisabledAlert = true },
                         isSaving = isSaving,
+                        onSavingChange = { isSaving = it },
                         isFormValid = isFormValid,
                         mode = mode,
                         existingDrill = existingDrill,
-                        onDrillSaved = onDrillSaved,
                         onBack = onBack,
                         viewModel = viewModel,
                         coroutineScope = coroutineScope,
@@ -456,10 +460,10 @@ private fun FormScreen(
     bleManager: BLEManager,
     onNavigateToTargetConfig: () -> Unit,
     isSaving: Boolean,
+    onSavingChange: (Boolean) -> Unit,
     isFormValid: Boolean,
     mode: DrillFormMode,
     existingDrill: DrillSetupEntity?,
-    onDrillSaved: (DrillSetupEntity) -> Unit,
     onBack: () -> Unit,
     viewModel: DrillFormViewModel,
     coroutineScope: CoroutineScope,
@@ -468,6 +472,23 @@ private fun FormScreen(
     isEditingDisabled: Boolean = false,
     onStartDrill: (DrillSetupEntity, List<DrillTargetsConfigEntity>) -> Unit = { _, _ -> }
 ) {
+    var showSaveSuccessAlert by remember { mutableStateOf(false) }
+
+    if (showSaveSuccessAlert) {
+        AlertDialog(
+            onDismissRequest = { showSaveSuccessAlert = false },
+            text = { Text("DRILL CONFIG SAVED", color = md_theme_dark_onPrimary) },
+            confirmButton = {
+                Button(
+                    onClick = { showSaveSuccessAlert = false },
+                    colors = ButtonDefaults.buttonColors(containerColor = md_theme_dark_primary)
+                ) {
+                    Text(stringResource(R.string.ok))
+                }
+            }
+        )
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -497,7 +518,7 @@ private fun FormScreen(
                     )
                     Text(
                         stringResource(R.string.editing_disabled_message),
-                        style = MaterialTheme.typography.bodySmall,
+                        style = AppTypography.bodyLarge,
                         color = Color(0xFFFFA500)
                     )
                 }
@@ -544,6 +565,7 @@ private fun FormScreen(
                     onClick = {
                         coroutineScope.launch {
                             try {
+                                onSavingChange(true)
                                 val drill = DrillSetupEntity(
                                     name = drillName,
                                     desc = description,
@@ -566,10 +588,11 @@ private fun FormScreen(
                                     ), targets) } ?: drill
                                 }
 
-                                onDrillSaved(savedDrill)
-                                // onBack() // Removed to prevent dismissing the view after saving
+                                onSavingChange(false)
+                                showSaveSuccessAlert = true
                             } catch (e: Exception) {
                                 // Handle error
+                                onSavingChange(false)
                                 e.printStackTrace()
                             }
                         }
@@ -577,14 +600,13 @@ private fun FormScreen(
                     enabled = isFormValid && !isSaving,
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isFormValid) Color.Red else Color.Gray,
+                        containerColor = if (isFormValid) md_theme_dark_onPrimary else Color.Gray,
                         disabledContainerColor = Color.Gray
                     )
                 ) {
                     Text(
-                        text = if (isSaving) stringResource(R.string.saving) else if (mode == DrillFormMode.ADD) stringResource(R.string.save_drill) else stringResource(R.string.save_changes),
-                        color = Color.White
-                    )
+                        if (isSaving) stringResource(R.string.saving) else if (mode == DrillFormMode.ADD) stringResource(R.string.save_drill) else stringResource(R.string.save_changes),
+                        color = md_theme_dark_primary)
                 }
 
                 // Start drill session
@@ -638,11 +660,11 @@ private fun FormScreen(
                     enabled = bleManager.isConnected && androidBleManager != null && isTargetListReceived,
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (bleManager.isConnected && androidBleManager != null && isTargetListReceived) Color.Green else Color.Gray,
+                        containerColor = if (bleManager.isConnected && androidBleManager != null && isTargetListReceived) md_theme_dark_onPrimary else Color.Gray,
                         disabledContainerColor = Color.Gray
                     )
                 ) {
-                    Text(stringResource(R.string.start_drill), color = Color.White)
+                    Text(stringResource(R.string.start_drill), color = md_theme_dark_primary)
                 }
             }
         }
@@ -650,7 +672,7 @@ private fun FormScreen(
         if (isSaving) {
             CircularProgressIndicator(
                 modifier = Modifier.align(Alignment.Center),
-                color = Color.Red
+                color = md_theme_dark_onPrimary
             )
         }
     }
@@ -679,13 +701,12 @@ private fun DrillNameSection(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color.DarkGray)
+        colors = CardDefaults.cardColors(containerColor = md_theme_dark_primary)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
                 text = stringResource(R.string.drill_name),
-                style = MaterialTheme.typography.titleMedium,
-                color = Color.White
+                style = AppTypography.bodyLarge
             )
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
@@ -694,11 +715,11 @@ private fun DrillNameSection(
                 placeholder = { Text(stringResource(R.string.enter_drill_name), color = Color.Gray) },
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color.Red,
+                    focusedBorderColor = md_theme_dark_onPrimary,
                     unfocusedBorderColor = Color.Gray,
                     focusedTextColor = Color.White,
                     unfocusedTextColor = Color.White,
-                    cursorColor = Color.Red
+                    cursorColor = md_theme_dark_onPrimary
                 )
             )
         }
@@ -712,13 +733,12 @@ private fun DrillDescriptionSection(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color.DarkGray)
+        colors = CardDefaults.cardColors(containerColor = md_theme_dark_primary)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
                 text = stringResource(R.string.description),
-                style = MaterialTheme.typography.titleMedium,
-                color = Color.White
+                style = AppTypography.bodyLarge,
             )
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
@@ -728,11 +748,11 @@ private fun DrillDescriptionSection(
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 3,
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color.Red,
+                    focusedBorderColor = md_theme_dark_onPrimary,
                     unfocusedBorderColor = Color.Gray,
                     focusedTextColor = Color.White,
                     unfocusedTextColor = Color.White,
-                    cursorColor = Color.Red
+                    cursorColor = md_theme_dark_onPrimary
                 )
             )
         }
@@ -753,13 +773,12 @@ private fun DrillModeSection(
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color.DarkGray)
+        colors = CardDefaults.cardColors(containerColor = md_theme_dark_primary)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
                 text = stringResource(R.string.drill_mode),
-                style = MaterialTheme.typography.titleMedium,
-                color = Color.White
+                style = AppTypography.bodyLarge,
             )
             Spacer(modifier = Modifier.height(8.dp))
             Row(
@@ -768,18 +787,22 @@ private fun DrillModeSection(
             ) {
                 drillModes.forEach { mode ->
                     val isSelected = drillMode == mode
+                    val isEnabled = mode == "ipsc"
                     OutlinedButton(
                         onClick = { onDrillModeChange(mode) },
                         modifier = Modifier.weight(1f),
+                        enabled = isEnabled,
                         colors = ButtonDefaults.outlinedButtonColors(
-                            containerColor = if (isSelected) Color.Red else Color.Transparent,
-                            contentColor = if (isSelected) Color.White else Color.Gray
+                            containerColor = if (isSelected) md_theme_dark_onPrimary else Color.Transparent,
+                            contentColor = if (isSelected) Color.White else if (isEnabled) Color.Gray else Color.DarkGray,
+                            disabledContentColor = Color.DarkGray,
+                            disabledContainerColor = Color.Transparent
                         ),
-                        border = BorderStroke(1.dp, if (isSelected) Color.Red else Color.Gray)
+                        border = BorderStroke(1.dp, if (isSelected) md_theme_dark_onPrimary else if (isEnabled) Color.Gray else Color.DarkGray)
                     ) {
                         Text(
                             text = modeTitles[mode] ?: mode.uppercase(),
-                            style = MaterialTheme.typography.bodyMedium
+                            style = AppTypography.bodyLarge
                         )
                     }
                 }
@@ -797,7 +820,7 @@ private fun DrillConfigurationSection(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color.DarkGray)
+        colors = CardDefaults.cardColors(containerColor = md_theme_dark_primary)
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -805,8 +828,7 @@ private fun DrillConfigurationSection(
         ) {
             Text(
                 text = stringResource(R.string.configuration),
-                style = MaterialTheme.typography.titleMedium,
-                color = Color.White
+                style = AppTypography.bodyLarge,
             )
 
             // Repeats
@@ -814,14 +836,14 @@ private fun DrillConfigurationSection(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(stringResource(R.string.repeats), color = Color.White, modifier = Modifier.weight(1f))
+                Text(stringResource(R.string.repeats), modifier = Modifier.weight(1f))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = { if (repeats > 1) onRepeatsChange(repeats - 1) }) {
-                        Text(stringResource(R.string.minus), color = Color.Red, fontSize = 20.sp)
+                        Text(stringResource(R.string.minus), color = md_theme_dark_onPrimary, fontSize = 20.sp)
                     }
                     Text(repeats.toString(), color = Color.White, modifier = Modifier.padding(horizontal = 8.dp))
                     IconButton(onClick = { onRepeatsChange(repeats + 1) }) {
-                        Text(stringResource(R.string.plus), color = Color.Red, fontSize = 20.sp)
+                        Text(stringResource(R.string.plus), color = md_theme_dark_onPrimary, fontSize = 20.sp)
                     }
                 }
             }
@@ -831,14 +853,14 @@ private fun DrillConfigurationSection(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(stringResource(R.string.pause_seconds), color = Color.White, modifier = Modifier.weight(1f))
+                Text(stringResource(R.string.pause_seconds), modifier = Modifier.weight(1f))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = { if (pause > 0) onPauseChange(pause - 1) }) {
-                        Text("-", color = Color.Red, fontSize = 20.sp)
+                        Text("-", color = md_theme_dark_onPrimary, fontSize = 20.sp)
                     }
                     Text(pause.toString(), color = Color.White, modifier = Modifier.padding(horizontal = 8.dp))
                     IconButton(onClick = { onPauseChange(pause + 1) }) {
-                        Text("+", color = Color.Red, fontSize = 20.sp)
+                        Text("+", color = md_theme_dark_onPrimary, fontSize = 20.sp)
                     }
                 }
             }
@@ -855,7 +877,7 @@ private fun DrillTargetsSection(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color.DarkGray)
+        colors = CardDefaults.cardColors(containerColor = md_theme_dark_primary)
     ) {
         Row(
             modifier = Modifier
@@ -867,16 +889,16 @@ private fun DrillTargetsSection(
             // Shield icon
             Box(
                 modifier = Modifier
-                    .size(40.dp)
-                    .background(Color.White.copy(alpha = 0.1f), shape = androidx.compose.foundation.shape.CircleShape)
-                    .border(2.dp, Color.Red, shape = androidx.compose.foundation.shape.CircleShape),
+                    .size(40.dp),
+//                    .background(Color.White.copy(alpha = 0.1f), shape = androidx.compose.foundation.shape.CircleShape)
+//                    .border(2.dp, md_theme_dark_onPrimary, shape = androidx.compose.foundation.shape.CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    Icons.Default.Settings,
+                    Icons.Default.TrackChanges,
                     contentDescription = stringResource(R.string.targets_section),
-                    tint = Color.Red,
-                    modifier = Modifier.size(20.dp)
+                    tint = md_theme_dark_onPrimary,
+                    modifier = Modifier.size(40.dp)
                 )
             }
 
@@ -885,8 +907,8 @@ private fun DrillTargetsSection(
             // Text label
             Text(
                 text = stringResource(R.string.targets_section),
-                style = MaterialTheme.typography.titleMedium,
-                color = if (isTargetListReceived) Color.White else Color.Gray
+                style = AppTypography.bodyLarge,
+                color = if (isTargetListReceived) md_theme_dark_onPrimary else Color.Gray
             )
 
             Spacer(modifier = Modifier.weight(1f))
@@ -894,7 +916,7 @@ private fun DrillTargetsSection(
             // Count
             Text(
                 text = stringResource(R.string.targets_count, targets.size),
-                style = MaterialTheme.typography.titleMedium,
+                style = AppTypography.bodyLarge,
                 color = if (isTargetListReceived) Color.White else Color.Gray
             )
 
@@ -903,8 +925,8 @@ private fun DrillTargetsSection(
             // Arrow
             Text(
                 text = stringResource(R.string.arrow_right),
-                style = MaterialTheme.typography.titleMedium,
-                color = if (isTargetListReceived) Color.Gray else Color.LightGray
+                style = AppTypography.bodyLarge,
+                color = if (isTargetListReceived)  md_theme_dark_onPrimary else Color.Gray
             )
         }
     }

@@ -377,4 +377,20 @@
     <string name="reset_password_button">Restablecer Contraseña</string>
     <string name="send_code">Enviar Código</string>
     <string name="verify_code">Código de Verificación</string>
+
+    <!-- Timer Session -->
+    <string name="repeat_of_total">REPETICIÓN %1$d DE %2$d</string>
+    <string name="standby">EN ESPERA</string>
+    <string name="stop_drill">DETENER</string>
+    <string name="processing_shots">Procesando disparos</string>
+    <string name="pause_between_repeats">Pausa entre repeticiones</string>
+    <string name="targets_not_ready">Objetivos no listos</string>
+    <string name="targets_not_ready_message">Verifique que los objetivos estén encendidos</string>
+    <string name="targets_ready_count_format">%1$d/%2$d objetivos listos</string>
+
+    <!-- Target Configuration V2 -->
+    <string name="add_target_type">Añadir tipo de objetivo</string>
+    <string name="instruction_long_press_delete">MANTENGA PRESIONADO EL OBJETIVO ARRIBA PARA ELIMINAR</string>
+    <string name="instruction_long_press_add">MANTENGA PRESIONADO EL OBJETIVO ABAJO PARA AÑADIR</string>
+    <string name="add">Añadir</string>
 </resources>

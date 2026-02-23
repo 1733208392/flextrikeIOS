@@ -1,6 +1,5 @@
 package com.flextarget.android.ui.theme
 
-import AppTypography
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable

@@ -36,6 +36,7 @@ import com.flextarget.android.ui.theme.md_theme_dark_onPrimary
 import com.flextarget.android.data.local.entity.DrillSetupEntity
 import com.flextarget.android.data.model.DrillRepeatSummary
 import com.flextarget.android.data.model.ScoringUtility
+import com.flextarget.android.ui.theme.AppTypography
 import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -78,8 +79,7 @@ fun DrillSummaryView(
                 Text(
                     text = stringResource(R.string.drill_results_summary).uppercase(),
                     color = md_theme_dark_onPrimary,
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.SemiBold
+                    style = AppTypography.titleLarge,
                 )
             },
             navigationIcon = {

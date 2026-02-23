@@ -395,11 +395,11 @@ fun DrillListView(
             mode = drillFormMode,
             existingDrill = selectedDrill,
             onBack = { showDrillForm = false },
-            onDrillSaved = { savedDrill ->
-                // Update the selected drill with the saved one and refresh
-                selectedDrill = savedDrill
-                showDrillForm = false
-            },
+//            onDrillSaved = { savedDrill ->
+//                // Update the selected drill with the saved one and refresh
+//                selectedDrill = savedDrill
+////                showDrillForm = false
+//            },
             viewModel = viewModel(
                 factory = com.flextarget.android.ui.viewmodel.DrillFormViewModel.Factory(
                     DrillSetupRepository.getInstance(LocalContext.current)

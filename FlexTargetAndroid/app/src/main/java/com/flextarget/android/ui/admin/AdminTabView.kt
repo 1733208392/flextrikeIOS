@@ -27,6 +27,8 @@ import com.flextarget.android.ui.viewmodel.OTAViewModel
 import com.flextarget.android.ui.viewmodel.BLEViewModel
 import androidx.compose.material.icons.filled.Image
 import com.flextarget.android.ui.imagecrop.ImageCropViewV2
+import com.flextarget.android.ui.theme.AppTypography
+import com.flextarget.android.ui.theme.md_theme_dark_onPrimary
 
 @Composable
 fun AdminTabView(
@@ -256,10 +258,10 @@ private fun AdminMainMenuView(
             .background(Color.Black)
     ) {
         TopAppBar(
-            title = { Text(stringResource(R.string.admin), color = Color.White) },
+            title = { Text(stringResource(R.string.admin), color = md_theme_dark_onPrimary) },
             colors = TopAppBarDefaults.topAppBarColors(
                 containerColor = Color.Black,
-                titleContentColor = Color.White
+//                titleContentColor = Color.White
             )
         )
 
@@ -339,14 +341,14 @@ private fun AdminMenuButton(
             ) {
                 Text(
                     text = title,
-                    color = Color.White,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Bold
+//                    color = Color.White,
+                    style = AppTypography.bodyLarge,
+//                    fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = description,
                     color = Color.Gray,
-                    style = MaterialTheme.typography.labelSmall
+                    style = AppTypography.labelSmall
                 )
             }
 
@@ -386,15 +388,15 @@ private fun DeviceManagementView(
             .background(Color.Black)
     ) {
         CenterAlignedTopAppBar(
-            title = { Text(stringResource(R.string.device_management), color = Color.White) },
+            title = { Text(stringResource(R.string.device_management), color = md_theme_dark_onPrimary) },
             navigationIcon = {
                 IconButton(onClick = onBack) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.Red)
+                    Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = md_theme_dark_onPrimary)
                 }
             },
             colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                 containerColor = Color.Black,
-                titleContentColor = Color.White
+//                titleContentColor = Color.White
             )
         )
 
@@ -495,7 +497,7 @@ private fun DeviceMenuOption(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = Color.Red,
+                tint = md_theme_dark_onPrimary,
                 modifier = Modifier.size(32.dp)
             )
 
@@ -505,21 +507,21 @@ private fun DeviceMenuOption(
             ) {
                 Text(
                     text = title,
-                    color = Color.White,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Bold
+                    color = md_theme_dark_onPrimary,
+                    style = AppTypography.bodyLarge,
+//                    fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = subtitle,
                     color = Color.Gray,
-                    style = MaterialTheme.typography.labelSmall
+                    style = AppTypography.labelSmall
                 )
             }
 
             Icon(
                 imageVector = Icons.Default.ChevronRight,
                 contentDescription = null,
-                tint = Color.Red,
+                tint = md_theme_dark_onPrimary,
                 modifier = Modifier.size(24.dp)
             )
         }

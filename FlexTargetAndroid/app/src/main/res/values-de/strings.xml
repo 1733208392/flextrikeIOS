@@ -376,4 +376,20 @@
     <string name="reset_password_button">Passwort zurücksetzen</string>
     <string name="send_code">Code senden</string>
     <string name="verify_code">Bestätigungscode</string>
+
+    <!-- Timer Session -->
+    <string name="repeat_of_total">WIEDERHOLUNG %1$d VON %2$d</string>
+    <string name="standby">BEREITSCHAFT</string>
+    <string name="stop_drill">STOPP</string>
+    <string name="processing_shots">Schüsse werden verarbeitet</string>
+    <string name="pause_between_repeats">Pause zwischen Wiederholungen</string>
+    <string name="targets_not_ready">Ziele nicht bereit</string>
+    <string name="targets_not_ready_message">Überprüfen Sie, ob die Ziele eingeschaltet sind</string>
+    <string name="targets_ready_count_format">%1$d/%2$d Ziele bereit</string>
+
+    <!-- Target Configuration V2 -->
+    <string name="add_target_type">Zieltyp hinzufügen</string>
+    <string name="instruction_long_press_delete">ZUM LÖSCHEN ZIEL OBEN LANGE DRÜCKEN</string>
+    <string name="instruction_long_press_add">ZUM HINZUFÜGEN ZIEL UNTEN LANGE DRÜCKEN</string>
+    <string name="add">Hinzufügen</string>
 </resources>

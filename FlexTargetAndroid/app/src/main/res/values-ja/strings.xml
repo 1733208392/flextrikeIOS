@@ -377,4 +377,20 @@
     <string name="reset_password_button">パスワードをリセット</string>
     <string name="send_code">コードを送信</string>
     <string name="verify_code">確認コード</string>
+
+    <!-- Timer Session -->
+    <string name="repeat_of_total">第 %1$d 回（全 %2$d 回）</string>
+    <string name="standby">スタンバイ</string>
+    <string name="stop_drill">ストップ</string>
+    <string name="processing_shots">ショット処理中</string>
+    <string name="pause_between_repeats">リピート間の休憩</string>
+    <string name="targets_not_ready">ターゲット準備未完了</string>
+    <string name="targets_not_ready_message">電源が入っているか確認してください</string>
+    <string name="targets_ready_count_format">%1$d/%2$d ターゲット準備完了</string>
+
+    <!-- Target Configuration V2 -->
+    <string name="add_target_type">ターゲットタイプを追加</string>
+    <string name="instruction_long_press_delete">上のターゲットを長押しして削除</string>
+    <string name="instruction_long_press_add">下のターゲットを長押しして追加</string>
+    <string name="add">追加</string>
 </resources>

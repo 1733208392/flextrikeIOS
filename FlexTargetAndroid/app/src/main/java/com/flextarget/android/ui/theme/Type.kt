@@ -1,3 +1,5 @@
+package com.flextarget.android.ui.theme
+
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -8,6 +10,10 @@ val ttNormFontFamily = FontFamily(
     Font(R.font.tt_norms_regular, FontWeight.Normal),
     Font(R.font.tt_norms_medium, FontWeight.Medium),
     Font(R.font.tt_norms_bold, FontWeight.Bold)
+)
+
+val digitalDreamFontFamily = FontFamily(
+    Font(R.font.digitaldream, FontWeight.Normal)
 )
 
 val AppTypography = Typography().run {
