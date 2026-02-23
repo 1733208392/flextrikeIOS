@@ -24,7 +24,12 @@ import androidx.compose.foundation.Image
 import androidx.compose.ui.graphics.asImageBitmap
 import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
+import androidx.compose.ui.res.stringResource
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import com.flextarget.android.R
 import com.flextarget.android.ui.theme.md_theme_dark_onPrimary
+import com.flextarget.android.ui.theme.md_theme_dark_primary
 
 @Composable
 fun ImageCropViewV2(onDismiss: () -> Unit) {
@@ -63,26 +68,45 @@ fun ImageCropViewV2(onDismiss: () -> Unit) {
             .background(Color.Black),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = onDismiss) {
-                Text("←", color = Color.White)
-            }
-            Spacer(modifier = Modifier.weight(1f))
-            Button(
-                onClick = { imagePickerLauncher.launch("image/*") },
-                modifier = Modifier.height(44.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Gray),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Text("Select", color = Color.White)
-            }
-        }
+        CenterAlignedTopAppBar(
+            title = { Text(stringResource(R.string.upload_target_image_title), color = md_theme_dark_onPrimary) },
+            navigationIcon = {
+                IconButton(onClick = onDismiss) {
+                    Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = md_theme_dark_onPrimary)
+                }
+            },
+            actions = {
+                // Combined Select / Transfer button
+                Button(
+                    onClick = {
+                        if (selectedImage == null) {
+                            imagePickerLauncher.launch("image/*")
+                        } else {
+                            scope.launch {
+                                viewModel.transferCroppedImage(
+                                    onSuccess = { _ -> onDismiss() },
+                                    onError = { error -> android.util.Log.e("ImageCropTransfer", "Transfer error: $error") }
+                                )
+                            }
+                        }
+                    },
+                    modifier = Modifier
+                        .height(40.dp)
+                        .padding(end = 12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = md_theme_dark_onPrimary),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text(
+                        if (selectedImage == null) stringResource(R.string.select) else "CONFIRM & TRANSFER",
+                        color = md_theme_dark_primary,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+            },
+            colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                containerColor = Color.Black
+            )
+        )
 
         Box(
             modifier = Modifier
@@ -156,37 +180,6 @@ fun ImageCropViewV2(onDismiss: () -> Unit) {
                     .height(previewSize)
                     .align(Alignment.Center)
                     .background(Color.Transparent)
-            )
-        }
-
-        // Confirm and Transfer Button - below preview area
-        Button(
-            onClick = {
-                scope.launch {
-                    viewModel.transferCroppedImage(
-                        onSuccess = { message ->
-                            // TODO: Show success toast or notification
-                            onDismiss()
-                        },
-                        onError = { error ->
-                            // TODO: Show error toast
-                            // For now, log it
-                            android.util.Log.e("ImageCropTransfer", "Transfer error: $error")
-                        }
-                    )
-                }
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp)
-                .height(48.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F)),
-            enabled = selectedImage != null
-        ) {
-            Text(
-                "CONFIRM AND TRANSFER",
-                color = md_theme_dark_onPrimary,
-                fontSize = MaterialTheme.typography.titleMedium.fontSize
             )
         }
 
