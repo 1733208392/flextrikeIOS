@@ -3,6 +3,7 @@ package com.flextarget.android.ui.imagecrop
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.widget.Space
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -17,10 +18,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.magnifier
 import androidx.compose.ui.graphics.asImageBitmap
 import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
@@ -40,6 +43,10 @@ fun ImageCropViewV2(onDismiss: () -> Unit) {
     val scale by viewModel.scale.collectAsState()
     val offsetX by viewModel.offsetX.collectAsState()
     val offsetY by viewModel.offsetY.collectAsState()
+    
+    // Track actual measured dimensions of the preview container
+    var containerWidth by remember { mutableStateOf(480f) }
+    var containerHeight by remember { mutableStateOf(480f) }
 
     DisposableEffect(Unit) {
         onDispose { viewModel.clearImage() }
@@ -68,39 +75,11 @@ fun ImageCropViewV2(onDismiss: () -> Unit) {
             .background(Color.Black),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        CenterAlignedTopAppBar(
+        TopAppBar(
             title = { Text(stringResource(R.string.upload_target_image_title), color = md_theme_dark_onPrimary) },
             navigationIcon = {
                 IconButton(onClick = onDismiss) {
                     Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = md_theme_dark_onPrimary)
-                }
-            },
-            actions = {
-                // Combined Select / Transfer button
-                Button(
-                    onClick = {
-                        if (selectedImage == null) {
-                            imagePickerLauncher.launch("image/*")
-                        } else {
-                            scope.launch {
-                                viewModel.transferCroppedImage(
-                                    onSuccess = { _ -> onDismiss() },
-                                    onError = { error -> android.util.Log.e("ImageCropTransfer", "Transfer error: $error") }
-                                )
-                            }
-                        }
-                    },
-                    modifier = Modifier
-                        .height(40.dp)
-                        .padding(end = 12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = md_theme_dark_onPrimary),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text(
-                        if (selectedImage == null) stringResource(R.string.select) else "CONFIRM & TRANSFER",
-                        color = md_theme_dark_primary,
-                        style = MaterialTheme.typography.bodyLarge
-                    )
                 }
             },
             colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -108,11 +87,19 @@ fun ImageCropViewV2(onDismiss: () -> Unit) {
             )
         )
 
+        Spacer(modifier = Modifier.height(24.dp))
+
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(previewSize)
                 .background(Color.Black)
+                .onSizeChanged { size ->
+                    // Update ViewModel with actual pixel dimensions (accounts for device density)
+                    containerWidth = size.width.toFloat()
+                    containerHeight = size.height.toFloat()
+                    viewModel.setPreviewSize(containerWidth, containerHeight)
+                }
                 .pointerInput(Unit) {
                     detectTransformGestures { _, pan, zoom, _ ->
                         val newScale = (scale * zoom).coerceIn(1f, 3f)
@@ -120,12 +107,11 @@ fun ImageCropViewV2(onDismiss: () -> Unit) {
                         val newOffsetX = offsetX + pan.x
                         val newOffsetY = offsetY + pan.y
                         if (selectedImage != null) {
-                            val containerSizePx = 480f
-                            val scaledWidth = containerSizePx * newScale
-                            val scaledHeight = containerSizePx * newScale
-                            val maxOffsetX = (scaledWidth - containerSizePx) / 2f
+                            val scaledWidth = containerWidth * newScale
+                            val scaledHeight = containerHeight * newScale
+                            val maxOffsetX = (scaledWidth - containerWidth) / 2f
                             val clampedX = newOffsetX.coerceIn(-maxOffsetX, maxOffsetX)
-                            val maxOffsetY = (scaledHeight - containerSizePx) / 2f
+                            val maxOffsetY = (scaledHeight - containerHeight) / 2f
                             val clampedY = newOffsetY.coerceIn(-maxOffsetY, maxOffsetY)
                             viewModel.setOffset(clampedX, clampedY)
                         }
@@ -154,14 +140,6 @@ fun ImageCropViewV2(onDismiss: () -> Unit) {
                 }
             }
 
-            if (selectedImage == null) {
-                Text(
-                    "No image selected",
-                    color = Color.Gray,
-                    modifier = Modifier.align(Alignment.Center)
-                )
-            }
-
             AsyncImage(
                 model = "file:///android_asset/custom-target-guide.svg",
                 contentDescription = "Target guide overlay",
@@ -183,6 +161,34 @@ fun ImageCropViewV2(onDismiss: () -> Unit) {
             )
         }
 
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.height(48.dp))
+
+        // Action button below preview: Select or Confirm & Transfer
+        Button(
+            onClick = {
+                if (selectedImage == null) {
+                    imagePickerLauncher.launch("image/*")
+                } else {
+                    scope.launch {
+                        viewModel.transferCroppedImage(
+                            onSuccess = { _ -> onDismiss() },
+                            onError = { error -> android.util.Log.e("ImageCropTransfer", "Transfer error: $error") }
+                        )
+                    }
+                }
+            },
+            modifier = Modifier
+                .fillMaxWidth(0.75f)
+                .padding(horizontal = 20.dp, vertical = 12.dp)
+                .height(48.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = md_theme_dark_onPrimary),
+            shape = RoundedCornerShape(8.dp)
+        ) {
+            Text(
+                if (selectedImage == null) stringResource(R.string.select) else "CONFIRM & TRANSFER",
+                color = md_theme_dark_primary,
+                style = MaterialTheme.typography.bodyLarge
+            )
+        }
     }
 }

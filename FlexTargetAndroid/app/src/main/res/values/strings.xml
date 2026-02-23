@@ -154,7 +154,7 @@
     <string name="loading">Loading...</string>
     <string name="error">Error</string>
     <string name="information">Information</string>
-    <string name="select">Select</string>
+    <string name="select">SELECT PICTURE</string>
     <string name="copy">Copy</string>
     <string name="create">Create</string>
     <string name="search">Search</string>
@@ -369,7 +369,7 @@
     <string name="home_button">Home</string>
     
     <!-- Upload Target Image -->
-    <string name="upload_target_image_title">Upload Target Image</string>
+    <string name="upload_target_image_title">UPLOAD TARGET IMAGE</string>
     <string name="upload_target_image_subtitle">Upload a custom target image to the device</string>
     
     <!-- IDPA Drill Summary -->
