@@ -11,6 +11,7 @@ import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,6 +44,8 @@ fun ImageCropViewV2(onDismiss: () -> Unit) {
     val scale by viewModel.scale.collectAsState()
     val offsetX by viewModel.offsetX.collectAsState()
     val offsetY by viewModel.offsetY.collectAsState()
+    val transferProgress by viewModel.transferProgress.collectAsState()
+    val isTransferring by viewModel.isTransferring.collectAsState()
     
     // Track actual measured dimensions of the preview container
     var containerWidth by remember { mutableStateOf(480f) }
@@ -159,6 +162,19 @@ fun ImageCropViewV2(onDismiss: () -> Unit) {
                     .align(Alignment.Center)
                     .background(Color.Transparent)
             )
+
+            // Progress indicator overlay (shown during transfer)
+            if (isTransferring) {
+                LinearProgressIndicator(
+                    progress = { (transferProgress / 100f).coerceIn(0f, 1f) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(4.dp)
+                        .align(Alignment.TopCenter),
+                    color = md_theme_dark_onPrimary,
+                    trackColor = Color.DarkGray
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(48.dp))

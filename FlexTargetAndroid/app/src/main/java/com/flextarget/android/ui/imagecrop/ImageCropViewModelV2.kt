@@ -36,6 +36,13 @@ class ImageCropViewModelV2 : ViewModel() {
     private val _previewHeightPx = MutableStateFlow(480f)
     val previewHeightPx: StateFlow<Float> = _previewHeightPx.asStateFlow()
 
+    // Transfer progress state
+    private val _transferProgress = MutableStateFlow(0)
+    val transferProgress: StateFlow<Int> = _transferProgress.asStateFlow()
+
+    private val _isTransferring = MutableStateFlow(false)
+    val isTransferring: StateFlow<Boolean> = _isTransferring.asStateFlow()
+
     fun setPreviewSize(widthPx: Float, heightPx: Float) {
         _previewWidthPx.value = widthPx
         _previewHeightPx.value = heightPx
@@ -171,20 +178,27 @@ class ImageCropViewModelV2 : ViewModel() {
 
         Log.d("ImageCropTransfer", "Starting image transfer: 720x1280 JPEG")
         
+        _isTransferring.value = true
+        _transferProgress.value = 0
+        
         imageTransferManager.transferImage(
             image = croppedBitmap,
             imageName = "target_image",
             compressionQuality = 0.2f,  // iOS matches this exactly
             progress = { progress ->
                 Log.d("ImageCropTransfer", "Transfer progress: $progress%")
+                _transferProgress.value = progress
                 onProgress(progress)
             },
             completion = { success, message ->
+                _isTransferring.value = false
                 if (success) {
                     Log.d("ImageCropTransfer", "Transfer completed successfully")
+                    _transferProgress.value = 0
                     onSuccess(message)
                 } else {
                     Log.e("ImageCropTransfer", "Transfer failed: $message")
+                    _transferProgress.value = 0
                     onError(message)
                 }
             }
