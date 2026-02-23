@@ -46,13 +46,13 @@
     <string name="auth_profile">Profile</string>
     
     <!-- Competitions -->
-    <string name="competitions">Competitions</string>
-    <string name="competitions_title">Competitions</string>
+    <string name="competitions">COMPETITIONS</string>
+    <string name="competitions_title">COMPETITIONS</string>
     <string name="competitions_empty">No competitions available</string>
     <string name="competitions_venue">Venue</string>
     <string name="competitions_date">Date</string>
     <string name="competitions_description">Description</string>
-    <string name="competitions_leaderboard">Leaderboard</string>
+    <string name="competitions_leaderboard">LEADERBOARD</string>
     <string name="competitions_submit_result">Submit Result</string>
     
     <!-- Drill execution -->
@@ -158,7 +158,7 @@
     <string name="copy">Copy</string>
     <string name="create">Create</string>
     <string name="search">Search</string>
-    <string name="details">Details</string>
+    <string name="details">DETAILS</string>
     <string name="name">Name</string>
     <string name="username">Username</string>
     
@@ -203,7 +203,7 @@
     <string name="device_connected_desc">Device is connected</string>
     <string name="connect_to_device_desc">Connect to a device</string>
     <string name="manage_user_profile">Manage user profile</string>
-    <string name="shooters">Shooters</string>
+    <string name="shooters">SHOOTERS</string>
     <string name="add_athlete">Add Athlete</string>
     <string name="club_optional">Club (Optional)</string>
     <string name="no_athletes_found">No athletes found. Add some in Shooter management.</string>
@@ -264,7 +264,7 @@
     <string name="untitled">Untitled</string>
     
     <!-- Competitions -->
-    <string name="no_competitions_yet">No competitions yet</string>
+    <string name="no_competitions_yet">ORG A COMPETITION NOW</string>
     <string name="select_drill_setup">Select Drill-Setup</string>
     <string name="date_label">Date: </string>
     

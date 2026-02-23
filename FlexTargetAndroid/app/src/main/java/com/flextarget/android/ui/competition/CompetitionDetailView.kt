@@ -41,6 +41,8 @@ import com.flextarget.android.data.model.toExpandedDataObjects
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.flextarget.android.R
+import com.flextarget.android.ui.theme.AppTypography
+import com.flextarget.android.ui.theme.md_theme_dark_primary
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
@@ -191,7 +193,7 @@ fun CompetitionDetailView(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Black,
-                    titleContentColor = Color.White,
+                    titleContentColor = md_theme_dark_onPrimary,
                     navigationIconContentColor = Color.Red
                 )
             )
@@ -242,12 +244,12 @@ fun CompetitionDetailView(
                             Icon(
                                 Icons.Default.DateRange,
                                 contentDescription = null,
-                                tint = Color.Red,
+                                tint = md_theme_dark_onPrimary,
                                 modifier = Modifier.size(18.dp)
                             )
                             Text(
                                 text = dateFormat.format(competition.date),
-                                color = Color.Red,
+                                color = md_theme_dark_onPrimary,
                                 style = MaterialTheme.typography.bodyLarge,
                                 modifier = Modifier.padding(start = 8.dp)
                             )
@@ -258,13 +260,13 @@ fun CompetitionDetailView(
                                 Icon(
                                     Icons.Default.Adjust,
                                     contentDescription = null,
-                                    tint = Color.White,
+                                    tint = md_theme_dark_onPrimary,
                                     modifier = Modifier.size(18.dp)
                                 )
                                 Text(
                                     text = it.name ?: "",
-                                    color = Color.White,
-                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = md_theme_dark_onPrimary,
+                                    style = AppTypography.bodyLarge,
                                     modifier = Modifier.padding(start = 8.dp)
                                 )
                             }
@@ -316,13 +318,13 @@ fun CompetitionDetailView(
                             Icon(
                                 Icons.Default.Person,
                                 contentDescription = null,
-                                tint = Color.Red
+                                tint = md_theme_dark_onPrimary
                             )
                             Text(
                                 text = uiState.selectedAthlete?.name
                                     ?: stringResource(R.string.select_shooter),
-                                color = if (uiState.selectedAthlete != null) Color.White else Color.Gray,
-                                style = MaterialTheme.typography.bodyLarge,
+                                color = if (uiState.selectedAthlete != null) md_theme_dark_onPrimary else Color.Gray,
+                                style = AppTypography.bodyLarge,
                                 modifier = Modifier.padding(start = 12.dp)
                             )
                         }
@@ -429,8 +431,8 @@ fun CompetitionDetailView(
                                                 ?: stringResource(R.string.unknown_athlete)
                                         Text(
                                             text = athleteName,
-                                            color = Color.White,
-                                            style = MaterialTheme.typography.bodyLarge,
+                                            color = md_theme_dark_onPrimary,
+                                            style = AppTypography.bodyLarge,
                                             fontWeight = FontWeight.SemiBold
                                         )
                                         Text(
@@ -439,8 +441,8 @@ fun CompetitionDetailView(
                                                     it
                                                 )
                                             } ?: "Unknown Date",
-                                            color = Color.Gray,
-                                            style = MaterialTheme.typography.bodySmall,
+                                            color = md_theme_dark_onPrimary,
+                                            style = AppTypography.bodySmall,
                                             modifier = Modifier.padding(top = 4.dp)
                                         )
                                     }
@@ -448,8 +450,8 @@ fun CompetitionDetailView(
                                         Text(
                                             text = resultWithShots.totalScore.toInt()
                                                 .toString(),
-                                            color = Color.Red,
-                                            style = MaterialTheme.typography.bodyLarge,
+                                            color = Color.Gray,
+                                            style = AppTypography.bodyLarge,
                                             fontWeight = FontWeight.Bold
                                         )
                                         if (resultWithShots.drillResult.submittedAt != null) {
@@ -477,7 +479,7 @@ fun CompetitionDetailView(
                         Text(
                             text = stringResource(R.string.no_results_yet),
                             color = Color.Gray,
-                            style = MaterialTheme.typography.bodyLarge
+                            style = AppTypography.bodyLarge
                         )
                     }
                 }
@@ -502,17 +504,19 @@ fun CompetitionDetailView(
                         .padding(16.dp)
                         .height(56.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Red,
+                        containerColor = md_theme_dark_onPrimary,
                         disabledContainerColor = Color.Gray
                     ),
-                    shape = RoundedCornerShape(8.dp),
+                    shape = RoundedCornerShape(24.dp),
                     enabled = linkedDrill != null && androidBleManager?.isConnected == true
                 ) {
                     Text(
                         text = if (uiState.selectedAthlete == null) stringResource(R.string.select_shooter_to_start) else stringResource(
-                            R.string.start_competition_drill
+                            R.string.start_competition_drill,
                         ),
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        style = AppTypography.bodyLarge,
+                        color = md_theme_dark_primary
                     )
                 }
 
@@ -544,7 +548,7 @@ fun AthletePickerDialog(
                 .fillMaxWidth()
                 .fillMaxHeight(0.7f),
             shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.DarkGray)
+            colors = CardDefaults.cardColors(containerColor = md_theme_dark_primary)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
@@ -580,19 +584,19 @@ fun AthletePickerDialog(
                                     modifier = Modifier
                                         .size(32.dp)
                                         .background(
-                                            Color.Red.copy(alpha = 0.2f),
+                                            md_theme_dark_onPrimary.copy(alpha = 0.2f),
                                             RoundedCornerShape(16.dp)
                                         ),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(
                                         athlete.name?.take(1)?.uppercase() ?: "?",
-                                        color = Color.Red
+                                        color = md_theme_dark_onPrimary
                                     )
                                 }
                                 Text(
                                     text = athlete.name ?: "",
-                                    color = Color.White,
+                                    color = md_theme_dark_onPrimary,
                                     modifier = Modifier.padding(start = 12.dp)
                                 )
                             }
@@ -608,7 +612,7 @@ fun AthletePickerDialog(
                     onClick = onDismiss,
                     modifier = Modifier.align(Alignment.End)
                 ) {
-                    Text(stringResource(R.string.cancel), color = Color.Red)
+                    Text(stringResource(R.string.cancel), color = md_theme_dark_onPrimary)
                 }
             }
         }

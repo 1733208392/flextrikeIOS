@@ -88,8 +88,8 @@ fun LeaderboardView(
             },
             colors = TopAppBarDefaults.topAppBarColors(
                 containerColor = Color.Black,
-                titleContentColor = Color.White,
-                navigationIconContentColor = Color.Red
+                titleContentColor = md_theme_dark_onPrimary,
+                navigationIconContentColor = md_theme_dark_onPrimary
             )
         )
 

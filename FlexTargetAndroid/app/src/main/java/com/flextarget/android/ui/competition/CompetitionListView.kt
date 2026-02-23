@@ -21,6 +21,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.filled.CallToAction
+import androidx.compose.material.icons.filled.TrackChanges
 import androidx.compose.ui.window.Dialog
 import com.flextarget.android.data.local.entity.CompetitionEntity
 import com.flextarget.android.data.local.entity.DrillSetupEntity
@@ -70,7 +72,7 @@ fun CompetitionListView(
             },
             colors = TopAppBarDefaults.topAppBarColors(
                 containerColor = Color.Black,
-                titleContentColor = Color.White,
+                titleContentColor = md_theme_dark_onPrimary,
                 navigationIconContentColor = Color.Red,
                 actionIconContentColor = Color.Red
             )
@@ -93,11 +95,22 @@ fun CompetitionListView(
                     .fillMaxWidth(),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = stringResource(R.string.no_competitions_yet),
-                    color = Color.Gray,
-                    style = MaterialTheme.typography.bodyLarge
-                )
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.CallToAction,
+                        contentDescription = "Add Drill",
+                        tint = md_theme_dark_onPrimary,
+                        modifier = Modifier.size(48.dp)
+                    )
+                    Text(
+                        text = stringResource(R.string.no_competitions_yet),
+                        color = Color.Gray,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
             }
         } else {
             LazyColumn(

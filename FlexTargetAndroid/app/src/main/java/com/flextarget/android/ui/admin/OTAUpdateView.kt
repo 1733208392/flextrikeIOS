@@ -449,13 +449,13 @@ private fun CheckingCard(stepMessage: String) {
         ) {
             CircularProgressIndicator(
                 modifier = Modifier.size(48.dp),
-                color = Color.Red,
+                color = md_theme_dark_onPrimary,
                 strokeWidth = 3.dp
             )
             Text(
                 stepMessage.ifEmpty { "Checking for updates..." },
-                color = Color.White,
-                style = MaterialTheme.typography.bodyMedium,
+                color = md_theme_dark_onPrimary,
+                style = AppTypography.bodyLarge,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
             )

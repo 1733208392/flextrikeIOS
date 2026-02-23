@@ -34,6 +34,7 @@ import coil.compose.AsyncImage
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.platform.LocalContext
 import com.flextarget.android.ui.theme.md_theme_dark_onPrimary
+import com.flextarget.android.ui.theme.md_theme_dark_primary
 
 @Composable
 fun AthletesManagementView(
@@ -79,7 +80,7 @@ fun AthletesManagementView(
             },
             colors = TopAppBarDefaults.topAppBarColors(
                 containerColor = Color.Black,
-                titleContentColor = Color.White,
+                titleContentColor = md_theme_dark_onPrimary,
                 navigationIconContentColor = Color.Red
             )
         )
@@ -195,10 +196,10 @@ fun AthletesManagementView(
                                 }
                             },
                             modifier = Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                            colors = ButtonDefaults.buttonColors(containerColor = md_theme_dark_onPrimary),
                             enabled = newAthleteNameInput.value.isNotEmpty()
                         ) {
-                            Text(stringResource(R.string.add_athlete))
+                            Text(stringResource(R.string.add_athlete), color = md_theme_dark_primary)
                         }
                     }
                 }

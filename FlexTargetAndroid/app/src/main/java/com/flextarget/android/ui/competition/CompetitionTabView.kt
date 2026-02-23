@@ -25,6 +25,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.text.font.FontWeight
 import com.flextarget.android.R
 import com.flextarget.android.ui.admin.LoginScreen
+import com.flextarget.android.ui.theme.AppTypography
+import com.flextarget.android.ui.theme.md_theme_dark_onPrimary
 import com.flextarget.android.ui.viewmodel.AuthViewModel
 import com.flextarget.android.ui.viewmodel.CompetitionViewModel
 import com.flextarget.android.ui.viewmodel.DrillViewModel
@@ -107,7 +109,7 @@ private fun CompetitionMenuView(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.tab_competition), color = Color.White) },
+                title = { Text(stringResource(R.string.tab_competition), color = md_theme_dark_onPrimary) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Black
                 )
@@ -178,7 +180,7 @@ private fun CompetitionMenuItem(
         Icon(
             imageVector = icon,
             contentDescription = title,
-            tint = Color.Red,
+            tint = md_theme_dark_onPrimary,
             modifier = Modifier.size(32.dp)
         )
 
@@ -189,14 +191,14 @@ private fun CompetitionMenuItem(
         ) {
             Text(
                 text = title,
-                color = Color.White,
-                style = MaterialTheme.typography.bodyLarge,
+                color = md_theme_dark_onPrimary,
+                style = AppTypography.bodyLarge,
                 fontWeight = FontWeight.Bold
             )
             Text(
                 text = description,
                 color = Color.Gray,
-                style = MaterialTheme.typography.bodySmall
+                style = AppTypography.bodySmall
             )
         }
 
