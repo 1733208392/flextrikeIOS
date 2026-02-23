@@ -9,9 +9,11 @@ import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -21,36 +23,97 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.collectAsState
 import com.flextarget.android.ui.viewmodel.OTAViewModel
 import com.flextarget.android.ui.viewmodel.BLEViewModel
+import com.flextarget.android.ui.viewmodel.AuthViewModel
 import com.flextarget.android.data.ble.BLEManager
 import com.flextarget.android.data.repository.OTAState
 import android.util.Log
 import kotlinx.coroutines.launch
 import com.flextarget.android.ui.theme.md_theme_dark_onPrimary
+import com.flextarget.android.ui.theme.md_theme_dark_primary
+import com.flextarget.android.ui.theme.AppTypography
 
 @Composable
 fun OTAUpdateView(
     otaViewModel: OTAViewModel,
-    bleViewModel: BLEViewModel
+    bleViewModel: BLEViewModel,
+    authViewModel: AuthViewModel,
+    onBack: () -> Unit = {}
 ) {
     // State from ViewModels
     val otaUiState = otaViewModel.otaUiState.collectAsState().value
+    val authUiState = authViewModel.authUiState.collectAsState().value
     val coroutineScope = rememberCoroutineScope()
     
     Log.d("OTAUpdateView", "OTAUpdateView composable rendered, OTA state: ${otaUiState.state}")
+    Log.d("OTAUpdateView", "Current version from state: ${otaUiState.currentVersion}")
     
     // BLE and device auth managers
     val bleManager = BLEManager.shared
+    
+    // Check authentication - show login if user is not authenticated
+    if (!authUiState.isAuthenticated) {
+        LoginScreen(
+            authViewModel = authViewModel,
+            onLoginSuccess = { /* Stay on OTA screen after login */ }
+        )
+        return
+    }
+    
+    // Auto-check for available version on initial load
+    LaunchedEffect(Unit) {
+        if (!bleManager.isConnected) {
+            Log.d("OTAUpdateView", "BLE not connected, skipping auto-check")
+            return@LaunchedEffect
+        }
+        
+        // Explicitly query device version on view launch
+        Log.d("OTAUpdateView", "Querying device version on view launch")
+        bleManager.androidManager?.queryVersion()
+        
+        coroutineScope.launch {
+            Log.d("OTAUpdateView", "Auto-checking for updates on initial load")
+            val authDataResult = bleViewModel.getDeviceAuthData()
+            authDataResult.onSuccess { authData: String ->
+                Log.d("OTAUpdateView", "Auth data retrieved successfully, checking for updates")
+                otaViewModel.checkForUpdates(authData)
+            }.onFailure { error: Throwable ->
+                Log.e("OTAUpdateView", "Failed to get auth data for auto-check: ${error.message}", error)
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
     ) {
-
+        // TopAppBar with back arrow and title
+        TopAppBar(
+            title = {
+                Text(
+                    "OTA",
+                    style = AppTypography.bodyLarge,
+                    color = md_theme_dark_onPrimary,
+                )
+            },
+            navigationIcon = {
+                IconButton(onClick = onBack) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "Back",
+                        tint = md_theme_dark_onPrimary
+                    )
+                }
+            },
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = Color.Black
+            )
+        )
 
         LazyColumn(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
+                .weight(1f)
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -62,45 +125,11 @@ fun OTAUpdateView(
             }
             // Device is connected
             else {
-                // Current Version Info
+                // Current Version Info - Centered
                 item {
                     StatusCard(
                         title = "Current Version",
-                        version = otaUiState.currentVersion ?: "1.0.0",
-                        status = "System Ready"
-                    )
-                }
-
-                // Check for Updates Button
-                item {
-                    val isEnabled = otaUiState.state == OTAState.IDLE
-                    Log.d("OTAUpdateView", "Button enabled: $isEnabled, current state: ${otaUiState.state}")
-                    CheckUpdatesButton(
-                        isChecking = otaUiState.state == OTAState.CHECKING,
-                        stepMessage = otaUiState.description,
-                        onCheckClick = {
-                            Log.d("OTAUpdateView", "Check for updates button tapped")
-                            Log.d("OTAUpdateView", "BLE manager isConnected=${bleManager.isConnected}")
-                            
-                            if (!bleManager.isConnected) {
-                                Log.e("OTAUpdateView", "Cannot check for updates: BLE device not connected")
-                                return@CheckUpdatesButton
-                            }
-                            
-                            coroutineScope.launch {
-                                Log.d("OTAUpdateView", "Starting auth data retrieval")
-                                // Get auth data from BLE device first
-                                val authDataResult = bleViewModel.getDeviceAuthData()
-                                authDataResult.onSuccess { authData: String ->
-                                    Log.d("OTAUpdateView", "Auth data retrieved successfully, calling checkForUpdates")
-                                    otaViewModel.checkForUpdates(authData)
-                                }.onFailure { error: Throwable ->
-                                    Log.e("OTAUpdateView", "Failed to get auth data: ${error.message}", error)
-                                    // Handle error - could show a snackbar or toast
-                                    // For now, just log the error
-                                }
-                            }
-                        }
+                        version = otaUiState.currentVersion ?: "---",
                     )
                 }
 
@@ -137,8 +166,7 @@ fun OTAUpdateView(
                         if (otaUiState.availableVersion != null) {
                             item {
                                 UpdateAvailableCard(
-                                    availableVersion = otaUiState.availableVersion,
-                                    onUpdateClick = { otaViewModel.prepareUpdate() }
+                                    availableVersion = otaUiState.availableVersion
                                 )
                             }
                         }
@@ -190,11 +218,51 @@ fun OTAUpdateView(
                     OTAState.IDLE -> {
                         item {
                             UpToDateCard(
-                                lastCheckTime = otaUiState.lastCheck
+                                lastCheckTime = otaUiState.lastCheck,
+                                currentVersion = otaUiState.currentVersion,
+                                availableVersion = otaUiState.availableVersion
                             )
                         }
                     }
-                    else -> {}
+                }
+
+                // Unified Button
+                if (bleManager.isConnected) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp)
+                        ) {
+                            UnifiedOTAButton(
+                                otaState = otaUiState.state,
+                                onCheckClick = {
+                                    Log.d("OTAUpdateView", "Check for updates button tapped")
+                                    Log.d("OTAUpdateView", "BLE manager isConnected=${bleManager.isConnected}")
+                                    
+                                    if (!bleManager.isConnected) {
+                                        Log.e("OTAUpdateView", "Cannot check for updates: BLE device not connected")
+                                        return@UnifiedOTAButton
+                                    }
+                                    
+                                    coroutineScope.launch {
+                                        Log.d("OTAUpdateView", "Starting auth data retrieval")
+                                        // Get auth data from BLE device first
+                                        val authDataResult = bleViewModel.getDeviceAuthData()
+                                        authDataResult.onSuccess { authData: String ->
+                                            Log.d("OTAUpdateView", "Auth data retrieved successfully, calling checkForUpdates")
+                                            otaViewModel.checkForUpdates(authData)
+                                        }.onFailure { error: Throwable ->
+                                            Log.e("OTAUpdateView", "Failed to get auth data: ${error.message}", error)
+                                        }
+                                    }
+                                },
+                                onUpdateClick = {
+                                    otaViewModel.prepareUpdate()
+                                }
+                            )
+                        }
+                    }
                 }
 
                 // Info Card
@@ -206,7 +274,6 @@ fun OTAUpdateView(
                 }
             }
         }
-
     }
 }
 
@@ -265,8 +332,10 @@ private fun DeviceNotConnectedCard(onNavigateToDeviceManagement: () -> Unit) {
 private fun StatusCard(
     title: String,
     version: String,
-    status: String
+    status: String = ""
 ) {
+    Log.d("StatusCard", "Displaying version: $version")
+    
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -278,64 +347,87 @@ private fun StatusCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text(
-                title,
-                color = Color.Gray,
-                style = MaterialTheme.typography.labelSmall
-            )
+
             Text(
                 version.uppercase(),
                 color = md_theme_dark_onPrimary,
-                style = MaterialTheme.typography.headlineSmall,
+                style = AppTypography.headlineSmall,
                 fontWeight = FontWeight.Bold
             )
+
             Text(
-                status,
-                color = Color.Green,
-                style = MaterialTheme.typography.labelSmall
+                title,
+                color = Color.Gray,
+                style = AppTypography.labelSmall
             )
+
+            if (status.isNotEmpty()) {
+                Text(
+                    status,
+                    color = Color.Green,
+                    style = MaterialTheme.typography.labelSmall
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun CheckUpdatesButton(
-    isChecking: Boolean,
-    stepMessage: String,
-    onCheckClick: () -> Unit
+private fun UnifiedOTAButton(
+    otaState: OTAState,
+    onCheckClick: () -> Unit,
+    onUpdateClick: () -> Unit
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Button(
-            onClick = onCheckClick,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
-            shape = RoundedCornerShape(8.dp),
-            enabled = !isChecking
-        ) {
-            if (isChecking) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(24.dp),
-                    color = Color.White,
-                    strokeWidth = 2.dp
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Checking...", color = Color.White, fontWeight = FontWeight.Bold)
+    var buttonText = "Check Now"
+    var isEnabled = true
+
+    when (otaState) {
+        OTAState.CHECKING -> {
+            buttonText = "CHECKING..."
+            isEnabled = false
+        }
+        OTAState.UPDATE_AVAILABLE -> {
+            buttonText = "UPDATE NOW"
+            isEnabled = true
+        }
+        OTAState.PREPARING, OTAState.WAITING_FOR_READY_TO_DOWNLOAD, 
+        OTAState.DOWNLOADING, OTAState.RELOADING, OTAState.VERIFYING -> {
+            buttonText = "UPDATING..."
+            isEnabled = false
+        }
+        else -> {
+            buttonText = "CHECK NOW"
+            isEnabled = true
+        }
+    }
+
+    Button(
+        onClick = {
+            if (otaState == OTAState.UPDATE_AVAILABLE) {
+                onUpdateClick()
             } else {
-                Text("Check Now", color = Color.White, fontWeight = FontWeight.Bold)
+                onCheckClick()
             }
-        }
-        if (stepMessage.isNotEmpty()) {
-            Text(
-                stepMessage,
-                color = Color.Gray,
-                style = MaterialTheme.typography.labelSmall,
-                modifier = Modifier.padding(start = 8.dp)
-            )
-        }
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(48.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = md_theme_dark_onPrimary,
+            disabledContainerColor = md_theme_dark_onPrimary.copy(alpha = 0.6f)
+        ),
+        shape = RoundedCornerShape(8.dp),
+        enabled = isEnabled
+    ) {
+        Text(
+            buttonText,
+            color = md_theme_dark_primary,
+            style = AppTypography.bodyLarge,
+//            fontWeight = FontWeight.Bold
+        )
     }
 }
 
@@ -376,7 +468,7 @@ private fun ErrorCard(errorMessage: String, onRetry: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = Color.Red.copy(alpha = 0.1f)
+            containerColor = Color.White.copy(alpha = 0.1f)
         ),
         shape = RoundedCornerShape(8.dp)
     ) {
@@ -426,13 +518,12 @@ private fun ErrorCard(errorMessage: String, onRetry: () -> Unit) {
 
 @Composable
 private fun UpdateAvailableCard(
-    availableVersion: String,
-    onUpdateClick: () -> Unit
+    availableVersion: String
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = Color.Red.copy(alpha = 0.1f)
+            containerColor = Color.White.copy(alpha = 0.1f)
         ),
         shape = RoundedCornerShape(8.dp)
     ) {
@@ -473,23 +564,20 @@ private fun UpdateAvailableCard(
                 color = Color.White,
                 style = MaterialTheme.typography.bodySmall
             )
-
-            Button(
-                onClick = onUpdateClick,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(44.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Text("Update Now", color = Color.White, fontWeight = FontWeight.Bold)
-            }
         }
     }
 }
 
 @Composable
-private fun UpToDateCard(lastCheckTime: String?) {
+private fun UpToDateCard(
+    lastCheckTime: String?,
+    currentVersion: String?,
+    availableVersion: String?
+) {
+    // Only show "up to date" message if current version equals available version
+    val isUpToDate = currentVersion != null &&
+                     availableVersion != null && 
+                     currentVersion == availableVersion
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -511,13 +599,13 @@ private fun UpToDateCard(lastCheckTime: String?) {
                 modifier = Modifier.size(48.dp)
             )
             Text(
-                "Your system is up to date",
-                color = Color.White,
+                if (isUpToDate) "YOUR TARGET IS UP TO DATE" else "READY TO CHECK FOR UPDATES",
+                color = md_theme_dark_onPrimary,
                 style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Bold,
+//                fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
             )
-            if (lastCheckTime != null) {
+            if (lastCheckTime != null && isUpToDate) {
                 Text(
                     "Last checked: $lastCheckTime",
                     color = Color.Gray,
@@ -545,7 +633,7 @@ private fun InfoCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -554,20 +642,46 @@ private fun InfoCard(
                 Icon(
                     imageVector = Icons.Default.Info,
                     contentDescription = null,
-                    tint = Color.Gray,
+                    tint = md_theme_dark_onPrimary,
                     modifier = Modifier.size(20.dp)
                 )
                 Column {
                     Text(
                         title,
-                        color = Color.White,
-                        style = MaterialTheme.typography.labelMedium,
+                        color = md_theme_dark_onPrimary,
+                        style = AppTypography.labelSmall,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
                         description,
                         color = Color.Gray,
-                        style = MaterialTheme.typography.labelSmall
+                        style = AppTypography.labelSmall
+                    )
+                }
+            }
+            
+            // Warning section
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.Top
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Warning,
+                    contentDescription = null,
+                    tint = Color.Red,
+                    modifier = Modifier.size(20.dp)
+                )
+                Column {
+                    Text(
+                        "Warning",
+                        color = md_theme_dark_onPrimary,
+                        style = AppTypography.labelSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        "Do not unplug device during update",
+                        color = Color.Gray,
+                        style = AppTypography.labelSmall
                     )
                 }
             }
@@ -612,17 +726,6 @@ private fun PreparingCard(
                 style = MaterialTheme.typography.labelSmall,
                 textAlign = TextAlign.Center
             )
-            LinearProgressIndicator(
-                progress = progress / 100f,
-                modifier = Modifier.fillMaxWidth(),
-                color = Color.Red,
-                trackColor = Color.Gray.copy(alpha = 0.3f)
-            )
-            Text(
-                "$progress%",
-                color = Color.Gray,
-                style = MaterialTheme.typography.labelSmall
-            )
         }
     }
 }
@@ -651,16 +754,16 @@ private fun WaitingCard(
                 strokeWidth = 3.dp
             )
             Text(
-                "Waiting for Device",
-                color = Color.White,
-                style = MaterialTheme.typography.bodyMedium,
+                "WAITING",
+                color = md_theme_dark_onPrimary,
+                style = AppTypography.bodyLarge,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
             )
             Text(
                 "Version $version",
                 color = Color.Gray,
-                style = MaterialTheme.typography.labelSmall,
+                style = AppTypography.labelSmall,
                 textAlign = TextAlign.Center
             )
         }
@@ -688,32 +791,21 @@ private fun DownloadingCard(
         ) {
             CircularProgressIndicator(
                 modifier = Modifier.size(48.dp),
-                color = Color.Red,
+                color = md_theme_dark_onPrimary,
                 strokeWidth = 3.dp
             )
             Text(
-                "Downloading Update",
-                color = Color.White,
-                style = MaterialTheme.typography.bodyMedium,
+                "DOWNLOADING",
+                color = md_theme_dark_onPrimary,
+                style = AppTypography.bodyLarge,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
             )
             Text(
                 "Version $version",
                 color = Color.Gray,
-                style = MaterialTheme.typography.labelSmall,
+                style = AppTypography.labelSmall,
                 textAlign = TextAlign.Center
-            )
-            LinearProgressIndicator(
-                progress = progress / 100f,
-                modifier = Modifier.fillMaxWidth(),
-                color = Color.Red,
-                trackColor = Color.Gray.copy(alpha = 0.3f)
-            )
-            Text(
-                "$progress%",
-                color = Color.Gray,
-                style = MaterialTheme.typography.labelSmall
             )
         }
     }
@@ -743,16 +835,16 @@ private fun ReloadingCard(
                 strokeWidth = 3.dp
             )
             Text(
-                "Reloading Device",
-                color = Color.White,
-                style = MaterialTheme.typography.bodyMedium,
+                "RELOADING...",
+                color = md_theme_dark_onPrimary,
+                style = AppTypography.bodyLarge,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
             )
             Text(
                 "Version $version",
                 color = Color.Gray,
-                style = MaterialTheme.typography.labelSmall,
+                style = AppTypography.labelSmall,
                 textAlign = TextAlign.Center
             )
         }
@@ -783,16 +875,16 @@ private fun VerifyingCard(
                 strokeWidth = 3.dp
             )
             Text(
-                "Verifying Update",
-                color = Color.White,
-                style = MaterialTheme.typography.bodyMedium,
+                "VERIFYING",
+                color = md_theme_dark_onPrimary,
+                style = AppTypography.bodyLarge,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
             )
             Text(
                 "Version $version",
                 color = Color.Gray,
-                style = MaterialTheme.typography.labelSmall,
+                style = AppTypography.labelSmall,
                 textAlign = TextAlign.Center
             )
         }
@@ -806,7 +898,7 @@ private fun CompletedCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = Color.Green.copy(alpha = 0.1f)
+            containerColor = Color.White.copy(alpha = 0.1f)
         ),
         shape = RoundedCornerShape(8.dp)
     ) {
@@ -824,16 +916,16 @@ private fun CompletedCard(
                 modifier = Modifier.size(48.dp)
             )
             Text(
-                "Update Completed",
-                color = Color.White,
-                style = MaterialTheme.typography.bodyLarge,
+                "UPDATE COMPLETED",
+                color = md_theme_dark_onPrimary,
+                style = AppTypography.bodyLarge,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
             )
             Text(
                 "Version $version",
                 color = Color.Gray,
-                style = MaterialTheme.typography.labelSmall,
+                style = AppTypography.labelSmall,
                 textAlign = TextAlign.Center
             )
         }

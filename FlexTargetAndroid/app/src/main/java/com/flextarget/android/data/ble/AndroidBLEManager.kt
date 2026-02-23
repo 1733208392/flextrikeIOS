@@ -249,6 +249,9 @@ class AndroidBLEManager(private val context: Context) {
                             pendingPeripheral?.let {
                                 BLEManager.shared.connectedPeripheral = it
                             }
+                            // Auto-query device version on first connection
+                            queryVersion()
+                            println("[AndroidBLEManager] Auto-querying device version on connection")
                         }
                     }
                 } else {

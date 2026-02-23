@@ -89,7 +89,8 @@ fun AdminTabView(
             showOTAUpdate.value -> {
                 OTAUpdateView(
                     otaViewModel = otaViewModel,
-                    bleViewModel = bleViewModel
+                    bleViewModel = bleViewModel,
+                    authViewModel = authViewModel
                 )
             }
             showConnectedDeviceDetails.value -> {

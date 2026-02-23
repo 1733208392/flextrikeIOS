@@ -124,6 +124,9 @@ class OTARepository @Inject constructor(
         
         // Schedule periodic OTA checks (60-second interval in production, 10min in real app)
         schedulePeriodicOTACheck()
+        
+        // Set up BLE callbacks immediately so device version updates are captured
+        setupOTACallbacks()
     }
     
     /**
@@ -190,15 +193,32 @@ class OTARepository @Inject constructor(
             
             if (versionInfo != null) {
                 currentUpdateInfo = versionInfo
-                _currentState.emit(OTAState.UPDATE_AVAILABLE)
-                _otaProgress.emit(
-                    OTAProgress(
-                        state = OTAState.UPDATE_AVAILABLE,
-                        version = versionInfo.version,
-                        lastCheck = Date()
+                
+                // Compare available version with current device version
+                val currentVersion = _currentDeviceVersionValue
+                val hasUpdate = currentVersion == null || currentVersion != versionInfo.version
+                
+                if (hasUpdate) {
+                    _currentState.emit(OTAState.UPDATE_AVAILABLE)
+                    _otaProgress.emit(
+                        OTAProgress(
+                            state = OTAState.UPDATE_AVAILABLE,
+                            version = versionInfo.version,
+                            lastCheck = Date()
+                        )
                     )
-                )
-                Log.d(TAG, "Update available: ${versionInfo.version}")
+                    Log.d(TAG, "Update available: ${versionInfo.version} (current: $currentVersion)")
+                } else {
+                    _currentState.emit(OTAState.IDLE)
+                    _otaProgress.emit(
+                        OTAProgress(
+                            state = OTAState.IDLE,
+                            version = versionInfo.version,
+                            lastCheck = Date()
+                        )
+                    )
+                    Log.d(TAG, "System is up to date: ${versionInfo.version}")
+                }
             } else {
                 _currentState.emit(OTAState.IDLE)
                 _otaProgress.emit(
@@ -236,9 +256,6 @@ class OTARepository @Inject constructor(
             
             _currentState.emit(OTAState.PREPARING)
             _otaProgress.emit(OTAProgress(state = OTAState.PREPARING, version = updateInfo.version))
-            
-            // Set up BLE callbacks for OTA state transitions
-            setupOTACallbacks()
             
             // Send BLE command to prepare device for OTA
             Log.d(TAG, "Sending prepare_game_disk_ota command to device")
@@ -410,6 +427,31 @@ class OTARepository @Inject constructor(
     private fun setupOTACallbacks() {
         Log.d(TAG, "Setting up OTA BLE callbacks")
         
+        // Set up callback for device version updates (for initial version retrieval)
+        BLEManager.shared.onDeviceVersionUpdated = { version ->
+            Log.d(TAG, "Received device version update callback: $version")
+            updateCurrentDeviceVersion(version)
+            
+            // Also handle OTA verification if we're in VERIFYING state
+            coroutineScope.launch {
+                val currentProgress = _otaProgress.replayCache.lastOrNull()
+                if (currentProgress?.state == OTAState.VERIFYING) {
+                    val expectedVersion = currentUpdateInfo?.version
+                    if (version == expectedVersion) {
+                        Log.d(TAG, "OTA verification successful: $version")
+                        verificationTimeoutJob?.cancel()
+                        _currentState.emit(OTAState.COMPLETED)
+                        _otaProgress.emit(OTAProgress(state = OTAState.COMPLETED, version = version))
+                    } else {
+                        Log.e(TAG, "OTA verification failed. Expected: $expectedVersion, Got: $version")
+                        verificationTimeoutJob?.cancel()
+                        _currentState.emit(OTAState.ERROR)
+                        _otaProgress.emit(OTAProgress(state = OTAState.ERROR, error = "Version verification failed"))
+                    }
+                }
+            }
+        }
+        
         // Set up callback for successful OTA preparation
         BLEManager.shared.onGameDiskOTAReady = {
             Log.d(TAG, "Received onGameDiskOTAReady callback")
@@ -523,31 +565,6 @@ class OTARepository @Inject constructor(
             coroutineScope.launch {
                 _currentState.emit(OTAState.ERROR)
                 _otaProgress.emit(OTAProgress(state = OTAState.ERROR, error = "BLE communication error"))
-            }
-        }
-        
-        // Set up callback for device version updates
-        BLEManager.shared.onDeviceVersionUpdated = { version ->
-            Log.d(TAG, "Received device version update: $version")
-            updateCurrentDeviceVersion(version)
-            
-            // Also handle OTA verification if we're in VERIFYING state
-            coroutineScope.launch {
-                val currentProgress = _otaProgress.replayCache.lastOrNull()
-                if (currentProgress?.state == OTAState.VERIFYING) {
-                    val expectedVersion = currentUpdateInfo?.version
-                    if (version == expectedVersion) {
-                        Log.d(TAG, "OTA verification successful: $version")
-                        verificationTimeoutJob?.cancel()
-                        _currentState.emit(OTAState.COMPLETED)
-                        _otaProgress.emit(OTAProgress(state = OTAState.COMPLETED, version = version))
-                    } else {
-                        Log.e(TAG, "OTA verification failed. Expected: $expectedVersion, Got: $version")
-                        verificationTimeoutJob?.cancel()
-                        _currentState.emit(OTAState.ERROR)
-                        _otaProgress.emit(OTAProgress(state = OTAState.ERROR, error = "Version verification failed"))
-                    }
-                }
             }
         }
     }
