@@ -166,7 +166,7 @@ fun ImageCropViewV2(onDismiss: () -> Unit) {
             // Progress indicator overlay (shown during transfer)
             if (isTransferring) {
                 LinearProgressIndicator(
-                    progress = { (transferProgress / 100f).coerceIn(0f, 1f) },
+                    progress = (transferProgress / 100f).coerceIn(0f, 1f),
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(4.dp)
