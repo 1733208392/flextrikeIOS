@@ -2,12 +2,83 @@ package com.flextarget.android.data.model
 
 import com.flextarget.android.data.local.entity.DrillSetupEntity
 import com.flextarget.android.data.local.entity.DrillTargetsConfigEntity
+import android.util.Log
 
 /**
  * Utility class for drill scoring calculations
  * Ported from iOS ScoringUtility
+ * 
+ * IMPORTANT: targetName + targetType uniquely identifies a target
+ * Grouping key format: "targetname|targettype" (lowercase)
  */
 object ScoringUtility {
+
+    // Normalize incoming hit area strings to canonical values
+    private fun normalizeHitArea(raw: String?): String {
+        val trimmed = raw?.trim()?.lowercase() ?: ""
+        if (trimmed.isEmpty()) return "miss"
+        return when (trimmed) {
+            "circle", "circlearea", "circle_area", "circle-area" -> "circlearea"
+            "popper", "popperzone", "popper_zone", "popper-zone" -> "popperzone"
+            "azone", "a", "a-zone", "a_zone" -> "azone"
+            "czone", "c", "c-zone", "c_zone" -> "czone"
+            "dzone", "d", "d-zone", "d_zone" -> "dzone"
+            "whitezone", "white_zone", "white-zone" -> "whitezone"
+            "blackzone", "black_zone", "black-zone" -> "blackzone"
+            "miss", "m" -> "miss"
+            else -> trimmed
+        }
+    }
+
+    /**
+     * Build a stable, unique key for grouping shots by (targetName + targetType).
+     * Always uses combined key format: "name|type"
+     * 
+     * Priority:
+     * 1. If shot.target (explicit targetName) exists: use "targetName|targetType"
+     * 2. Otherwise (fallback when targetName not available): use "device|targetType"
+     * 3. Last resort: "unknown|unknown"
+     */
+    private fun normalizedTargetKey(shot: ShotData): String {
+        // Priority 1: Explicit target name from shot.target
+        val name = shot.target?.trim()
+        if (!name.isNullOrBlank()) {
+            val ttype = shot.content.actualTargetType?.trim()?.lowercase() ?: "unknown"
+            return "${name.lowercase()}|$ttype"
+        }
+
+        // Priority 2: Fall back to device|targetType 
+        // (ensures shots to different types on same device are grouped separately)
+        val device = shot.content.device ?: shot.device
+        val ttype = shot.content.actualTargetType?.trim()?.lowercase() ?: "unknown"
+        if (!device.isNullOrBlank()) {
+            val key = "${device.trim().lowercase()}|$ttype"
+            Log.d("ScoringUtility", "normalizedTargetKey: using fallback device|type: $key")
+            return key
+        }
+
+        // Last resort
+        Log.d("ScoringUtility", "normalizedTargetKey: could not determine key; using 'unknown|unknown'")
+        return "unknown|unknown"
+    }
+
+    /**
+     * Find target config by combined name|type key.
+     */
+    private fun findConfigByNameAndType(
+        configs: List<DrillTargetsConfigData>,
+        baseName: String,
+        baseType: String
+    ): DrillTargetsConfigData? {
+        val normalizedType = baseType.trim().lowercase()
+        return configs.find { cfg ->
+            cfg.targetName?.trim()?.lowercase() == baseName.lowercase() &&
+            (cfg.targetType?.trim()?.lowercase() == normalizedType || normalizedType == "unknown")
+        } ?: configs.find { cfg ->
+            cfg.targetName?.trim()?.lowercase() == baseName.lowercase()
+        }
+    }
+
 
     /**
      * Calculate score for a specific hit area
@@ -27,35 +98,45 @@ object ScoringUtility {
     }
 
     /**
-     * Calculate the number of missed targets (targets with NO valid hits)
+     * Calculate the number of missed targets (targets with NO valid hits).
+     * Miss is only counted if target received NO valid shots at all.
      */
     fun calculateMissedTargets(shots: List<ShotData>, targets: List<DrillTargetsConfigData>?): Int {
         val targetsSet = targets ?: return 0
-        val expectedTargets = targetsSet.mapNotNull { it.targetName }.filter { it.isNotEmpty() }.toSet()
+        // Build expected targets as combined keys "name|type"
+        val expectedTargets = targetsSet.mapNotNull { cfg ->
+            val name = cfg.targetName?.trim()
+            if (name.isNullOrEmpty()) return@mapNotNull null
+            val type = cfg.targetType?.trim()?.lowercase() ?: "unknown"
+            "${name.lowercase()}|$type"
+        }.toSet()
         
-        // Group shots by target/device
+        // Group shots by target/device using combined key
         val shotsByTarget = mutableMapOf<String, MutableList<ShotData>>()
         for (shot in shots) {
-            val device = shot.device ?: shot.target ?: "unknown"
-            shotsByTarget.getOrPut(device) { mutableListOf() }.add(shot)
+            val key = normalizedTargetKey(shot)
+            shotsByTarget.getOrPut(key) { mutableListOf() }.add(shot)
         }
 
+        // Find which targets have at least one valid hit
         var targetsWithValidHits = mutableSetOf<String>()
-        for ((device, targetShots) in shotsByTarget) {
+        for ((key, targetShots) in shotsByTarget) {
             val hasValidHit = targetShots.any { shot ->
-                scoreForHitArea(shot.content.actualHitArea) > 0
+                scoreForHitArea(normalizeHitArea(shot.content.actualHitArea)) > 0
             }
             if (hasValidHit) {
-                targetsWithValidHits.add(device)
+                targetsWithValidHits.add(key)
             }
         }
 
+        // Targets without valid hits are missed
         val missedTargets = expectedTargets.subtract(targetsWithValidHits)
         return missedTargets.size
     }
 
     /**
-     * Calculate total score with drill rules applied
+     * Calculate total score with drill rules applied.
+     * Score is based on effective counts from calculateEffectiveCounts.
      */
     fun calculateTotalScore(shots: List<ShotData>, targets: List<DrillTargetsConfigData>?): Double {
         var aCount = 0
@@ -65,67 +146,81 @@ object ScoringUtility {
         var mCount = 0
 
         val targetsConfigs = targets ?: emptyList()
-        val expectedTargetNames = targetsConfigs.mapNotNull { it.targetName }.filter { it.isNotEmpty() }.toSet()
+        // Build expected target combined keys "name|type"
+        val expectedTargetNames = targetsConfigs.mapNotNull { cfg ->
+            val name = cfg.targetName?.trim()
+            if (name.isNullOrEmpty()) return@mapNotNull null
+            val type = cfg.targetType?.trim()?.lowercase() ?: "unknown"
+            "${name.lowercase()}|$type"
+        }.toSet()
 
-        // Group shots by target/device
+        // Group shots by target using combined key
         val shotsByTarget = mutableMapOf<String, MutableList<ShotData>>()
         for (shot in shots) {
-            val device = shot.device ?: shot.target ?: "unknown"
-            shotsByTarget.getOrPut(device) { mutableListOf() }.add(shot)
+            val key = normalizedTargetKey(shot)
+            shotsByTarget.getOrPut(key) { mutableListOf() }.add(shot)
         }
 
         // Combine expected targets and targets that actually fired shots
         val allTargetNames = expectedTargetNames.union(shotsByTarget.keys)
 
-        for (targetName in allTargetNames) {
-            val targetShots = shotsByTarget[targetName] ?: mutableListOf()
+        for (targetKey in allTargetNames) {
+            val targetShots = shotsByTarget[targetKey] ?: mutableListOf()
 
-            // Find target config to determine type
-            val config = targetsConfigs.find { it.targetName == targetName }
-            val targetType = config?.targetType?.lowercase() ?: targetShots.firstOrNull()?.content?.actualTargetType?.lowercase() ?: ""
-            val isPaddleOrPopper = targetType == "paddle" || targetType == "popper"
+            // targetKey is "name|type" format; split for config lookup and rule determination
+            val parts = targetKey.split("|", limit = 2)
+            val baseName = parts.getOrNull(0) ?: targetKey
+            val baseType = parts.getOrNull(1) ?: "unknown"
 
+            // Find config by name AND type
+            val config = findConfigByNameAndType(targetsConfigs, baseName, baseType)
+            val configType = config?.targetType?.trim()?.lowercase()
+            val shotType = targetShots.firstOrNull()?.content?.actualTargetType?.trim()?.lowercase() ?: baseType
+            val targetType = if (!configType.isNullOrBlank()) configType else shotType
+            val isPaddleOrPopper = targetType.contains("paddle") || targetType.contains("popper")
+
+            // Separate no-shoot zone hits from valid hits
             val noShootZoneShots = targetShots.filter { shot ->
-                val trimmed = shot.content.actualHitArea.trim().lowercase()
+                val trimmed = normalizeHitArea(shot.content.actualHitArea)
                 trimmed == "whitezone" || trimmed == "blackzone"
             }
 
             val otherShots = targetShots.filter { shot ->
-                val trimmed = shot.content.actualHitArea.trim().lowercase()
+                val trimmed = normalizeHitArea(shot.content.actualHitArea)
                 trimmed != "whitezone" && trimmed != "blackzone"
             }
 
-            // Count no-shoot zones (always included)
+            // Count no-shoot zones (always included, negative score)
             nCount += noShootZoneShots.size
 
-            // Filter for valid hits
-            val validHits = otherShots.filter { scoreForHitArea(it.content.actualHitArea) > 0 }
+            // Filter for valid hits (positive score)
+            val validHits = otherShots.filter { scoreForHitArea(normalizeHitArea(it.content.actualHitArea)) > 0 }
 
             if (isPaddleOrPopper) {
-                // Paddles/Poppers: 1 valid hit required
+                // Paddles/Poppers: 1 valid hit required, count all valid hits
                 val requiredHits = 1
                 val deficit = maxOf(0, requiredHits - validHits.size)
                 mCount += deficit
 
                 // Count all valid hits for paddles/poppers
                 for (shot in validHits) {
-                    when (shot.content.actualHitArea.trim().lowercase()) {
+                    when (normalizeHitArea(shot.content.actualHitArea)) {
                         "azone", "a", "circlearea", "popperzone" -> aCount += 1
                         "czone", "c" -> cCount += 1
                         "dzone", "d" -> dCount += 1
                     }
                 }
             } else {
-                // Paper target: 2 valid hits required
+                // Paper target: 2 valid hits required, count best 2
                 val requiredHits = 2
                 val deficit = maxOf(0, requiredHits - validHits.size)
                 mCount += deficit
 
                 // Count best 2 valid hits
-                val sortedValidHits = validHits.sortedByDescending { scoreForHitArea(it.content.actualHitArea) }
+                val sortedValidHits = validHits.sortedByDescending { scoreForHitArea(normalizeHitArea(it.content.actualHitArea)) }
                 val scoringHits = sortedValidHits.take(requiredHits)
                 for (shot in scoringHits) {
-                    when (shot.content.actualHitArea.trim().lowercase()) {
+                    when (normalizeHitArea(shot.content.actualHitArea)) {
                         "azone", "a" -> aCount += 1
                         "czone", "c" -> cCount += 1
                         "dzone", "d" -> dCount += 1
@@ -145,7 +240,14 @@ object ScoringUtility {
     }
 
     /**
-     * Calculate effective hit zone counts based on drill rules
+     * Calculate effective hit zone counts based on drill rules.
+     * Returns: Map of "A" -> count, "C" -> count, "D" -> count, "N" -> count, "M" -> count, "PE" -> count
+     * 
+     * Rules per user requirement:
+     * - Miss (M) is only counted if target has NO valid shots
+     * - For each unique target (name + type): best 2 valid shots are counted
+     * - Paddle/Popper targets: 1 valid hit required, all valid hits counted as A
+     * - Paper targets: 2 valid hits required, best 2 counted
      */
     fun calculateEffectiveCounts(shots: List<ShotData>, targets: List<DrillTargetsConfigData>?): Map<String, Int> {
         var aCount = 0
@@ -155,33 +257,47 @@ object ScoringUtility {
         var mCount = 0
 
         val targetsConfigs = targets ?: emptyList()
-        val expectedTargetNames = targetsConfigs.mapNotNull { it.targetName }.filter { it.isNotEmpty() }.toSet()
+        // Build expected target combined keys "name|type"
+        val expectedTargetNames = targetsConfigs.mapNotNull { cfg ->
+            val name = cfg.targetName?.trim()
+            if (name.isNullOrEmpty()) return@mapNotNull null
+            val type = cfg.targetType?.trim()?.lowercase() ?: "unknown"
+            "${name.lowercase()}|$type"
+        }.toSet()
 
-        // Group shots by target/device
+        // Group shots by target using combined key (ensures different types are separate groups)
         val shotsByTarget = mutableMapOf<String, MutableList<ShotData>>()
         for (shot in shots) {
-            val device = shot.device ?: shot.target ?: "unknown"
-            shotsByTarget.getOrPut(device) { mutableListOf() }.add(shot)
+            val key = normalizedTargetKey(shot)
+            shotsByTarget.getOrPut(key) { mutableListOf() }.add(shot)
         }
 
         // Combine expected targets and targets that actually fired shots
         val allTargetNames = expectedTargetNames.union(shotsByTarget.keys)
 
-        for (targetName in allTargetNames) {
-            val targetShots = shotsByTarget[targetName] ?: mutableListOf()
+        for (targetKey in allTargetNames) {
+            val targetShots = shotsByTarget[targetKey] ?: mutableListOf()
 
-            // Find target config to determine type
-            val config = targetsConfigs.find { it.targetName == targetName }
-            val targetType = config?.targetType?.lowercase() ?: targetShots.firstOrNull()?.content?.actualTargetType?.lowercase() ?: ""
-            val isPaddleOrPopper = targetType == "paddle" || targetType == "popper"
+            // targetKey is "name|type" format; split for config lookup and rule determination
+            val parts = targetKey.split("|", limit = 2)
+            val baseName = parts.getOrNull(0) ?: targetKey
+            val baseType = parts.getOrNull(1) ?: "unknown"
 
+            // Find config by name AND type
+            val config = findConfigByNameAndType(targetsConfigs, baseName, baseType)
+            val configType = config?.targetType?.trim()?.lowercase()
+            val shotType = targetShots.firstOrNull()?.content?.actualTargetType?.trim()?.lowercase() ?: baseType
+            val targetType = if (!configType.isNullOrBlank()) configType else shotType
+            val isPaddleOrPopper = targetType.contains("paddle") || targetType.contains("popper")
+
+            // Separate no-shoot zone hits from valid hits
             val noShootZoneShots = targetShots.filter { shot ->
-                val trimmed = shot.content.actualHitArea.trim().lowercase()
+                val trimmed = normalizeHitArea(shot.content.actualHitArea)
                 trimmed == "whitezone" || trimmed == "blackzone"
             }
 
             val otherShots = targetShots.filter { shot ->
-                val trimmed = shot.content.actualHitArea.trim().lowercase()
+                val trimmed = normalizeHitArea(shot.content.actualHitArea)
                 trimmed != "whitezone" && trimmed != "blackzone"
             }
 
@@ -189,7 +305,7 @@ object ScoringUtility {
             nCount += noShootZoneShots.size
 
             // Filter for valid hits
-            val validHits = otherShots.filter { scoreForHitArea(it.content.actualHitArea) > 0 }
+            val validHits = otherShots.filter { scoreForHitArea(normalizeHitArea(it.content.actualHitArea)) > 0 }
 
             if (isPaddleOrPopper) {
                 // Paddles/Poppers: 1 valid hit required
@@ -197,9 +313,9 @@ object ScoringUtility {
                 val deficit = maxOf(0, requiredHits - validHits.size)
                 mCount += deficit
 
-                // Count all valid hits for paddles/poppers
+                // Count all valid hits for paddles/poppers as A zone
                 for (shot in validHits) {
-                    when (shot.content.actualHitArea.trim().lowercase()) {
+                    when (normalizeHitArea(shot.content.actualHitArea)) {
                         "azone", "a", "circlearea", "popperzone" -> aCount += 1
                         "czone", "c" -> cCount += 1
                         "dzone", "d" -> dCount += 1
@@ -212,10 +328,10 @@ object ScoringUtility {
                 mCount += deficit
 
                 // Count best 2 valid hits
-                val sortedValidHits = validHits.sortedByDescending { scoreForHitArea(it.content.actualHitArea) }
+                val sortedValidHits = validHits.sortedByDescending { scoreForHitArea(normalizeHitArea(it.content.actualHitArea)) }
                 val scoringHits = sortedValidHits.take(requiredHits)
                 for (shot in scoringHits) {
-                    when (shot.content.actualHitArea.trim().lowercase()) {
+                    when (normalizeHitArea(shot.content.actualHitArea)) {
                         "azone", "a" -> aCount += 1
                         "czone", "c" -> cCount += 1
                         "dzone", "d" -> dCount += 1
@@ -229,7 +345,8 @@ object ScoringUtility {
     }
 
     /**
-     * Calculate score based on adjusted hit zone metrics
+     * Calculate score based on effective hit zone counts.
+     * This method should be called AFTER calculateEffectiveCounts.
      */
     fun calculateScoreFromAdjustedHitZones(adjustedHitZones: Map<String, Int>?, drillSetup: DrillSetupEntity?): Int {
         val adjustedHitZones = adjustedHitZones ?: return 0
@@ -238,7 +355,7 @@ object ScoringUtility {
         val cCount = adjustedHitZones["C"] ?: 0
         val dCount = adjustedHitZones["D"] ?: 0
         val nCount = adjustedHitZones["N"] ?: 0  // No-shoot zones
-        val peCount = adjustedHitZones["PE"] ?: 0  // Penalty count
+        val peCount = adjustedHitZones["PE"] ?: 0  // Penalty count (missed targets)
         val mCount = adjustedHitZones["M"] ?: 0
 
         // Calculate base score from adjusted counts
@@ -279,10 +396,10 @@ object ScoringUtility {
         var ns5 = 0
         var miss = 0
 
-        // Group shots by target
+        // Group shots by target using combined key
         val shotsByTarget = mutableMapOf<String, MutableList<ShotData>>()
         for (shot in shots) {
-            val target = shot.target ?: "unknown"
+            val target = normalizedTargetKey(shot)
             shotsByTarget.getOrPut(target) { mutableListOf() }.add(shot)
         }
 

@@ -4,6 +4,55 @@ import SwiftUI
 
 /// Utility class for drill scoring calculations
 class ScoringUtility {
+    // Normalize incoming hit area strings to canonical values
+    static func normalizeHitArea(_ raw: String?) -> String {
+        let trimmed = raw?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() ?? ""
+        if trimmed.isEmpty { return "miss" }
+        switch trimmed {
+        case "circle", "circlearea", "circle_area", "circle-area":
+            return "circlearea"
+        case "popper", "popperzone", "popper_zone", "popper-zone":
+            return "popperzone"
+        case "azone", "a", "a-zone", "a_zone":
+            return "azone"
+        case "czone", "c", "c-zone", "c_zone":
+            return "czone"
+        case "dzone", "d", "d-zone", "d_zone":
+            return "dzone"
+        case "whitezone", "white_zone", "white-zone":
+            return "whitezone"
+        case "blackzone", "black_zone", "black-zone":
+            return "blackzone"
+        case "miss", "m":
+            return "miss"
+        default:
+            return trimmed
+        }
+    }
+
+    // Build a stable key for grouping shots by target/device with fallbacks
+    // Combined key: "<targetName>|<targetType>" when target name is present
+    static func normalizedTargetKey(for shot: ShotData) -> String {
+        if let name = shot.target?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty {
+            let ttype = shot.content.targetType?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() ?? "unknown"
+            return "\(name.lowercased())|\(ttype)"
+        }
+
+        let candidates: [String?] = [shot.content.targetType, shot.device, shot.target]
+        for cand in candidates {
+            if let s = cand?.trimmingCharacters(in: .whitespacesAndNewlines), !s.isEmpty {
+                return s.lowercased()
+            }
+        }
+        // Fallback: try hitArea instance (best-effort) or unknown
+        if let hit = shot.content.hitArea?.trimmingCharacters(in: .whitespacesAndNewlines), !hit.isEmpty {
+            let key = "target_" + hit.lowercased()
+            print("ScoringUtility: fallback target key -> \(key) for shot with hitArea=\(hit)")
+            return key
+        }
+        print("ScoringUtility: normalizedTargetKey could not determine key for shot; returning 'unknown'")
+        return "unknown"
+    }
     
     /// Calculate score for a specific hit area
     static func scoreForHitArea(_ hitArea: String) -> Int {
@@ -32,13 +81,18 @@ class ScoringUtility {
         guard let targetsSet = drillSetup?.targets as? Set<DrillTargetsConfig> else {
             return 0
         }
-        
-        let expectedTargets = Set(targetsSet.map { $0.targetName ?? "" }.filter { !$0.isEmpty })
+
+        // Build expected targets as combined keys "name|type"
+        let expectedTargets = Set(targetsSet.compactMap { cfg -> String? in
+            guard let name = cfg.targetName?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty else { return nil }
+            let ttype = cfg.primaryTargetType()?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() ?? "unknown"
+            return "\(name.lowercased())|\(ttype)"
+        })
         
         // Group shots by target/device
         var shotsByTarget: [String: [ShotData]] = [:]
         for shot in shots {
-            let device = shot.device ?? shot.target ?? "unknown"
+            let device = ScoringUtility.normalizedTargetKey(for: shot)
             if shotsByTarget[device] == nil {
                 shotsByTarget[device] = []
             }
@@ -48,8 +102,7 @@ class ScoringUtility {
         var targetsWithValidHits = Set<String>()
         for (device, targetShots) in shotsByTarget {
             let hasValidHit = targetShots.contains { shot in
-                let area = shot.content.hitArea.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-                // Check if it's a scoring zone (A, C, D, circlearea, popperzone)
+                let area = ScoringUtility.normalizeHitArea(shot.content.hitArea)
                 return ScoringUtility.scoreForHitArea(area) > 0
             }
             if hasValidHit {
@@ -89,35 +142,46 @@ class ScoringUtility {
         // Group shots by target/device
         var shotsByTarget: [String: [ShotData]] = [:]
         for shot in shots {
-            let device = shot.device ?? shot.target ?? "unknown"
+            let device = ScoringUtility.normalizedTargetKey(for: shot)
             if shotsByTarget[device] == nil {
                 shotsByTarget[device] = []
             }
             shotsByTarget[device]?.append(shot)
         }
         
-        // Get all expected targets from setup
+        // Get all expected targets from setup and express as combined keys "name|type"
         let expectedTargets = (drillSetup?.targets as? Set<DrillTargetsConfig>) ?? []
-        let expectedTargetNames = Set(expectedTargets.compactMap { $0.targetName }.filter { !$0.isEmpty })
-        
-        // Combine expected targets and targets that actually fired shots
+        let expectedTargetNames = Set(expectedTargets.compactMap { cfg -> String? in
+            guard let name = cfg.targetName?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty else { return nil }
+            let ttype = cfg.primaryTargetType()?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() ?? "unknown"
+            return "\(name.lowercased())|\(ttype)"
+        })
+
+        // Combine expected targets (combined keys) and targets that actually fired shots
         let allTargetNames = expectedTargetNames.union(shotsByTarget.keys)
         
         for targetName in allTargetNames {
             let targetShots = shotsByTarget[targetName] ?? []
             
-            // Find target config to determine type
-            let config = expectedTargets.first { $0.targetName == targetName }
-            let targetType = config?.primaryTargetType().lowercased() ?? targetShots.first?.content.targetType.lowercased() ?? ""
-            let isPaddleOrPopper = targetType == "paddle" || targetType == "popper"
-            
+            // targetName may be a combined key "name|type"; split it for lookup
+            let parts = targetName.split(separator: "|", maxSplits: 1, omittingEmptySubsequences: false)
+            let baseName = parts.first.map { String($0) } ?? targetName
+            let baseTypeFromKey = parts.count > 1 ? String(parts[1]) : ""
+
+            // Find target config to determine type (lookup by baseName)
+            let config = expectedTargets.first { $0.targetName == baseName }
+            let configType = config?.primaryTargetType()?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+            let shotType = targetShots.first?.content.targetType?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() ?? baseTypeFromKey
+            let targetType = (configType != nil && configType! != "") ? configType! : shotType
+            let isPaddleOrPopper = targetType.contains("paddle") || targetType.contains("popper")
+
             let noShootZoneShots = targetShots.filter { shot in
-                let trimmed = shot.content.hitArea.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+                let trimmed = ScoringUtility.normalizeHitArea(shot.content.hitArea)
                 return trimmed == "whitezone" || trimmed == "blackzone"
             }
-            
+
             let otherShots = targetShots.filter { shot in
-                let trimmed = shot.content.hitArea.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+                let trimmed = ScoringUtility.normalizeHitArea(shot.content.hitArea)
                 return trimmed != "whitezone" && trimmed != "blackzone"
             }
             
@@ -125,7 +189,7 @@ class ScoringUtility {
             nCount += noShootZoneShots.count
             
             // Filter for valid hits
-            let validHits = otherShots.filter { ScoringUtility.scoreForHitArea($0.content.hitArea) > 0 }
+            let validHits = otherShots.filter { ScoringUtility.scoreForHitArea(ScoringUtility.normalizeHitArea($0.content.hitArea)) > 0 }
             
             if isPaddleOrPopper {
                 // Paddles/Poppers: 1 valid hit required
@@ -135,7 +199,7 @@ class ScoringUtility {
                 
                 // Count all valid hits for paddles/poppers
                 for shot in validHits {
-                    let area = shot.content.hitArea.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+                    let area = ScoringUtility.normalizeHitArea(shot.content.hitArea)
                     switch area {
                     case "azone", "a", "circlearea", "popperzone": aCount += 1
                     case "czone", "c": cCount += 1
@@ -155,7 +219,7 @@ class ScoringUtility {
                 }
                 let scoringHits = Array(sortedValidHits.prefix(requiredHits))
                 for shot in scoringHits {
-                    let area = shot.content.hitArea.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+                    let area = ScoringUtility.normalizeHitArea(shot.content.hitArea)
                     switch area {
                     case "azone", "a": aCount += 1
                     case "czone", "c": cCount += 1
@@ -223,7 +287,7 @@ class ScoringUtility {
         // Group shots by target
         var shotsByTarget: [String: [ShotData]] = [:]
         for shot in shots {
-            let target = shot.target ?? "unknown"
+            let target = ScoringUtility.normalizedTargetKey(for: shot)
             if shotsByTarget[target] == nil {
                 shotsByTarget[target] = []
             }

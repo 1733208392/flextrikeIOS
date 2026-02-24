@@ -124,7 +124,8 @@ private extension DrillResult {
     
     /// Calculate score for a specific hit area and target type
     func calculateScore(for hitArea: String, targetType: String) -> Double {
-        return Double(ScoringUtility.scoreForHitArea(hitArea))
+        let normalized = ScoringUtility.normalizeHitArea(hitArea)
+        return Double(ScoringUtility.scoreForHitArea(normalized))
     }
     
     /// Calculate the number of missed targets
@@ -134,7 +135,7 @@ private extension DrillResult {
     
     /// Check if a hit area represents a valid hit (not a miss)
     func isValidHit(hitArea: String) -> Bool {
-        let missAreas = ["miss", "m", ""]
-        return !missAreas.contains(hitArea.lowercased())
+        let normalized = ScoringUtility.normalizeHitArea(hitArea)
+        return ScoringUtility.scoreForHitArea(normalized) > 0
     }
 }
