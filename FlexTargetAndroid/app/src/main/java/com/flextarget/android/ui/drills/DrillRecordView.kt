@@ -99,7 +99,7 @@ fun DrillRecordView(
     } else {
         Scaffold(
             topBar = {
-                TopAppBar(
+                CenterAlignedTopAppBar(
                     title = { Text(stringResource(R.string.drill_history), color = Color.White) },
                     navigationIcon = {
                         IconButton(onClick = onBack) {
@@ -110,7 +110,7 @@ fun DrillRecordView(
                             )
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                         containerColor = Color.Black
                     )
                 )

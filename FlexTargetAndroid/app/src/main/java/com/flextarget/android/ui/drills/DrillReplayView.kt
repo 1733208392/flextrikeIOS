@@ -50,7 +50,7 @@ fun DrillReplayView(
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            CenterAlignedTopAppBar(
                 title = { Text(stringResource(R.string.replay).uppercase(), color = md_theme_dark_onPrimary) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
@@ -61,7 +61,7 @@ fun DrillReplayView(
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = Color.Black
                 )
             )

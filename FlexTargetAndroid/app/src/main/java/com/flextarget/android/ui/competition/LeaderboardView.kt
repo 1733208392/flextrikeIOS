@@ -79,14 +79,14 @@ fun LeaderboardView(
                 .background(Color.Black)
         ) {
         // Top Bar
-        TopAppBar(
+        CenterAlignedTopAppBar(
             title = { Text(stringResource(R.string.competitions_leaderboard)) },
             navigationIcon = {
                 IconButton(onClick = onBack) {
                     Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                 }
             },
-            colors = TopAppBarDefaults.topAppBarColors(
+            colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                 containerColor = Color.Black,
                 titleContentColor = md_theme_dark_onPrimary,
                 navigationIconContentColor = md_theme_dark_onPrimary

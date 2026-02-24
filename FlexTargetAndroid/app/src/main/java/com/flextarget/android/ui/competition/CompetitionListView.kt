@@ -60,7 +60,7 @@ fun CompetitionListView(
             .background(Color.Black)
     ) {
         // Top Bar
-        TopAppBar(
+        CenterAlignedTopAppBar(
             title = { Text(stringResource(R.string.competitions)) },
             navigationIcon = {
                 IconButton(onClick = onBack) {
@@ -72,7 +72,7 @@ fun CompetitionListView(
                     Icon(Icons.Default.Add, contentDescription = "Add Competition")
                 }
             },
-            colors = TopAppBarDefaults.topAppBarColors(
+            colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                 containerColor = Color.Black,
                 titleContentColor = md_theme_dark_onPrimary,
                 navigationIconContentColor = Color.Red,

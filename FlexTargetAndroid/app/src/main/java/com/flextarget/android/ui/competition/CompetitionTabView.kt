@@ -1,7 +1,6 @@
 package com.flextarget.android.ui.competition
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -18,11 +17,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.text.font.FontWeight
 import com.flextarget.android.R
 import com.flextarget.android.ui.admin.LoginScreen
 import com.flextarget.android.ui.theme.AppTypography
@@ -108,9 +105,9 @@ private fun CompetitionMenuView(
 ) {
     Scaffold(
         topBar = {
-            TopAppBar(
+            CenterAlignedTopAppBar(
                 title = { Text(stringResource(R.string.tab_competition), color = md_theme_dark_onPrimary) },
-                colors = TopAppBarDefaults.topAppBarColors(
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = Color.Black
                 )
             )
@@ -165,49 +162,56 @@ private fun CompetitionMenuItem(
     description: String,
     onClick: () -> Unit
 ) {
-    Row(
+    Button(
+        onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
             .background(
-                color = Color.Gray.copy(alpha = 0.1f),
+                color = Color.White.copy(alpha = 0.05f),
                 shape = RoundedCornerShape(8.dp)
-            )
-            .padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color.White.copy(alpha = 0.05f)
+        ),
+        shape = RoundedCornerShape(8.dp)
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = title,
-            tint = md_theme_dark_onPrimary,
-            modifier = Modifier.size(32.dp)
-        )
-
-        Column(
+        Row(
             modifier = Modifier
-                .weight(1f),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+                .fillMaxWidth()
+                .padding(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = title,
-                color = md_theme_dark_onPrimary,
-                style = AppTypography.bodyLarge,
-                fontWeight = FontWeight.Bold
+            Icon(
+                imageVector = icon,
+                contentDescription = title,
+                tint = md_theme_dark_onPrimary,
+                modifier = Modifier.size(32.dp)
             )
-            Text(
-                text = description,
-                color = Color.Gray,
-                style = AppTypography.bodySmall
+
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                Text(
+                    text = title.uppercase(),
+                    color = md_theme_dark_onPrimary,
+                    style = AppTypography.bodyLarge
+                )
+                Text(
+                    text = description,
+                    color = Color.Gray,
+                    style = AppTypography.labelSmall
+                )
+            }
+
+            Icon(
+                imageVector = Icons.Default.ChevronRight,
+                contentDescription = "Navigate",
+                tint = md_theme_dark_onPrimary,
+                modifier = Modifier.size(24.dp)
             )
         }
-
-        Icon(
-            imageVector = Icons.Default.ChevronRight,
-            contentDescription = "Navigate",
-            tint = Color.Gray,
-            modifier = Modifier.size(24.dp)
-        )
     }
 }
 

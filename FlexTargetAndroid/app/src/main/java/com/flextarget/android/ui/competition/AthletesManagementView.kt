@@ -71,14 +71,14 @@ fun AthletesManagementView(
             .background(Color.Black)
     ) {
         // Top Bar
-        TopAppBar(
+        CenterAlignedTopAppBar(
             title = { Text(stringResource(R.string.shooters)) },
             navigationIcon = {
                 IconButton(onClick = onBack) {
                     Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
                 }
             },
-            colors = TopAppBarDefaults.topAppBarColors(
+            colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                 containerColor = Color.Black,
                 titleContentColor = md_theme_dark_onPrimary,
                 navigationIconContentColor = Color.Red
@@ -117,7 +117,7 @@ fun AthletesManagementView(
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment = Alignment.Top
                         ) {
                             // Avatar Placeholder
                             Box(
@@ -154,14 +154,25 @@ fun AthletesManagementView(
                                             color = Color.Gray
                                         )
                                     },
+                                    isError = newAthleteNameInput.value.isNotEmpty() && newAthleteNameInput.value.length < 4,
                                     colors = TextFieldDefaults.colors(
                                         unfocusedContainerColor = Color.Transparent,
                                         focusedContainerColor = Color.Transparent,
                                         unfocusedTextColor = Color.White,
-                                        focusedTextColor = Color.White
+                                        focusedTextColor = Color.White,
+                                        errorContainerColor = Color.Transparent,
+                                        errorCursorColor = Color.Red
                                     ),
                                     modifier = Modifier.fillMaxWidth()
                                 )
+                                if (newAthleteNameInput.value.isNotEmpty() && newAthleteNameInput.value.length < 4) {
+                                    Text(
+                                        text = "Name must be at least 4 characters",
+                                        color = Color.Red,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        modifier = Modifier.padding(start = 0.dp, top = 2.dp)
+                                    )
+                                }
                                 TextField(
                                     value = newAthleteClubInput.value,
                                     onValueChange = { newAthleteClubInput.value = it },
@@ -184,7 +195,7 @@ fun AthletesManagementView(
 
                         Button(
                             onClick = {
-                                if (newAthleteNameInput.value.isNotEmpty()) {
+                                if (newAthleteNameInput.value.length >= 4) {
                                     viewModel.addAthlete(
                                         newAthleteNameInput.value,
                                         newAthleteClubInput.value,
@@ -197,7 +208,7 @@ fun AthletesManagementView(
                             },
                             modifier = Modifier.fillMaxWidth(),
                             colors = ButtonDefaults.buttonColors(containerColor = md_theme_dark_onPrimary),
-                            enabled = newAthleteNameInput.value.isNotEmpty()
+                            enabled = newAthleteNameInput.value.length >= 4
                         ) {
                             Text(stringResource(R.string.add_athlete), color = md_theme_dark_primary)
                         }

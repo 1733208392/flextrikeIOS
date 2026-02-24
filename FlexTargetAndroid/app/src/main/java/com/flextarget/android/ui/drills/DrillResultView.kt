@@ -81,7 +81,7 @@ fun DrillResultView(
             .background(Color.Black)
     ) {
         // Top App Bar
-        TopAppBar(
+        CenterAlignedTopAppBar(
             title = {
                 Text(
                     text = "DRILL RESULTS",
@@ -99,7 +99,7 @@ fun DrillResultView(
                     )
                 }
             },
-            colors = TopAppBarDefaults.topAppBarColors(
+            colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                 containerColor = Color.Black
             )
         )

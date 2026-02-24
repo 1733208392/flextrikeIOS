@@ -50,11 +50,9 @@ fun DrillListView(
     var showDrillForm by remember { mutableStateOf(false) }
     var drillFormMode by remember { mutableStateOf(DrillFormMode.ADD) }
     var selectedDrill by remember { mutableStateOf<DrillSetupEntity?>(null) }
-    var showDrillRecord by remember { mutableStateOf(false) }
-    var selectedDrillForRecord by remember { mutableStateOf<DrillSetupEntity?>(null) }
 
-    val showTopBar by remember(showDrillForm, showDrillRecord) {
-        derivedStateOf { !showDrillForm && !showDrillRecord }
+    val showTopBar by remember(showDrillForm) {
+        derivedStateOf { !showDrillForm }
     }
 
     val drillSetups by viewModel.drillSetups.collectAsState(initial = emptyList())
@@ -73,7 +71,7 @@ fun DrillListView(
         topBar = {
             // Only show TopAppBar when DrillForm or DrillRecord is not visible
             if (showTopBar) {
-                TopAppBar(
+                CenterAlignedTopAppBar(
                     title = {
                         Text(if (onBack != null) stringResource(R.string.my_drills) else stringResource(R.string.drills), color = md_theme_dark_onPrimary)
                     },
@@ -409,12 +407,7 @@ fun DrillListView(
     }
 
     // Drill Record
-    if (showDrillRecord && selectedDrillForRecord != null) {
-        DrillRecordView(
-            drillSetup = selectedDrillForRecord!!,
-            onBack = { showDrillRecord = false }
-        )
-    }
+    // Navigation now goes through HistoryTabView for viewing drill summaries
 
 
 }

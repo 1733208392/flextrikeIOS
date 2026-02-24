@@ -153,6 +153,11 @@ class CompetitionViewModel(
             _selectedAthlete.value?.name ?: return onFailure("No athlete selected")
         }
 
+        // Validate player nickname length (minimum 4 characters required by server)
+        if (playerNickname.length < 4) {
+            return onFailure("Shooter name must be at least 4 characters (current: ${playerNickname.length})")
+        }
+
         viewModelScope.launch {
             _isLoading.value = true
             competitionRepository.submitGamePlay(

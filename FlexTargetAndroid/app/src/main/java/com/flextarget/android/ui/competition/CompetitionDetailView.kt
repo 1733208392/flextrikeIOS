@@ -77,6 +77,8 @@ fun CompetitionDetailView(
     var selectedDetailsSummary by remember { mutableStateOf<DrillRepeatSummary?>(null) }
     var resultDrillTargets by remember { mutableStateOf<List<DrillTargetsConfigEntity>>(emptyList()) }
     var resultAthleteNameForDisplay by remember { mutableStateOf("") }
+    var showValidationError by remember { mutableStateOf(false) }
+    var validationErrorMessage by remember { mutableStateOf("") }
 
     val linkedDrill = drillUiState.drills.find { it.id == competition.drillSetupId }
     val androidBleManager = bleManager.androidManager
@@ -155,9 +157,15 @@ fun CompetitionDetailView(
                 showResultReplay = true
             },
             onCompetitionSubmit = {
-                // Submit main result (first repeat)
-                // Use the passed-in athlete name to ensure submission
-                if (resultAthleteNameForDisplay.isNotEmpty()) {
+                // Validate shooter name length before submission
+                if (resultAthleteNameForDisplay.isEmpty()) {
+                    validationErrorMessage = "No athlete name provided"
+                    showValidationError = true
+                } else if (resultAthleteNameForDisplay.length < 4) {
+                    validationErrorMessage = "Shooter name must be at least 4 characters (current: ${resultAthleteNameForDisplay.length})"
+                    showValidationError = true
+                } else {
+                    // Submit main result (first repeat)
                     selectedResultSummaries.firstOrNull()?.let { summary ->
                         val gson = com.google.gson.Gson()
                         val detail = gson.toJson(summary)
@@ -184,14 +192,14 @@ fun CompetitionDetailView(
                 .fillMaxSize()
                 .background(Color.Black)
         ) {
-            TopAppBar(
+            CenterAlignedTopAppBar(
                 title = { Text(stringResource(R.string.details)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = Color.Black,
                     titleContentColor = md_theme_dark_onPrimary,
                     navigationIconContentColor = Color.Red
@@ -532,6 +540,31 @@ fun CompetitionDetailView(
                 viewModel.selectAthlete(it)
                 showAthletePicker = false
             }
+        )
+    }
+
+    if (showValidationError) {
+        AlertDialog(
+            onDismissRequest = { showValidationError = false },
+            title = {
+                Text(
+                    text = "Invalid Shooter Name",
+                    color = md_theme_dark_onPrimary
+                )
+            },
+            text = {
+                Text(
+                    text = validationErrorMessage,
+                    color = Color.White
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { showValidationError = false }) {
+                    Text("OK", color = Color.Red)
+                }
+            },
+            containerColor = Color.White.copy(alpha = 0.1f),
+            textContentColor = Color.White
         )
     }
 }

@@ -262,9 +262,9 @@ private fun AdminMainMenuView(
             .fillMaxSize()
             .background(Color.Black)
     ) {
-        TopAppBar(
+        CenterAlignedTopAppBar(
             title = { Text(stringResource(R.string.admin), color = md_theme_dark_onPrimary) },
-            colors = TopAppBarDefaults.topAppBarColors(
+            colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                 containerColor = Color.Black,
 //                titleContentColor = Color.White
             )
@@ -511,7 +511,7 @@ private fun DeviceMenuOption(
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 Text(
-                    text = title,
+                    text = title.uppercase(),
                     color = md_theme_dark_onPrimary,
                     style = AppTypography.bodyLarge,
 //                    fontWeight = FontWeight.Bold

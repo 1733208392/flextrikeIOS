@@ -290,6 +290,16 @@ struct DrillSummaryView: View {
             showSubmitError(title: NSLocalizedString("not_authenticated_title", comment: "Not Authenticated"), message: NSLocalizedString("login_before_submit", comment: "Please log in before submitting results"))
             return
         }
+
+        // Validate player nickname length (minimum 4 characters required by server)
+        guard let playerNickname = AuthManager.shared.currentUser?.username, playerNickname.count >= 4 else {
+            let displayNickname = AuthManager.shared.currentUser?.username ?? ""
+            showSubmitError(
+                title: NSLocalizedString("invalid_nickname_title", comment: "Invalid Nickname"),
+                message: "Shooter name must be at least 4 characters (current: \(displayNickname.count))"
+            )
+            return
+        }
         
         isSubmitting = true
         

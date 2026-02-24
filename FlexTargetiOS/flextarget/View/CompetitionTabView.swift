@@ -36,9 +36,9 @@ struct CompetitionTabView: View {
                         .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                     
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(NSLocalizedString("competitions", comment: "Competitions menu item"))
-                            .font(.headline)
-                            .foregroundColor(.white)
+                        Text( text = NSLocalizedString("competitions", comment: "Competitions menu item"), style = AppTypography.bodyLarge)
+                            // .font(.headline)
+                            // .foregroundColor(.white)
                         
                         Text(NSLocalizedString("view_competitions", comment: "View competitions description"))
                             .font(.caption)

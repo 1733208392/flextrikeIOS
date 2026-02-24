@@ -252,7 +252,7 @@ fun DrillFormView(
         topBar = {
             // Only show TopAppBar when TimerSessionView or DrillSummaryView is not visible and not on TARGET_CONFIG
             if (showTopBar && currentScreen != DrillFormScreen.TARGET_CONFIG) {
-                TopAppBar(
+                CenterAlignedTopAppBar(
                 title = {
                     Text(
                         text = when (currentScreen) {
@@ -279,7 +279,7 @@ fun DrillFormView(
                 actions = {
                     // Top-right add action removed to hide '+' icon; manual adds remain available in the UI
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = Color.Black
                 )
                 )

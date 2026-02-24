@@ -78,7 +78,7 @@ fun ImageCropViewV2(onDismiss: () -> Unit) {
             .background(Color.Black),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        TopAppBar(
+        CenterAlignedTopAppBar(
             title = { Text(stringResource(R.string.upload_target_image_title), color = md_theme_dark_onPrimary) },
             navigationIcon = {
                 IconButton(onClick = onDismiss) {

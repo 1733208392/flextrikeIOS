@@ -554,7 +554,7 @@ fun TimerSessionView(
     @OptIn(ExperimentalMaterial3Api::class)
     Scaffold(
         topBar = {
-            TopAppBar(
+            CenterAlignedTopAppBar(
                 title = {
                     Text(
                         text = stringResource(R.string.repeat_of_total, currentRepeat, totalRepeats),
@@ -575,7 +575,7 @@ fun TimerSessionView(
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = Color.Black
                 )
             )

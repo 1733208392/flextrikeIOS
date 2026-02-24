@@ -33,6 +33,7 @@ struct AthletesManagementView: View {
     @State private var errorMessage: String = ""
     @State private var athleteToDelete: Athlete? = nil
     @State private var showDeleteConfirmation: Bool = false
+    @State private var nameValidationError: String = ""
 
     var body: some View {
         ZStack {
@@ -54,10 +55,27 @@ struct AthletesManagementView: View {
                             .buttonStyle(PlainButtonStyle())
 
                             VStack(spacing: 10) {
-                                TextField(NSLocalizedString("athlete_name", comment: "Athlete name placeholder"), text: $name, prompt: Text(NSLocalizedString("athlete_name", comment: "Athlete name placeholder")).foregroundColor(.white.opacity(0.6)))
-                                    .textInputAutocapitalization(.words)
-                                    .disableAutocorrection(true)
-                                    .foregroundColor(.white)
+                                VStack(alignment: .leading, spacing: 4) {
+                                    TextField(NSLocalizedString("athlete_name", comment: "Athlete name placeholder"), text: $name, prompt: Text(NSLocalizedString("athlete_name", comment: "Athlete name placeholder")).foregroundColor(.white.opacity(0.6)))
+                                        .textInputAutocapitalization(.words)
+                                        .disableAutocorrection(true)
+                                        .foregroundColor(.white)
+                                        .onChange(of: name) { newValue in
+                                            if newValue.isEmpty {
+                                                nameValidationError = ""
+                                            } else if newValue.count < 4 {
+                                                nameValidationError = "Name must be at least 4 characters"
+                                            } else {
+                                                nameValidationError = ""
+                                            }
+                                        }
+                                    
+                                    if !nameValidationError.isEmpty {
+                                        Text(nameValidationError)
+                                            .font(.caption)
+                                            .foregroundColor(.red)
+                                    }
+                                }
 
                                 TextField(NSLocalizedString("athlete_club", comment: "Athlete club placeholder"), text: $club, prompt: Text(NSLocalizedString("athlete_club", comment: "Athlete club placeholder")).foregroundColor(.white.opacity(0.6)))
                                     .textInputAutocapitalization(.words)
@@ -128,7 +146,7 @@ struct AthletesManagementView: View {
                         .background(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                         .cornerRadius(8)
                 }
-                .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).count < 4)
                 .padding()
             }
         }
@@ -208,7 +226,13 @@ struct AthletesManagementView: View {
         let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedClub = club.trimmingCharacters(in: .whitespacesAndNewlines)
 
+        // Validate name length (minimum 4 characters for API compatibility)
         guard !trimmedName.isEmpty else { return }
+        guard trimmedName.count >= 4 else {
+            errorMessage = "Athlete name must be at least 4 characters (current: \(trimmedName.count))"
+            showError = true
+            return
+        }
 
         let athlete = Athlete(context: viewContext)
         athlete.id = UUID()

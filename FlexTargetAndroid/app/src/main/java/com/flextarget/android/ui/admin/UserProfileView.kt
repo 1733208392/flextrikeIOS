@@ -19,7 +19,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -28,6 +27,7 @@ import com.flextarget.android.ui.viewmodel.AuthViewModel
 import androidx.compose.ui.res.stringResource
 import com.flextarget.android.R
 import com.flextarget.android.ui.theme.md_theme_dark_onPrimary
+import com.flextarget.android.ui.theme.AppButton
 
 @Composable
 fun UserProfileView(
@@ -78,16 +78,15 @@ fun UserProfileView(
                 .fillMaxSize()
                 .background(Color.Black)
         ) {
-            TopAppBar(
-                title = { Text(stringResource(R.string.user_profile), color = Color.White) },
+            CenterAlignedTopAppBar(
+                title = { Text(stringResource(R.string.user_profile), color = md_theme_dark_onPrimary) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.Red)
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = md_theme_dark_onPrimary)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = Color.Black,
-                    titleContentColor = Color.White
                 )
             )
 
@@ -137,16 +136,6 @@ fun UserProfileView(
                     if (selectedTab.value == 0) {
                         // Edit Profile Tab
                         item {
-                            Text(
-                                stringResource(R.string.update_profile).uppercase(),
-                                color = md_theme_dark_onPrimary,
-                                style = MaterialTheme.typography.headlineSmall,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(bottom = 8.dp)
-                            )
-                        }
-
-                        item {
                             OutlinedTextField(
                                 value = username.value,
                                 onValueChange = { username.value = it },
@@ -161,7 +150,8 @@ fun UserProfileView(
                                     focusedTextColor = Color.White,
                                     unfocusedTextColor = Color.White,
                                     focusedBorderColor = Color.Red,
-                                    unfocusedBorderColor = Color.Gray
+                                    unfocusedBorderColor = Color.Gray,
+                                    cursorColor = md_theme_dark_onPrimary
                                 ),
                                 singleLine = true,
                                 enabled = !authUiState.isLoading
@@ -169,7 +159,8 @@ fun UserProfileView(
                         }
 
                         item {
-                            Button(
+                            AppButton(
+                                text = stringResource(R.string.update_profile),
                                 onClick = { 
                                     when {
                                         username.value.isBlank() -> {
@@ -189,27 +180,11 @@ fun UserProfileView(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(48.dp),
-                                enabled = !authUiState.isLoading,
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color.Red
-                                ),
-                                shape = RoundedCornerShape(8.dp)
-                            ) {
-                                Text(stringResource(R.string.update_profile), color = Color.White, fontWeight = FontWeight.Bold)
-                            }
+                                enabled = !authUiState.isLoading
+                            )
                         }
                     } else {
                         // Change Password Tab
-                        item {
-                            Text(
-                                stringResource(R.string.change_password).uppercase(),
-                                color = md_theme_dark_onPrimary,
-                                style = MaterialTheme.typography.headlineSmall,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(bottom = 8.dp)
-                            )
-                        }
-
                         item {
                             PasswordField(
                                 value = oldPassword.value,
@@ -238,7 +213,8 @@ fun UserProfileView(
                         }
 
                         item {
-                            Button(
+                            AppButton(
+                                text = stringResource(R.string.change_password),
                                 onClick = { 
                                     when {
                                         oldPassword.value.isEmpty() || newPassword.value.isEmpty() || confirmPassword.value.isEmpty() -> {
@@ -261,32 +237,21 @@ fun UserProfileView(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(48.dp),
-                                enabled = !authUiState.isLoading,
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color.Red
-                                ),
-                                shape = RoundedCornerShape(8.dp)
-                            ) {
-                                Text(stringResource(R.string.change_password), color = Color.White, fontWeight = FontWeight.Bold)
-                            }
+                                enabled = !authUiState.isLoading
+                            )
                         }
                     }
 
                     // Logout Button - as last item in LazyColumn
                     item {
-                        Button(
+                        AppButton(
+                            text = stringResource(R.string.logout),
                             onClick = { showLogoutConfirm.value = true },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(48.dp),
-                            enabled = !authUiState.isLoading,
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color.Red.copy(alpha = 0.8f)
-                            ),
-                            shape = RoundedCornerShape(8.dp)
-                        ) {
-                            Text(stringResource(R.string.logout), color = Color.White, fontWeight = FontWeight.Bold)
-                        }
+                            enabled = !authUiState.isLoading
+                        )
                     }
                 }
             }
@@ -318,24 +283,20 @@ fun UserProfileView(
             title = { Text(stringResource(R.string.logout), color = Color.White) },
             text = { Text(stringResource(R.string.logout_confirm), color = Color.White) },
             confirmButton = {
-                Button(
+                AppButton(
+                    text = stringResource(R.string.logout),
                     onClick = {
                         authViewModel.logout()
                         showLogoutConfirm.value = false
                         onBack()
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
-                ) {
-                    Text(stringResource(R.string.logout), color = Color.White)
-                }
+                    }
+                )
             },
             dismissButton = {
-                Button(
-                    onClick = { showLogoutConfirm.value = false },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
-                ) {
-                    Text(stringResource(R.string.cancel), color = Color.White)
-                }
+                AppButton(
+                    text = stringResource(R.string.cancel),
+                    onClick = { showLogoutConfirm.value = false }
+                )
             },
             containerColor = Color.Black,
             textContentColor = Color.White
@@ -386,7 +347,8 @@ private fun PasswordField(
             focusedTextColor = Color.White,
             unfocusedTextColor = Color.White,
             focusedBorderColor = Color.Red,
-            unfocusedBorderColor = Color.Gray
+            unfocusedBorderColor = Color.Gray,
+            cursorColor = md_theme_dark_onPrimary
         ),
         singleLine = true
     )

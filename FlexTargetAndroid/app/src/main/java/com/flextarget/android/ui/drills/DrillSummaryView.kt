@@ -81,7 +81,7 @@ fun DrillSummaryView(
             .fillMaxSize()
             .background(Color.Black)
     ) {
-        TopAppBar(
+        CenterAlignedTopAppBar(
             title = {
                 Text(
                     text = stringResource(R.string.drill_results_summary).uppercase(),
@@ -106,7 +106,7 @@ fun DrillSummaryView(
                     }
                 }
             },
-            colors = TopAppBarDefaults.topAppBarColors(
+            colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                 containerColor = Color.Black.copy(alpha = 0.95f)
             )
         )

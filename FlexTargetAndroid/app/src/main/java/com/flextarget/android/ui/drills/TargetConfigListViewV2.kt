@@ -71,16 +71,14 @@ fun TargetConfigListViewV2(
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            CenterAlignedTopAppBar(
                 title = {
                     Text(
                         primaryConfig.targetName,
                         color = accentRed,
                         fontFamily = ttNormFontFamily,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp,
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Left
+                        fontSize = 18.sp
                     )
                 },
                 navigationIcon = {
@@ -91,7 +89,7 @@ fun TargetConfigListViewV2(
                         Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back), tint = accentRed)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Black)
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.Black)
             )
         }
     ) { paddingValues ->
