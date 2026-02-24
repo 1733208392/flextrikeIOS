@@ -117,7 +117,17 @@ class DeviceAuthManager @Inject constructor(
                 Result.success(data.deviceUUID)
             } catch (e: Exception) {
                 Log.e(TAG, "Device authentication failed", e)
-                // Clear device auth on failure
+                // Do NOT clear cached device auth on transient network failures
+                // (e.g., UnknownHostException, SocketTimeoutException, general IO issues).
+                // Clearing device auth should only happen for explicit auth problems
+                // (server responses indicating invalid/expired device token) or
+                // when caller intentionally requests a clear.
+                if (e is java.io.IOException) {
+                    return@withContext Result.failure(e)
+                }
+
+                // For other errors (malformed response, explicit server-side failure),
+                // clear cached device auth to force a clean re-auth flow.
                 clearDeviceAuth()
                 Result.failure(e)
             }

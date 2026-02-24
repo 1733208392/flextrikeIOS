@@ -12,8 +12,10 @@ import com.flextarget.android.data.remote.api.AddGamePlayRequest
 import com.flextarget.android.data.remote.api.GamePlayRankingRequest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import retrofit2.HttpException
+import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 import java.text.SimpleDateFormat
@@ -37,7 +39,8 @@ class CompetitionRepository @Inject constructor(
     private val competitionDao: CompetitionDao,
     private val gamePlayDao: GamePlayDao,
     private val authManager: AuthManager,
-    private val deviceAuthManager: DeviceAuthManager
+    private val deviceAuthManager: DeviceAuthManager,
+    private val workManager: androidx.work.WorkManager? = null
 ) {
     
     /**
@@ -151,13 +154,31 @@ class CompetitionRepository @Inject constructor(
         try {
             val userToken = authManager.currentAccessToken
                 ?: return@withContext Result.failure(IllegalStateException("Not authenticated"))
-            
+
+            // Always create and persist a local GamePlay record so results are not lost
+            // if network submission fails. submittedAt == null indicates pending sync.
+            val localGamePlay = GamePlayEntity(
+                competitionId = competitionId,
+                drillSetupId = drillSetupId,
+                score = score,
+                detail = detail,
+                playTime = Date(),
+                isPublic = isPublic,
+                playerNickname = playerNickname,
+                playerMobile = authManager.currentUser.value?.mobile ?: "",
+                playUuid = null,
+                submittedAt = null
+            )
+
+            // Persist pending local copy immediately
+            gamePlayDao.insertGamePlay(localGamePlay)
+
             // Format play time
             val playTime = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).format(Date())
-            
+
             // Build auth header: requires both user and device tokens
             val authHeader = deviceAuthManager.getAuthorizationHeader(userToken, requireDeviceToken = true)
-            
+
             // Call API to submit result
             val response = api.addGamePlay(
                 AddGamePlayRequest(
@@ -173,25 +194,17 @@ class CompetitionRepository @Inject constructor(
                 ),
                 authHeader = authHeader
             )
-            
-            // Create local game play entity
-            val gamePlay = GamePlayEntity(
-                competitionId = competitionId,
-                drillSetupId = drillSetupId,
-                score = score,
-                detail = detail,
-                playTime = Date(),
-                isPublic = isPublic,
-                playerNickname = playerNickname,
+
+            // Update local record with server-assigned play UUID and submitted timestamp
+            val updatedGamePlay = localGamePlay.copy(
                 playUuid = response.data?.playUUID,
-                submittedAt = Date()
+                submittedAt = Date(),
+                updatedAt = Date()
             )
-            
-            // Save locally
-            gamePlayDao.insertGamePlay(gamePlay)
-            
+            gamePlayDao.updateGamePlay(updatedGamePlay)
+
             Log.d(TAG, "Game play submitted: ${response.data?.playUUID}")
-            Result.success(response.data?.playUUID ?: gamePlay.id.toString())
+            Result.success(response.data?.playUUID ?: updatedGamePlay.id.toString())
         } catch (e: retrofit2.HttpException) {
             // Handle HTTP exceptions (e.g., 401 Unauthorized)
             Log.e(TAG, "HTTP exception during game play submission: ${e.code()} ${e.message}", e)
@@ -201,6 +214,31 @@ class CompetitionRepository @Inject constructor(
                 return@withContext Result.failure(Exception("401"))
             }
             Result.failure(e)
+        } catch (e: IOException) {
+            // Network issue — leave local record pending and schedule background sync via WorkManager
+            Log.w(TAG, "Network unavailable during game play submission", e)
+
+            try {
+                workManager?.let { wm ->
+                    val request = androidx.work.OneTimeWorkRequestBuilder<SubmitPendingWorker>()
+                        .setConstraints(
+                            androidx.work.Constraints.Builder()
+                                .setRequiredNetworkType(androidx.work.NetworkType.CONNECTED)
+                                .build()
+                        )
+                        .build()
+
+                    wm.enqueueUniqueWork(
+                        "submit_pending_gameplays",
+                        androidx.work.ExistingWorkPolicy.KEEP,
+                        request
+                    )
+                }
+            } catch (we: Exception) {
+                Log.w(TAG, "Failed to enqueue SubmitPendingWorker", we)
+            }
+
+            Result.failure(IllegalStateException("NetworkUnavailable"))
         } catch (e: Exception) {
             Log.e(TAG, "Failed to submit game play", e)
             Result.failure(e)
@@ -294,11 +332,72 @@ class CompetitionRepository @Inject constructor(
      */
     suspend fun syncPendingGamePlays(): Result<Int> = withContext(Dispatchers.IO) {
         try {
-            val pendingFlow = gamePlayDao.getPendingSyncGamePlays()
-            var synced = 0
-            
-            // Note: In real implementation, collect from Flow and sync each
             Log.d(TAG, "Syncing pending game plays")
+            val pending = try { gamePlayDao.getPendingSyncGamePlays().first() } catch (e: Exception) {
+                Log.e(TAG, "Failed to load pending game plays from DB", e)
+                return@withContext Result.failure(e)
+            }
+
+            var synced = 0
+
+            for (play in pending) {
+                try {
+                    val userToken = authManager.currentAccessToken
+                    if (userToken == null) {
+                        Log.w(TAG, "No user token available while syncing pending plays")
+                        continue
+                    }
+
+                    val authHeader: String
+                    try {
+                        authHeader = deviceAuthManager.getAuthorizationHeader(userToken, requireDeviceToken = true)
+                    } catch (ise: IllegalStateException) {
+                        Log.w(TAG, "Device token not available for pending play ${play.id}")
+                        continue
+                    }
+
+                    val playTime = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).format(play.playTime)
+
+                    val response = api.addGamePlay(
+                        AddGamePlayRequest(
+                            game_type = play.competitionId.toString(),
+                            game_ver = "1.0.0",
+                            player_mobile = play.playerMobile ?: "",
+                            player_nickname = play.playerNickname,
+                            score = play.score,
+                            detail = play.detail,
+                            play_time = playTime,
+                            is_public = play.isPublic,
+                            namespace = play.namespace
+                        ),
+                        authHeader = authHeader
+                    )
+
+                    val updated = play.copy(
+                        playUuid = response.data?.playUUID,
+                        submittedAt = Date(),
+                        updatedAt = Date()
+                    )
+                    gamePlayDao.updateGamePlay(updated)
+                    synced++
+                } catch (e: retrofit2.HttpException) {
+                    Log.e(TAG, "HTTP error syncing pending play ${play.id}: ${e.code()}", e)
+                    if (e.code() == 401) {
+                        Log.w(TAG, "Auth error while syncing pending plays (HTTP 401)")
+                        authManager.logout()
+                        return@withContext Result.failure(Exception("401"))
+                    }
+                    // For other HTTP errors, leave the item pending and continue
+                } catch (e: IOException) {
+                    Log.w(TAG, "Network error while syncing pending play ${play.id}", e)
+                    // Network problem: abort sync attempt and retry later
+                    return@withContext Result.failure(IllegalStateException("NetworkUnavailable"))
+                } catch (e: Exception) {
+                    Log.e(TAG, "Unexpected error while syncing pending play ${play.id}", e)
+                    // Continue with other items
+                }
+            }
+
             Result.success(synced)
         } catch (e: Exception) {
             Log.e(TAG, "Failed to sync pending game plays", e)

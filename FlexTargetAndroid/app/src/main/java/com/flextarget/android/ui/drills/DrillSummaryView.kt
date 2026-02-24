@@ -33,11 +33,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.window.Dialog
 import com.flextarget.android.R
 import com.flextarget.android.ui.theme.md_theme_dark_onPrimary
+import com.flextarget.android.ui.theme.AppButton
 import com.flextarget.android.data.local.entity.DrillSetupEntity
 import com.flextarget.android.data.model.DrillRepeatSummary
 import com.flextarget.android.data.model.ScoringUtility
 import com.flextarget.android.ui.theme.AppTypography
 import java.util.*
+import com.flextarget.android.di.AppContainer
+import com.flextarget.android.data.connectivity.ConnectivityObserver
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,6 +54,10 @@ fun DrillSummaryView(
     athleteName: String = "",
     onCompetitionSubmit: () -> Unit = {}
 ) {
+    // Observe connectivity and pending submissions from shared DrillViewModel (AppContainer)
+    val sharedVm = AppContainer.drillViewModel
+    val connectivity by sharedVm.connectivityStatus.collectAsState()
+    val pendingCount by sharedVm.pendingGamePlaysCount.collectAsState()
     val originalScores = remember { mutableStateMapOf<UUID, Int>() }
 
     // Initialize original scores on first composition
@@ -103,6 +110,61 @@ fun DrillSummaryView(
                 containerColor = Color.Black.copy(alpha = 0.95f)
             )
         )
+
+        // Offline / pending banner placed directly below the TopAppBar to avoid gaps
+        if (pendingCount > 0) {
+            val bannerText = if (connectivity == ConnectivityObserver.ConnectionStatus.Unavailable) {
+                "Saved offline — will sync when online"
+            } else {
+                "Pending submissions: $pendingCount"
+            }
+
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .zIndex(1f),
+                color = Color(0xFF222222)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp, horizontal = 12.dp)
+                ) {
+                    Text(
+                        text = bannerText,
+                        color = Color.White,
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+
+                    if (connectivity == ConnectivityObserver.ConnectionStatus.Available) {
+                        TextButton(
+                            onClick = {
+                                try {
+                                    val request = androidx.work.OneTimeWorkRequestBuilder<com.flextarget.android.data.repository.SubmitPendingWorker>()
+                                        .setConstraints(
+                                            androidx.work.Constraints.Builder()
+                                                .setRequiredNetworkType(androidx.work.NetworkType.CONNECTED)
+                                                .build()
+                                        )
+                                        .build()
+
+                                    AppContainer.workManagerInstance.enqueueUniqueWork(
+                                        "submit_pending_gameplays",
+                                        androidx.work.ExistingWorkPolicy.KEEP,
+                                        request
+                                    )
+                                } catch (e: Exception) {
+                                    android.util.Log.w("DrillSummaryView", "Failed to enqueue sync worker", e)
+                                }
+                            },
+                            modifier = Modifier.align(Alignment.CenterEnd)
+                        ) {
+                            Text(text = "Sync now", color = Color.Red)
+                        }
+                    }
+                }
+            }
+        }
 
         Column(
             modifier = Modifier
@@ -157,17 +219,12 @@ fun DrillSummaryView(
 //                                        }
 //                                    }
 //                                )
-                                // Competition Submit Footer
-                                if (isCompetitionDrill && summaries.isNotEmpty() && !isCQBMode) {
-                                    CompetitionSubmitFooter(
-                                        onReplay = {
-                                            summaries.lastOrNull()?.let { summary ->
-                                                onReplay(summary)
+                                            // Competition Submit Footer (submit only for competition)
+                                            if (isCompetitionDrill && summaries.isNotEmpty() && !isCQBMode) {
+                                                CompetitionSubmitFooter(
+                                                    onSubmit = onCompetitionSubmit
+                                                )
                                             }
-                                        },
-                                        onSubmit = onCompetitionSubmit
-                                    )
-                                }
                             }
                         }
                     }
@@ -807,7 +864,6 @@ private fun PlayReplayButton(
 
 @Composable
 private fun CompetitionSubmitFooter(
-    onReplay: () -> Unit,
     onSubmit: () -> Unit
 ) {
     Row(
@@ -815,44 +871,14 @@ private fun CompetitionSubmitFooter(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 12.dp)
             .background(Color.Black),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalArrangement = Arrangement.Center
     ) {
-        Button(
-            onClick = onReplay,
-            modifier = Modifier
-                .weight(1f)
-                .height(48.dp)
-                .shadow(8.dp, RoundedCornerShape(12.dp), ambientColor = Color.Blue.copy(alpha = 0.3f)),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Red,
-                contentColor = Color.White
-            ),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.PlayArrow,
-                contentDescription = null,
-                modifier = Modifier.size(20.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                stringResource(R.string.replay_drill),
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 14.sp
-            )
-        }
-
-        Button(
+        AppButton(
             onClick = onSubmit,
             modifier = Modifier
-                .weight(1f)
+                .fillMaxWidth()
                 .height(48.dp)
-                .shadow(8.dp, RoundedCornerShape(12.dp), ambientColor = Color.Blue.copy(alpha = 0.3f)),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Blue,
-                contentColor = Color.White
-            ),
-            shape = RoundedCornerShape(12.dp)
+                .shadow(8.dp, RoundedCornerShape(12.dp), ambientColor = Color.Blue.copy(alpha = 0.3f))
         ) {
             Icon(Icons.Default.Upload, contentDescription = null, modifier = Modifier.size(20.dp))
             Spacer(modifier = Modifier.width(8.dp))

@@ -6,6 +6,9 @@ import com.flextarget.android.data.local.entity.DrillSetupEntity
 import com.flextarget.android.data.repository.DrillExecutionContext
 import com.flextarget.android.data.repository.DrillExecutionState
 import com.flextarget.android.data.repository.DrillRepository
+import com.flextarget.android.data.repository.CompetitionRepository
+import com.flextarget.android.data.connectivity.ConnectivityObserver
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -37,7 +40,9 @@ data class DrillUiState(
  * - Display execution progress and results
  */
 class DrillViewModel(
-    private val drillRepository: DrillRepository
+    private val drillRepository: DrillRepository,
+    private val competitionRepository: CompetitionRepository,
+    private val connectivityObserver: ConnectivityObserver
 ) : ViewModel() {
     
     /**
@@ -61,6 +66,27 @@ class DrillViewModel(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = null
+        )
+
+    /**
+     * Connectivity status observed from the platform-level observer
+     */
+    val connectivityStatus = connectivityObserver.observe()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = ConnectivityObserver.ConnectionStatus.Available
+        )
+
+    /**
+     * Number of pending (not yet synced) game plays
+     */
+    val pendingGamePlaysCount = competitionRepository.getPendingGamePlays()
+        .map { it.size }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = 0
         )
     
     /**

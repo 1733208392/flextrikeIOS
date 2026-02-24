@@ -18,8 +18,24 @@ val digitalDreamFontFamily = FontFamily(
 
 val AppTypography = Typography().run {
     copy(
-        labelSmall = this.labelSmall.copy(fontFamily = ttNormFontFamily),
+        displayLarge = this.displayLarge.copy(fontFamily = ttNormFontFamily),
+        displayMedium = this.displayMedium.copy(fontFamily = ttNormFontFamily),
+        displaySmall = this.displaySmall.copy(fontFamily = ttNormFontFamily),
+
+        headlineLarge = this.headlineLarge.copy(fontFamily = ttNormFontFamily),
+        headlineMedium = this.headlineMedium.copy(fontFamily = ttNormFontFamily),
+        headlineSmall = this.headlineSmall.copy(fontFamily = ttNormFontFamily),
+
+        titleLarge = this.titleLarge.copy(fontFamily = ttNormFontFamily),
+        titleMedium = this.titleMedium.copy(fontFamily = ttNormFontFamily),
+        titleSmall = this.titleSmall.copy(fontFamily = ttNormFontFamily),
+
         bodyLarge = this.bodyLarge.copy(fontFamily = ttNormFontFamily),
-        titleLarge = this.titleLarge.copy(fontFamily = ttNormFontFamily)
+        bodyMedium = this.bodyMedium.copy(fontFamily = ttNormFontFamily),
+        bodySmall = this.bodySmall.copy(fontFamily = ttNormFontFamily),
+
+        labelLarge = this.labelLarge.copy(fontFamily = ttNormFontFamily),
+        labelMedium = this.labelMedium.copy(fontFamily = ttNormFontFamily),
+        labelSmall = this.labelSmall.copy(fontFamily = ttNormFontFamily)
     )
 }

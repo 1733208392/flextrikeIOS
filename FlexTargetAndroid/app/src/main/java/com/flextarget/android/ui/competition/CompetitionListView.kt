@@ -29,10 +29,12 @@ import com.flextarget.android.data.local.entity.DrillSetupEntity
 import com.flextarget.android.ui.viewmodel.CompetitionViewModel
 import com.flextarget.android.ui.viewmodel.DrillViewModel
 import com.flextarget.android.ui.theme.md_theme_dark_onPrimary
+import com.flextarget.android.ui.theme.ttNormFontFamily
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.compose.ui.res.stringResource
 import com.flextarget.android.R
+import com.flextarget.android.ui.theme.md_theme_dark_primary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -260,28 +262,32 @@ fun AddCompetitionDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.new_competition), color = Color.White) },
+        title = { Text(stringResource(R.string.new_competition), style = MaterialTheme.typography.titleLarge.copy(fontFamily = ttNormFontFamily, color = md_theme_dark_onPrimary)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 TextField(
                     value = name.value,
                     onValueChange = { name.value = it },
-                    label = { Text(stringResource(R.string.competition_name)) },
+                    label = { Text(stringResource(R.string.competition_name), style = MaterialTheme.typography.bodyMedium.copy(fontFamily = ttNormFontFamily, color = md_theme_dark_onPrimary)) },
                     modifier = Modifier.fillMaxWidth()
+                    ,
+                    textStyle = MaterialTheme.typography.bodyMedium.copy(fontFamily = ttNormFontFamily, color = md_theme_dark_onPrimary)
                 )
                 TextField(
                     value = venue.value,
                     onValueChange = { venue.value = it },
-                    label = { Text(stringResource(R.string.venue_optional)) },
+                    label = { Text(stringResource(R.string.venue_optional), style = MaterialTheme.typography.bodyMedium.copy(fontFamily = ttNormFontFamily, color = md_theme_dark_onPrimary)) },
                     modifier = Modifier.fillMaxWidth()
+                    ,
+                    textStyle = MaterialTheme.typography.bodyMedium.copy(fontFamily = ttNormFontFamily, color = md_theme_dark_onPrimary)
                 )
-                
+
                 // Drill Selector
                 OutlinedCard(
                     onClick = { showDrillPicker = true },
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.outlinedCardColors(
-                        containerColor = Color.White.copy(alpha = 0.05f)
+                        containerColor = md_theme_dark_primary
                     )
                 ) {
                     Row(
@@ -290,35 +296,51 @@ fun AddCompetitionDialog(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = selectedDrill.value?.name ?: stringResource(R.string.select_drill_setup),
-                            color = if (selectedDrill.value != null) Color.White else Color.Gray
+                            text = selectedDrill.value?.name
+                                ?: stringResource(R.string.select_drill_setup),
+                            style = MaterialTheme.typography.bodyMedium.copy(fontFamily = ttNormFontFamily, color = md_theme_dark_onPrimary)
                         )
-                        Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = Color.Red)
+                        Icon(
+                            Icons.Default.ArrowDropDown,
+                            contentDescription = null,
+                            tint = md_theme_dark_onPrimary
+                        )
                     }
                 }
 
                 Text(
-                    text = stringResource(R.string.date_label) + SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(date.value),
-                    color = Color.Gray,
+                    text = stringResource(R.string.date_label) + SimpleDateFormat(
+                        "MMM dd, yyyy",
+                        Locale.getDefault()
+                    ).format(date.value),
+                    style = MaterialTheme.typography.bodySmall.copy(fontFamily = ttNormFontFamily, color = md_theme_dark_onPrimary),
                     modifier = Modifier.padding(top = 8.dp)
                 )
             }
         },
         confirmButton = {
             Button(
-                onClick = { onConfirm(name.value, venue.value, date.value, selectedDrill.value?.id) },
+                onClick = {
+                    onConfirm(
+                        name.value,
+                        venue.value,
+                        date.value,
+                        selectedDrill.value?.id
+                    )
+                },
                 enabled = name.value.isNotEmpty() && selectedDrill.value != null,
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                colors = ButtonDefaults.buttonColors(containerColor = md_theme_dark_onPrimary, contentColor = md_theme_dark_primary)
             ) {
-                Text(stringResource(R.string.create))
+                Text(stringResource(R.string.create), style = MaterialTheme.typography.labelLarge.copy(fontFamily = ttNormFontFamily, color = md_theme_dark_primary))
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.cancel), color = Color.Red)
+            TextButton(onClick = onDismiss, colors = ButtonDefaults.buttonColors(containerColor = md_theme_dark_onPrimary, contentColor = md_theme_dark_primary)) {
+                Text(stringResource(R.string.cancel), style = MaterialTheme.typography.labelLarge.copy(fontFamily = ttNormFontFamily, color = md_theme_dark_primary))
             }
         },
-        containerColor = Color.DarkGray
+        containerColor = md_theme_dark_primary
+
     )
 
     if (showDrillPicker) {
@@ -343,14 +365,14 @@ fun DrillPickerDialog(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(0.7f),
+                .fillMaxHeight(0.5f),
             shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.DarkGray)
+            colors = CardDefaults.cardColors(containerColor = md_theme_dark_primary)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
                 text = stringResource(R.string.select_drill_setup).uppercase(),
-                color = md_theme_dark_onPrimary,
+                style = MaterialTheme.typography.titleMedium.copy(fontFamily = ttNormFontFamily, color = md_theme_dark_onPrimary),
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
@@ -365,7 +387,7 @@ fun DrillPickerDialog(
                         ) {
                             Text(
                                 text = drill.name ?: stringResource(R.string.untitled),
-                                color = Color.White,
+                                style = MaterialTheme.typography.bodyMedium.copy(fontFamily = ttNormFontFamily, color = md_theme_dark_onPrimary),
                                 modifier = Modifier.padding(start = 12.dp)
                             )
                         }
@@ -378,9 +400,10 @@ fun DrillPickerDialog(
 
                 TextButton(
                     onClick = onDismiss,
-                    modifier = Modifier.align(Alignment.End)
+                    modifier = Modifier.align(Alignment.End),
+                    colors = ButtonDefaults.buttonColors(containerColor = md_theme_dark_onPrimary, contentColor = md_theme_dark_primary)
                 ) {
-                    Text(stringResource(R.string.cancel), color = Color.Red)
+                    Text(stringResource(R.string.cancel), style = MaterialTheme.typography.labelLarge.copy(fontFamily = ttNormFontFamily, color = md_theme_dark_primary))
                 }
             }
         }

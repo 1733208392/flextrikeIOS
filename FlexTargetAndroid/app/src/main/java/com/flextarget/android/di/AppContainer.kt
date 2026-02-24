@@ -110,8 +110,19 @@ object AppContainer {
     val flexTargetAPI: FlexTargetAPI
         get() = flexTargetAPIInstance
 
+    val competitionRepository: com.flextarget.android.data.repository.CompetitionRepository
+        get() = competitionRepositoryInstance
+
+    // Connectivity observer
+    private val connectivityObserver by lazy { 
+        com.flextarget.android.data.connectivity.ConnectivityObserverImpl(applicationContext)
+    }
+
     // WorkManager
     private val workManager by lazy { WorkManager.getInstance(applicationContext) }
+
+    val workManagerInstance: WorkManager
+        get() = workManager
 
     // Repositories
     private val bleRepository by lazy { BLERepository(shotDao) }
@@ -119,13 +130,14 @@ object AppContainer {
     private val drillRepository by lazy {
         DrillRepository(drillSetupDao, drillResultDao, bleRepository, bleMessageQueue)
     }
-    private val competitionRepository by lazy {
+    private val competitionRepositoryInstance by lazy {
         CompetitionRepository(
             api = flexTargetAPIInstance,
             competitionDao = competitionDao,
             gamePlayDao = gamePlayDao,
             authManager = authManagerInstance,
-            deviceAuthManager = deviceAuthManager
+            deviceAuthManager = deviceAuthManager,
+            workManager = workManager
         )
     }
     private val otaRepository by lazy {
@@ -144,7 +156,7 @@ object AppContainer {
     }
 
     val drillViewModel by lazy {
-        DrillViewModel(drillRepository)
+        DrillViewModel(drillRepository, competitionRepositoryInstance, connectivityObserver)
     }
 
     val bleViewModel by lazy {
