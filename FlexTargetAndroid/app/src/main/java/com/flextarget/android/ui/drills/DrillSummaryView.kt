@@ -112,7 +112,8 @@ fun DrillSummaryView(
         )
 
         // Offline / pending banner placed directly below the TopAppBar to avoid gaps
-        if (pendingCount > 0) {
+        // Only show pending/submission banner for competition drills (not for local-only drills)
+        if (pendingCount > 0 && isCompetitionDrill) {
             val bannerText = if (connectivity == ConnectivityObserver.ConnectionStatus.Unavailable) {
                 "Saved offline — will sync when online"
             } else {
