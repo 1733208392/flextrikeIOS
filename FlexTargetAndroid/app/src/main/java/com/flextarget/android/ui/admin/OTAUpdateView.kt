@@ -88,7 +88,7 @@ fun OTAUpdateView(
             .background(Color.Black)
     ) {
         // TopAppBar with back arrow and title
-        TopAppBar(
+        CenterAlignedTopAppBar(
             title = {
                 Text(
                     "OTA",

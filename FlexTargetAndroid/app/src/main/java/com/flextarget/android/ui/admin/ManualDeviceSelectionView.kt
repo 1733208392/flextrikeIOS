@@ -39,14 +39,14 @@ fun ManualDeviceSelectionView(
             .fillMaxSize()
             .background(Color.Black)
     ) {
-        TopAppBar(
-            title = { Text(stringResource(R.string.available_devices), color = Color.White) },
+        CenterAlignedTopAppBar(
+            title = { Text(stringResource(R.string.available_devices), color = md_theme_dark_onPrimary) },
             navigationIcon = {
                 IconButton(onClick = {
                     bleManager.stopScan()
                     onBack()
                 }) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.Red)
+                    Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = md_theme_dark_onPrimary)
                 }
             },
             actions = {
@@ -62,13 +62,11 @@ fun ManualDeviceSelectionView(
                     Icon(
                         imageVector = Icons.Default.Refresh,
                         contentDescription = "Scan",
-                        tint = Color.Red
-                    )
+                        tint = md_theme_dark_onPrimary)
                 }
             },
             colors = TopAppBarDefaults.topAppBarColors(
                 containerColor = Color.Black,
-                titleContentColor = Color.White
             )
         )
 
@@ -98,7 +96,7 @@ fun ManualDeviceSelectionView(
                         colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
                         shape = RoundedCornerShape(8.dp)
                     ) {
-                        Text(stringResource(R.string.scan_again), color = Color.White)
+                        Text(stringResource(R.string.scan_again))
                     }
                 }
             }
@@ -153,7 +151,7 @@ private fun DeviceListItem(
             Icon(
                 imageVector = Icons.Default.Smartphone,
                 contentDescription = null,
-                tint = Color.Red,
+                tint = md_theme_dark_onPrimary,
                 modifier = Modifier.size(40.dp)
             )
 
@@ -162,10 +160,10 @@ private fun DeviceListItem(
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Text(
-                    text = name.uppercase(),
+                    text = name.replace("GR-WOLF ET", "").trim().uppercase(),
                     color = md_theme_dark_onPrimary,
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
+                    style = MaterialTheme.typography.bodyLarge,
+                    // fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = address,

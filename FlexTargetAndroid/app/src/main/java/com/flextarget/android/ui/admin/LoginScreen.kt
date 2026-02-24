@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import com.flextarget.android.ui.viewmodel.AuthViewModel
 import androidx.compose.ui.res.stringResource
 import com.flextarget.android.R
+import com.flextarget.android.ui.theme.AppButton
 
 /**
  * Login Screen
@@ -193,7 +194,7 @@ fun LoginScreen(
         }
         
         // Login button
-        Button(
+        AppButton(
             onClick = {
                 authViewModel.login(mobile, password)
             },
@@ -201,11 +202,6 @@ fun LoginScreen(
                 .fillMaxWidth()
                 .height(56.dp)
                 .padding(bottom = 8.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = customRed,
-                disabledContainerColor = customRed.copy(alpha = 0.5f)
-            ),
-            shape = RoundedCornerShape(8.dp),
             enabled = mobile.isNotEmpty() && password.isNotEmpty() && !authUiState.isLoading
         ) {
             if (authUiState.isLoading) {
@@ -216,9 +212,8 @@ fun LoginScreen(
                 )
             } else {
                 Text(
-                    stringResource(R.string.login_button),
+                    stringResource(R.string.login_button).uppercase(),
                     style = MaterialTheme.typography.labelLarge,
-                    color = Color.White,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -245,7 +240,7 @@ fun LoginScreen(
                 enabled = !authUiState.isLoading
             ) {
                 Text(
-                    stringResource(R.string.login_forgot_password),
+                    stringResource(R.string.login_forgot_password).uppercase(),
                     style = MaterialTheme.typography.labelSmall,
                     color = customRed
                 )
@@ -265,20 +260,13 @@ fun LoginScreen(
                 enabled = !authUiState.isLoading
             ) {
                 Text(
-                    stringResource(R.string.login_register_button),
+                    stringResource(R.string.login_register_button).uppercase(),
                     style = MaterialTheme.typography.labelSmall,
                     color = customRed
                 )
             }
         }
-        
-        // Additional info
-        Spacer(modifier = Modifier.height(32.dp))
-        Text(
-            text = stringResource(R.string.login_subtitle),
-            style = MaterialTheme.typography.bodySmall,
-            color = Color.Gray
-        )
+
         }
     }
 }

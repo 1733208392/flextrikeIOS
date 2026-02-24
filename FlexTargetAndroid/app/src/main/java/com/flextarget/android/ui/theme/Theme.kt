@@ -6,6 +6,10 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Text
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarColors
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -18,6 +22,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 
 val LocalCursorColor = staticCompositionLocalOf<Color> { md_theme_dark_onPrimary }
+val LocalTopAppBarColors = staticCompositionLocalOf<TopAppBarColors> {
+    error("TopAppBarColors not provided")
+}
 
 @Composable
 fun FlexTargetTheme(
@@ -41,9 +48,16 @@ fun FlexTargetTheme(
         colorScheme = colors,
         typography = AppTypography,
         content = {
+            val appTopAppBarColors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                containerColor = md_theme_dark_primary,
+                titleContentColor = md_theme_dark_onPrimary,
+                navigationIconContentColor = md_theme_dark_onPrimary,
+                actionIconContentColor = md_theme_dark_onPrimary
+            )
             CompositionLocalProvider(
                 LocalAppButtonColors provides appButtonColors,
                 LocalCursorColor provides md_theme_dark_onPrimary,
+                LocalTopAppBarColors provides appTopAppBarColors,
                 androidx.compose.foundation.text.selection.LocalTextSelectionColors provides TextSelectionColors(
                     handleColor = md_theme_dark_onPrimary,
                     backgroundColor = md_theme_dark_onPrimary.copy(alpha = 0.4f)
@@ -118,4 +132,20 @@ fun AppButton(
             )
         )
     }
+}
+
+@Composable
+fun AppCenterAlignedTopAppBar(
+    title: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
+    navigationIcon: @Composable () -> Unit = {},
+    actions: @Composable RowScope.() -> Unit = {}
+) {
+    CenterAlignedTopAppBar(
+        title = title,
+        modifier = modifier,
+        navigationIcon = navigationIcon,
+        actions = actions,
+        colors = LocalTopAppBarColors.current
+    )
 }
