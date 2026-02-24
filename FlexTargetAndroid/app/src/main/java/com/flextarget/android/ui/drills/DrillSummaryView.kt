@@ -198,7 +198,7 @@ fun DrillSummaryView(
                             Column {
                                 SummaryCard(
                                     title = "Repeat ${summary.repeatIndex}",
-                                    subtitle = "Factor: ${String.format("%.1f", calculateFactor(summary.score, summary.totalTime))}",
+                                    subtitle = "",
                                     metrics = getMetricsForSummary(summary, drillSetup),
                                     summaryIndex = index,
                                     onDeductScore = { deductScore(summaries, index, originalScores) },
@@ -490,19 +490,21 @@ private fun SummaryCard(
                         )
                     }
 
-                    Column {
-                        Text(
-                            text = title,
-                            style = MaterialTheme.typography.titleMedium,
-                            color = Color.White,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Text(
-                            text = subtitle,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.White.copy(alpha = 0.7f)
-                        )
-                    }
+                        Column {
+                            Text(
+                                text = title,
+                                style = MaterialTheme.typography.titleMedium,
+                                color = Color.White,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            if (subtitle.isNotBlank()) {
+                                Text(
+                                    text = subtitle,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = Color.White.copy(alpha = 0.7f)
+                                )
+                            }
+                        }
                 }
             }
 
