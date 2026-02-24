@@ -227,19 +227,19 @@ fun TimerSessionView(
                             gracePeriodRemaining = maxOf(0.0, gracePeriodRemaining - 0.05)
                             if (gracePeriodRemaining <= 0) {
                                 println("[TimerSessionView] Grace period ended, collecting summary and checking for more repeats")
-                                
-                                // CRITICAL: Wait for finalizeRepeat to complete before proceeding
-                                if (executionManager?.isCurrentRepeatFinalized() == true) {
-                                    gracePeriodActive = false
 
-                                    // Collect the summary from the just-completed repeat
-                                    executionManager?.summaries?.let { summaries ->
-                                        val completedSummary = summaries.getOrNull(currentRepeat - 1)
-                                        if (completedSummary != null) {
-                                            accumulatedSummaries = accumulatedSummaries + listOf(completedSummary)
-                                            println("[TimerSessionView] Collected repeat ${completedSummary.repeatIndex} summary, total collected: ${accumulatedSummaries.size}")
-                                        }
-                                    }
+                                // Wait until a summary for the current repeat actually exists.
+                                // Calling completeDrill() before finalizeRepeat() has produced a summary
+                                // results in 0 summaries being returned. If the summary isn't ready,
+                                // extend the grace period briefly and retry.
+                                val completedSummary = executionManager?.summaries?.getOrNull(currentRepeat - 1)
+                                if (completedSummary == null) {
+                                    // Still finalizing, extend grace period and retry shortly
+                                    gracePeriodRemaining = 0.1
+                                } else {
+                                    gracePeriodActive = false
+                                    accumulatedSummaries = accumulatedSummaries + listOf(completedSummary)
+                                    println("[TimerSessionView] Collected repeat ${completedSummary.repeatIndex} summary, total collected: ${accumulatedSummaries.size}")
 
                                     // Check if drill was ended early or all repeats are complete
                                     if (drillEndedEarly || currentRepeat >= totalRepeats) {
@@ -263,9 +263,6 @@ fun TimerSessionView(
                                         executionManager?.setCurrentRepeat(currentRepeat)
                                         executionManager?.performReadinessCheck()
                                     }
-                                } else {
-                                    // Still finalizing, extend grace period by small amount
-                                    gracePeriodRemaining = 0.1
                                 }
                             }
                         }
