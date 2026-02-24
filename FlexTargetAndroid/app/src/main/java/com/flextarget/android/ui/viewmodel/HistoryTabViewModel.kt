@@ -46,8 +46,9 @@ class HistoryTabViewModel(
     private fun loadData() {
         viewModelScope.launch {
             try {
-                // Load all drill results with shots
+                // Load all drill results with shots, but exclude competition-associated results
                 val allResults = drillResultRepository.allDrillResultsWithShots.first()
+                    .filter { it.drillResult.competitionId == null }
 
                 // Group by session ID and create sessions
                 val sessionGroups = mutableMapOf<String, MutableList<com.flextarget.android.data.local.entity.DrillResultWithShots>>()
