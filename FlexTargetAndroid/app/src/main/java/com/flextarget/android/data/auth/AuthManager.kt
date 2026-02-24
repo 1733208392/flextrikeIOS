@@ -389,6 +389,22 @@ class AuthManager @Inject constructor(
             logout()
         }
     }
+
+    /**
+     * Request an immediate token refresh and wait for the result.
+     * Returns true if refresh succeeded, false otherwise.
+     */
+    suspend fun requestImmediateTokenRefresh(): Boolean = withContext(Dispatchers.IO) {
+        val refreshToken = _currentUser.value?.refreshToken ?: return@withContext false
+
+        try {
+            tokenRefreshQueue?.refreshNow(refreshToken)
+            return@withContext true
+        } catch (e: Exception) {
+            Log.e(TAG, "Immediate token refresh failed: ${e.message}", e)
+            return@withContext false
+        }
+    }
     
     /**
      * Edit user profile (username)

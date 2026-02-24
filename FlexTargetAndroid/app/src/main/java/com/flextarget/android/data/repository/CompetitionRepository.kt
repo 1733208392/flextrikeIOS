@@ -151,13 +151,15 @@ class CompetitionRepository @Inject constructor(
         playerNickname: String? = null,
         isPublic: Boolean = false
     ): Result<String> = withContext(Dispatchers.IO) {
+        // Declare localGamePlay outside try so retry/catch branches can access it
+        var localGamePlay: GamePlayEntity? = null
         try {
             val userToken = authManager.currentAccessToken
                 ?: return@withContext Result.failure(IllegalStateException("Not authenticated"))
 
             // Always create and persist a local GamePlay record so results are not lost
             // if network submission fails. submittedAt == null indicates pending sync.
-            val localGamePlay = GamePlayEntity(
+            localGamePlay = GamePlayEntity(
                 competitionId = competitionId,
                 drillSetupId = drillSetupId,
                 score = score,
@@ -177,7 +179,33 @@ class CompetitionRepository @Inject constructor(
             val playTime = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).format(Date())
 
             // Build auth header: requires both user and device tokens
-            val authHeader = deviceAuthManager.getAuthorizationHeader(userToken, requireDeviceToken = true)
+            val authHeader = try {
+                deviceAuthManager.getAuthorizationHeader(userToken, requireDeviceToken = true)
+            } catch (ise: IllegalStateException) {
+                Log.e(TAG, "Device token required but not available: ${ise.message}")
+                // Leave local record pending and schedule background sync
+                try {
+                    workManager?.let { wm ->
+                        val request = androidx.work.OneTimeWorkRequestBuilder<SubmitPendingWorker>()
+                            .setConstraints(
+                                androidx.work.Constraints.Builder()
+                                    .setRequiredNetworkType(androidx.work.NetworkType.CONNECTED)
+                                    .build()
+                            )
+                            .build()
+
+                        wm.enqueueUniqueWork(
+                            "submit_pending_gameplays",
+                            androidx.work.ExistingWorkPolicy.KEEP,
+                            request
+                        )
+                    }
+                } catch (we: Exception) {
+                    Log.w(TAG, "Failed to enqueue SubmitPendingWorker when device token missing", we)
+                }
+
+                return@withContext Result.failure(ise)
+            }
 
             // Call API to submit result
             val response = api.addGamePlay(
@@ -209,7 +237,53 @@ class CompetitionRepository @Inject constructor(
             // Handle HTTP exceptions (e.g., 401 Unauthorized)
             Log.e(TAG, "HTTP exception during game play submission: ${e.code()} ${e.message}", e)
             if (e.code() == 401) {
-                Log.w(TAG, "Token expired during game play submission (HTTP 401)")
+                Log.w(TAG, "Token expired during game play submission (HTTP 401) - attempting immediate refresh")
+                val refreshed = try {
+                    authManager.requestImmediateTokenRefresh()
+                } catch (re: Exception) {
+                    false
+                }
+
+                if (refreshed) {
+                    // Retry the submission once with new token
+                    try {
+                        val newUserToken = authManager.currentAccessToken
+                            ?: return@withContext Result.failure(IllegalStateException("Not authenticated after refresh"))
+
+                        val authHeaderRetry = deviceAuthManager.getAuthorizationHeader(newUserToken, requireDeviceToken = true)
+
+                        val retryResponse = api.addGamePlay(
+                            AddGamePlayRequest(
+                                game_type = competitionId.toString(),
+                                game_ver = "1.0.0",
+                                player_mobile = authManager.currentUser.value?.mobile ?: "",
+                                player_nickname = playerNickname,
+                                score = score,
+                                detail = detail,
+                                play_time = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).format(Date()),
+                                is_public = isPublic,
+                                namespace = "default"
+                            ),
+                            authHeader = authHeaderRetry
+                        )
+
+                        val baseLocal = localGamePlay ?: return@withContext Result.failure(IllegalStateException("Local gameplay missing"))
+                        val updatedGamePlay = baseLocal.copy(
+                            playUuid = retryResponse.data?.playUUID,
+                            submittedAt = Date(),
+                            updatedAt = Date()
+                        )
+                        gamePlayDao.updateGamePlay(updatedGamePlay)
+                        Log.d(TAG, "Game play submitted after refresh: ${retryResponse.data?.playUUID}")
+                        return@withContext Result.success(retryResponse.data?.playUUID ?: updatedGamePlay.id.toString())
+                    } catch (e2: Exception) {
+                        Log.e(TAG, "Retry after refresh failed", e2)
+                        authManager.logout()
+                        return@withContext Result.failure(Exception("401"))
+                    }
+                }
+
+                // Refresh failed - force logout
                 authManager.logout()
                 return@withContext Result.failure(Exception("401"))
             }
@@ -383,7 +457,51 @@ class CompetitionRepository @Inject constructor(
                 } catch (e: retrofit2.HttpException) {
                     Log.e(TAG, "HTTP error syncing pending play ${play.id}: ${e.code()}", e)
                     if (e.code() == 401) {
-                        Log.w(TAG, "Auth error while syncing pending plays (HTTP 401)")
+                        Log.w(TAG, "Auth error while syncing pending plays (HTTP 401) - attempting immediate refresh")
+                        val refreshed = try { authManager.requestImmediateTokenRefresh() } catch (re: Exception) { false }
+                        if (refreshed) {
+                            try {
+                                val newUserToken = authManager.currentAccessToken ?: continue
+                                val authHeader = try {
+                                    deviceAuthManager.getAuthorizationHeader(newUserToken, requireDeviceToken = true)
+                                } catch (ise: IllegalStateException) {
+                                    Log.w(TAG, "Device token not available for pending play ${play.id} after refresh")
+                                    continue
+                                }
+
+                                val playTime = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).format(play.playTime)
+
+                                val retryResp = api.addGamePlay(
+                                    AddGamePlayRequest(
+                                        game_type = play.competitionId.toString(),
+                                        game_ver = "1.0.0",
+                                        player_mobile = play.playerMobile ?: "",
+                                        player_nickname = play.playerNickname,
+                                        score = play.score,
+                                        detail = play.detail,
+                                        play_time = playTime,
+                                        is_public = play.isPublic,
+                                        namespace = play.namespace
+                                    ),
+                                    authHeader = authHeader
+                                )
+
+                                val updated = play.copy(
+                                    playUuid = retryResp.data?.playUUID,
+                                    submittedAt = Date(),
+                                    updatedAt = Date()
+                                )
+                                gamePlayDao.updateGamePlay(updated)
+                                synced++
+                                continue
+                            } catch (e2: Exception) {
+                                Log.e(TAG, "Retry after refresh failed for pending play ${play.id}", e2)
+                                authManager.logout()
+                                return@withContext Result.failure(Exception("401"))
+                            }
+                        }
+
+                        // Refresh failed - logout and abort
                         authManager.logout()
                         return@withContext Result.failure(Exception("401"))
                     }

@@ -35,9 +35,11 @@ object AppContainer {
         }
     }
 
-    private val okHttpClient by lazy {
+    private val okHttpClient: okhttp3.OkHttpClient by lazy {
         OkHttpClient.Builder()
             .addInterceptor(loggingInterceptor)
+            // Add auth interceptor (resolved at runtime from AppContainer)
+            .addInterceptor(com.flextarget.android.data.remote.interceptor.AuthInterceptor())
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)
@@ -92,7 +94,7 @@ object AppContainer {
             userApiService = flexTargetAPIInstance
         )
     }
-    private val deviceAuthManager by lazy { 
+    private val deviceAuthManagerInstance by lazy {
         DeviceAuthManager(
             preferences = appPreferences,
             userApiService = flexTargetAPIInstance,
@@ -106,6 +108,9 @@ object AppContainer {
     
     val authManager: AuthManager
         get() = authManagerInstance
+
+    val deviceAuthManager: DeviceAuthManager
+        get() = deviceAuthManagerInstance
     
     val flexTargetAPI: FlexTargetAPI
         get() = flexTargetAPIInstance
@@ -136,7 +141,7 @@ object AppContainer {
             competitionDao = competitionDao,
             gamePlayDao = gamePlayDao,
             authManager = authManagerInstance,
-            deviceAuthManager = deviceAuthManager,
+            deviceAuthManager = deviceAuthManagerInstance,
             workManager = workManager
         )
     }
@@ -160,7 +165,7 @@ object AppContainer {
     }
 
     val bleViewModel by lazy {
-        BLEViewModel(bleRepository, deviceAuthManager)
+        BLEViewModel(bleRepository, deviceAuthManagerInstance)
     }
 
     val competitionViewModel by lazy {
@@ -173,5 +178,18 @@ object AppContainer {
 
     fun initialize(context: Context) {
         applicationContext = context.applicationContext
+        // Eagerly initialize auth components and link TokenRefreshQueue <-> AuthManager
+        try {
+            // Force creation of singletons
+            val _queue = tokenRefreshQueue
+            val _auth = authManagerInstance
+
+            // Provide back-reference so TokenRefreshQueue can call AuthManager when performing refresh
+            _queue.setAuthManager(_auth)
+            // Ensure AuthManager has a reference to the queue as well
+            _auth.setTokenRefreshQueue(_queue)
+        } catch (e: Exception) {
+            // Ignore initialization wiring errors; they will surface later if critical
+        }
     }
 }

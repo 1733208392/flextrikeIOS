@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -100,9 +101,7 @@ class AppPreferences(context: Context) {
         sharedPreferences.edit().apply {
             putString(KEY_DEVICE_UUID, deviceUUID)
             putString(KEY_DEVICE_TOKEN, deviceToken)
-            if (expirationMillis != null) {
-                putLong(KEY_DEVICE_TOKEN_EXPIRATION, expirationMillis)
-            }
+            // Do not persist expiration; server decides token validity. Keep only UUID and token.
             apply()
         }
     }
@@ -110,17 +109,7 @@ class AppPreferences(context: Context) {
     suspend fun getDeviceToken(): Pair<String?, String?> = withContext(Dispatchers.IO) {
         val deviceUUID = sharedPreferences.getString(KEY_DEVICE_UUID, null)
         val deviceToken = sharedPreferences.getString(KEY_DEVICE_TOKEN, null)
-        
-        // Check expiration
-        if (deviceToken != null && deviceUUID != null) {
-            val expiration = sharedPreferences.getLong(KEY_DEVICE_TOKEN_EXPIRATION, 0)
-            if (expiration > 0 && expiration < System.currentTimeMillis()) {
-                // Token expired
-                clearDeviceToken()
-                return@withContext Pair(null, null)
-            }
-        }
-        
+        // Do not check expiration here; server determines validity. Return whatever is persisted.
         Pair(deviceUUID, deviceToken)
     }
     
@@ -136,7 +125,6 @@ class AppPreferences(context: Context) {
         sharedPreferences.edit().apply {
             remove(KEY_DEVICE_UUID)
             remove(KEY_DEVICE_TOKEN)
-            remove(KEY_DEVICE_TOKEN_EXPIRATION)
             apply()
         }
     }
@@ -159,7 +147,7 @@ class AppPreferences(context: Context) {
         // Device Token Keys
         private const val KEY_DEVICE_UUID = "device_uuid"
         private const val KEY_DEVICE_TOKEN = "device_token"
-        private const val KEY_DEVICE_TOKEN_EXPIRATION = "device_token_expiration"
+        private const val TAG = "AppPreferences"
     }
 }
 

@@ -91,10 +91,31 @@ class DeviceAuthManager @Inject constructor(
                 Log.d(TAG, "Authenticating device with auth_data")
                 
                 // Exchange auth_data with server for device token
-                val response = userApiService.relateDevice(
+
+                // Attempt relateDevice; on 401 we will try immediate token refresh and retry once
+                var response = userApiService.relateDevice(
                     DeviceRelateRequest(auth_data = authDataFromDevice),
                     "Bearer $userToken"
                 )
+
+                if (response.code == 401) {
+                    // Try immediate refresh and retry once
+                    val refreshed = try {
+                        authManager.requestImmediateTokenRefresh()
+                    } catch (e: Exception) {
+                        false
+                    }
+
+                    if (refreshed) {
+                        val newUserToken = authManager.currentAccessToken
+                        if (newUserToken != null) {
+                            response = userApiService.relateDevice(
+                                DeviceRelateRequest(auth_data = authDataFromDevice),
+                                "Bearer $newUserToken"
+                            )
+                        }
+                    }
+                }
 
                 if (response.code != 0) {
                     return@withContext Result.failure(Exception(response.msg))
@@ -115,6 +136,75 @@ class DeviceAuthManager @Inject constructor(
                 
                 Log.d(TAG, "Device authenticated successfully: ${data.deviceUUID}")
                 Result.success(data.deviceUUID)
+            } catch (e: retrofit2.HttpException) {
+                // Read error body (if available) to detect expired auth messages
+                val errorBody = try {
+                    e.response()?.errorBody()?.string() ?: ""
+                } catch (readEx: Exception) {
+                    ""
+                }
+
+                Log.e(TAG, "HTTP exception during device authentication: ${e.code()} ${e.message} body=$errorBody", e)
+
+                // Treat 401 and some 400 responses that indicate expired authentication as token-expiration
+                val indicatesExpired = when {
+                    e.code() == 401 -> true
+                    e.code() == 400 && errorBody.contains("expire", ignoreCase = true) -> true
+                    e.code() == 400 && errorBody.contains("expired", ignoreCase = true) -> true
+                    e.code() == 400 && errorBody.contains("authentication data", ignoreCase = true) -> true
+                    else -> false
+                }
+
+                if (indicatesExpired) {
+                    Log.w(TAG, "Device relate returned HTTP ${e.code()} indicating expired auth - attempting immediate user token refresh")
+                    val refreshed = try { authManager.requestImmediateTokenRefresh() } catch (re: Exception) { false }
+                    if (refreshed) {
+                        // Retry relateDevice once with refreshed token
+                        val newUserToken = authManager.currentAccessToken
+                        if (newUserToken != null) {
+                            try {
+                                val retryResp = userApiService.relateDevice(
+                                    DeviceRelateRequest(auth_data = authDataFromDevice),
+                                    "Bearer $newUserToken"
+                                )
+
+                                if (retryResp.code != 0) {
+                                    clearDeviceAuth()
+                                    return@withContext Result.failure(Exception(retryResp.msg))
+                                }
+
+                                val data = retryResp.data ?: return@withContext Result.failure(Exception("Invalid response"))
+                                // Cache device auth after successful retry
+                                preferences.saveDeviceToken(
+                                    deviceUUID = data.deviceUUID,
+                                    deviceToken = data.deviceToken,
+                                    expirationMillis = data.expiration
+                                )
+                                _deviceUUID.value = data.deviceUUID
+                                _deviceToken.value = data.deviceToken
+                                _isDeviceAuthenticated.value = true
+                                Log.d(TAG, "Device authenticated successfully after refresh: ${data.deviceUUID}")
+                                return@withContext Result.success(data.deviceUUID)
+                            } catch (e2: Exception) {
+                                Log.e(TAG, "Retry after refresh failed", e2)
+                                // If retry throws IO, keep cached device auth; otherwise clear
+                                if (e2 is java.io.IOException) {
+                                    return@withContext Result.failure(e2)
+                                }
+                                clearDeviceAuth()
+                                return@withContext Result.failure(e2)
+                            }
+                        }
+                    }
+
+                    // Refresh failed or no token - clear device auth and fail
+                    clearDeviceAuth()
+                    return@withContext Result.failure(e)
+                }
+
+                // For other HTTP errors, clear device auth
+                clearDeviceAuth()
+                return@withContext Result.failure(e)
             } catch (e: Exception) {
                 Log.e(TAG, "Device authentication failed", e)
                 // Do NOT clear cached device auth on transient network failures
@@ -144,13 +234,32 @@ class DeviceAuthManager @Inject constructor(
      * @return Authorization header string
      */
     fun getAuthorizationHeader(userToken: String, requireDeviceToken: Boolean = false): String {
-        return if (_deviceToken.value != null) {
-            "Bearer $userToken|${_deviceToken.value}"
-        } else if (requireDeviceToken) {
-            throw IllegalStateException("Device token required but not available. Connect BLE device first.")
-        } else {
-            "Bearer $userToken"
+        // Fast-path: in-memory token
+        val memToken = _deviceToken.value
+        if (memToken != null) {
+            return "Bearer $userToken|$memToken"
         }
+
+        // Blocking fallback: attempt to read persisted token (this will also enforce expiration)
+        try {
+            val (uuid, token) = runBlocking(Dispatchers.IO) { preferences.getDeviceToken() }
+            if (token != null) {
+                // Populate in-memory state for subsequent calls
+                _deviceUUID.value = uuid
+                _deviceToken.value = token
+                _isDeviceAuthenticated.value = uuid != null && token != null
+                Log.d(TAG, "Loaded device token from prefs for header construction: uuid=$uuid")
+                return "Bearer $userToken|$token"
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to read device token from prefs", e)
+        }
+
+        if (requireDeviceToken) {
+            throw IllegalStateException("Device token required but not available. Connect BLE device first.")
+        }
+
+        return "Bearer $userToken"
     }
     
     /**

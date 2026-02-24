@@ -24,7 +24,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class TokenRefreshQueue @Inject constructor(
-    private val authManager: AuthManager,
+    private var authManager: AuthManager?,
     private val userApiService: FlexTargetAPI
 ) {
     private val scope = CoroutineScope(Dispatchers.Default + Job())
@@ -64,7 +64,8 @@ class TokenRefreshQueue @Inject constructor(
             )
             
             // Update tokens in AuthManager
-            authManager.updateTokens(
+            val mgr = authManager ?: throw Exception("AuthManager not set on TokenRefreshQueue")
+            mgr.updateTokens(
                 accessToken = response.data?.accessToken ?: throw Exception("No access token in response"),
                 refreshToken = response.data.refreshToken ?: refreshToken
             )
@@ -76,7 +77,7 @@ class TokenRefreshQueue @Inject constructor(
                     // 401 on token refresh = refresh token is invalid
                     // User's session is expired or token revoked
                     Log.e(TAG, "Token refresh returned 401 - refresh token invalid. Clearing auth.")
-                    authManager.handleInvalidRefreshToken()
+                    authManager?.handleInvalidRefreshToken()
                 }
                 else -> {
                     Log.e(TAG, "Token refresh failed with HTTP ${e.code()}: ${e.message()}", e)
@@ -88,6 +89,27 @@ class TokenRefreshQueue @Inject constructor(
             // Refresh failed - let caller handle error
             throw e
         }
+    }
+
+    /**
+     * Immediately perform token refresh and wait for result.
+     * Cancels any pending debounce job and performs the refresh synchronously.
+     */
+    suspend fun refreshNow(refreshToken: String) {
+        // Cancel pending debounce job
+        debounceJob?.cancel()
+
+        // Perform refresh immediately under the same mutex
+        refreshMutex.withLock {
+            performRefresh(refreshToken)
+        }
+    }
+
+    /**
+     * Set the AuthManager reference after construction to avoid circular DI issues.
+     */
+    fun setAuthManager(mgr: AuthManager) {
+        this.authManager = mgr
     }
     
     companion object {
