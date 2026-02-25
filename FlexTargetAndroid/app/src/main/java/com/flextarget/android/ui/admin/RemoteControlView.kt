@@ -34,6 +34,7 @@ import com.flextarget.android.data.ble.BLEManager
 import com.google.gson.Gson
 import android.util.Log
 import kotlin.math.abs
+import com.flextarget.android.ui.theme.md_theme_dark_onPrimary
 
 @Composable
 fun RemoteControlView(
@@ -363,29 +364,44 @@ fun RemoteControlView(
                             value = passwordInput.value,
                             onValueChange = { passwordInput.value = it },
                             label = { Text("Password") },
-                            singleLine = true
+                            singleLine = true,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = md_theme_dark_onPrimary,
+                                unfocusedBorderColor = Color.Gray,
+                                focusedTextColor = Color.White,
+                                unfocusedTextColor = Color.White,
+                                focusedLabelColor = Color.White,
+                                unfocusedLabelColor = Color.Gray,
+                                cursorColor = md_theme_dark_onPrimary
+                            )
                         )
                     }
                 },
                 confirmButton = {
-                    TextButton(onClick = {
-                        val command = mapOf(
-                            "action" to "forward",
-                            "content" to mapOf(
-                                "ssid" to currentSsid.value,
-                                "password" to passwordInput.value
+                    TextButton(
+                        onClick = {
+                            val command = mapOf(
+                                "action" to "forward",
+                                "content" to mapOf(
+                                    "ssid" to currentSsid.value,
+                                    "password" to passwordInput.value
+                                )
                             )
-                        )
-                        val json = Gson().toJson(command)
-                        bleManager.writeJSON(json)
-                        showPasswordDialog.value = false
-                    }) {
-                        Text("Connect")
+                            val json = Gson().toJson(command)
+                            bleManager.writeJSON(json)
+                            showPasswordDialog.value = false
+                        },
+                        colors = ButtonDefaults.textButtonColors(contentColor = md_theme_dark_onPrimary)
+                    ) {
+                        Text("Connect".uppercase())
                     }
                 },
                 dismissButton = {
-                    TextButton(onClick = { showPasswordDialog.value = false }) {
-                        Text("Cancel")
+                    TextButton(
+                        onClick = { showPasswordDialog.value = false },
+                        colors = ButtonDefaults.textButtonColors(contentColor = md_theme_dark_onPrimary)
+                    ) {
+                        Text("Cancel".uppercase())
                     }
                 }
             )
@@ -402,28 +418,43 @@ fun RemoteControlView(
                             value = nameInput.value,
                             onValueChange = { nameInput.value = it },
                             label = { Text("Name") },
-                            singleLine = true
+                            singleLine = true,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = md_theme_dark_onPrimary,
+                                unfocusedBorderColor = Color.Gray,
+                                focusedTextColor = Color.White,
+                                unfocusedTextColor = Color.White,
+                                focusedLabelColor = Color.White,
+                                unfocusedLabelColor = Color.Gray,
+                                cursorColor = md_theme_dark_onPrimary
+                            )
                         )
                     }
                 },
                 confirmButton = {
-                    TextButton(onClick = {
-                        val command = mapOf(
-                            "action" to "forward",
-                            "content" to mapOf(
-                                "target_name" to nameInput.value
+                    TextButton(
+                        onClick = {
+                            val command = mapOf(
+                                "action" to "forward",
+                                "content" to mapOf(
+                                    "target_name" to nameInput.value
+                                )
                             )
-                        )
-                        val json = Gson().toJson(command)
-                        bleManager.writeJSON(json)
-                        showNameDialog.value = false
-                    }) {
-                        Text("OK")
+                            val json = Gson().toJson(command)
+                            bleManager.writeJSON(json)
+                            showNameDialog.value = false
+                        },
+                        colors = ButtonDefaults.textButtonColors(contentColor = md_theme_dark_onPrimary)
+                    ) {
+                        Text("OK".uppercase())
                     }
                 },
                 dismissButton = {
-                    TextButton(onClick = { showNameDialog.value = false }) {
-                        Text("Cancel")
+                    TextButton(
+                        onClick = { showNameDialog.value = false },
+                        colors = ButtonDefaults.textButtonColors(contentColor = md_theme_dark_onPrimary)
+                    ) {
+                        Text("Cancel".uppercase())
                     }
                 }
             )

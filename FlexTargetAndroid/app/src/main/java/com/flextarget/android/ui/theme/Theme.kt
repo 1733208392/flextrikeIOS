@@ -20,6 +20,32 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TextFieldColors
+
+@Composable
+fun AppTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    placeholder: @Composable (() -> Unit)? = null,
+    isError: Boolean = false,
+    colors: TextFieldColors = TextFieldDefaults.colors(
+        cursorColor = LocalCursorColor.current,
+        focusedIndicatorColor = LocalCursorColor.current,
+        unfocusedIndicatorColor = Color.Gray
+    )
+) {
+    TextField(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = modifier,
+        placeholder = placeholder,
+        isError = isError,
+        colors = colors
+    )
+}
 
 val LocalCursorColor = staticCompositionLocalOf<Color> { md_theme_dark_onPrimary }
 val LocalTopAppBarColors = staticCompositionLocalOf<TopAppBarColors> {

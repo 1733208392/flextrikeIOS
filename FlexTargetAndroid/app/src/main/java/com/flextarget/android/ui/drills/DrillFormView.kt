@@ -33,6 +33,8 @@ import com.flextarget.android.ui.viewmodel.DrillFormViewModel
 import com.flextarget.android.data.model.DrillRepeatSummary
 import com.flextarget.android.data.model.DrillTargetsConfigData
 import com.flextarget.android.data.model.toExpandedDataObjects
+import com.flextarget.android.data.model.validateAndUpdateDevices
+import com.flextarget.android.data.model.DeviceValidationResult
 import com.flextarget.android.ui.theme.AppButton
 import com.flextarget.android.ui.drills.TargetConfigListView
 import com.flextarget.android.ui.drills.TargetConfigListViewV2
@@ -85,6 +87,8 @@ fun DrillFormView(
     var currentScreen by remember { mutableStateOf(DrillFormScreen.FORM) }
     var showEditDisabledAlert by remember { mutableStateOf(false) }
     var drillResultCount by remember { mutableStateOf(0) }
+    var showDeviceMismatchWarning by remember { mutableStateOf(false) }
+    var deviceMismatchWarningMessage by remember { mutableStateOf("") }
 
     var isSaving by remember { mutableStateOf(false) }
 
@@ -154,6 +158,25 @@ fun DrillFormView(
             targets.forEachIndexed { index, target ->
                 println("[DrillFormView.LaunchedEffect] FinalTarget[$index]: name='${target.targetName}', type='${target.targetType}'")
             }
+        } else if (bleManager.networkDevices.isNotEmpty() && existingDrill != null && targets.isNotEmpty()) {
+            // For existing drills, check if devices have changed
+            val validationResult = validateAndUpdateDevices(targets, bleManager.networkDevices)
+            when (validationResult) {
+                is DeviceValidationResult.CountMismatch -> {
+                    deviceMismatchWarningMessage = "Warning: Device count changed!\n" +
+                        "Configured: ${validationResult.configuredCount} (${validationResult.configuredDevices.joinToString(", ")})\n" +
+                        "Available: ${validationResult.availableCount} (${validationResult.availableDevices.joinToString(", ")})\n\n" +
+                        "Please reconfigure the drill targets to match the currently available devices."
+                    showDeviceMismatchWarning = true
+                }
+                is DeviceValidationResult.NamesChanged -> {
+                    // Auto-update target names silently
+                    targets = validationResult.updatedTargets
+                }
+                is DeviceValidationResult.Success -> {
+                    // No action needed
+                }
+            }
         }
     }
 
@@ -201,6 +224,23 @@ fun DrillFormView(
                     colors = ButtonDefaults.buttonColors(containerColor = md_theme_dark_onPrimary)
                 ) {
                     Text(stringResource(R.string.ok))
+                }
+            }
+        )
+    }
+
+    // Alert for device count mismatch during drill editing
+    if (showDeviceMismatchWarning) {
+        AlertDialog(
+            onDismissRequest = { showDeviceMismatchWarning = false },
+            title = { Text("Device Mismatch Warning") },
+            text = { Text(deviceMismatchWarningMessage) },
+            confirmButton = {
+                TextButton(
+                    onClick = { showDeviceMismatchWarning = false },
+                    colors = ButtonDefaults.textButtonColors(contentColor = md_theme_dark_onPrimary)
+                ) {
+                    Text("OK")
                 }
             }
         )

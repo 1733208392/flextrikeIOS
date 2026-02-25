@@ -13,7 +13,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -29,6 +29,7 @@ import com.flextarget.android.ui.viewmodel.AuthViewModel
 import com.flextarget.android.ui.viewmodel.OTAViewModel
 import com.flextarget.android.ui.viewmodel.BLEViewModel
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.ui.graphics.Color
 import com.flextarget.android.ui.imagecrop.ImageCropViewV2
 import com.flextarget.android.ui.theme.AppTypography
 import com.flextarget.android.ui.theme.md_theme_dark_onPrimary
@@ -427,7 +428,7 @@ private fun DeviceManagementView(
 
                 item {
                     DeviceMenuOption(
-                        icon = Icons.Default.Info,
+                        icon = R.drawable.deployed_code_update_24px,
                         title = stringResource(R.string.ota_update),
                         subtitle = stringResource(R.string.check_install_updates),
                         onClick = onOTAUpdateClick
@@ -566,6 +567,7 @@ private fun DeviceMenuOption(
             Image(
                 painter = painterResource(id = icon),
                 contentDescription = null,
+                colorFilter = ColorFilter.tint(md_theme_dark_onPrimary),
                 modifier = Modifier.size(32.dp)
             )
 

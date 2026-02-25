@@ -35,6 +35,7 @@ import java.util.*
 import androidx.compose.ui.res.stringResource
 import com.flextarget.android.R
 import com.flextarget.android.ui.theme.md_theme_dark_primary
+import com.flextarget.android.ui.theme.AppTextField
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -265,21 +266,31 @@ fun AddCompetitionDialog(
         title = { Text(stringResource(R.string.new_competition), style = MaterialTheme.typography.titleLarge.copy(fontFamily = ttNormFontFamily, color = md_theme_dark_onPrimary)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                TextField(
+                AppTextField(
                     value = name.value,
                     onValueChange = { name.value = it },
-                    label = { Text(stringResource(R.string.competition_name), style = MaterialTheme.typography.bodyMedium.copy(fontFamily = ttNormFontFamily, color = md_theme_dark_onPrimary)) },
-                    modifier = Modifier.fillMaxWidth()
-                    ,
-                    textStyle = MaterialTheme.typography.bodyMedium.copy(fontFamily = ttNormFontFamily, color = md_theme_dark_onPrimary)
+                    placeholder = { Text(stringResource(R.string.competition_name), style = MaterialTheme.typography.bodyMedium.copy(fontFamily = ttNormFontFamily, color = md_theme_dark_onPrimary)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = TextFieldDefaults.colors(
+                        unfocusedContainerColor = Color.Transparent,
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedTextColor = md_theme_dark_onPrimary,
+                        focusedTextColor = md_theme_dark_onPrimary,
+                        cursorColor = md_theme_dark_onPrimary
+                    )
                 )
-                TextField(
+                AppTextField(
                     value = venue.value,
                     onValueChange = { venue.value = it },
-                    label = { Text(stringResource(R.string.venue_optional), style = MaterialTheme.typography.bodyMedium.copy(fontFamily = ttNormFontFamily, color = md_theme_dark_onPrimary)) },
-                    modifier = Modifier.fillMaxWidth()
-                    ,
-                    textStyle = MaterialTheme.typography.bodyMedium.copy(fontFamily = ttNormFontFamily, color = md_theme_dark_onPrimary)
+                    placeholder = { Text(stringResource(R.string.venue_optional), style = MaterialTheme.typography.bodyMedium.copy(fontFamily = ttNormFontFamily, color = md_theme_dark_onPrimary)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = TextFieldDefaults.colors(
+                        unfocusedContainerColor = Color.Transparent,
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedTextColor = md_theme_dark_onPrimary,
+                        focusedTextColor = md_theme_dark_onPrimary,
+                        cursorColor = md_theme_dark_onPrimary
+                    )
                 )
 
                 // Drill Selector
@@ -319,26 +330,35 @@ fun AddCompetitionDialog(
             }
         },
         confirmButton = {
-            Button(
-                onClick = {
-                    onConfirm(
-                        name.value,
-                        venue.value,
-                        date.value,
-                        selectedDrill.value?.id
-                    )
-                },
-                enabled = name.value.isNotEmpty() && selectedDrill.value != null,
-                colors = ButtonDefaults.buttonColors(containerColor = md_theme_dark_onPrimary, contentColor = md_theme_dark_primary)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text(stringResource(R.string.create), style = MaterialTheme.typography.labelLarge.copy(fontFamily = ttNormFontFamily, color = md_theme_dark_primary))
+                TextButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(containerColor = md_theme_dark_onPrimary, contentColor = md_theme_dark_primary)
+                ) {
+                    Text(stringResource(R.string.cancel), style = MaterialTheme.typography.labelLarge.copy(fontFamily = ttNormFontFamily, color = md_theme_dark_primary))
+                }
+                Button(
+                    onClick = {
+                        onConfirm(
+                            name.value,
+                            venue.value,
+                            date.value,
+                            selectedDrill.value?.id
+                        )
+                    },
+                    modifier = Modifier.weight(1f),
+                    enabled = name.value.isNotEmpty() && selectedDrill.value != null,
+                    colors = ButtonDefaults.buttonColors(containerColor = md_theme_dark_onPrimary, contentColor = md_theme_dark_primary)
+                ) {
+                    Text(stringResource(R.string.create), style = MaterialTheme.typography.labelLarge.copy(fontFamily = ttNormFontFamily, color = md_theme_dark_primary))
+                }
             }
         },
-        dismissButton = {
-            TextButton(onClick = onDismiss, colors = ButtonDefaults.buttonColors(containerColor = md_theme_dark_onPrimary, contentColor = md_theme_dark_primary)) {
-                Text(stringResource(R.string.cancel), style = MaterialTheme.typography.labelLarge.copy(fontFamily = ttNormFontFamily, color = md_theme_dark_primary))
-            }
-        },
+        dismissButton = {},
         containerColor = md_theme_dark_primary
 
     )

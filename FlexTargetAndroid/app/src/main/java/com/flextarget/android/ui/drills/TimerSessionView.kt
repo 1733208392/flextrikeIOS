@@ -45,6 +45,8 @@ import com.flextarget.android.data.model.DrillExecutionManager
 import com.flextarget.android.data.model.DrillRepeatSummary
 import com.flextarget.android.data.model.DrillTargetsConfigData
 import com.flextarget.android.data.model.toExpandedDataObjects
+import com.flextarget.android.data.model.DeviceValidationResult
+import com.flextarget.android.data.model.validateAndUpdateDevices
 import com.flextarget.android.ui.theme.AppTypography
 import com.flextarget.android.ui.theme.ttNormFontFamily
 import kotlin.math.max
@@ -96,6 +98,11 @@ fun TimerSessionView(
     var readyTargetsCount by remember { mutableStateOf(0) }
     var nonResponsiveTargets by remember { mutableStateOf<List<String>>(emptyList()) }
     var readinessTimeoutOccurred by remember { mutableStateOf(false) }
+
+    // Device validation properties
+    var showDeviceMismatchAlert by remember { mutableStateOf(false) }
+    var deviceMismatchMessage by remember { mutableStateOf("") }
+    var pendingDeviceValidationResult by remember { mutableStateOf<DeviceValidationResult?>(null) }
 
     // Consecutive repeats properties
     var currentRepeat by remember { mutableStateOf(1) }
@@ -325,7 +332,35 @@ fun TimerSessionView(
 
         // Extract expected devices from drill targets
         // Convert entities to data objects and expand multi-targets using centralized extension function
-        val expandedTargets = targets.toExpandedDataObjects()
+        var expandedTargets = targets.toExpandedDataObjects()
+        
+        // Validate device configuration before proceeding
+        val availableDevices = BLEManager.shared.networkDevices
+        val validationResult = validateAndUpdateDevices(expandedTargets, availableDevices)
+        
+        // Handle device validation result
+        when (validationResult) {
+            is DeviceValidationResult.CountMismatch -> {
+                // Device count doesn't match - show alert and don't proceed with readiness check
+                deviceMismatchMessage = "Target device count mismatch:\n" +
+                    "Configured: ${validationResult.configuredCount} targets (${validationResult.configuredDevices.joinToString(", ")})\n" +
+                    "Available: ${validationResult.availableCount} devices (${validationResult.availableDevices.joinToString(", ")})\n\n" +
+                    "Please reconfigure the drill targets to match the currently available devices."
+                pendingDeviceValidationResult = validationResult
+                showDeviceMismatchAlert = true
+                return  // Exit early without starting readiness check
+            }
+            is DeviceValidationResult.NamesChanged -> {
+                // Device count matches but names changed - use updated targets
+                expandedTargets = validationResult.updatedTargets
+                println("[TimerSessionView] Device names updated: ${validationResult.updatedTargets.map { it.targetName }}")
+            }
+            is DeviceValidationResult.Success -> {
+                // Device count and names match - proceed normally
+                println("[TimerSessionView] Device validation successful")
+            }
+        }
+        
         // CRITICAL: Use distinct() to avoid duplicate devices in expectedDevices
         // When a drill is multi-target (e.g., 3 types on same device), this creates 3 target objects
         // all with the same deviceId. We only send ONE ready per device, so we expect ONE ACK per device.
@@ -768,6 +803,34 @@ fun TimerSessionView(
                 dismissButton = {
                     TextButton(onClick = { showEndDrillAlert = false }) {
                         Text(stringResource(R.string.cancel))
+                    }
+                }
+            )
+        }
+
+        if (showDeviceMismatchAlert) {
+            AlertDialog(
+                onDismissRequest = { showDeviceMismatchAlert = false },
+                title = { Text("Device Mismatch") },
+                text = { Text(deviceMismatchMessage) },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showDeviceMismatchAlert = false
+                            // Navigate back to allow user to reconfigure targets
+                            onBack()
+                        },
+                        colors = ButtonDefaults.textButtonColors(contentColor = md_theme_dark_onPrimary)
+                    ) {
+                        Text("Reconfigure Targets")
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = { showDeviceMismatchAlert = false },
+                        colors = ButtonDefaults.textButtonColors(contentColor = Color.White)
+                    ) {
+                        Text("Cancel")
                     }
                 }
             )

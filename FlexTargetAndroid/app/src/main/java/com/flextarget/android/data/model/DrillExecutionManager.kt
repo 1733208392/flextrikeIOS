@@ -12,6 +12,7 @@ import com.flextarget.android.data.local.entity.DrillSetupEntity
 import com.flextarget.android.data.local.entity.DrillTargetsConfigEntity
 import com.flextarget.android.data.ble.AndroidBLEManager
 import com.flextarget.android.data.local.entity.parseTargetTypes
+import com.flextarget.android.data.ble.NetworkDevice
 
 /**
  * Drill Execution Manager for Android - ported from iOS DrillExecutionManager
@@ -723,4 +724,93 @@ class DrillExecutionManager(
         val shot: ShotData,
         val receivedAt: Date
     )
+}
+
+/**
+ * Result of device validation when checking if available devices match configured targets
+ */
+sealed class DeviceValidationResult {
+    /**
+     * Device count and names match - no action needed, proceed with drill
+     */
+    object Success : DeviceValidationResult()
+
+    /**
+     * Device count matches but names have changed - targets updated with new names
+     * @param updatedTargets List of updated target configurations
+     */
+    data class NamesChanged(val updatedTargets: List<DrillTargetsConfigData>) : DeviceValidationResult()
+
+    /**
+     * Device count doesn't match - user must reconfigure targets
+     * @param configuredCount Number of targets configured in drill
+     * @param availableCount Number of devices currently available
+     * @param configuredDevices Device names from drill configuration
+     * @param availableDevices Device names currently available
+     */
+    data class CountMismatch(
+        val configuredCount: Int,
+        val availableCount: Int,
+        val configuredDevices: List<String>,
+        val availableDevices: List<String>
+    ) : DeviceValidationResult()
+}
+
+/**
+ * Validates if available network devices match the configured targets in a drill.
+ * If device count matches but names changed, automatically updates target names.
+ * If device count doesn't match, returns error with details for user notification.
+ *
+ * @param configuredTargets List of targets configured in the drill
+ * @param availableDevices List of devices currently available from device_list query
+ * @return DeviceValidationResult with outcome and any necessary updates
+ */
+fun validateAndUpdateDevices(
+    configuredTargets: List<DrillTargetsConfigData>,
+    availableDevices: List<NetworkDevice>
+): DeviceValidationResult {
+    // Get unique configured device names (one per device, ignoring multi-target configs on same device)
+    val configuredDeviceNames = configuredTargets
+        .mapNotNull { it.targetName }
+        .distinct()
+    
+    val availableDeviceNames = availableDevices.map { it.name }
+    
+    Log.d("DeviceValidation", "Configured: ${configuredDeviceNames.size} devices, Available: ${availableDeviceNames.size} devices")
+    
+    // If counts don't match, return error
+    if (configuredDeviceNames.size != availableDeviceNames.size) {
+        return DeviceValidationResult.CountMismatch(
+            configuredCount = configuredDeviceNames.size,
+            availableCount = availableDeviceNames.size,
+            configuredDevices = configuredDeviceNames,
+            availableDevices = availableDeviceNames
+        )
+    }
+    
+    // If names are identical, no update needed
+    if (configuredDeviceNames.toSet() == availableDeviceNames.toSet()) {
+        return DeviceValidationResult.Success
+    }
+    
+    // Device count matches but names differ - update target names with new device names
+    // Create mapping from old device names to new device names by index
+    val deviceNameMapping = mutableMapOf<String, String>()
+    configuredDeviceNames.forEachIndexed { index, oldName ->
+        if (index < availableDeviceNames.size) {
+            deviceNameMapping[oldName] = availableDeviceNames[index]
+        }
+    }
+    
+    // Update all targets whose targetName is in the mapping
+    val updatedTargets = configuredTargets.map { target ->
+        target.targetName?.let { oldName ->
+            deviceNameMapping[oldName]?.let { newName ->
+                target.copy(targetName = newName)
+            } ?: target
+        } ?: target
+    }
+    
+    Log.d("DeviceValidation", "Device names changed: $configuredDeviceNames -> $availableDeviceNames")
+    return DeviceValidationResult.NamesChanged(updatedTargets)
 }

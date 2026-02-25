@@ -33,6 +33,7 @@ import android.provider.MediaStore
 import coil.compose.AsyncImage
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.platform.LocalContext
+import com.flextarget.android.ui.theme.AppTextField
 import com.flextarget.android.ui.theme.md_theme_dark_onPrimary
 import com.flextarget.android.ui.theme.md_theme_dark_primary
 
@@ -145,7 +146,7 @@ fun AthletesManagementView(
                             }
 
                             Column(modifier = Modifier.weight(1f)) {
-                                TextField(
+                                AppTextField(
                                     value = newAthleteNameInput.value,
                                     onValueChange = { newAthleteNameInput.value = it },
                                     placeholder = {
@@ -161,7 +162,8 @@ fun AthletesManagementView(
                                         unfocusedTextColor = Color.White,
                                         focusedTextColor = Color.White,
                                         errorContainerColor = Color.Transparent,
-                                        errorCursorColor = Color.Red
+                                        errorCursorColor = Color.Red,
+                                        cursorColor = md_theme_dark_onPrimary
                                     ),
                                     modifier = Modifier.fillMaxWidth()
                                 )
@@ -173,7 +175,7 @@ fun AthletesManagementView(
                                         modifier = Modifier.padding(start = 0.dp, top = 2.dp)
                                     )
                                 }
-                                TextField(
+                                AppTextField(
                                     value = newAthleteClubInput.value,
                                     onValueChange = { newAthleteClubInput.value = it },
                                     placeholder = {
@@ -186,7 +188,8 @@ fun AthletesManagementView(
                                         unfocusedContainerColor = Color.Transparent,
                                         focusedContainerColor = Color.Transparent,
                                         unfocusedTextColor = Color.White,
-                                        focusedTextColor = Color.White
+                                        focusedTextColor = Color.White,
+                                        cursorColor = md_theme_dark_onPrimary
                                     ),
                                     modifier = Modifier.fillMaxWidth()
                                 )
