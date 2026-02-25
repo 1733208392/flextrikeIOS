@@ -161,7 +161,7 @@ fun DrillFormView(
     if (bleManager.showErrorAlert && bleManager.errorMessage != null) {
         val isNetlinkError = bleManager.errorMessage?.contains("netlink is not enabled") == true
         val displayMessage = if (isNetlinkError) {
-            "Please Start TargetLink in your FlexTarget"
+            stringResource(R.string.error_targetlink_not_enabled)
         } else {
             bleManager.errorMessage ?: stringResource(R.string.error_unknown)
         }

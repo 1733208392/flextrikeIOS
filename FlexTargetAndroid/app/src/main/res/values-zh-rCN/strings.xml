@@ -60,6 +60,7 @@
     <string name="ota_checking">正在检查更新...</string>
     <string name="ota_available">有可用更新</string>
     <string name="ota_up_to_date">已是最新版本</string>
+    <string name="ota_target_up_to_date">您的目标已是最新版本</string>
     <string name="ota_download">下载更新</string>
     <string name="ota_preparing">正在下载和准备...</string>
     <string name="ota_ready">准备安装</string>
@@ -122,6 +123,7 @@
     <string name="error_device_not_connected">设备未连接</string>
     <string name="error_timeout">请求超时</string>
     <string name="error_unknown">发生未知错误</string>
+    <string name="error_targetlink_not_enabled">请在您的FlexTarget中启动TargetLink</string>
     
     <!-- Common -->
     <string name="back">返回</string>

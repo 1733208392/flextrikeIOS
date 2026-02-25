@@ -60,6 +60,7 @@
     <string name="ota_checking">Suche nach Updates...</string>
     <string name="ota_available">Update verfügbar</string>
     <string name="ota_up_to_date">Auf dem neuesten Stand</string>
+    <string name="ota_target_up_to_date">Ihr Ziel ist auf dem neuesten Stand</string>
     <string name="ota_download">Update herunterladen</string>
     <string name="ota_preparing">Download und Vorbereitung...</string>
     <string name="ota_ready">Installationsbereit</string>
@@ -122,6 +123,7 @@
     <string name="error_device_not_connected">Gerät nicht verbunden</string>
     <string name="error_timeout">Anforderungszeitüberschreitung</string>
     <string name="error_unknown">Unbekannter Fehler aufgetreten</string>
+    <string name="error_targetlink_not_enabled">Bitte starten Sie TargetLink in Ihrem FlexTarget</string>
     
     <!-- Common -->
     <string name="back">Zurück</string>

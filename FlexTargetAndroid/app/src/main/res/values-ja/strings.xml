@@ -60,6 +60,7 @@
     <string name="ota_checking">アップデート確認中...</string>
     <string name="ota_available">アップデート利用可能</string>
     <string name="ota_up_to_date">最新状態</string>
+    <string name="ota_target_up_to_date">ターゲットは最新状態です</string>
     <string name="ota_download">アップデートダウンロード</string>
     <string name="ota_preparing">ダウンロード中...</string>
     <string name="ota_ready">インストール準備完了</string>
@@ -122,6 +123,7 @@
     <string name="error_device_not_connected">デバイスが接続されていません</string>
     <string name="error_timeout">リクエストタイムアウト</string>
     <string name="error_unknown">不明なエラーが発生しました</string>
+    <string name="error_targetlink_not_enabled">FlexTargetでTargetLinkを起動してください</string>
     
     <!-- Common -->
     <string name="back">戻る</string>

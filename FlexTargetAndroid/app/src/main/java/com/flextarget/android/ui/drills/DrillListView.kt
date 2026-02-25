@@ -1,6 +1,7 @@
 package com.flextarget.android.ui.drills
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -247,12 +248,12 @@ fun DrillListView(
                                 Box(
                                     modifier = Modifier
                                         .size(32.dp)
-                                        .background(md_theme_dark_onPrimary, CircleShape),
+                                        .border(2.dp, md_theme_dark_onPrimary, CircleShape),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(
                                         text = firstChar,
-                                        color = Color.Black,
+                                        color = md_theme_dark_onPrimary,
                                         fontSize = 14.sp,
                                         fontWeight = FontWeight.Bold
                                     )
@@ -270,14 +271,13 @@ fun DrillListView(
 
                                     val drill = drillWithTargetsItem.drillSetup
                                     val targetCount = drillWithTargetsItem.targets.size
-                                    val deviceCount = 1 // Assuming 1 device per drill for now
 
                                     Row(
                                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Text(
-                                            text = "$deviceCount of Device and $targetCount of Target Types",
+                                            text = "$targetCount Targets",
                                             color = Color.Gray,
                                             fontSize = 12.sp
                                         )

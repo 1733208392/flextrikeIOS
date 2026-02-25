@@ -547,7 +547,7 @@ private fun UpdateAvailableCard(
                 )
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        "UPDATE AVAILABLE",
+                        stringResource(com.flextarget.android.R.string.ota_available).uppercase(),
                         color = md_theme_dark_onPrimary,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
@@ -561,7 +561,7 @@ private fun UpdateAvailableCard(
             }
 
             Text(
-                "A new system update is available. Update now to get the latest features and security improvements.",
+                stringResource(com.flextarget.android.R.string.ota_available_description),
                 color = Color.White,
                 style = MaterialTheme.typography.bodySmall
             )
@@ -600,7 +600,7 @@ private fun UpToDateCard(
                 modifier = Modifier.size(48.dp)
             )
             Text(
-                if (isUpToDate) "YOUR TARGET IS UP TO DATE" else "READY TO CHECK FOR UPDATES",
+                if (isUpToDate) stringResource(com.flextarget.android.R.string.ota_target_up_to_date).uppercase() else stringResource(com.flextarget.android.R.string.ota_ready_to_check).uppercase(),
                 color = md_theme_dark_onPrimary,
                 style = MaterialTheme.typography.bodyLarge,
 //                fontWeight = FontWeight.Bold,
@@ -674,13 +674,13 @@ private fun InfoCard(
                 )
                 Column {
                     Text(
-                        "Warning",
+                        stringResource(com.flextarget.android.R.string.warning),
                         color = md_theme_dark_onPrimary,
                         style = AppTypography.labelSmall,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        "Do not unplug device during update",
+                        stringResource(com.flextarget.android.R.string.ota_warning_unplug),
                         color = Color.Gray,
                         style = AppTypography.labelSmall
                     )
