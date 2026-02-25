@@ -33,6 +33,7 @@ import com.flextarget.android.ui.viewmodel.DrillFormViewModel
 import com.flextarget.android.data.model.DrillRepeatSummary
 import com.flextarget.android.data.model.DrillTargetsConfigData
 import com.flextarget.android.data.model.toExpandedDataObjects
+import com.flextarget.android.ui.theme.AppButton
 import com.flextarget.android.ui.drills.TargetConfigListView
 import com.flextarget.android.ui.drills.TargetConfigListViewV2
 import com.flextarget.android.ui.theme.md_theme_dark_onPrimary
@@ -158,16 +159,31 @@ fun DrillFormView(
 
     // Observe error alerts
     if (bleManager.showErrorAlert && bleManager.errorMessage != null) {
+        val isNetlinkError = bleManager.errorMessage?.contains("netlink is not enabled") == true
+        val displayMessage = if (isNetlinkError) {
+            "Please Start TargetLink in your FlexTarget"
+        } else {
+            bleManager.errorMessage ?: stringResource(R.string.error_unknown)
+        }
+
         AlertDialog(
             onDismissRequest = { bleManager.showErrorAlert = false },
             title = { Text(stringResource(R.string.error)) },
-            text = { Text(bleManager.errorMessage ?: stringResource(R.string.error_unknown)) },
+            text = { Text(displayMessage) },
             confirmButton = {
-                Button(
-                    onClick = { bleManager.showErrorAlert = false },
-                    colors = ButtonDefaults.buttonColors(containerColor = md_theme_dark_onPrimary)
-                ) {
-                    Text(stringResource(R.string.ok))
+                if (isNetlinkError) {
+                    AppButton(
+                        onClick = { bleManager.showErrorAlert = false }
+                    ) {
+                        Text(stringResource(R.string.ok).uppercase())
+                    }
+                } else {
+                    Button(
+                        onClick = { bleManager.showErrorAlert = false },
+                        colors = ButtonDefaults.buttonColors(containerColor = md_theme_dark_onPrimary)
+                    ) {
+                        Text(stringResource(R.string.ok))
+                    }
                 }
             }
         )
