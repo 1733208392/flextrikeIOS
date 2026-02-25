@@ -243,7 +243,7 @@ fun DrillListView(
                                 Box(
                                     modifier = Modifier
                                         .size(8.dp)
-                                        .background(Color.Gray, CircleShape)
+                                        .background(md_theme_dark_onPrimary, CircleShape)
                                 )
 
                                 Spacer(modifier = Modifier.width(12.dp))
@@ -299,7 +299,7 @@ fun DrillListView(
                                         Icon(
                                             Icons.Default.MoreVert,
                                             contentDescription = "Menu",
-                                            tint = Color.Gray
+                                            tint = md_theme_dark_onPrimary
                                         )
                                     }
 
@@ -335,7 +335,7 @@ fun DrillListView(
                                 Icon(
                                     Icons.Default.ArrowForward,
                                     contentDescription = "Navigate",
-                                    tint = Color.Gray
+                                    tint = md_theme_dark_onPrimary
                                 )
                             }
                         }
