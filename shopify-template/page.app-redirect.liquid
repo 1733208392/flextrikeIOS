@@ -13,8 +13,38 @@
         if (userAgent.indexOf("iphone") !== -1 || userAgent.indexOf("ipad") !== -1) {
             window.location.href = "https://apps.apple.com/us/app/%E6%99%BA%E8%83%BD%E9%9D%B6/id6755102346";
         } else if (userAgent.indexOf("android") !== -1) {
-            // Google Play Store link TBD
-            window.location.href = "https://play.google.com/store/apps/datasafety?id=com.flextarget.android";
+            // Check for Chinese brand devices that likely don't have Google Play Store
+            var chinaBrands = ['huawei', 'xiaomi', 'oppo', 'vivo', 'honor', 'realme', 'oneplus', 'meizu', 'lenovo', 'zte', 'coolpad'];
+            var isChineseBrand = false;
+            for (var i = 0; i < chinaBrands.length; i++) {
+                if (userAgent.indexOf(chinaBrands[i]) !== -1) {
+                    isChineseBrand = true;
+                    break;
+                }
+            }
+            
+            // Check if device has Google Play Store indicators
+            var hasGooglePlay = userAgent.indexOf('google') !== -1 || 
+                               userAgent.indexOf('play') !== -1 || 
+                               userAgent.indexOf('gms') !== -1; // Google Mobile Services
+            
+            if (isChineseBrand && !hasGooglePlay) {
+                // Chinese brand device without Google Play indicators - likely China mainland version
+                var apkUrl = "https://cdn.shopify.com/s/files/1/0829/8800/7744/files/app-release.apk?v=1771986905";
+                var link = document.createElement('a');
+                link.href = apkUrl;
+                link.download = 'app-release.apk';
+                link.style.display = 'none';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                // Update the message
+                document.querySelector('p').textContent = 'Downloading APK...';
+            } else {
+                // Regular Android device or Chinese brand with Google Play - redirect to Play Store
+                window.location.href = "https://play.google.com/store/apps/details?id=com.flextarget.android";
+            }
         } else {
             // For other devices, perhaps stay on page or redirect to a default page
             document.body.innerHTML = "<p>This app is available for iOS and Android devices.</p>";
