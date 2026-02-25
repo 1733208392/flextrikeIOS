@@ -242,43 +242,45 @@ fun DrillListView(
                                     .padding(vertical = 12.dp, horizontal = 16.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                // ...existing code for drill row content...
+                                // Circular icon with first letter of title
+                                val firstChar = (drillWithTargetsItem.drillSetup.name ?: stringResource(R.string.untitled)).first().uppercase()
                                 Box(
                                     modifier = Modifier
-                                        .size(8.dp)
-                                        .background(md_theme_dark_onPrimary, CircleShape)
-                                )
+                                        .size(32.dp)
+                                        .background(md_theme_dark_onPrimary, CircleShape),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = firstChar,
+                                        color = Color.Black,
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
 
                                 Spacer(modifier = Modifier.width(12.dp))
 
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
-                                        text = drillWithTargetsItem.drillSetup.name ?: stringResource(R.string.untitled),
-                                        color = Color.White,
+                                        text = (drillWithTargetsItem.drillSetup.name ?: stringResource(R.string.untitled)).uppercase(),
+                                        color = md_theme_dark_onPrimary,
                                         fontSize = 16.sp,
                                         fontWeight = FontWeight.Bold
                                     )
 
                                     val drill = drillWithTargetsItem.drillSetup
                                     val targetCount = drillWithTargetsItem.targets.size
+                                    val deviceCount = 1 // Assuming 1 device per drill for now
 
                                     Row(
                                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Text(
-                                            text = "$targetCount targets",
+                                            text = "$deviceCount of Device and $targetCount of Target Types",
                                             color = Color.Gray,
                                             fontSize = 12.sp
                                         )
-
-                                        if (drill.repeats > 1) {
-                                            Text(
-                                                text = "Repeats: ${drill.repeats}",
-                                                color = Color.Gray,
-                                                fontSize = 12.sp
-                                            )
-                                        }
 
                                         drill.mode?.let { mode ->
                                             val modeDisplay = when (mode.lowercase()) {
@@ -289,7 +291,7 @@ fun DrillListView(
                                             }
                                             Text(
                                                 text = modeDisplay,
-                                                color = Color.Red,
+                                                color = Color.Gray,
                                                 fontSize = 12.sp,
                                                 fontWeight = FontWeight.Medium
                                             )
