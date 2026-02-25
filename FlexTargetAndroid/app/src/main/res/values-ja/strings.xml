@@ -73,6 +73,18 @@
     <string name="ota_mandatory">必須アップデート</string>
     <string name="ota_cancel">キャンセル</string>
     <string name="ota_failed">アップデート失敗</string>
+    <string name="ota_available_description">新しいシステムアップデートが利用可能です。最新の機能とセキュリティの改善を入手するために、今すぐアップデートしてください。</string>
+    <string name="ota_waiting">待機中</string>
+    <string name="ota_downloading">ダウンロード中</string>
+    <string name="ota_reloading">リロード中...</string>
+    <string name="ota_updating">更新中...</string>
+    <string name="connect_device_prompt">アップデートを確認するにはデバイスを接続してください</string>
+    <string name="ota_about_title">OTA更新について</string>
+    <string name="ota_about_description">OTA（Over-the-Air）更新により、デバイスの最新機能やセキュリティ改善をインストールできます。更新はデバイスの認証を使用して確認されます。</string>
+    <string name="warning">警告</string>
+    <string name="ota_warning_unplug">更新中はデバイスの電源を抜かないでください</string>
+    <string name="ota_ready_to_check">更新の確認の準備ができています</string>
+    <string name="last_checked">最終確認: %s</string>
     
     <!-- Settings -->
     <string name="settings_title">設定</string>

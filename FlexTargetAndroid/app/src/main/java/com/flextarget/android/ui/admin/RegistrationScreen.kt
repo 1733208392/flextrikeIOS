@@ -27,6 +27,9 @@ import androidx.compose.ui.unit.dp
 import com.flextarget.android.ui.viewmodel.AuthViewModel
 import androidx.compose.ui.res.stringResource
 import com.flextarget.android.R
+import com.flextarget.android.ui.theme.md_theme_dark_primary
+import com.flextarget.android.ui.theme.md_theme_dark_onPrimary
+import com.flextarget.android.ui.theme.AppButton
 import kotlinx.coroutines.delay
 
 /**
@@ -279,7 +282,7 @@ fun RegistrationScreen(
         }
         
         // Combined button
-        Button(
+        AppButton(
             onClick = {
                 if (!codeSent) {
                     authViewModel.sendVerifyCode(email)
@@ -294,11 +297,6 @@ fun RegistrationScreen(
                 .fillMaxWidth()
                 .height(56.dp)
                 .padding(bottom = 8.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = customRed,
-                disabledContainerColor = customRed.copy(alpha = 0.5f)
-            ),
-            shape = RoundedCornerShape(8.dp),
             enabled = if (!codeSent) {
                 isEmailValid && !authUiState.isLoading && codeCountdown == 0
             } else {
@@ -308,22 +306,21 @@ fun RegistrationScreen(
             if (authUiState.isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(24.dp),
-                    color = Color.White,
+                    color = md_theme_dark_primary,
                     strokeWidth = 2.dp
                 )
             } else {
                 Text(
                     if (!codeSent) {
                         if (codeCountdown > 0) {
-                            stringResource(R.string.registration_resend_code, codeCountdown)
+                            stringResource(R.string.registration_resend_code, codeCountdown).uppercase()
                         } else {
-                            stringResource(R.string.registration_send_code)
+                            stringResource(R.string.registration_send_code).uppercase()
                         }
                     } else {
-                        stringResource(R.string.registration_register_button)
+                        stringResource(R.string.registration_register_button).uppercase()
                     },
                     style = MaterialTheme.typography.labelLarge,
-                    color = Color.White,
                     fontWeight = FontWeight.Bold
                 )
             }

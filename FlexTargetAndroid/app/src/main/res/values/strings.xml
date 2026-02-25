@@ -81,6 +81,7 @@
     <string name="ota_check">Check for Updates</string>
     <string name="ota_checking">Checking for updates...</string>
     <string name="ota_available">Update Available</string>
+    <string name="ota_available_description">A new system update is available. Update now to get the latest features and security improvements.</string>
     <string name="ota_up_to_date">Up to Date</string>
     <string name="ota_download">Download Update</string>
     <string name="ota_preparing">Downloading and preparing...</string>
@@ -95,6 +96,17 @@
     <string name="ota_mandatory">Mandatory update</string>
     <string name="ota_cancel">Cancel</string>
     <string name="ota_failed">Update Failed</string>
+    <string name="ota_waiting">Waiting</string>
+    <string name="ota_downloading">Downloading</string>
+    <string name="ota_reloading">Reloading...</string>
+    <string name="ota_updating">Updating...</string>
+    <string name="connect_device_prompt">Connect your device to check for updates</string>
+    <string name="ota_about_title">About OTA Updates</string>
+    <string name="ota_about_description">OTA updates let you install the latest features and security improvements for your device. Updates are checked using device authentication.</string>
+    <string name="warning">Warning</string>
+    <string name="ota_warning_unplug">Do not unplug device during update</string>
+    <string name="ota_ready_to_check">Ready to check for updates</string>
+    <string name="last_checked">Last checked: %s</string>
     
     <!-- Settings -->
     <string name="settings_title">Settings</string>

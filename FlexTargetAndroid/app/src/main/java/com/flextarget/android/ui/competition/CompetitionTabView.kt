@@ -22,6 +22,8 @@ import androidx.navigation.NavHostController
 import androidx.compose.runtime.getValue
 import com.flextarget.android.R
 import com.flextarget.android.ui.admin.LoginScreen
+import com.flextarget.android.ui.admin.RegistrationScreen
+import com.flextarget.android.ui.admin.ForgotPasswordScreen
 import com.flextarget.android.ui.theme.AppTypography
 import com.flextarget.android.ui.theme.md_theme_dark_onPrimary
 import com.flextarget.android.ui.viewmodel.AuthViewModel
@@ -40,17 +42,50 @@ fun CompetitionTabView(
     val uiState by competitionViewModel.competitionUiState.collectAsState()
     val drillUiState by drillViewModel.drillUiState.collectAsState()
     val selectedScreen = remember { mutableStateOf<CompetitionScreen?>(null) }
+    val showRegistration = remember { mutableStateOf(false) }
+    val showForgotPassword = remember { mutableStateOf(false) }
 
     if (!authState.isAuthenticated) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black)
-        ) {
-            LoginScreen(
-                authViewModel = authViewModel,
-                onLoginSuccess = { /* State will update via Flow */ }
-            )
+        when {
+            showRegistration.value -> {
+                com.flextarget.android.ui.admin.RegistrationScreen(
+                    authViewModel = authViewModel,
+                    onRegistrationSuccess = {
+                        showRegistration.value = false
+                    },
+                    onBackClick = {
+                        showRegistration.value = false
+                    }
+                )
+            }
+            showForgotPassword.value -> {
+                com.flextarget.android.ui.admin.ForgotPasswordScreen(
+                    onResetSuccess = {
+                        showForgotPassword.value = false
+                    },
+                    onBackClick = {
+                        showForgotPassword.value = false
+                    }
+                )
+            }
+            else -> {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black)
+                ) {
+                    LoginScreen(
+                        authViewModel = authViewModel,
+                        onLoginSuccess = { /* State will update via Flow */ },
+                        onRegisterClick = {
+                            showRegistration.value = true
+                        },
+                        onForgotPasswordClick = {
+                            showForgotPassword.value = true
+                        }
+                    )
+                }
+            }
         }
     } else {
         // If a competition is selected, show detail view

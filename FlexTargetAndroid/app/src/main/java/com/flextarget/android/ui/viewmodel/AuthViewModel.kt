@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.flextarget.android.R
 import com.flextarget.android.data.auth.AuthManager
 import com.flextarget.android.data.auth.DeviceAuthManager
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -77,7 +78,24 @@ class AuthViewModel(
             val result = authManager.login(mobile, password)
             _loading.value = false
             result.onFailure {
-                _error.value = it.message ?: "Login failed"
+                // Check if this is a credential error (400 Bad Request with specific message)
+                val errorMessage = it.message ?: ""
+                val isCredentialError = errorMessage.contains("Incorrect user account or password") ||
+                                       errorMessage.contains("HTTP 400") ||
+                                       errorMessage.contains("400")
+
+                if (isCredentialError) {
+                    // Show user-friendly error message for credential issues
+                    _error.value = getApplication<Application>().getString(R.string.login_error)
+                    // Clear error after 3 seconds
+                    launch {
+                        delay(3000)
+                        _error.value = null
+                    }
+                } else {
+                    // For other errors, show the original message
+                    _error.value = errorMessage
+                }
             }
         }
     }
@@ -88,8 +106,11 @@ class AuthViewModel(
     fun logout() {
         viewModelScope.launch {
             _loading.value = true
-            authManager.logout()
-            _loading.value = false
+            try {
+                authManager.logout()
+            } finally {
+                _loading.value = false
+            }
         }
     }
     

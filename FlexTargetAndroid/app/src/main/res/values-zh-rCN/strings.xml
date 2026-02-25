@@ -73,6 +73,18 @@
     <string name="ota_mandatory">强制更新</string>
     <string name="ota_cancel">取消</string>
     <string name="ota_failed">更新失败</string>
+    <string name="ota_available_description">有新的系统更新可用。现在更新以获取最新功能和安全改进。</string>
+    <string name="ota_waiting">等待中</string>
+    <string name="ota_downloading">正在下载</string>
+    <string name="ota_reloading">重新加载...</string>
+    <string name="ota_updating">正在更新...</string>
+    <string name="connect_device_prompt">请连接设备以检查更新</string>
+    <string name="ota_about_title">关于 OTA 更新</string>
+    <string name="ota_about_description">空中（OTA）更新允许您为设备安装最新功能和安全改进。更新将使用设备的身份验证进行检查。</string>
+    <string name="warning">警告</string>
+    <string name="ota_warning_unplug">更新期间请勿拔掉设备电源</string>
+    <string name="ota_ready_to_check">准备检查更新</string>
+    <string name="last_checked">上次检查：%s</string>
     
     <!-- Settings -->
     <string name="settings_title">设置</string>

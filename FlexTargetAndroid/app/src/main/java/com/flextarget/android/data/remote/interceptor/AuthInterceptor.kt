@@ -18,8 +18,15 @@ class AuthInterceptor @Inject constructor() : Interceptor {
 
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request()
+        val requestPath = request.url.encodedPath
 
         val response = chain.proceed(request)
+
+        // Never run auth-refresh flow for logout/refresh endpoints.
+        // Logout should complete local-state cleanup even if server returns 401.
+        if (requestPath == "/user/logout" || requestPath == "/user/token/refresh") {
+            return response
+        }
 
         // If server explicitly indicates device token invalid/expired, clear device auth and return.
         if (response.code == 400) {
@@ -80,6 +87,9 @@ class AuthInterceptor @Inject constructor() : Interceptor {
         val newRequest = request.newBuilder()
             .header("Authorization", newAuthHeader)
             .build()
+
+        // Close the original response before retrying
+        response.close()
 
         val retryResponse = chain.proceed(newRequest)
 

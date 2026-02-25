@@ -73,6 +73,18 @@
     <string name="ota_mandatory">Obligatorisches Update</string>
     <string name="ota_cancel">Abbrechen</string>
     <string name="ota_failed">Update fehlgeschlagen</string>
+    <string name="ota_available_description">Ein neues Systemupdate ist verfügbar. Aktualisieren Sie jetzt, um die neuesten Funktionen und Sicherheitsverbesserungen zu erhalten.</string>
+    <string name="ota_waiting">Warten</string>
+    <string name="ota_downloading">Herunterladen</string>
+    <string name="ota_reloading">Neu laden...</string>
+    <string name="ota_updating">Aktualisiere...</string>
+    <string name="connect_device_prompt">Verbinden Sie Ihr Gerät, um nach Updates zu suchen</string>
+    <string name="ota_about_title">Über OTA-Updates</string>
+    <string name="ota_about_description">Over-the-Air-Updates (OTA) ermöglichen es Ihnen, die neuesten Funktionen und Sicherheitsverbesserungen für Ihr Gerät zu installieren. Updates werden mit der Geräteauthentifizierung überprüft.</string>
+    <string name="warning">Warnung</string>
+    <string name="ota_warning_unplug">Trennen Sie das Gerät während des Updates nicht vom Strom</string>
+    <string name="ota_ready_to_check">Bereit, nach Updates zu suchen</string>
+    <string name="last_checked">Zuletzt geprüft: %s</string>
     
     <!-- Settings -->
     <string name="settings_title">Einstellungen</string>

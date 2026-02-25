@@ -170,44 +170,65 @@ fun RemoteControlView(
                     .background(padColor, shape = RoundedCornerShape(28.dp))
                     .border(BorderStroke(1.dp, Color.White.copy(alpha = 0.06f)), RoundedCornerShape(28.dp))
                     .pointerInput(Unit) {
-                        detectDragGestures { _, dragAmount ->
-                            val currentTime = System.currentTimeMillis()
+                        // Accumulate drag deltas across events so short incremental motions
+                        // on some devices still register as a swipe when summed.
+                        var totalDx = 0f
+                        var totalDy = 0f
+                        val threshold = 60f // lowered minimum swipe distance for sensitivity
 
-                            // Check debounce
-                            if (currentTime - lastSwipeTime.value < swipeDebounceMs) {
-                                return@detectDragGestures
-                            }
+                        detectDragGestures(
+                            onDrag = { change, dragAmount ->
+                                // accumulate the movement
+                                totalDx += dragAmount.x
+                                totalDy += dragAmount.y
 
-                            val (deltaX, deltaY) = dragAmount
-                            val threshold = 80f // Minimum swipe distance
+                                val currentTime = System.currentTimeMillis()
 
-                            when {
-                                abs(deltaX) > abs(deltaY) && abs(deltaX) > threshold -> {
-                                    // Horizontal swipe
-                                    if (deltaX < 0) {
-                                        Log.d("RemoteControl", "Swipe left")
-                                        sendRemoteCommand("left")
-                                        lastSwipeTime.value = currentTime
-                                    } else {
-                                        Log.d("RemoteControl", "Swipe right")
-                                        sendRemoteCommand("right")
-                                        lastSwipeTime.value = currentTime
+                                // Check debounce
+                                if (currentTime - lastSwipeTime.value < swipeDebounceMs) {
+                                    return@detectDragGestures
+                                }
+
+                                when {
+                                    abs(totalDx) > abs(totalDy) && abs(totalDx) > threshold -> {
+                                        // Horizontal swipe
+                                        if (totalDx < 0) {
+                                            Log.d("RemoteControl", "Swipe left")
+                                            sendRemoteCommand("left")
+                                            lastSwipeTime.value = currentTime
+                                        } else {
+                                            Log.d("RemoteControl", "Swipe right")
+                                            sendRemoteCommand("right")
+                                            lastSwipeTime.value = currentTime
+                                        }
+                                        totalDx = 0f
+                                        totalDy = 0f
+                                    }
+                                    abs(totalDy) > abs(totalDx) && abs(totalDy) > threshold -> {
+                                        // Vertical swipe
+                                        if (totalDy < 0) {
+                                            Log.d("RemoteControl", "Swipe up")
+                                            sendRemoteCommand("up")
+                                            lastSwipeTime.value = currentTime
+                                        } else {
+                                            Log.d("RemoteControl", "Swipe down")
+                                            sendRemoteCommand("down")
+                                            lastSwipeTime.value = currentTime
+                                        }
+                                        totalDx = 0f
+                                        totalDy = 0f
                                     }
                                 }
-                                abs(deltaY) > abs(deltaX) && abs(deltaY) > threshold -> {
-                                    // Vertical swipe
-                                    if (deltaY < 0) {
-                                        Log.d("RemoteControl", "Swipe up")
-                                        sendRemoteCommand("up")
-                                        lastSwipeTime.value = currentTime
-                                    } else {
-                                        Log.d("RemoteControl", "Swipe down")
-                                        sendRemoteCommand("down")
-                                        lastSwipeTime.value = currentTime
-                                    }
-                                }
+                            },
+                            onDragEnd = {
+                                totalDx = 0f
+                                totalDy = 0f
+                            },
+                            onDragCancel = {
+                                totalDx = 0f
+                                totalDy = 0f
                             }
-                        }
+                        )
                     }
                     .pointerInput(Unit) {
                         detectTapGestures(onTap = {

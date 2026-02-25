@@ -99,10 +99,8 @@ class TokenRefreshQueue @Inject constructor(
         // Cancel pending debounce job
         debounceJob?.cancel()
 
-        // Perform refresh immediately under the same mutex
-        refreshMutex.withLock {
-            performRefresh(refreshToken)
-        }
+        // performRefresh already serializes via refreshMutex
+        performRefresh(refreshToken)
     }
 
     /**

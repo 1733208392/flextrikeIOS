@@ -31,6 +31,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.flextarget.android.R
 import com.flextarget.android.data.remote.api.*
 import com.flextarget.android.di.AppContainer
+import com.flextarget.android.ui.theme.md_theme_dark_primary
+import com.flextarget.android.ui.theme.md_theme_dark_onPrimary
+import com.flextarget.android.ui.theme.AppButton
 import kotlinx.coroutines.launch
 
 /**
@@ -207,7 +210,7 @@ fun ForgotPasswordScreen(
         
         // Send Verify Code Button (Step 1)
         if (!codeVerifySent) {
-            Button(
+            AppButton(
                 onClick = {
                     scope.launch {
                         isLoading = true
@@ -218,7 +221,7 @@ fun ForgotPasswordScreen(
                             if (response.code == 0) {
                                 codeVerifySent = true
                             } else {
-                                errorMessage = response.msg
+                                errorMessage = "${response.code}: ${response.msg}"
                             }
                         } catch (e: Exception) {
                             errorMessage = e.message ?: "Failed to send verification code"
@@ -230,31 +233,25 @@ fun ForgotPasswordScreen(
                     .fillMaxWidth()
                     .height(56.dp)
                     .padding(bottom = 8.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Red,
-                    disabledContainerColor = Color.Red.copy(alpha = 0.5f)
-                ),
-                shape = RoundedCornerShape(8.dp),
                 enabled = email.isNotEmpty() && !isLoading
             ) {
                 if (isLoading) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(24.dp),
-                        color = Color.White,
+                        color = md_theme_dark_primary,
                         strokeWidth = 2.dp
                     )
                 } else {
                     Text(
-                        stringResource(R.string.send_code),
+                        stringResource(R.string.send_code).uppercase(),
                         style = MaterialTheme.typography.labelMedium,
-                        color = Color.White,
                         fontWeight = FontWeight.Bold
                     )
                 }
             }
         } else {
             // Reset Password Button (Step 2)
-            Button(
+            AppButton(
                 onClick = {
                     scope.launch {
                         isLoading = true
@@ -271,7 +268,7 @@ fun ForgotPasswordScreen(
                                 // Redirect to login - user will login with new password
                                 onResetSuccess()
                             } else {
-                                errorMessage = response.msg
+                                errorMessage = "${response.code}: ${response.msg}"
                             }
                         } catch (e: Exception) {
                             errorMessage = e.message ?: "Failed to reset password"
@@ -283,24 +280,18 @@ fun ForgotPasswordScreen(
                     .fillMaxWidth()
                     .height(56.dp)
                     .padding(bottom = 8.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Red,
-                    disabledContainerColor = Color.Red.copy(alpha = 0.5f)
-                ),
-                shape = RoundedCornerShape(8.dp),
                 enabled = isResetButtonEnabled && !isLoading
             ) {
                 if (isLoading) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(24.dp),
-                        color = Color.White,
+                        color = md_theme_dark_primary,
                         strokeWidth = 2.dp
                     )
                 } else {
                     Text(
-                        stringResource(R.string.reset_password_button),
+                        stringResource(R.string.reset_password_button).uppercase(),
                         style = MaterialTheme.typography.labelMedium,
-                        color = Color.White,
                         fontWeight = FontWeight.Bold
                     )
                 }

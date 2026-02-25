@@ -73,6 +73,18 @@
     <string name="ota_mandatory">Actualización obligatoria</string>
     <string name="ota_cancel">Cancelar</string>
     <string name="ota_failed">Error en la actualización</string>
+    <string name="ota_available_description">Hay una nueva actualización del sistema disponible. Actualice ahora para obtener las últimas funciones y mejoras de seguridad.</string>
+    <string name="ota_waiting">En espera</string>
+    <string name="ota_downloading">Descargando</string>
+    <string name="ota_reloading">Recargando...</string>
+    <string name="ota_updating">Actualizando...</string>
+    <string name="connect_device_prompt">Conecte su dispositivo para buscar actualizaciones</string>
+    <string name="ota_about_title">Acerca de las actualizaciones OTA</string>
+    <string name="ota_about_description">Las actualizaciones por aire (OTA) le permiten instalar las últimas funciones y mejoras de seguridad en su dispositivo. Las actualizaciones se verifican usando la autenticación del dispositivo.</string>
+    <string name="warning">Advertencia</string>
+    <string name="ota_warning_unplug">No desconecte el dispositivo durante la actualización</string>
+    <string name="ota_ready_to_check">Listo para buscar actualizaciones</string>
+    <string name="last_checked">Última comprobación: %s</string>
     
     <!-- Settings -->
     <string name="settings_title">Configuración</string>

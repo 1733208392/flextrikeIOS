@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import androidx.compose.runtime.collectAsState
 import com.flextarget.android.ui.viewmodel.OTAViewModel
 import com.flextarget.android.ui.viewmodel.BLEViewModel
@@ -91,16 +92,16 @@ fun OTAUpdateView(
         CenterAlignedTopAppBar(
             title = {
                 Text(
-                    "OTA",
+                    stringResource(com.flextarget.android.R.string.ota_title),
                     style = AppTypography.bodyLarge,
                     color = md_theme_dark_onPrimary,
                 )
             },
             navigationIcon = {
-                IconButton(onClick = onBack) {
+                    IconButton(onClick = onBack) {
                     Icon(
                         imageVector = Icons.Default.ArrowBack,
-                        contentDescription = "Back",
+                        contentDescription = stringResource(com.flextarget.android.R.string.back),
                         tint = md_theme_dark_onPrimary
                     )
                 }
@@ -128,22 +129,22 @@ fun OTAUpdateView(
                 // Current Version Info - Centered
                 item {
                     StatusCard(
-                        title = "Current Version",
-                        version = otaUiState.currentVersion ?: "---",
-                    )
+                            title = stringResource(com.flextarget.android.R.string.ota_current_version),
+                            version = otaUiState.currentVersion ?: "---",
+                        )
                 }
 
                 // OTA State Messages
                 when (otaUiState.state) {
                     OTAState.CHECKING -> {
                         item {
-                            CheckingCard(stepMessage = otaUiState.description.ifEmpty { "Checking for updates..." })
+                            CheckingCard(stepMessage = otaUiState.description.ifEmpty { stringResource(com.flextarget.android.R.string.ota_checking) })
                         }
                     }
                     OTAState.ERROR -> {
                         item {
-                            ErrorCard(
-                                errorMessage = otaUiState.error ?: "Unknown error occurred",
+                                ErrorCard(
+                                errorMessage = otaUiState.error ?: stringResource(com.flextarget.android.R.string.error_unknown),
                                 onRetry = {
                                     if (!bleManager.isConnected) {
                                         Log.e("OTAUpdateView", "Cannot retry: BLE device not connected")
@@ -268,8 +269,8 @@ fun OTAUpdateView(
                 // Info Card
                 item {
                     InfoCard(
-                        title = "About OTA Updates",
-                        description = "Over-the-Air (OTA) updates allow you to install the latest features and security improvements for your device. Updates are checked using your device's authentication."
+                        title = stringResource(com.flextarget.android.R.string.ota_about_title),
+                        description = stringResource(com.flextarget.android.R.string.ota_about_description)
                     )
                 }
             }
@@ -302,14 +303,14 @@ private fun DeviceNotConnectedCard(onNavigateToDeviceManagement: () -> Unit) {
                 modifier = Modifier.size(48.dp)
             )
             Text(
-                "CONNECT DEVICE FIRST",
+                stringResource(com.flextarget.android.R.string.connection_required).uppercase(),
                 color = md_theme_dark_onPrimary,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
             )
             Text(
-                "Connect your device to check for updates",
+                stringResource(com.flextarget.android.R.string.connect_device_prompt),
                 color = Color.Gray,
                 style = MaterialTheme.typography.bodySmall,
                 textAlign = TextAlign.Center
@@ -322,7 +323,7 @@ private fun DeviceNotConnectedCard(onNavigateToDeviceManagement: () -> Unit) {
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
                 shape = RoundedCornerShape(8.dp)
             ) {
-                Text("Go to Device Management", color = Color.White, fontWeight = FontWeight.Bold)
+                Text(stringResource(com.flextarget.android.R.string.go_to_device_management), color = Color.White, fontWeight = FontWeight.Bold)
             }
         }
     }
@@ -381,25 +382,25 @@ private fun UnifiedOTAButton(
     onCheckClick: () -> Unit,
     onUpdateClick: () -> Unit
 ) {
-    var buttonText = "Check Now"
+    var buttonText = stringResource(com.flextarget.android.R.string.check_now)
     var isEnabled = true
 
     when (otaState) {
         OTAState.CHECKING -> {
-            buttonText = "CHECKING..."
+            buttonText = stringResource(com.flextarget.android.R.string.ota_checking)
             isEnabled = false
         }
         OTAState.UPDATE_AVAILABLE -> {
-            buttonText = "UPDATE NOW"
+            buttonText = stringResource(com.flextarget.android.R.string.update_now)
             isEnabled = true
         }
-        OTAState.PREPARING, OTAState.WAITING_FOR_READY_TO_DOWNLOAD, 
+        OTAState.PREPARING, OTAState.WAITING_FOR_READY_TO_DOWNLOAD,
         OTAState.DOWNLOADING, OTAState.RELOADING, OTAState.VERIFYING -> {
-            buttonText = "UPDATING..."
+            buttonText = stringResource(com.flextarget.android.R.string.ota_updating)
             isEnabled = false
         }
         else -> {
-            buttonText = "CHECK NOW"
+            buttonText = stringResource(com.flextarget.android.R.string.check_now)
             isEnabled = true
         }
     }
@@ -453,7 +454,7 @@ private fun CheckingCard(stepMessage: String) {
                 strokeWidth = 3.dp
             )
             Text(
-                stepMessage.ifEmpty { "Checking for updates..." },
+                stepMessage.ifEmpty { stringResource(com.flextarget.android.R.string.ota_checking) },
                 color = md_theme_dark_onPrimary,
                 style = AppTypography.bodyLarge,
                 fontWeight = FontWeight.Bold,
@@ -490,7 +491,7 @@ private fun ErrorCard(errorMessage: String, onRetry: () -> Unit) {
                 )
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        "UPDATE CHECK FAILED",
+                        stringResource(com.flextarget.android.R.string.ota_failed).uppercase(),
                         color = md_theme_dark_onPrimary,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
@@ -510,7 +511,7 @@ private fun ErrorCard(errorMessage: String, onRetry: () -> Unit) {
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
                 shape = RoundedCornerShape(8.dp)
             ) {
-                Text("Retry", color = Color.White, fontWeight = FontWeight.Bold)
+                Text(stringResource(com.flextarget.android.R.string.retry), color = Color.White, fontWeight = FontWeight.Bold)
             }
         }
     }
