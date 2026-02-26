@@ -229,7 +229,15 @@ fun TimerSessionView(
                         }
 
                         if (gracePeriodActive) {
-                            gracePeriodRemaining = maxOf(0.0, gracePeriodRemaining - 0.05)
+                            // Check for total timeout (10 seconds) on EVERY tick to prevent infinite loops
+                            val startTime = gracePeriodStartTime
+                            if (startTime != null && (now.time - startTime.time) > 10000) {
+                                println("[TimerSessionView] Grace period timeout exceeded - forcing completion")
+                                gracePeriodActive = false
+                                stopUpdateTimer()
+                                executionManager?.completeDrill()
+                            } else {
+                                gracePeriodRemaining = maxOf(0.0, gracePeriodRemaining - 0.05)
                             if (gracePeriodRemaining <= 0) {
                                 println("[TimerSessionView] Grace period ended, collecting summary and checking for more repeats")
 
@@ -297,6 +305,7 @@ fun TimerSessionView(
                                 }
                                 }
                             }
+                        }
                         }
 
                     }
