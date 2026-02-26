@@ -478,6 +478,7 @@ fun TimerSessionView(
         startSequence = {
             println("[TimerSessionView] startSequence called")
             timerState = TimerState.STANDBY
+            gracePeriodActive = false  // Ensure no ongoing grace period
             playStandbySound()
             val randomDelayValue = Random.nextInt(2, 6).toDouble()
             randomDelay = randomDelayValue
@@ -503,9 +504,11 @@ fun TimerSessionView(
         println("[TimerSessionView] buttonTapped called, timerState: $timerState")
         when (timerState) {
             TimerState.IDLE -> {
-                if (startSequence != null) {
+                if (!gracePeriodActive && startSequence != null) {
                     println("[TimerSessionView] calling startSequence")
                     startSequence!!()
+                } else if (gracePeriodActive) {
+                    println("[TimerSessionView] startSequence not called - grace period active")
                 } else {
                     println("[TimerSessionView] startSequence not assigned yet")
                 }
