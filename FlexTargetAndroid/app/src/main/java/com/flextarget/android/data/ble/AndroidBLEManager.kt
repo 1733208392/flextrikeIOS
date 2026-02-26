@@ -70,7 +70,10 @@ class AndroidBLEManager(private val context: Context) {
 
     internal var writeCompletion: ((Boolean) -> Unit)? = null
     private val messageBuffer = mutableListOf<Byte>()
-    private val messageBufferLock = Any()
+    private val messageBufferLock = Any() // Thread-safe synchronization for buffer operations
+    private val MAX_BUFFER_SIZE = 1024 * 10 // 10KB max buffer size
+    private val netlinkForwardListeners = mutableListOf<((Map<String, Any>) -> Unit)>()
+    private val netlinkForwardListenersLock = Any()
     private var pendingPeripheral: DiscoveredPeripheral? = null
     
     // Multi-device discovery properties
@@ -271,8 +274,14 @@ class AndroidBLEManager(private val context: Context) {
             val data = characteristic.value ?: return
 
             // Accumulate received data in buffer and extract complete messages atomically.
-            // BLE callbacks can arrive on multiple Binder threads.
+            // BLE callbacks can arrive on multiple Binder threads - synchronized for thread safety.
             val completeMessages = synchronized(messageBufferLock) {
+                // Check buffer size before adding new data
+                if (messageBuffer.size + data.size > MAX_BUFFER_SIZE) {
+                    println("[AndroidBLEManager] Buffer overflow detected (${messageBuffer.size + data.size} bytes), clearing buffer")
+                    messageBuffer.clear()
+                }
+
                 messageBuffer.addAll(data.toList())
                 extractCompleteMessagesFromBuffer()
             }
@@ -389,7 +398,20 @@ class AndroidBLEManager(private val context: Context) {
                 type == "netlink" && action == "forward" -> {
                     // Handle all netlink forward messages
                     val messageMap = jsonToMap(json)
+                    
+                    // Notify legacy callback for backward compatibility
                     this.onNetlinkForwardReceived?.invoke(messageMap)
+                    
+                    // Notify all registered listeners
+                    synchronized(netlinkForwardListenersLock) {
+                        netlinkForwardListeners.forEach { listener ->
+                            try {
+                                listener(messageMap)
+                            } catch (e: Exception) {
+                                println("[AndroidBLEManager] Error in netlink forward listener: ${e.message}")
+                            }
+                        }
+                    }
 
                     // Specifically handle shot data from targets
                     val content = json.optJSONObject("content")
@@ -607,12 +629,18 @@ class AndroidBLEManager(private val context: Context) {
             this.isReady = false
             this.connectedPeripheral = null
             pendingPeripheral = null
-            
+
+            // Clear message buffer to prevent corruption from affecting future connections
+            // Thread-safe synchronization ensures no concurrent access during cleanup
+            synchronized(messageBufferLock) {
+                messageBuffer.clear()
+            }
+
             // Reset shared state immediately
             BLEManager.shared.isConnected = false
             BLEManager.shared.isReady = false
             BLEManager.shared.connectedPeripheral = null
-            
+
             // Now disconnect and close the GATT, using the reference we saved
             try {
                 gatt?.disconnect()
@@ -691,12 +719,15 @@ class AndroidBLEManager(private val context: Context) {
     }
 
     private fun hasPermissions(): Boolean {
-        // On Android 12+ (API 31+), BLE scanning doesn't require location permissions
+        // BLE permissions are required on all Android versions
+        // Location permissions are still required in practice for BLE scanning on most devices
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
             return ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_SCAN) == PackageManager.PERMISSION_GRANTED &&
-                   ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED
+                   ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED &&
+                   ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
+                   ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
         } else {
-            // On older versions, location permissions were required for BLE scanning
+            // On older versions, use legacy Bluetooth permissions + location
             return ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH) == PackageManager.PERMISSION_GRANTED &&
                    ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_ADMIN) == PackageManager.PERMISSION_GRANTED &&
                    ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
@@ -742,6 +773,21 @@ class AndroidBLEManager(private val context: Context) {
             "content" to content
         )
         writeJSON(Gson().toJson(command))
+    }
+
+    // Netlink forward listener management for multiple components
+    fun addNetlinkForwardListener(listener: (Map<String, Any>) -> Unit) {
+        synchronized(netlinkForwardListenersLock) {
+            if (!netlinkForwardListeners.contains(listener)) {
+                netlinkForwardListeners.add(listener)
+            }
+        }
+    }
+
+    fun removeNetlinkForwardListener(listener: (Map<String, Any>) -> Unit) {
+        synchronized(netlinkForwardListenersLock) {
+            netlinkForwardListeners.remove(listener)
+        }
     }
 
     fun finishGameDiskOTA() {

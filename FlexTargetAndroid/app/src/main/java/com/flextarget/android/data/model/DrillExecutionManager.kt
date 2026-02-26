@@ -43,6 +43,7 @@ class DrillExecutionManager(
     private var beepTime: Date? = null
     private var endCommandTime: Date? = null
     private var shotObserver: Any? = null
+    private var netlinkForwardListener: ((Map<String, Any>) -> Unit)? = null
     private var deviceDelayTimes = mutableMapOf<String, String>()
     private var globalDelayTime: String? = null
     private var firstTargetName: String? = null
@@ -666,16 +667,26 @@ class DrillExecutionManager(
         bleManager.onShotReceived = { shotData ->
             handleShotNotification(shotData)
         }
-        bleManager.onNetlinkForwardReceived = { message ->
+        
+        // Create and register netlink forward listener
+        netlinkForwardListener = { message ->
             handleNetlinkForward(message)
         }
+        bleManager.addNetlinkForwardListener(netlinkForwardListener!!)
+        
         println("[DrillExecutionManager] Shot and netlink forward observers registered")
     }
 
     private fun stopObservingShots() {
         println("[DrillExecutionManager] stopObservingShots() - removing BLE shot observer")
         bleManager.onShotReceived = null
-        bleManager.onNetlinkForwardReceived = null
+        
+        // Remove netlink forward listener
+        netlinkForwardListener?.let { listener ->
+            bleManager.removeNetlinkForwardListener(listener)
+            netlinkForwardListener = null
+        }
+        
         println("[DrillExecutionManager] Shot and netlink forward observers removed")
     }
 

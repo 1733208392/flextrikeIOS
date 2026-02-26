@@ -127,13 +127,22 @@ class BLEManager private constructor() {
             onShotReceived = { shotData ->
                 this@BLEManager.onShotReceived?.invoke(shotData)
             }
-            onNetlinkForwardReceived = { message ->
+            
+            // Add listener for netlink forward messages (provision status, etc.)
+            addNetlinkForwardListener { message ->
                 val provisionStatus = message["provision_status"] as? String
                 if (provisionStatus != null) {
                     onProvisionStatusReceived?.invoke(provisionStatus)
                 }
 
                 this@BLEManager.onNetlinkForwardReceived?.invoke(message)
+            }
+            
+            onForwardReceived = { message ->
+                // Note: Provision completion is now handled directly in AndroidBLEManager
+                // before this callback is invoked, so we don't need to check for it here.
+                // This callback is kept for any UI-level forward message handling.
+                this@BLEManager.onForwardReceived?.invoke(message)
             }
             onForwardReceived = { message ->
                 // Note: Provision completion is now handled directly in AndroidBLEManager
@@ -394,6 +403,15 @@ class BLEManager private constructor() {
     fun selectDeviceFromPicker(discoveredPeripheral: DiscoveredPeripheral) {
         showMultiDevicePicker = false
         connectToSelectedPeripheral(discoveredPeripheral)
+    }
+
+    // Netlink forward listener management for multiple components
+    fun addNetlinkForwardListener(listener: (Map<String, Any>) -> Unit) {
+        androidBLEManager?.addNetlinkForwardListener(listener)
+    }
+
+    fun removeNetlinkForwardListener(listener: (Map<String, Any>) -> Unit) {
+        androidBLEManager?.removeNetlinkForwardListener(listener)
     }
 }
 

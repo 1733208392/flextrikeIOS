@@ -33,20 +33,18 @@ fun BLETestToolView(
 
     // Setup callback to capture responses
     DisposableEffect(Unit) {
-        val originalNetlinkCallback = bleManager.onNetlinkForwardReceived
-        bleManager.onNetlinkForwardReceived = { response ->
-            // Call original callback if it exists
-            originalNetlinkCallback?.invoke(response)
-            
+        val testToolListener: (Map<String, Any>) -> Unit = { response ->
             // Add response to display
             val gson = GsonBuilder().setPrettyPrinting().create()
             val formattedResponse = gson.toJson(response)
             responseText = "Response: $formattedResponse\n\n$responseText"
         }
+        
+        bleManager.addNetlinkForwardListener(testToolListener)
 
         onDispose {
-            // Restore original callback on dispose
-            bleManager.onNetlinkForwardReceived = originalNetlinkCallback
+            // Remove listener on dispose
+            bleManager.removeNetlinkForwardListener(testToolListener)
         }
     }
 

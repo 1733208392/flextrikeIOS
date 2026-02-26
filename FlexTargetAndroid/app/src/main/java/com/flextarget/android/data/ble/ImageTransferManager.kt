@@ -181,8 +181,11 @@ class ImageTransferManager(
     private fun sendReadyCommandAndAwaitAck(imageName: String, totalSize: Int, totalChunks: Int) {
         Log.d("ImageTransfer", "🤝 Registering observer for image_transfer_ready ACK...")
         
-        // Register observer for incoming netlink forward messages
-        bleManager.onNetlinkForwardReceived = { json ->
+        // Create a reference for the listener that we can use for removal
+        lateinit var ackListener: (Map<String, Any>) -> Unit
+        
+        // Define the listener logic
+        ackListener = { json ->
             Log.d("ImageTransfer", "📨 Received netlink message: $json")
             
             // The ACK may appear at top-level or inside content
@@ -198,10 +201,12 @@ class ImageTransferManager(
             
             if (ackValue == "image_transfer_ready") {
                 Log.d("ImageTransfer", "✅ Received image_transfer_ready ACK!")
-                // ACK received — cancel timer & observer and start transfer
+                // ACK received — cancel timer and start transfer
                 readyTimer?.cancel()
                 readyTimer = null
-                // Keep observer active until transfer starts - don't clear it here
+                
+                // Remove listener immediately
+                bleManager.removeNetlinkForwardListener(ackListener)
                 
                 // Small delay to ensure target has finished handshake processing
                 transferJob = CoroutineScope(Dispatchers.Main).launch {
@@ -210,6 +215,9 @@ class ImageTransferManager(
                 }
             }
         }
+        
+        // Register the listener
+        bleManager.addNetlinkForwardListener(ackListener)
 
         // Send the ready command - build JSON with sorted keys (alphabetical order)
         val contentObj = org.json.JSONObject()
@@ -228,8 +236,8 @@ class ImageTransferManager(
         // Start guard timer: if no ACK within configured timeout, cancel transfer
         readyTimer = CoroutineScope(Dispatchers.Main).launch {
             delay(timeoutInterval)
-            // Remove observer
-            bleManager.onNetlinkForwardReceived = null
+            // Remove listener
+            bleManager.removeNetlinkForwardListener(ackListener)
             readyTimer = null
             Log.e("ImageTransfer", "❌ Timeout waiting for image_transfer_ready ACK")
             failTransfer("Target not ready to receive image")

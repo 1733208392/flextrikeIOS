@@ -36,10 +36,9 @@ class MainActivity : ComponentActivity() {
     private fun buildPermissionsArray(): Array<String> {
         val permissions = mutableListOf<String>()
 
-        // Always needed permissions
+        // Location permissions are still required for BLE on most Android devices
         permissions.add(Manifest.permission.ACCESS_FINE_LOCATION)
         permissions.add(Manifest.permission.ACCESS_COARSE_LOCATION)
-        permissions.add(Manifest.permission.CAMERA)
 
         // Handle Bluetooth permissions based on API level
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
@@ -58,10 +57,9 @@ class MainActivity : ComponentActivity() {
     private fun buildRuntimePermissionsArray(): Array<String> {
         val permissions = mutableListOf<String>()
 
-        // Always needed permissions
+        // Location permissions are still required for BLE on most Android devices
         permissions.add(Manifest.permission.ACCESS_FINE_LOCATION)
         permissions.add(Manifest.permission.ACCESS_COARSE_LOCATION)
-        permissions.add(Manifest.permission.CAMERA)
 
         // Handle Bluetooth permissions based on API level
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
