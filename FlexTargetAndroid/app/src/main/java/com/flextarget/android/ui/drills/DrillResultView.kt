@@ -475,7 +475,7 @@ private fun ShotListItem(
         )
         // Display cumulative time and split time to match iOS chronological ordering
         Text(
-            text = String.format("%.2f / %.2f", cumulativeTime, timeDiff),
+            text = String.format("%.2f / △%.2f", cumulativeTime, timeDiff),
             modifier = Modifier.width(80.dp),
             textAlign = TextAlign.Center,
             color = Color.White.copy(alpha = 0.9f)
