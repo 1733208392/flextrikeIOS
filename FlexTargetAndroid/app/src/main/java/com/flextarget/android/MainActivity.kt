@@ -33,8 +33,6 @@ class MainActivity : ComponentActivity() {
     private val blePermissions: Array<String>
         get() = buildBlePermissionsArray()
 
-    private val showBackgroundLocationDialog = mutableStateOf(false)
-
     private fun buildPermissionsArray(): Array<String> {
         val permissions = mutableListOf<String>()
 
@@ -52,12 +50,6 @@ class MainActivity : ComponentActivity() {
             // Android 11 and below: Use legacy Bluetooth permissions
             permissions.add(Manifest.permission.BLUETOOTH)
             permissions.add(Manifest.permission.BLUETOOTH_ADMIN)
-        }
-
-        // ACCESS_BACKGROUND_LOCATION is available from API 29 (Android 10)
-        // Note: This cannot be requested at runtime on API 29+, must be granted in settings
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-            permissions.add(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
         }
 
         return permissions.toTypedArray()
@@ -80,12 +72,6 @@ class MainActivity : ComponentActivity() {
             // Android 11 and below: Use legacy Bluetooth permissions
             permissions.add(Manifest.permission.BLUETOOTH)
             permissions.add(Manifest.permission.BLUETOOTH_ADMIN)
-        }
-
-        // ACCESS_BACKGROUND_LOCATION can only be requested at runtime on API 28 and below
-        // On API 29+, it must be granted in settings
-        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.Q) {
-            permissions.add(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
         }
 
         return permissions.toTypedArray()
@@ -114,15 +100,7 @@ class MainActivity : ComponentActivity() {
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
         val allGranted = permissions.values.all { it }
-        if (allGranted) {
-            // Check if we need to handle background location separately
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q &&
-                ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                // On API 29+, background location needs to be granted in settings
-                // Show a dialog directing user to settings
-                showBackgroundLocationDialog.value = true
-            }
-        } else {
+        if (!allGranted) {
             // Handle permission denial - could show a dialog explaining why permissions are needed
             println("Some permissions were denied")
         }
@@ -154,32 +132,23 @@ class MainActivity : ComponentActivity() {
                 ) {
                     val showAutoConnect = remember { mutableStateOf(false) }
                     
-                    if (showBackgroundLocationDialog.value) {
-                        BackgroundLocationDialog(
-                            onConfirm = {
-                                showBackgroundLocationDialog.value = false
-                                openAppSettings()
+                    LaunchedEffect(Unit) {
+                        if (!BLEManager.shared.isConnected) {
+                            val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+                            if (bluetoothAdapter?.isEnabled == true && hasRequiredPermissions()) {
+                                BLEManager.shared.autoDetectMode = true
+                                BLEManager.shared.startScan()
+                                showAutoConnect.value = true
                             }
+                        }
+                    }
+                    if (showAutoConnect.value) {
+                        com.flextarget.android.ui.ble.ConnectSmartTargetView(
+                            onDismiss = { showAutoConnect.value = false },
+                            onConnected = { showAutoConnect.value = false }
                         )
                     } else {
-                        LaunchedEffect(Unit) {
-                            if (!BLEManager.shared.isConnected) {
-                                val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
-                                if (bluetoothAdapter?.isEnabled == true && hasRequiredPermissions()) {
-                                    BLEManager.shared.autoDetectMode = true
-                                    BLEManager.shared.startScan()
-                                    showAutoConnect.value = true
-                                }
-                            }
-                        }
-                        if (showAutoConnect.value) {
-                            com.flextarget.android.ui.ble.ConnectSmartTargetView(
-                                onDismiss = { showAutoConnect.value = false },
-                                onConnected = { showAutoConnect.value = false }
-                            )
-                        } else {
-                            TabNavigationView()
-                        }
+                        TabNavigationView()
                     }
                 }
             }
@@ -201,25 +170,4 @@ class MainActivity : ComponentActivity() {
             ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
         }
     }
-
-    private fun openAppSettings() {
-        val intent = android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-            data = android.net.Uri.parse("package:$packageName")
-        }
-        startActivity(intent)
-    }
-}
-
-@Composable
-fun BackgroundLocationDialog(onConfirm: () -> Unit) {
-    androidx.compose.material3.AlertDialog(
-        onDismissRequest = { },
-        title = { androidx.compose.material3.Text("Background Location Required") },
-        text = { androidx.compose.material3.Text("This app requires background location permission to function properly when not in use. Please grant 'Allow all the time' location permission in the app settings.") },
-        confirmButton = {
-            androidx.compose.material3.TextButton(onClick = onConfirm) {
-                androidx.compose.material3.Text("Open Settings")
-            }
-        }
-    )
 }
