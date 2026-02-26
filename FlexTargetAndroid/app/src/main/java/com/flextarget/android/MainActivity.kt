@@ -30,6 +30,9 @@ class MainActivity : ComponentActivity() {
     private val runtimePermissions: Array<String>
         get() = buildRuntimePermissionsArray()
 
+    private val blePermissions: Array<String>
+        get() = buildBlePermissionsArray()
+
     private val showBackgroundLocationDialog = mutableStateOf(false)
 
     private fun buildPermissionsArray(): Array<String> {
@@ -87,6 +90,26 @@ class MainActivity : ComponentActivity() {
 
         return permissions.toTypedArray()
     }
+
+    private fun buildBlePermissionsArray(): Array<String> {
+        val permissions = mutableListOf<String>()
+
+        // Handle Bluetooth permissions based on API level
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+            // Android 12+ (API 31+): BLE scanning doesn't require location permissions
+            permissions.add(Manifest.permission.BLUETOOTH_SCAN)
+            permissions.add(Manifest.permission.BLUETOOTH_CONNECT)
+        } else {
+            // Android 11 and below: BLE scanning required location permissions
+            permissions.add(Manifest.permission.BLUETOOTH)
+            permissions.add(Manifest.permission.BLUETOOTH_ADMIN)
+            permissions.add(Manifest.permission.ACCESS_FINE_LOCATION)
+            permissions.add(Manifest.permission.ACCESS_COARSE_LOCATION)
+        }
+
+        return permissions.toTypedArray()
+    }
+
     private val requestPermissionsLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
