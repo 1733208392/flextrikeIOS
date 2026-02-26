@@ -87,7 +87,6 @@ fun TimerSessionView(
     var gracePeriodActive by remember { mutableStateOf(false) }
     var gracePeriodRemaining by remember { mutableStateOf(0.0) }
     var gracePeriodStartTime: Date? = null
-    var gracePeriodRetries: Int = 0
     val gracePeriodDuration = 8.0
 
     // Drill execution properties
@@ -203,7 +202,6 @@ fun TimerSessionView(
         gracePeriodActive = false
         gracePeriodRemaining = 0.0
         gracePeriodStartTime = null
-        gracePeriodRetries = 0
     }
 
     fun startUpdateTimer() {
@@ -263,16 +261,11 @@ fun TimerSessionView(
                                         stopUpdateTimer()
                                         executionManager?.completeDrill()
                                     } else {
-                                        // Not finalizing but summary not ready? Retry briefly
-                                        gracePeriodRetries++
-                                        if (gracePeriodRetries > 20) {
-                                            println("[TimerSessionView] Too many retries - forcing completion")
-                                            gracePeriodActive = false
-                                            stopUpdateTimer()
-                                            executionManager?.completeDrill()
-                                        } else {
-                                            gracePeriodRemaining = 0.1
-                                        }
+                                        // Not finalizing but summary not ready? Force completion since timer is guarded
+                                        println("[TimerSessionView] Summary not ready - forcing completion")
+                                        gracePeriodActive = false
+                                        stopUpdateTimer()
+                                        executionManager?.completeDrill()
                                     }
                                 } else {
                                     gracePeriodActive = false
@@ -552,7 +545,6 @@ fun TimerSessionView(
                 gracePeriodActive = true
                 gracePeriodRemaining = gracePeriodDuration
                 gracePeriodStartTime = Date()
-                gracePeriodRetries = 0
                 stopUpdateTimer()
                 startUpdateTimer()
             }
@@ -584,7 +576,6 @@ fun TimerSessionView(
         gracePeriodActive = true
         gracePeriodRemaining = gracePeriodDuration
         gracePeriodStartTime = Date()
-        gracePeriodRetries = 0
         stopUpdateTimer()
         startUpdateTimer()
 
