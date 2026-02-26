@@ -431,7 +431,7 @@ private fun ShotListView(
 
 /**
  * Individual shot item in the list.
- * Displays cumulative time (matching iOS behavior) along with delta time.
+ * Displays cumulative time and split time (matching iOS behavior).
  */
 @Composable
 private fun ShotListItem(
@@ -473,9 +473,9 @@ private fun ShotListItem(
             textAlign = TextAlign.Center,
             color = Color.White
         )
-        // Display cumulative time to match iOS chronological ordering
+        // Display cumulative time and split time to match iOS chronological ordering
         Text(
-            text = String.format("%.2f", cumulativeTime),
+            text = String.format("%.2f / %.2f", cumulativeTime, timeDiff),
             modifier = Modifier.width(80.dp),
             textAlign = TextAlign.Center,
             color = Color.White.copy(alpha = 0.9f)
