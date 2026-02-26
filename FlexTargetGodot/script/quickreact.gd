@@ -26,7 +26,7 @@ func _ready():
 	var menu_controller = get_node_or_null("/root/MenuController")
 	if menu_controller:
 		menu_controller.back_pressed.connect(_on_back_pressed)
-		menu_controller.home_pressed.connect(_on_back_pressed)
+		menu_controller.homepage_pressed.connect(_on_back_pressed)
 		print("MenuController found, connected back and home")
 	else:
 		print("MenuController not found")
