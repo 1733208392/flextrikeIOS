@@ -86,6 +86,8 @@ fun TimerSessionView(
     var showEndDrillAlert by remember { mutableStateOf(false) }
     var gracePeriodActive by remember { mutableStateOf(false) }
     var gracePeriodRemaining by remember { mutableStateOf(0.0) }
+    var gracePeriodStartTime: Date? = null
+    var gracePeriodRetries: Int = 0
     val gracePeriodDuration = 8.0
 
     // Drill execution properties
@@ -200,6 +202,8 @@ fun TimerSessionView(
         elapsedDuration = 0.0
         gracePeriodActive = false
         gracePeriodRemaining = 0.0
+        gracePeriodStartTime = null
+        gracePeriodRetries = 0
     }
 
     fun startUpdateTimer() {
@@ -229,6 +233,15 @@ fun TimerSessionView(
                             if (gracePeriodRemaining <= 0) {
                                 println("[TimerSessionView] Grace period ended, collecting summary and checking for more repeats")
 
+                                // Check for total timeout (10 seconds)
+                                val startTime = gracePeriodStartTime
+                                if (startTime != null && (now.time - startTime.time) > 10000) {
+                                    println("[TimerSessionView] Grace period timeout exceeded - forcing completion")
+                                    gracePeriodActive = false
+                                    stopUpdateTimer()
+                                    executionManager?.completeDrill()
+                                } else {
+
                                 // Wait until a summary for the current repeat actually exists.
                                 // Calling completeDrill() before finalizeRepeat() has produced a summary
                                 // results in 0 summaries being returned. If the summary isn't ready,
@@ -243,7 +256,15 @@ fun TimerSessionView(
                                         executionManager?.completeDrill()
                                     } else {
                                         // Not finalizing but summary not ready? Retry briefly
-                                        gracePeriodRemaining = 0.1
+                                        gracePeriodRetries++
+                                        if (gracePeriodRetries > 20) {
+                                            println("[TimerSessionView] Too many retries - forcing completion")
+                                            gracePeriodActive = false
+                                            stopUpdateTimer()
+                                            executionManager?.completeDrill()
+                                        } else {
+                                            gracePeriodRemaining = 0.1
+                                        }
                                     }
                                 } else {
                                     gracePeriodActive = false
@@ -273,6 +294,7 @@ fun TimerSessionView(
                                         resetTimer()
                                         startSequence?.invoke()
                                     }
+                                }
                                 }
                             }
                         }
@@ -520,6 +542,8 @@ fun TimerSessionView(
                 timerState = TimerState.IDLE  // Stop the elapsed timer display
                 gracePeriodActive = true
                 gracePeriodRemaining = gracePeriodDuration
+                gracePeriodStartTime = Date()
+                gracePeriodRetries = 0
                 stopUpdateTimer()
                 startUpdateTimer()
             }
@@ -550,6 +574,8 @@ fun TimerSessionView(
         timerState = TimerState.IDLE
         gracePeriodActive = true
         gracePeriodRemaining = gracePeriodDuration
+        gracePeriodStartTime = Date()
+        gracePeriodRetries = 0
         stopUpdateTimer()
         startUpdateTimer()
 
