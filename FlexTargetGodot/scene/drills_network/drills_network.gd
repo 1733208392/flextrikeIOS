@@ -1,6 +1,6 @@
 extends Control
 
-const DEBUG_ENABLED = true  # Set to false for production release
+const DEBUG_ENABLED = false  # Set to false for production release
 const QR_CODE_GENERATOR = preload("res://script/qrcode.gd")
 
 # Single target for network drills
