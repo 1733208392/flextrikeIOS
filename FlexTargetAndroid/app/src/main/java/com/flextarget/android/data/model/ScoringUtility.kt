@@ -359,8 +359,8 @@ object ScoringUtility {
         val mCount = adjustedHitZones["M"] ?: 0
 
         // Calculate base score from adjusted counts
-        // A=5, C=3, D=1, N=-10, M=-15, PE=-10
-        val totalScore = (aCount * 5) + (cCount * 3) + (dCount * 1) + (mCount * -15) + (nCount * -10) + (peCount * -10)
+        // A=5, C=3, D=1, N=-10, M=-10, PE=-10
+        val totalScore = (aCount * 5) + (cCount * 3) + (dCount * 1) + (mCount * -10) + (nCount * -10) + (peCount * -10)
 
         // Ensure score never goes below 0
         return maxOf(0, totalScore)

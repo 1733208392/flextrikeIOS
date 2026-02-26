@@ -587,8 +587,13 @@ func _transition_to_next_target():
 	if current_target_index >= target_sequence.size():
 		if DEBUG_ENABLED:
 			print("[DrillsNetwork] Reached end of target sequence (", current_target_index, " >= ", target_sequence.size(), ")")
-		# End the drill automatically
-		_on_ble_end_command({})
+		# Fade out the last target before ending
+		if target_instance:
+			var tween = create_tween()
+			tween.tween_property(target_instance, "modulate:a", 0.0, 0.5)
+			await tween.finished
+			target_instance.queue_free()
+			target_instance = null
 		return
 	
 	# Get the next target type
@@ -617,10 +622,10 @@ func _transition_to_next_target():
 		await _transition_to_next_target()  # Try next target
 		return
 	
-	# Remove the old target
+	# Remove the old target with fade animation
 	if target_instance:
 		if DEBUG_ENABLED:
-			print("[DrillsNetwork] Removing previous target instance")
+			print("[DrillsNetwork] Removing previous target instance with fade animation")
 		
 		# Disable the target first so it stops processing WebSocket hits
 		if target_instance.has_method("set"):
@@ -645,6 +650,11 @@ func _transition_to_next_target():
 				if DEBUG_ENABLED:
 					print("[DrillsNetwork] Disconnected target_disappeared signal from old target")
 		
+		# Animate fade out of old target
+		var tween = create_tween()
+		tween.tween_property(target_instance, "modulate:a", 0.0, 0.5)  # Fade out over 0.5 seconds
+		await tween.finished
+		
 		target_instance.queue_free()
 		target_instance = null
 		
@@ -655,6 +665,15 @@ func _transition_to_next_target():
 	if DEBUG_ENABLED:
 		print("[DrillsNetwork] Spawning new target: ", current_target_type)
 	spawn_target()
+	
+	# Start new target invisible for fade in
+	if target_instance:
+		target_instance.modulate.a = 0.0
+	
+	# Animate fade in of new target
+	var tween_in = create_tween()
+	tween_in.tween_property(target_instance, "modulate:a", 1.0, 0.5)  # Fade in over 0.5 seconds
+	await tween_in.finished
 	
 	# Activate the newly spawned target for the ongoing drill
 	if target_instance and target_instance.has_method("set"):
@@ -810,17 +829,10 @@ func _on_target_hit(zone_or_id, points_or_zone, hit_pos_or_points, target_pos_or
 		
 		if DEBUG_ENABLED:
 			print("[DrillsNetwork] Checking transition: current_target_index=", current_target_index, ", sequence.size()=", target_sequence.size(), ", is_last_in_sequence=", is_last_in_sequence)
+			print("[DrillsNetwork] Target complete with 2 shots, transitioning to next target")
+		await _transition_to_next_target()
+		return
 		
-		if not is_last_in_sequence:
-			# Not the last target, transition to next
-			if DEBUG_ENABLED:
-				print("[DrillsNetwork] Target complete with 2 shots, transitioning to next target")
-			await _transition_to_next_target()
-			return
-		else:
-			# This is the last target in the sequence, apply the old final target logic
-			if DEBUG_ENABLED:
-				print("[DrillsNetwork] Last target in sequence reached 2 shots")
 			# Fall through to the old logic below
 	elif is_paddle_or_popper and DEBUG_ENABLED:
 		print("[DrillsNetwork] Paddle/popper target detected, skipping 2-shot transition check (waiting for target_disappeared signal)")

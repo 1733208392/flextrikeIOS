@@ -56,8 +56,7 @@ import kotlin.random.Random
 enum class TimerState {
     IDLE,
     STANDBY,
-    RUNNING,
-    PAUSED
+    RUNNING
 }
 
 @Composable
@@ -87,7 +86,7 @@ fun TimerSessionView(
     var showEndDrillAlert by remember { mutableStateOf(false) }
     var gracePeriodActive by remember { mutableStateOf(false) }
     var gracePeriodRemaining by remember { mutableStateOf(0.0) }
-    val gracePeriodDuration = 3.0
+    val gracePeriodDuration = 8.0
 
     // Drill execution properties
     var executionManager by remember { mutableStateOf<DrillExecutionManager?>(null) }
@@ -108,8 +107,6 @@ fun TimerSessionView(
     var currentRepeat by remember { mutableStateOf(1) }
     var totalRepeats by remember { mutableStateOf(1) }
     var accumulatedSummaries by remember { mutableStateOf<List<DrillRepeatSummary>>(emptyList()) }
-    var isPauseActive by remember { mutableStateOf(false) }
-    var pauseRemaining by remember { mutableStateOf(0.0) }
     var drillEndedEarly by remember { mutableStateOf(false) }
     var isReady by remember { mutableStateOf(false) }
 
@@ -135,7 +132,7 @@ fun TimerSessionView(
     val buttonText by remember(timerState) {
         derivedStateOf {
             when (timerState) {
-                TimerState.IDLE, TimerState.PAUSED -> context.getString(R.string.start_drill)
+                TimerState.IDLE -> context.getString(R.string.start_drill)
                 TimerState.STANDBY -> context.getString(R.string.standby)
                 TimerState.RUNNING -> context.getString(R.string.stop_drill)
             }
@@ -148,7 +145,6 @@ fun TimerSessionView(
                 TimerState.IDLE -> md_theme_dark_onPrimary
                 TimerState.STANDBY -> md_theme_dark_onPrimary
                 TimerState.RUNNING -> md_theme_dark_onPrimary
-                TimerState.PAUSED -> md_theme_dark_onPrimary
             }
         }
     }
@@ -204,8 +200,6 @@ fun TimerSessionView(
         elapsedDuration = 0.0
         gracePeriodActive = false
         gracePeriodRemaining = 0.0
-        isPauseActive = false
-        pauseRemaining = 0.0
     }
 
     fun startUpdateTimer() {
@@ -241,8 +235,16 @@ fun TimerSessionView(
                                 // extend the grace period briefly and retry.
                                 val completedSummary = executionManager?.summaries?.getOrNull(currentRepeat - 1)
                                 if (completedSummary == null) {
-                                    // Still finalizing, extend grace period and retry shortly
-                                    gracePeriodRemaining = 0.1
+                                    if (executionManager?.isCurrentRepeatFinalized() == false) {
+                                        // Still finalizing after grace period - force completion (communication broken)
+                                        println("[TimerSessionView] Grace period ended but repeat still finalizing - forcing completion")
+                                        gracePeriodActive = false
+                                        stopUpdateTimer()
+                                        executionManager?.completeDrill()
+                                    } else {
+                                        // Not finalizing but summary not ready? Retry briefly
+                                        gracePeriodRemaining = 0.1
+                                    }
                                 } else {
                                     gracePeriodActive = false
                                     accumulatedSummaries = accumulatedSummaries + listOf(completedSummary)
@@ -254,10 +256,7 @@ fun TimerSessionView(
                                         stopUpdateTimer()
                                         executionManager?.completeDrill()
                                     } else if (currentRepeat < totalRepeats) {
-                                        // More repeats to go - start pause and prepare next repeat
-                                        isPauseActive = true
-                                        pauseRemaining = drillSetup.pause.toDouble()
-
+                                        // More repeats to go - prepare next repeat immediately
                                         // Increment repeat for next drill
                                         currentRepeat++
 
@@ -269,19 +268,15 @@ fun TimerSessionView(
                                         // Set the next repeat in the manager and perform readiness check
                                         executionManager?.setCurrentRepeat(currentRepeat)
                                         executionManager?.performReadinessCheck()
+
+                                        // Immediately start the next repeat
+                                        resetTimer()
+                                        startSequence?.invoke()
                                     }
                                 }
                             }
                         }
 
-                        if (isPauseActive) {
-                            pauseRemaining = maxOf(0.0, pauseRemaining - 0.05)
-                            if (pauseRemaining <= 0) {
-                                isPauseActive = false
-                                resetTimer()
-                                startSequence?.invoke()
-                            }
-                        }
                     }
                 }
             }, 0, 50)
@@ -316,13 +311,6 @@ fun TimerSessionView(
                 }
             }, 1000, 1000)
         }
-    }
-
-    fun resumeTimer() {
-        val elapsedSoFar = elapsedDuration
-        timerStartDate = Date(Date().time - (elapsedSoFar * 1000).toLong())
-        timerState = TimerState.RUNNING
-        startUpdateTimer()
     }
 
     fun initializeReadinessCheck() {
@@ -512,8 +500,7 @@ fun TimerSessionView(
     }
 
     fun buttonTapped() {
-        println("[TimerSessionView] buttonTapped called, timerState: $timerState, isPauseActive: $isPauseActive")
-        if (isPauseActive) return
+        println("[TimerSessionView] buttonTapped called, timerState: $timerState")
         when (timerState) {
             TimerState.IDLE -> {
                 if (startSequence != null) {
@@ -533,12 +520,11 @@ fun TimerSessionView(
                 stopUpdateTimer()
                 startUpdateTimer()
             }
-            TimerState.PAUSED -> resumeTimer()
         }
     }
 
     fun handleBackButtonTap() {
-        if (timerState == TimerState.STANDBY || timerState == TimerState.RUNNING || gracePeriodActive || isPauseActive) {
+        if (timerState == TimerState.STANDBY || timerState == TimerState.RUNNING || gracePeriodActive) {
             showEndDrillAlert = true
         } else {
             onBack()
@@ -549,8 +535,8 @@ fun TimerSessionView(
         // Mark that drill was ended early by user
         drillEndedEarly = true
 
-        // If already in grace period or pause, just proceed to complete the drill
-        if (gracePeriodActive || isPauseActive) {
+        // If already in grace period, just proceed to complete the drill
+        if (gracePeriodActive) {
             stopUpdateTimer()
             executionManager?.completeDrill()
             return
@@ -565,11 +551,6 @@ fun TimerSessionView(
         startUpdateTimer()
 
         // Grace period timer will check drillEndedEarly flag and complete drill instead of continuing
-    }
-
-    fun pauseTimer() {
-        stopUpdateTimer()
-        timerState = TimerState.PAUSED
     }
 
     LaunchedEffect(Unit) {
@@ -694,37 +675,6 @@ fun TimerSessionView(
                         )
                     }
                 }
-            } else if (isPauseActive) {
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier.size(200.dp)
-                ) {
-                    CircularProgressIndicator(
-                        progress = (pauseRemaining / drillSetup.pause).toFloat(),
-                        modifier = Modifier.fillMaxSize(),
-                        color = Color.Green,
-                        strokeWidth = 8.dp,
-                        trackColor = Color.White.copy(alpha = 0.2f)
-                    )
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Text(
-                            text = pauseRemaining.toInt().toString(),
-                            fontSize = 32.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                        Text(
-                            text = stringResource(R.string.pause_between_repeats),
-                            fontSize = 12.sp,
-                            color = Color.White.copy(alpha = 0.7f),
-                            maxLines = 1,
-                            softWrap = false
-                        )
-                    }
-                }
             } else {
                 Button(
                     onClick = { buttonTapped() },
@@ -750,7 +700,7 @@ fun TimerSessionView(
         }
 
         // Target readiness status at the bottom
-        if (timerState == TimerState.IDLE || isPauseActive) {
+        if (timerState == TimerState.IDLE) {
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
