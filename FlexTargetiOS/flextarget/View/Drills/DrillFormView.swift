@@ -46,6 +46,7 @@ struct DrillFormView: View {
     @State private var navigateToTimerSession: Bool = false
     @State private var drillSetupForTimer: DrillSetup? = nil
     @State private var showTargetConfigAlert: Bool = false
+    @State private var showDrillSavedAlert = false
     
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.managedObjectContext) private var environmentContext
@@ -239,8 +240,6 @@ struct DrillFormView: View {
                     HStack(spacing: 4) {
                         Image(systemName: "chevron.left")
                             .font(.system(size: 16, weight: .semibold))
-                        Text(NSLocalizedString("my_drills", comment: "Back button label"))
-                            .font(.system(size: 16, weight: .regular))
                     }
                     .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                 }
@@ -268,6 +267,9 @@ struct DrillFormView: View {
         .alert(isPresented: $bleManager.showErrorAlert) {
             Alert(title: Text("Error"), message: Text(bleManager.errorMessage ?? "Unknown error occurred"), dismissButton: .default(Text("OK")))
         }
+        .alert("Drill Saved", isPresented: $showDrillSavedAlert) {
+            Button("OK") { }
+        }
         .navigationBarBackButtonHidden(true)
     }
     
@@ -285,7 +287,7 @@ struct DrillFormView: View {
                     .background((bleManager.isConnected && !isEditingDisabled) ? Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433) : Color.gray)
                     .cornerRadius(8)
             }
-            .disabled(!bleManager.isConnected || isEditingDisabled)
+            .disabled(!bleManager.isConnected || isEditingDisabled || drillName.isEmpty)
             
             Button(action: saveAndStartDrill) {
                 Text(NSLocalizedString("start_drill", comment: "Start drill button"))
@@ -390,6 +392,8 @@ struct DrillFormView: View {
                     DispatchQueue.main.async {
                         NotificationCenter.default.post(name: .drillRepositoryDidChange, object: nil)
                     }
+                    
+                    showDrillSavedAlert = true
                 } catch let saveError as NSError {
                     print("Save failed with NSError:")
                     print("  localizedDescription: \(saveError.localizedDescription)")
@@ -427,7 +431,6 @@ struct DrillFormView: View {
             } else {
                 print("No changes to save")
             }
-            presentationMode.wrappedValue.dismiss()
         } catch let error as NSError {
             print("Failed to save drill setup: \(error.localizedDescription)")
             print("Error code: \(error.code)")

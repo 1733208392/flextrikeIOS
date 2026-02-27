@@ -355,7 +355,7 @@ private fun TargetRectSection(
                             modifier = Modifier
                                 .size(8.dp)
                                 .background(
-                                    color = if (index == currentTypeIndex) accentColor else darkGrayColor,
+                                    color = if (index == currentTypeIndex) accentColor else GrayColor,
                                     shape = androidx.compose.foundation.shape.CircleShape
                                 )
                                 .clickable {

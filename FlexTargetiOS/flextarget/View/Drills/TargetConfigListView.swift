@@ -689,6 +689,10 @@ struct TargetConfigListViewV2: View {
             VStack(spacing: 20) {
                 Spacer(minLength: 10)
                 targetRectSection
+                Text("LONG PRESS and DRAG TO ADD/DELETE TARGET")
+                    .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+                    .font(.caption)
+                    .multilineTextAlignment(.center)
 //                randomToggleSection
                 Spacer(minLength: 0)
                 targetTypeSelectionView
@@ -732,7 +736,7 @@ struct TargetConfigListViewV2: View {
     private var availableTargetTypes: [String] {
         switch drillMode {
         case "ipsc":
-            return ["ipsc", "hostage", "paddle", "popper", "rotation", "special_1", "special_2"]
+            return ["ipsc", "hostage", "paddle", "popper", "special_1", "special_2"]
         case "idpa":
             return ["idpa", "idpa_ns", "idpa_black_1", "idpa_black_2"]
         case "cqb":
@@ -740,6 +744,10 @@ struct TargetConfigListViewV2: View {
         default:
             return ["ipsc"]
         }
+    }
+
+    private var availableTargetTypesFiltered: [String] {
+        availableTargetTypes.filter { !selectedTargetTypes.contains($0) }
     }
 
     private var defaultTargetType: String {
@@ -792,25 +800,8 @@ struct TargetConfigListViewV2: View {
                     .onDrop(of: [UTType.plainText], isTargeted: nil) { providers in
                         handleDropToRect(providers: providers)
                     }
-
-                if badgeCount > 0 {
-                    Text("\(badgeCount)")
-                        .font(.system(size: 36, weight: .bold))
-                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
-                        .padding(.trailing, 20)
-                        .padding(.top, 20)
-                }
             }
             
-            if selectedTargetTypes.count > 1 {
-                HStack(spacing: 8) {
-                    ForEach(0..<selectedTargetTypes.count, id: \.self) { index in
-                        Circle()
-                            .fill(index == currentTypeIndex ? Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433) : Color(red: 0.098, green: 0.098, blue: 0.098))
-                            .frame(width: 8, height: 8)
-                    }
-                }
-            }
         }
     }
 
@@ -820,6 +811,9 @@ struct TargetConfigListViewV2: View {
             Image(systemName: "document.badge.plus")
                 .font(.system(size: 80, weight: .light))
                 .foregroundColor(.white.opacity(0.75))
+                .onDrop(of: [UTType.plainText], isTargeted: nil) { providers in
+                    handleDropToRect(providers: providers)
+                }
         } else {
             TabView(selection: Binding(
                 get: { min(currentTypeIndex, max(0, selectedTargetTypes.count - 1)) },
@@ -839,6 +833,21 @@ struct TargetConfigListViewV2: View {
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
             .animation(.easeInOut(duration: 0.2), value: selectedTargetTypes)
+            .overlay(alignment: .bottom) {
+                if selectedTargetTypes.count > 1 {
+                    HStack(spacing: 8) {
+                        ForEach(0..<selectedTargetTypes.count, id: \.self) { index in
+                            Circle()
+                                .fill(index == currentTypeIndex ? Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433) : Color.gray)
+                                .frame(width: 8, height: 8)
+                        }
+                    }
+                    .padding(.bottom, 10)
+                }
+            }
+            .onDrop(of: [UTType.plainText], isTargeted: nil) { providers in
+                handleDropToRect(providers: providers)
+            }
         }
     }
 
@@ -857,20 +866,36 @@ struct TargetConfigListViewV2: View {
     }
 
     private var targetTypeSelectionView: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
+        let typesToShow = availableTargetTypesFiltered.isEmpty ? [defaultTargetType] : availableTargetTypesFiltered
+        return ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 18) {
-                ForEach(availableTargetTypes, id: \.self) { type in
+                ForEach(typesToShow, id: \.self) { type in
                     RoundedRectangle(cornerRadius: 0)
                         .stroke(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433), lineWidth: 0)
                         .frame(width: 90, height: 160)
                         .overlay(
-                            Image(type)
-                                .resizable()
-                                .scaledToFit()
-                                .padding(10)
+                            Group {
+                                if availableTargetTypesFiltered.isEmpty && type == defaultTargetType {
+                                    Image(systemName: "folder.badge.plus")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .padding(10)
+                                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+                                } else {
+                                    Image(type)
+                                        .resizable()
+                                        .scaledToFit()
+                                        .padding(10)
+                                }
+                            }
                         )
                         .onDrag {
-                            NSItemProvider(object: type as NSString)
+                            // Only allow drag if it's not the default placeholder
+                            if !(availableTargetTypesFiltered.isEmpty && type == defaultTargetType) {
+                                NSItemProvider(object: type as NSString)
+                            } else {
+                                NSItemProvider() // Empty provider to prevent drag
+                            }
                         }
                 }
             }
@@ -978,9 +1003,11 @@ struct TargetConfigListViewV2: View {
             guard let targetType = object as? String else { return }
             DispatchQueue.main.async {
                 var updated = selectedTargetTypes
-                updated.append(targetType)
-                updateSelectedTargetTypes(updated)
-                currentTypeIndex = max(0, updated.count - 1)
+                if !updated.contains(targetType) {
+                    updated.append(targetType)
+                    updateSelectedTargetTypes(updated)
+                    currentTypeIndex = max(0, updated.count - 1)
+                }
             }
         }
         return true
