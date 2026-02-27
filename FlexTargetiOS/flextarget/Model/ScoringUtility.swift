@@ -6,7 +6,7 @@ import SwiftUI
 class ScoringUtility {
     // Normalize incoming hit area strings to canonical values
     static func normalizeHitArea(_ raw: String?) -> String {
-        let trimmed = raw?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() ?? ""
+        let trimmed = raw?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).lowercased() ?? ""
         if trimmed.isEmpty { return "miss" }
         switch trimmed {
         case "circle", "circlearea", "circle_area", "circle-area":
@@ -33,19 +33,22 @@ class ScoringUtility {
     // Build a stable key for grouping shots by target/device with fallbacks
     // Combined key: "<targetName>|<targetType>" when target name is present
     static func normalizedTargetKey(for shot: ShotData) -> String {
-        if let name = shot.target?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty {
-            let ttype = shot.content.targetType?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() ?? "unknown"
+        let ttype = shot.content.targetType.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).lowercased()
+        if let name = shot.target?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines), !name.isEmpty {
             return "\(name.lowercased())|\(ttype)"
+        } else if let device = shot.device?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines), !device.isEmpty {
+            return "\(device.lowercased())|\(ttype)"
         }
 
         let candidates: [String?] = [shot.content.targetType, shot.device, shot.target]
         for cand in candidates {
-            if let s = cand?.trimmingCharacters(in: .whitespacesAndNewlines), !s.isEmpty {
+            if let s = cand?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines), !s.isEmpty {
                 return s.lowercased()
             }
         }
         // Fallback: try hitArea instance (best-effort) or unknown
-        if let hit = shot.content.hitArea?.trimmingCharacters(in: .whitespacesAndNewlines), !hit.isEmpty {
+        let hit = shot.content.hitArea.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+        if !hit.isEmpty {
             let key = "target_" + hit.lowercased()
             print("ScoringUtility: fallback target key -> \(key) for shot with hitArea=\(hit)")
             return key
@@ -56,7 +59,7 @@ class ScoringUtility {
     
     /// Calculate score for a specific hit area
     static func scoreForHitArea(_ hitArea: String) -> Int {
-        let trimmed = hitArea.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let trimmed = hitArea.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).lowercased()
         
         switch trimmed {
         case "azone", "a":
@@ -66,7 +69,7 @@ class ScoringUtility {
         case "dzone", "d":
             return 1
         case "miss", "m":
-            return -15
+            return -10
         case "whitezone", "blackzone", "n":
             return -10
         case "circlearea", "popperzone": // Steel
@@ -85,7 +88,7 @@ class ScoringUtility {
         // Build expected targets as combined keys "name|type"
         let expectedTargets = Set(targetsSet.compactMap { cfg -> String? in
             guard let name = cfg.targetName?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty else { return nil }
-            let ttype = cfg.primaryTargetType()?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() ?? "unknown"
+            let ttype = cfg.primaryTargetType().trimmingCharacters(in: .whitespacesAndNewlines).lowercased() ?? "unknown"
             return "\(name.lowercased())|\(ttype)"
         })
         
@@ -153,7 +156,7 @@ class ScoringUtility {
         let expectedTargets = (drillSetup?.targets as? Set<DrillTargetsConfig>) ?? []
         let expectedTargetNames = Set(expectedTargets.compactMap { cfg -> String? in
             guard let name = cfg.targetName?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty else { return nil }
-            let ttype = cfg.primaryTargetType()?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() ?? "unknown"
+            let ttype = cfg.primaryTargetType().trimmingCharacters(in: .whitespacesAndNewlines).lowercased() ?? "unknown"
             return "\(name.lowercased())|\(ttype)"
         })
 
@@ -170,8 +173,8 @@ class ScoringUtility {
 
             // Find target config to determine type (lookup by baseName)
             let config = expectedTargets.first { $0.targetName == baseName }
-            let configType = config?.primaryTargetType()?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-            let shotType = targetShots.first?.content.targetType?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() ?? baseTypeFromKey
+            let configType = (config?.primaryTargetType())?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).lowercased()
+            let shotType = (targetShots.first?.content.targetType)?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).lowercased() ?? baseTypeFromKey
             let targetType = (configType != nil && configType! != "") ? configType! : shotType
             let isPaddleOrPopper = targetType.contains("paddle") || targetType.contains("popper")
 
@@ -195,7 +198,8 @@ class ScoringUtility {
                 // Paddles/Poppers: 1 valid hit required
                 let requiredHits = 1
                 let deficit = max(0, requiredHits - validHits.count)
-                mCount += deficit
+                // For paddles/poppers, do not count misses as M
+                // mCount += deficit
                 
                 // Count all valid hits for paddles/poppers
                 for shot in validHits {
@@ -247,7 +251,7 @@ class ScoringUtility {
         
         // Calculate base score from adjusted counts
         // A=5, C=3, D=1, N=-10, M=-15, PE=-10
-        let totalScore = (aCount * 5) + (cCount * 3) + (dCount * 1) + (mCount * -15) + (nCount * -10) + (peCount * -10)
+        let totalScore = (aCount * 5) + (cCount * 3) + (dCount * 1) + (mCount * -10) + (nCount * -10) + (peCount * -10)
         
         // Ensure score never goes below 0
         return max(0, totalScore)
@@ -257,7 +261,7 @@ class ScoringUtility {
     
     /// Map IDPA hit areas to IDPA zones (Head=0, Body=-1, Other=-3, NS5=-5)
     static func mapToIDPAZone(_ hitArea: String) -> String? {
-        let trimmed = hitArea.trimmingCharacters(in: .whitespacesAndNewlines).lowercased().replacingOccurrences(of: "_", with: "-")
+        let trimmed = hitArea.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).lowercased().replacingOccurrences(of: "_", with: "-")
         
         // Map based on IDPA NS target definition
         if trimmed == "head-0" || trimmed == "heart-0" {

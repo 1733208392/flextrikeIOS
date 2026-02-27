@@ -41,7 +41,7 @@ struct ReplayTargetDisplay: Identifiable, Hashable {
 
 private func isScoringZone(_ hitArea: String) -> Bool {
     let trimmed = hitArea.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-    return trimmed == "azone" || trimmed == "czone" || trimmed == "dzone" || trimmed == "head" || trimmed == "body"
+    return trimmed == "azone" || trimmed == "czone" || trimmed == "dzone" || trimmed == "head" || trimmed == "body" || trimmed == "circlearea" || trimmed == "popperzone"
 }
 
 /// A version of TargetDisplayView that supports filtering shots by current playback time.
@@ -283,15 +283,11 @@ struct DrillReplayView: View {
     }
     
     private var shotTimelineData: [(index: Int, time: Double, diff: Double)] {
-        // Sort shots chronologically by timeDiff to ensure correct timeline ordering
-        let sortedShotsWithOriginalIndices = shots.enumerated()
-            .sorted { $0.element.content.timeDiff < $1.element.content.timeDiff }
-        
         var cumulativeTime = 0.0
-        return sortedShotsWithOriginalIndices.map { (originalIndex, shot) in
+        return shots.enumerated().map { (index, shot) in
             let interval = shot.content.timeDiff
             cumulativeTime += interval
-            return (originalIndex, cumulativeTime, interval)
+            return (index, cumulativeTime, interval)
         }
     }
     
@@ -501,6 +497,7 @@ struct DrillReplayView: View {
                             },
                             onShotFocus: { index in
                                 selectedShotIndex = index
+                                currentProgress = shotTimelineData.first { $0.index == index }?.time ?? 0
                                 pulsingShotIndex = index
                                 triggerPulse()
                                 playShotSound()

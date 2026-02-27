@@ -489,7 +489,7 @@ private fun ShotListItem(
  */
 private fun isScoringZone(hitArea: String): Boolean {
     val trimmed = hitArea.trim().lowercase()
-    return trimmed == "azone" || trimmed == "czone" || trimmed == "dzone"
+    return trimmed == "azone" || trimmed == "czone" || trimmed == "dzone" || trimmed == "head" || trimmed == "body" || trimmed == "circlearea" || trimmed == "popperzone"
 }
 
 /**

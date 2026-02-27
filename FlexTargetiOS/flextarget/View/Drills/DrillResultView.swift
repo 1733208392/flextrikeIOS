@@ -28,7 +28,7 @@ private struct TargetDisplay: Identifiable, Hashable {
 
 private func isScoringZone(_ hitArea: String) -> Bool {
     let trimmed = hitArea.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-    return trimmed == "azone" || trimmed == "czone" || trimmed == "dzone"
+    return trimmed == "azone" || trimmed == "czone" || trimmed == "dzone" || trimmed == "head" || trimmed == "body" || trimmed == "circlearea" || trimmed == "popperzone"
 }
 
 private struct TargetDisplayView: View {

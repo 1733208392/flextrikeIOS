@@ -196,7 +196,7 @@ private fun BoxScope.renderBulletHole(
  */
 private fun isScoringZone(hitArea: String): Boolean {
     val trimmed = hitArea.trim().lowercase()
-    return trimmed in listOf("azone", "czone", "dzone", "head", "body")
+    return trimmed in listOf("azone", "czone", "dzone", "head", "body", "circlearea", "popperzone")
 }
 
 /**
