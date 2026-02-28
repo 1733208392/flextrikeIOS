@@ -21,6 +21,9 @@ import coil.decode.SvgDecoder
 import android.bluetooth.BluetoothAdapter
 import android.os.Build
 import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Text
+import androidx.compose.material3.Button
 
 class MainActivity : ComponentActivity() {
 
@@ -94,6 +97,17 @@ class MainActivity : ComponentActivity() {
         return permissions.toTypedArray()
     }
 
+    private var showDisclosure by mutableStateOf(false)
+
+    private val requestBackgroundLocationLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (!isGranted) {
+            // Handle denial - inform user that background BLE may not work
+            println("Background location permission denied")
+        }
+    }
+
     private val requestPermissionsLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
@@ -101,6 +115,11 @@ class MainActivity : ComponentActivity() {
         if (!allGranted) {
             // Handle permission denial - could show a dialog explaining why permissions are needed
             println("Some permissions were denied")
+        } else {
+            // Check if foreground location is granted, then show disclosure for background
+            if (hasForegroundLocationPermissions()) {
+                showDisclosure = true
+            }
         }
     }
 
@@ -110,6 +129,11 @@ class MainActivity : ComponentActivity() {
 
         // Request permissions if not granted
         requestPermissionsIfNeeded()
+
+        // If foreground location is already granted, show disclosure for background
+        if (hasForegroundLocationPermissions() && !hasBackgroundLocationPermission()) {
+            showDisclosure = true
+        }
 
         // Initialize BLE Manager
         BLEManager.shared.initialize(this)
@@ -145,6 +169,17 @@ class MainActivity : ComponentActivity() {
                             onDismiss = { showAutoConnect.value = false },
                             onConnected = { showAutoConnect.value = false }
                         )
+                    } else if (showDisclosure) {
+                        BackgroundLocationDisclosureDialog(
+                            onAllow = {
+                                showDisclosure = false
+                                requestBackgroundLocationLauncher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+                            },
+                            onDeny = {
+                                showDisclosure = false
+                                // Optionally show a message
+                            }
+                        )
                     } else {
                         TabNavigationView()
                     }
@@ -168,4 +203,32 @@ class MainActivity : ComponentActivity() {
             ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
         }
     }
+
+    private fun hasForegroundLocationPermissions(): Boolean {
+        return ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
+               ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun hasBackgroundLocationPermission(): Boolean {
+        return ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED
+    }
+}
+
+@Composable
+fun BackgroundLocationDisclosureDialog(onAllow: () -> Unit, onDeny: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDeny,
+        title = { Text("Background Location Permission") },
+        text = { Text("This app requires background location access to maintain Bluetooth connections for device functionality. Location data is not collected or stored.") },
+        confirmButton = {
+            Button(onClick = onAllow) {
+                Text("Allow")
+            }
+        },
+        dismissButton = {
+            Button(onClick = onDeny) {
+                Text("Deny")
+            }
+        }
+    )
 }
