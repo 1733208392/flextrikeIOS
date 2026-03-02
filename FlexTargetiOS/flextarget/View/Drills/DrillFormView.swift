@@ -131,12 +131,6 @@ struct DrillFormView: View {
                             .background(Color.gray.opacity(0.2))
                             .cornerRadius(20)
                             .padding(.horizontal)
-
-                            DrillModeSelectionView(
-                                drillMode: $drillMode,
-                                disabled: isEditingDisabled
-                            )
-                            .padding(.horizontal)
                             
                             // Delay of Set Starting
                             RepeatsConfigView(
@@ -163,14 +157,10 @@ struct DrillFormView: View {
                                 onTargetConfigDone: { targets = targetConfigs },
                                 disabled: isEditingDisabled,
                                 onDisabledTap: { showTargetConfigAlert = true },
-                                drillMode: drillMode
+                                drillMode: $drillMode
                             )
                             .padding(.horizontal)
                             
-                            Spacer()
-                            
-                            // Bottom Buttons
-                            actionButtons
                         }
                         .onAppear {
                             // Clean up any leftover inserted objects from previous attempts
@@ -193,6 +183,10 @@ struct DrillFormView: View {
                                 hideKeyboard()
                             }
                         )
+                        Spacer()
+
+                        // Bottom Buttons
+                        actionButtons
                     }
                 }
             .environment(\.managedObjectContext, viewContext)

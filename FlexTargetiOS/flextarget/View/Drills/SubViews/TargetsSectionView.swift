@@ -10,7 +10,7 @@ struct TargetsSectionView: View {
     let onTargetConfigDone: () -> Void
     var disabled: Bool = false
     var onDisabledTap: (() -> Void)? = nil
-    var drillMode: String = "ipsc"
+    @Binding var drillMode: String
 
     var body: some View {
         Group {
@@ -51,7 +51,7 @@ struct TargetsSectionView: View {
                     .opacity(isTargetListReceived ? 1.0 : 0.6)
                 }
             } else {
-                NavigationLink(destination: TargetConfigListViewV2(deviceList: bleManager.networkDevices, targetConfigs: $targetConfigs, onDone: onTargetConfigDone, drillMode: drillMode)) {
+                NavigationLink(destination: TargetConfigListViewV2(deviceList: bleManager.networkDevices, targetConfigs: $targetConfigs, onDone: onTargetConfigDone, drillMode: $drillMode)) {
                     HStack(spacing: 8) {
                         // Shield icon on the left
                         Image(systemName: "shield")
@@ -106,7 +106,8 @@ struct DrillSetupSectionView_Previews: PreviewProvider {
                         DrillTargetsConfigData(seqNo: 2, targetName: "Target B", targetType: "Paper", timeout: 25, countedShots: 3),
                         DrillTargetsConfigData(seqNo: 3, targetName: "Target C", targetType: "Electronic", timeout: 20, countedShots: 10)
                     ]),
-                    onTargetConfigDone: {}
+                    onTargetConfigDone: {},
+                    drillMode: .constant("ipsc")
                 )
             }
             .padding()

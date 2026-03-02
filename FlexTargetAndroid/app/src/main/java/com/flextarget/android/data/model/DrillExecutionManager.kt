@@ -704,14 +704,16 @@ class DrillExecutionManager(
 
             // Filter shots by repeat number: only accept shots for the current repeat
             val shotRepeatNumber = shot.content.actualRepeat
-            if (shotRepeatNumber != null && shotRepeatNumber != currentRepeat) {
-                println("[DrillExecutionManager] Ignoring shot from repeat $shotRepeatNumber, currently in repeat $currentRepeat")
+            // Device sends 1-based repeat numbers, app uses 1-based
+            val adjustedShotRepeatNumber = shotRepeatNumber ?: 0
+            if (adjustedShotRepeatNumber != currentRepeat) {
+                println("[DrillExecutionManager] Ignoring shot from repeat $shotRepeatNumber (adjusted to $adjustedShotRepeatNumber), currently in repeat $currentRepeat")
                 return
             }
             if (shotRepeatNumber == null) {
                 println("[DrillExecutionManager] Shot has no repeat number, accepting for current repeat $currentRepeat")
             } else {
-                println("[DrillExecutionManager] Shot repeat $shotRepeatNumber matches current repeat $currentRepeat")
+                println("[DrillExecutionManager] Shot repeat $shotRepeatNumber (adjusted to $adjustedShotRepeatNumber) matches current repeat $currentRepeat")
             }
 
             val event = ShotEvent(shot, Date())

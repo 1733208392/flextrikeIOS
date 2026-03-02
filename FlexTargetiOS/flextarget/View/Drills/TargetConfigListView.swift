@@ -251,11 +251,11 @@ struct TargetRowView: View {
             ]
         case "cqb":
             return [
+                "disguised_enemy",
                 "cqb_swing",
                 "cqb_front",
-                "cqb_move",
-                "disguised_enemy",
-                "cqb_hostage"
+                "cqb_hostage",
+                "cqb_move"
             ]
         default:
             return []
@@ -672,7 +672,7 @@ struct TargetConfigListViewV2: View {
     let deviceList: [NetworkDevice]
     @Binding var targetConfigs: [DrillTargetsConfigData]
     let onDone: () -> Void
-    let drillMode: String
+    @Binding var drillMode: String
 
     @Environment(\.dismiss) private var dismiss
     @State private var currentTypeIndex: Int = 0
@@ -688,6 +688,54 @@ struct TargetConfigListViewV2: View {
 
             VStack(spacing: 20) {
                 Spacer(minLength: 10)
+                // Drill Mode Segment Control
+                HStack(spacing: 0) {
+                    // IPSC Button
+                    Button(action: {
+                        drillMode = "ipsc"
+                    }) {
+                        HStack(spacing: 6) {
+                            if drillMode == "ipsc" {
+                                Image(systemName: "checkmark")
+                                    .font(.system(size: 14, weight: .semibold))
+                            }
+                            Text("IPSC")
+                                .font(.system(size: 14, weight: .medium))
+                        }
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 44)
+                        .foregroundColor(drillMode == "ipsc" ? .white : .gray)
+                        .background(drillMode == "ipsc" ? Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433) : Color.gray.opacity(0.2))
+                    }
+                    
+                    // CQB Button
+                    Button(action: {
+                        drillMode = "cqb"
+                    }) {
+                        HStack(spacing: 6) {
+                            if drillMode == "cqb" {
+                                Image(systemName: "checkmark")
+                                    .font(.system(size: 14, weight: .semibold))
+                            }
+                            Text("CQB")
+                                .font(.system(size: 14, weight: .medium))
+                        }
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 44)
+                        .foregroundColor(drillMode == "cqb" ? .white : .gray)
+                        .background(drillMode == "cqb" ? Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433) : Color.gray.opacity(0.2))
+                    }
+                }
+                .frame(maxWidth: 200)
+                .background(Color.gray.opacity(0.2))
+                .cornerRadius(12)
+                .onChange(of: drillMode) { newValue in
+                    // Re-filter existing selections to only include types available in the new drill mode
+                    let currentSelected = primaryConfig?.parseTargetTypes() ?? []
+                    updateSelectedTargetTypes(currentSelected)
+                    currentTypeIndex = min(currentTypeIndex, max(0, selectedTargetTypes.count - 1))
+                }
+                
                 targetRectSection
                 Text("LONG PRESS and DRAG TO ADD/DELETE TARGET")
                     .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
@@ -781,7 +829,8 @@ struct TargetConfigListViewV2: View {
     }
 
     private var selectedTargetTypes: [String] {
-        primaryConfig?.parseTargetTypes() ?? []
+        let allSelected = primaryConfig?.parseTargetTypes() ?? []
+        return allSelected.filter { availableTargetTypes.contains($0) }
     }
 
     private var badgeCount: Int {
@@ -956,8 +1005,9 @@ struct TargetConfigListViewV2: View {
 
     private func updateSelectedTargetTypes(_ newValues: [String]) {
         guard let index = primaryConfigIndex else { return }
-        targetConfigs[index].setTargetTypes(newValues)
-        if newValues.isEmpty {
+        let filteredValues = newValues.filter { availableTargetTypes.contains($0) }
+        targetConfigs[index].setTargetTypes(filteredValues)
+        if filteredValues.isEmpty {
             targetConfigs[index].targetVariant = nil
         }
 

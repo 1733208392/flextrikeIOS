@@ -491,6 +491,9 @@ fun DrillFormView(
                         },
                         onBack = {
                             currentScreen = DrillFormScreen.FORM
+                        },
+                        onDrillModeChange = { newMode ->
+                            drillMode = newMode
                         }
                     )
                 }
@@ -590,12 +593,6 @@ private fun FormScreen(
             DrillDescriptionSection(
                 description = description,
                 onDescriptionChange = onDescriptionChange
-            )
-
-            // Drill Mode Section
-            DrillModeSection(
-                drillMode = drillMode,
-                onDrillModeChange = onDrillModeChange
             )
 
             // Configuration Sections
@@ -843,7 +840,7 @@ private fun DrillModeSection(
             ) {
                 drillModes.forEach { mode ->
                     val isSelected = drillMode == mode
-                    val isEnabled = mode == "ipsc"
+                    val isEnabled = mode == "ipsc" || mode == "cqb"
                     OutlinedButton(
                         onClick = { onDrillModeChange(mode) },
                         modifier = Modifier.weight(1f),

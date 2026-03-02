@@ -10,7 +10,8 @@ struct DrillModeSelectionView: View {
     var disabled: Bool = false
 
     private let modeOptions: [DrillModeOption] = [
-        DrillModeOption(id: "ipsc", title: "IPSC")
+        DrillModeOption(id: "ipsc", title: "IPSC"),
+        DrillModeOption(id: "cqb", title: "CQB")
     ]
 
     @State private var showModePicker: Bool = false

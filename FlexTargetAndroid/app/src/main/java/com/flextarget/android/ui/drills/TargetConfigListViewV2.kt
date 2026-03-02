@@ -1,7 +1,6 @@
 package com.flextarget.android.ui.drills
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -13,9 +12,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -29,14 +29,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.Image
+import androidx.compose.runtime.*
 import androidx.compose.ui.text.font.FontWeight
 import coil.compose.AsyncImage
 import com.flextarget.android.R
 import com.flextarget.android.data.ble.BLEManager
-import com.flextarget.android.data.ble.NetworkDevice
 import com.flextarget.android.data.model.DrillTargetsConfigData
-import org.intellij.lang.annotations.JdkConstants
-import org.json.JSONObject
+import com.flextarget.android.ui.theme.md_theme_dark_onPrimary
 import com.flextarget.android.ui.theme.ttNormFontFamily
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -48,10 +47,13 @@ fun TargetConfigListViewV2(
     onUpdateTargetTypes: (Int, List<String>) -> Unit,
     onAddTarget: () -> Unit = {},
     onDone: () -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onDrillModeChange: (String) -> Unit
 ) {
     val accentRed = Color(red = 0.87f, green = 0.22f, blue = 0.14f)
     val darkGray = Color(red = 0.44f, green = 0.44f, blue = 0.44f)
+
+    var localDrillMode by remember(drillMode) { mutableStateOf(drillMode) }
 
     val primaryConfig = targetConfigs.firstOrNull() ?: return
     
@@ -62,13 +64,23 @@ fun TargetConfigListViewV2(
     var isDeleteMode by remember { mutableStateOf(false) }
     var isSelectingMode by remember { mutableStateOf(false) }
 
-    val availableTargetTypes = when (drillMode) {
+    val availableTargetTypes = when (localDrillMode) {
         "ipsc" -> listOf("ipsc", "hostage", "paddle", "popper", "special_1", "special_2")
         "idpa" -> listOf("idpa", "idpa_ns", "idpa_black_1", "idpa_black_2")
-        "cqb" -> listOf("cqb_swing", "cqb_front", "cqb_move", "disguised_enemy", "cqb_hostage")
-        else -> listOf("ipsc")
+        "cqb" -> listOf("disguised_enemy", "cqb_swing", "cqb_front", "cqb_hostage")
+        else -> listOf("")
     }
-
+    LaunchedEffect(localDrillMode) {
+        // Filter selectedTargetTypes to only include available types for the new mode
+        selectedTargetTypes = selectedTargetTypes.filter { it in availableTargetTypes }
+        if (selectedTargetTypes.isEmpty()) {
+            selectedTargetTypes = listOf(availableTargetTypes.firstOrNull() ?: "ipsc")
+        }
+        // Ensure currentTypeIndex is valid
+        if (currentTypeIndex >= selectedTargetTypes.size) {
+            currentTypeIndex = 0
+        }
+    }
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -107,6 +119,97 @@ fun TargetConfigListViewV2(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
+                // Drill Mode Segment Control
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth(0.7f)
+                        .height(44.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    color = Color.Gray.copy(alpha = 0.2f),
+                    shadowElevation = 0.dp
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalArrangement = Arrangement.spacedBy(0.dp)
+                    ) {
+                        // IPSC Button
+                        Surface(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight()
+                                .clickable {
+                                    localDrillMode = "ipsc"
+                                    onDrillModeChange("ipsc")
+                                },
+                            shape = RoundedCornerShape(topStart = 12.dp, bottomStart = 12.dp),
+                            color = if (localDrillMode == "ipsc") md_theme_dark_onPrimary else Color.Gray.copy(alpha = 0.2f),
+                            shadowElevation = 0.dp
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(horizontal = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                if (localDrillMode == "ipsc") {
+                                    Icon(
+                                        imageVector = Icons.Default.Check,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(18.dp),
+                                        tint = Color.White
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                }
+                                Text(
+                                    "IPSC",
+                                    color = if (localDrillMode == "ipsc") Color.White else Color.Gray,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+                        }
+
+                        // CQB Button
+                        Surface(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight()
+                                .clickable {
+                                    localDrillMode = "cqb"
+                                    onDrillModeChange("cqb")
+                                },
+                            shape = RoundedCornerShape(topEnd = 12.dp, bottomEnd = 12.dp),
+                            color = if (localDrillMode == "cqb") md_theme_dark_onPrimary else Color.Gray.copy(alpha = 0.2f),
+                            shadowElevation = 0.dp
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(horizontal = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                if (localDrillMode == "cqb") {
+                                    Icon(
+                                        imageVector = Icons.Default.Check,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(18.dp),
+                                        tint = Color.White
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                }
+                                Text(
+                                    "CQB",
+                                    color = if (localDrillMode == "cqb") Color.White else Color.Gray,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+                        }
+                    }
+                }
+
                 Spacer(modifier = Modifier.height(10.dp))
 
                 // Target Rectangle Section with Carousel
@@ -122,8 +225,10 @@ fun TargetConfigListViewV2(
                         if (it) isSelectingMode = false
                     },
                     onRemoveType = { index ->
-                        selectedTargetTypes = selectedTargetTypes.toMutableList().also { it.removeAt(index) }
-                        onUpdateTargetTypes(0, selectedTargetTypes)
+                        if (index < selectedTargetTypes.size) {
+                            selectedTargetTypes = selectedTargetTypes.toMutableList().also { it.removeAt(index) }
+                            onUpdateTargetTypes(0, selectedTargetTypes)
+                        }
                         isDeleteMode = false
                     }
                 )
