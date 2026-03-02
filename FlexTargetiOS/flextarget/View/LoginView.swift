@@ -13,6 +13,7 @@ struct LoginView: View {
     @State private var showError = false
     @State private var showRegistration = false
     @State private var showForgotPassword = false
+    @State private var isInternational = AuthManager.shared.isInternational()
     
     @FocusState private var focusedField: Field?
     
@@ -44,6 +45,21 @@ struct LoginView: View {
                 Text(NSLocalizedString("user_login", comment: "User login title"))
                     .font(.title)
                     .foregroundColor(.white)
+                
+                HStack {
+                    Text(NSLocalizedString("server_label", comment: "Server label"))
+                        .foregroundColor(.white)
+                    Text(isInternational ? NSLocalizedString("server_international", comment: "International server") : NSLocalizedString("server_china", comment: "China server"))
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+                    Spacer()
+                    Toggle("", isOn: $isInternational)
+                        .onChange(of: isInternational) { _ in
+                            AuthManager.shared.toggleServer()
+                        }
+                        .tint(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+                }
+                .padding(.horizontal, 32)
+                .padding(.bottom, 16)
                 
                 VStack(spacing: 16) {
                     TextField(NSLocalizedString("account", comment: "Account placeholder"), text: $mobile)

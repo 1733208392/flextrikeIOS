@@ -1,17 +1,14 @@
 package com.flextarget.android.ui.admin
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.Error
@@ -50,6 +47,7 @@ fun LoginScreen(
     var mobile by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var showPassword by remember { mutableStateOf(false) }
+    var isInternational by remember { mutableStateOf(authViewModel.isInternational()) }
     
     val customRed = Color(0xFFde3823)
     
@@ -99,6 +97,31 @@ fun LoginScreen(
                 .padding(top = 24.dp, bottom = 48.dp),
             tint = customRed
         )
+        
+        // Server selection toggle
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(stringResource(R.string.server_label), color = Color.White)
+            Text(if (isInternational) stringResource(R.string.server_international) else stringResource(R.string.server_china), color = customRed)
+            Spacer(modifier = Modifier.weight(1f))
+            Switch(
+                checked = isInternational,
+                onCheckedChange = {
+                    isInternational = it
+                    authViewModel.toggleServer()
+                },
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = customRed,
+                    checkedTrackColor = customRed.copy(alpha = 0.5f),
+                    uncheckedThumbColor = Color.White,
+                    uncheckedTrackColor = Color.White.copy(alpha = 0.3f)
+                )
+            )
+        }
         
         // Mobile input field
         OutlinedTextField(

@@ -17,6 +17,11 @@
     <string name="login_forgot_password">パスワードを忘れた</string>
     <string name="login_register_button">アカウント登録</string>
     
+    <!-- Server selection -->
+    <string name="server_label">サーバー: </string>
+    <string name="server_international">国際</string>
+    <string name="server_china">中国</string>
+    
     <!-- Auth state -->
     <string name="auth_not_authenticated">認証されていません</string>
     <string name="auth_authenticated">認証済み</string>

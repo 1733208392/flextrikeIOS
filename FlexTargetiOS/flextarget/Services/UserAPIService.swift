@@ -26,8 +26,10 @@ enum UserAPIError: Error, LocalizedError {
 class UserAPIService {
     static let shared = UserAPIService()
     
-    private let baseURL = "https://etarget.topoint-archery.cn"
     private let session = URLSession.shared
+    lazy var serverConfig = ServerConfig()
+    
+    private var baseURL: String { serverConfig.getServerUrl() }
     
     // MARK: - Helper Methods
     

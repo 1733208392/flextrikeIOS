@@ -17,6 +17,11 @@
     <string name="login_forgot_password">忘记密码</string>
     <string name="login_register_button">注册账户</string>
     
+    <!-- Server selection -->
+    <string name="server_label">服务器: </string>
+    <string name="server_international">国际</string>
+    <string name="server_china">中国</string>
+    
     <!-- Auth state -->
     <string name="auth_not_authenticated">未认证</string>
     <string name="auth_authenticated">已认证</string>

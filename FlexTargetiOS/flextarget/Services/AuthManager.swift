@@ -246,4 +246,14 @@ class AuthManager: ObservableObject {
             print("[AuthManager] No user data found in UserDefaults")
         }
     }
+
+    lazy var serverConfig = ServerConfig()
+
+    func toggleServer() {
+        serverConfig.toggleServer()
+    }
+
+    func isInternational() -> Bool {
+        return serverConfig.isInternational()
+    }
 }

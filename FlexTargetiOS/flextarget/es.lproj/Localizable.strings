@@ -468,3 +468,8 @@
 
 /* Logout */
 "logout_confirm" = "¿Estás seguro de que quieres cerrar sesión?";
+
+/* Server selection */
+"server_label" = "Servidor: ";
+"server_international" = "Internacional";
+"server_china" = "China";

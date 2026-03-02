@@ -50,8 +50,10 @@ struct OTAHistoryResponse: Codable {
 class OTAService {
     static let shared = OTAService()
     
-    private let baseURL = "https://etarget.topoint-archery.cn"
     private let session = URLSession.shared
+    lazy var serverConfig = ServerConfig()
+    
+    private var baseURL: String { serverConfig.getServerUrl() }
     
     /// Fetches the latest OTA version metadata
     func getLatestOTAVersion(authData: String) async throws -> OTAVersion {

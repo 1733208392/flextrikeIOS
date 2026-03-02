@@ -484,3 +484,8 @@
 
 /* Logout */
 "logout_confirm" = "您確定要登出嗎？";
+
+/* Server selection */
+"server_label" = "伺服器: ";
+"server_international" = "國際";
+"server_china" = "中國";

@@ -4,8 +4,10 @@ import CoreData
 class CompetitionResultAPIService {
     static let shared = CompetitionResultAPIService()
     
-    private let baseURL = "https://etarget.topoint-archery.cn"
     private let session = URLSession.shared
+    lazy var serverConfig = ServerConfig()
+    
+    private var baseURL: String { serverConfig.getServerUrl() }
     
     // MARK: - Response Models
     

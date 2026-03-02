@@ -18,6 +18,11 @@
     <string name="login_hint_mobile">Enter your mobile number</string>
     <string name="login_hint_password">Enter your password</string>
     
+    <!-- Server selection -->
+    <string name="server_label">Server: </string>
+    <string name="server_international">International</string>
+    <string name="server_china">China</string>
+    
     <!-- Registration screen -->
     <string name="registration_title">Register</string>
     <string name="registration_back">← Back</string>

@@ -8,6 +8,7 @@ import com.flextarget.android.data.auth.DeviceAuthManager
 import com.flextarget.android.data.auth.TokenRefreshQueue
 import com.flextarget.android.data.local.FlexTargetDatabase
 import com.flextarget.android.data.local.preferences.AppPreferences
+import com.flextarget.android.data.remote.ServerConfig
 import com.flextarget.android.data.remote.api.FlexTargetAPI
 import com.flextarget.android.data.repository.*
 import com.flextarget.android.ui.viewmodel.AuthViewModel
@@ -46,9 +47,11 @@ object AppContainer {
             .build()
     }
 
+    private val serverConfig by lazy { ServerConfig(applicationContext) }
+
     private val retrofit by lazy {
         Retrofit.Builder()
-            .baseUrl("https://etarget.topoint-archery.cn/") // Replace with actual base URL
+            .baseUrl(serverConfig.getServerUrl()) // Replace with actual base URL
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
@@ -192,4 +195,10 @@ object AppContainer {
             // Ignore initialization wiring errors; they will surface later if critical
         }
     }
+
+    fun toggleServer() {
+        serverConfig.toggleServer()
+    }
+
+    fun isInternational(): Boolean = serverConfig.isInternational()
 }

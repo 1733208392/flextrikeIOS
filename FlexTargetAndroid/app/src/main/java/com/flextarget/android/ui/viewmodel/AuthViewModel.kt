@@ -227,4 +227,16 @@ class AuthViewModel(
      * Get current access token
      */
     fun getAccessToken(): String? = authManager.currentAccessToken
+
+    /**
+     * Toggle server between International and China
+     */
+    fun toggleServer() {
+        com.flextarget.android.di.AppContainer.toggleServer()
+    }
+
+    /**
+     * Check if current server is International
+     */
+    fun isInternational(): Boolean = com.flextarget.android.di.AppContainer.isInternational()
 }

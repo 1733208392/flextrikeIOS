@@ -469,3 +469,8 @@
 
 /* Logout */
 "logout_confirm" = "ログアウトしてもよろしいですか？";
+
+/* Server selection */
+"server_label" = "サーバー: ";
+"server_international" = "国際";
+"server_china" = "中国";

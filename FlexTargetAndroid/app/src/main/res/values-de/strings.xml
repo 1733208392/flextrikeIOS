@@ -17,6 +17,11 @@
     <string name="login_forgot_password">Passwort vergessen</string>
     <string name="login_register_button">Konto registrieren</string>
     
+    <!-- Server selection -->
+    <string name="server_label">Server: </string>
+    <string name="server_international">International</string>
+    <string name="server_china">China</string>
+    
     <!-- Auth state -->
     <string name="auth_not_authenticated">Nicht authentifiziert</string>
     <string name="auth_authenticated">Authentifiziert</string>

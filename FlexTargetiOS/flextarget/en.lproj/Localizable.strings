@@ -497,3 +497,8 @@
 "edit_idpa_zones" = "Edit IDPA Zones";
 "edit_zones" = "Edit Zones";
 "save" = "Save";
+
+/* Server selection */
+"server_label" = "Server: ";
+"server_international" = "International";
+"server_china" = "China";

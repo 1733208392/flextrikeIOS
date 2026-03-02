@@ -17,6 +17,11 @@
     <string name="login_forgot_password">忘記密碼</string>
     <string name="login_register_button">註冊帳戶</string>
     
+    <!-- Server selection -->
+    <string name="server_label">伺服器: </string>
+    <string name="server_international">國際</string>
+    <string name="server_china">中國</string>
+    
     <!-- Auth state -->
     <string name="auth_not_authenticated">未認證</string>
     <string name="auth_authenticated">已認證</string>

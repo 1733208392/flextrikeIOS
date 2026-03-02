@@ -481,3 +481,8 @@
 /* UserProfileView Validation */
 "username_empty_error" = "用户名不能为空";
 "username_same_error" = "新用户名必须与当前用户名不同";
+
+/* Server selection */
+"server_label" = "服务器: ";
+"server_international" = "国际";
+"server_china" = "中国";
