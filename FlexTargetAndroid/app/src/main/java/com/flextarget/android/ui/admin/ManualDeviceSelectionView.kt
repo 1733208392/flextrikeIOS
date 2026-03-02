@@ -22,6 +22,7 @@ import androidx.compose.ui.res.stringResource
 import com.flextarget.android.R
 import com.flextarget.android.data.ble.BLEManager
 import com.flextarget.android.ui.theme.md_theme_dark_onPrimary
+import com.flextarget.android.ui.theme.md_theme_dark_primary
 
 @Composable
 fun ManualDeviceSelectionView(
@@ -93,10 +94,10 @@ fun ManualDeviceSelectionView(
                     )
                     Button(
                         onClick = { bleManager.startScan() },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                        colors = ButtonDefaults.buttonColors(containerColor = md_theme_dark_onPrimary),
                         shape = RoundedCornerShape(8.dp)
                     ) {
-                        Text(stringResource(R.string.scan_again))
+                        Text(stringResource(R.string.scan_again), color = md_theme_dark_primary)
                     }
                 }
             }

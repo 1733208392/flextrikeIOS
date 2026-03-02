@@ -28,6 +28,7 @@ import com.flextarget.android.ui.imagecrop.ImageCropViewV2
 import com.flextarget.android.ui.theme.md_theme_dark_onPrimary
 import com.flextarget.android.ui.theme.md_theme_dark_primary
 import kotlinx.coroutines.delay
+import com.google.gson.Gson
 
 @Composable
 fun ConnectSmartTargetView(
@@ -355,6 +356,27 @@ fun ConnectSmartTargetView(
                         ) {
                             Text(
                                 text = stringResource(R.string.device_disconnect),
+                                color = md_theme_dark_primary,
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                        
+                        Button(
+                            onClick = {
+                                val message = mapOf("action" to "upgrade_engine")
+                                val jsonString = Gson().toJson(message)
+                                bleManager.writeJSON(jsonString)
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth(0.75f)
+                                .padding(horizontal = 16.dp)
+                                .height(44.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = md_theme_dark_onPrimary),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text(
+                                text = "Upgrade Firmware",
                                 color = md_theme_dark_primary,
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Medium

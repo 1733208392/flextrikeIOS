@@ -244,7 +244,8 @@ fun DrillListView(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 // Circular icon with first letter of title
-                                val firstChar = (drillWithTargetsItem.drillSetup.name ?: stringResource(R.string.untitled)).first().uppercase()
+                                val displayName = drillWithTargetsItem.drillSetup.name?.takeIf { it.isNotEmpty() } ?: stringResource(R.string.untitled)
+                                val firstChar = displayName.first().uppercase()
                                 Box(
                                     modifier = Modifier
                                         .size(32.dp)
@@ -263,7 +264,7 @@ fun DrillListView(
 
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
-                                        text = (drillWithTargetsItem.drillSetup.name ?: stringResource(R.string.untitled)).uppercase(),
+                                        text = displayName.uppercase(),
                                         color = md_theme_dark_onPrimary,
                                         fontSize = 16.sp,
                                         fontWeight = FontWeight.Bold

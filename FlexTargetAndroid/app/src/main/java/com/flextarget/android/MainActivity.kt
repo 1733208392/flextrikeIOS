@@ -98,6 +98,8 @@ class MainActivity : ComponentActivity() {
     }
 
     private var showDisclosure by mutableStateOf(false)
+    private var disclosureShown = false
+    private var initialDisclosure = true
 
     private val requestBackgroundLocationLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -117,7 +119,8 @@ class MainActivity : ComponentActivity() {
             println("Some permissions were denied")
         } else {
             // Check if foreground location is granted, then show disclosure for background
-            if (hasForegroundLocationPermissions()) {
+            if (hasForegroundLocationPermissions() && !disclosureShown) {
+                initialDisclosure = false
                 showDisclosure = true
             }
         }
@@ -127,11 +130,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         android.util.Log.d("MainActivity", "MainActivity onCreate called")
 
-        // Request permissions if not granted
-        requestPermissionsIfNeeded()
-
-        // If foreground location is already granted, show disclosure for background
-        if (hasForegroundLocationPermissions() && !hasBackgroundLocationPermission()) {
+        // Show disclosure before requesting permissions
+        if (!disclosureShown) {
             showDisclosure = true
         }
 
@@ -172,12 +172,25 @@ class MainActivity : ComponentActivity() {
                     } else if (showDisclosure) {
                         BackgroundLocationDisclosureDialog(
                             onAllow = {
-                                showDisclosure = false
-                                requestBackgroundLocationLauncher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+                                if (initialDisclosure) {
+                                    initialDisclosure = false
+                                    disclosureShown = true
+                                    showDisclosure = false
+                                    requestPermissionsIfNeeded()
+                                } else {
+                                    showDisclosure = false
+                                    requestBackgroundLocationLauncher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+                                }
                             },
                             onDeny = {
-                                showDisclosure = false
-                                // Optionally show a message
+                                if (initialDisclosure) {
+                                    initialDisclosure = false
+                                    disclosureShown = true
+                                    showDisclosure = false
+                                    requestPermissionsIfNeeded()
+                                } else {
+                                    showDisclosure = false
+                                }
                             }
                         )
                     } else {

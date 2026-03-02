@@ -113,6 +113,7 @@ struct ConnectSmartTargetView: View {
         let isAlreadyConnected: Bool
         let bleManager: BLEManager
         let handleReconnect: () -> Void
+        let handleUpgrade: () -> Void
         @Environment(\.dismiss) var dismiss
         
         var body: some View {
@@ -157,6 +158,17 @@ struct ConnectSmartTargetView: View {
                                 .cornerRadius(8)
                         }
                         .padding(.horizontal, 16)
+                        
+                        Button(action: handleUpgrade) {
+                            Text("Upgrade Firmware")
+                                .font(.custom("SFPro-Medium", size: 20))
+                                .foregroundColor(.white)
+                                .frame(height: 44)
+                                .frame(maxWidth: .infinity)
+                                .background(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+                                .cornerRadius(8)
+                        }
+                        .padding(.horizontal, 16)
                     }
                 }
             }
@@ -176,7 +188,8 @@ struct ConnectSmartTargetView: View {
                     showReconnect: showReconnect,
                     isAlreadyConnected: isAlreadyConnected,
                     bleManager: bleManager,
-                    handleReconnect: handleReconnect
+                    handleReconnect: handleReconnect,
+                    handleUpgrade: handleUpgrade
                 )
                 .padding(.top, 120)
             }//Top Level VStack
@@ -383,6 +396,14 @@ struct ConnectSmartTargetView: View {
         func handleReconnect() {
             hasTriedReconnect = true
             startScanAndTimer()
+        }
+        
+        func handleUpgrade() {
+            let message: [String: Any] = ["action": "upgrade_engine"]
+            if let jsonData = try? JSONSerialization.data(withJSONObject: message, options: []),
+               let jsonString = String(data: jsonData, encoding: .utf8) {
+                bleManager.writeJSON(jsonString)
+            }
         }
         
         func connectToSelectedPeripheral() {
