@@ -25,6 +25,10 @@ struct ConnectSmartTargetView: View {
     var onConnected: (() -> Void)?
     @State private var activeTargetName: String? = nil
     
+    private func formatDeviceName(_ name: String?) -> String {
+        return name?.replacingOccurrences(of: "GR-WOLF ET ", with: "") ?? "Device"
+    }
+    
     func goToMain() {
         if let onConnected = onConnected {
             onConnected()
@@ -152,8 +156,7 @@ struct ConnectSmartTargetView: View {
                             Text(NSLocalizedString("disconnect", comment: "Disconnect button"))
                                 .font(.custom("SFPro-Medium", size: 20))
                                 .foregroundColor(.white)
-                                .frame(height: 44)
-                                .frame(maxWidth: .infinity)
+                                .frame(width: geometry.size.width * 0.75, height: 44)
                                 .background(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                                 .cornerRadius(8)
                         }
@@ -163,8 +166,7 @@ struct ConnectSmartTargetView: View {
                             Text("Upgrade Firmware")
                                 .font(.custom("SFPro-Medium", size: 20))
                                 .foregroundColor(.white)
-                                .frame(height: 44)
-                                .frame(maxWidth: .infinity)
+                                .frame(width: geometry.size.width * 0.75, height: 44)
                                 .background(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                                 .cornerRadius(8)
                         }
@@ -253,7 +255,7 @@ struct ConnectSmartTargetView: View {
         }
         .onAppear {
             if isAlreadyConnected {
-                let deviceName = bleManager.connectedPeripheral?.name ?? "Device"
+                let deviceName = formatDeviceName(bleManager.connectedPeripheral?.name)
                 let connectedText = NSLocalizedString("target_connected", comment: "Status when target is connected")
                 statusText = deviceName + " " + connectedText
             } else {
@@ -264,7 +266,7 @@ struct ConnectSmartTargetView: View {
                     activeTargetName = target
                     bleManager.setAutoConnectTarget(target)
                     startScanAndTimer()
-                    statusText = String(format: NSLocalizedString("scanning_for_target", comment: "Scanning for specific target"), target)
+                    statusText = String(format: NSLocalizedString("scanning_for_target", comment: "Scanning for specific target"), formatDeviceName(target))
                 } else if bleManager.autoDetectMode {
                     // Auto-detect mode: check if peripherals are already discovered
                     if bleManager.discoveredPeripherals.count == 1 {
@@ -312,7 +314,7 @@ struct ConnectSmartTargetView: View {
         .onChange(of: bleManager.isConnected) { newValue in
             if newValue {
                 timeoutTimer?.invalidate()
-                let deviceName = bleManager.connectedPeripheral?.name ?? "Device"
+                let deviceName = formatDeviceName(bleManager.connectedPeripheral?.name)
                 let connectedText = NSLocalizedString("connected", comment: "Status when connection successful")
                 statusText = deviceName + " " + connectedText
                 isShaking = false
@@ -532,6 +534,10 @@ struct DeviceSelectionButtonView: View {
     let action: () -> Void
     @State private var isPressed = false
     
+    private func formatDeviceName(_ name: String?) -> String {
+        return name?.replacingOccurrences(of: "GR-WOLF ET ", with: "") ?? "Device"
+    }
+    
     var body: some View {
         Button(action: action) {
             HStack(spacing: 16) {
@@ -542,7 +548,7 @@ struct DeviceSelectionButtonView: View {
                 
                 // Device Information
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(peripheral.name)
+                    Text(formatDeviceName(peripheral.name))
                         .font(.custom("SFPro-Medium", size: 16))
                         .foregroundColor(.white)
                         .lineLimit(1)

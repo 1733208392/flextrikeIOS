@@ -29,6 +29,10 @@ fun MultiDevicePickerDialog(
     var selectedPeripheral by remember { mutableStateOf<DiscoveredPeripheral?>(null) }
     val discoveredPeripherals = bleManager.discoveredPeripherals
 
+    fun formatDeviceName(name: String?): String {
+        return name?.removePrefix("GR-WOLF ET ") ?: "Device"
+    }
+
     if (discoveredPeripherals.isNotEmpty()) {
         AlertDialog(
             onDismissRequest = onDismiss,
@@ -83,6 +87,9 @@ private fun DeviceItem(
     isSelected: Boolean,
     onSelected: () -> Unit
 ) {
+    fun formatDeviceName(name: String?): String {
+        return name?.removePrefix("GR-WOLF ET ") ?: "Device"
+    }
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -104,7 +111,7 @@ private fun DeviceItem(
             modifier = Modifier.weight(1f)
         ) {
             Text(
-                text = peripheral.name,
+                text = formatDeviceName(peripheral.name),
                 style = MaterialTheme.typography.bodyLarge
             )
             Text(

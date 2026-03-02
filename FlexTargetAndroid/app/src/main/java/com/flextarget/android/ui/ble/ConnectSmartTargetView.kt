@@ -349,7 +349,6 @@ fun ConnectSmartTargetView(
                             },
                             modifier = Modifier
                                 .fillMaxWidth(0.75f)
-                                .padding(horizontal = 16.dp)
                                 .height(44.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = md_theme_dark_onPrimary),
                             shape = RoundedCornerShape(8.dp)
@@ -370,7 +369,6 @@ fun ConnectSmartTargetView(
                             },
                             modifier = Modifier
                                 .fillMaxWidth(0.75f)
-                                .padding(horizontal = 16.dp)
                                 .height(44.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = md_theme_dark_onPrimary),
                             shape = RoundedCornerShape(8.dp)
