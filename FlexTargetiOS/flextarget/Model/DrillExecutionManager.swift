@@ -233,23 +233,8 @@ class DrillExecutionManager {
                 print("Sending ready message for target \(target.targetName ?? ""), targetType: \(targetTypeValue), length: \(messageData.count)")
                 bleManager.writeJSON(messageString)
                 
-                // Send animation_config if CQB mode and action is set
-                if drillSetup.mode == "cqb", let action = target.action, !action.isEmpty {
-                    let animationContent: [String: Any] = [
-                        "command": "animation_config",
-                        "action": action,
-                        "duration": target.duration
-                    ]
-                    let animationMessage: [String: Any] = [
-                        "action": "netlink_forward",
-                        "dest": target.targetName ?? "",
-                        "content": animationContent
-                    ]
-                    let animationData = try JSONSerialization.data(withJSONObject: animationMessage, options: [])
-                    let animationString = String(data: animationData, encoding: .utf8)!
-                    print("Sending animation_config for target \(target.targetName ?? "")")
-                    bleManager.writeJSON(animationString)
-                }
+                // Note: animation_config is no longer sent as Godot now automatically applies animations
+                // based on target type (cqb_front->flash, cqb_swing->swing, cqb_hostage->flash, disguised_enemy->transition)
                 
                 #if targetEnvironment(simulator)
                 // In simulator, mock some shot received notifications after sending ready command

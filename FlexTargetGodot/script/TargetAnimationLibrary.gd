@@ -98,6 +98,24 @@ func _get_animation_templates() -> Dictionary:
 		}
 	}
 
+# Get CQB animation configuration for a specific target type
+# Returns a Dictionary with "name" and "duration" keys to be stored in current_animation_action
+func get_cqb_animation_config(target_type: String) -> Dictionary:
+	match target_type:
+		"cqb_front":
+			return {"name": "flash", "duration": 3.0}
+		"cqb_swing":
+			return {"name": "swing", "duration": 3.0}
+		"cqb_hostage":
+			return {"name": "flash", "duration": 3.0}
+		"disguised_enemy":
+			return {"name": "disguised_enemy_flash", "duration": 0.0}  # Duration calculated from sequence steps
+		"cqb_move":
+			return {"name": "flash", "duration": 3.0}
+		_:
+			push_error("TargetAnimationLibrary: Unknown CQB target type '" + target_type + "'")
+			return {"name": "flash", "duration": 3.0}  # Default fallback
+
 # Apply a predefined animation to a target
 # target: The target node (should have AnimationPlayer)
 # animation_name: Name of the predefined animation (e.g., "flash", "run_through")
@@ -283,6 +301,18 @@ func _play_editor_animation(target: Node, animation_name: String, start_delay: f
 	if not animation_player.has_animation(animation_name):
 		push_error("TargetAnimationLibrary: Editor animation '" + animation_name + "' not found")
 		return ""
+	
+	# Ensure visibility before animation plays to prevent animation keyframes from hiding the target
+	var node_to_check_visible = target
+	if target.has_node("Soldier"):
+		var soldier = target.get_node("Soldier")
+		if soldier is Node2D:
+			node_to_check_visible = soldier
+	
+	if not node_to_check_visible.visible:
+		print("[TargetAnimationLibrary] _play_editor_animation: Ensuring '" + node_to_check_visible.name + "' is visible before playing '" + animation_name + "'")
+		node_to_check_visible.visible = true
+	
 	if start_delay > 0:
 		var timer = Timer.new()
 		timer.wait_time = start_delay

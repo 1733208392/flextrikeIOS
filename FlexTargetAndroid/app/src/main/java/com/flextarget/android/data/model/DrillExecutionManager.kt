@@ -258,22 +258,8 @@ class DrillExecutionManager(
             Log.d("DrillExecutionManager","Sending ready message for device $deviceId, targetTypes: $targetTypeValue, Data: ${messageData}")
             bleManager.writeJSON(messageData)
 
-            // Send animation_config if CQB mode and action is set
-            if ((drillSetup.mode ?: "").lowercase() == "cqb" && !target.action.isNullOrEmpty()) {
-                val animationContent = mapOf(
-                    "command" to "animation_config",
-                    "action" to target.action,
-                    "duration" to target.duration
-                )
-                val animationMessage = mapOf(
-                    "action" to "netlink_forward",
-                    "dest" to (target.targetName ?: ""),
-                    "content" to animationContent
-                )
-                val animationData = Gson().toJson(animationMessage)
-                Log.d("DrillExecutionManager", "Sending animation_config for target ${target.targetName}")
-                bleManager.writeJSON(animationData)
-            }
+            // Note: animation_config is no longer sent as Godot now automatically applies animations
+            // based on target type (cqb_front->flash, cqb_swing->swing, cqb_hostage->flash, disguised_enemy->transition)
         }
     }
 

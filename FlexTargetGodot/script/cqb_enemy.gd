@@ -210,10 +210,11 @@ func reset_target():
 		animation_player = get_node_or_null("Soldier/AnimationPlayer")
 
 	if animation_player and animation_player is AnimationPlayer:
-		if not animation_player.is_playing():
-			# Reset and start playing the animation from the beginning
-			animation_player.seek(0)
-			print("[CQB_SWING] reset_target: Reset and resumed AnimationPlayer")
+		# Stop playback first to ensure clean state reset
+		animation_player.stop()
+		# Reset animation to position 0
+		animation_player.seek(0.0)
+		print("[CQB_SWING] reset_target: Stopped and reset AnimationPlayer to position 0")
 
 	# Reset visual properties
 	var soldier = get_node_or_null("Soldier")
@@ -221,6 +222,9 @@ func reset_target():
 		soldier.modulate = Color.WHITE
 		soldier.rotation = 0.0
 		soldier.scale = Vector2.ONE
+		# Restore visibility in case target was hidden
+		soldier.visible = true
+		print("[CQB_SWING] reset_target: Made soldier visible and reset properties")
 
 	# Reset bullet hole pool - hide all active holes
 	reset_bullet_hole_pool()

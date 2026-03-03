@@ -386,10 +386,16 @@ func spawn_target():
 	# Store target type as metadata for later retrieval by performance tracker
 	target_instance.set_meta("target_type", current_target_type)
 
-	# Pass animation duration to CQB targets for continuous/timed mode support
+	# For CQB targets, automatically set default animations from animation library
 	if normalize_game_mode(game_mode) == "cqb":
-		target_instance.action_duration = current_animation_action.get("duration", -1.0)
-		print("[DrillsNetwork] spawn_target: Set CQB target action_duration to ", target_instance.action_duration)
+		print("[DrillsNetwork] spawn_target: CQB mode detected, animation_lib=", animation_lib)
+		if animation_lib:
+			var cqb_anim_config = animation_lib.get_cqb_animation_config(current_target_type)
+			current_animation_action = cqb_anim_config
+			target_instance.action_duration = current_animation_action.get("duration", -1.0)
+			print("[DrillsNetwork] spawn_target: Set CQB target '", current_target_type, "' to animation '", cqb_anim_config.get("name"), "' with duration ", target_instance.action_duration)
+		else:
+			push_error("[DrillsNetwork] spawn_target: animation_lib is NULL!!! Cannot get CQB animation config!")
 
 	# Offset rotation target by -200, 200 from center
 	if current_target_type == "rotation":
@@ -397,9 +403,14 @@ func spawn_target():
 	
 	# Center cqb swing target
 	if current_target_type == "cqb_swing":
-		var soldier = target_instance.get_node("Soldier")
-		soldier.position = Vector2(0, 0)  # Center relative to target_instance
-		soldier.visible = false  # Hide soldier initially
+		print("[DrillsNetwork] spawn_target: CQB SWING - getting Soldier node...")
+		var soldier = target_instance.get_node_or_null("Soldier")
+		if soldier:
+			soldier.position = Vector2(0, 0)  # Center relative to target_instance
+			soldier.visible = false  # Hide soldier initially
+			print("[DrillsNetwork] spawn_target: CQB SWING - soldier.visible set to false")
+		else:
+			push_error("[DrillsNetwork] spawn_target: CQB SWING - Soldier node NOT FOUND!")
 	
 	# Set drill active flag to false initially
 	if target_instance.has_method("set"):
@@ -665,6 +676,38 @@ func _transition_to_next_target():
 	if DEBUG_ENABLED:
 		print("[DrillsNetwork] Spawning new target: ", current_target_type)
 	spawn_target()
+	
+	# For CQB targets in multi-target sequences, perform initialization that normally happens in start_drill_timer()
+	if normalize_game_mode(game_mode) == "cqb" and target_instance:
+		print("[DrillsNetwork] _transition_to_next_target: CQB target detected - applying initialization")
+		
+		# For CQB swing, reset and make soldier visible
+		if current_target_type == "cqb_swing":
+			print("[DrillsNetwork] _transition_to_next_target: CQB SWING - resetting and showing soldier")
+			if target_instance.has_method("reset_target"):
+				target_instance.reset_target()
+				print("[DrillsNetwork] _transition_to_next_target: Reset CQB swing target")
+			
+			var soldier = target_instance.get_node_or_null("Soldier")
+			if soldier:
+				soldier.visible = true
+				print("[DrillsNetwork] _transition_to_next_target: Made CQB swing soldier visible")
+			else:
+				push_error("[DrillsNetwork] _transition_to_next_target: CQB SWING - Soldier node NOT FOUND!")
+		
+		# Apply animation config for CQB targets
+		if animation_lib and current_animation_action.size() > 0:
+			var duration = current_animation_action.get("duration", -1.0)
+			var animation_name = current_animation_action.get("name", "")
+			print("[DrillsNetwork] _transition_to_next_target: Applying animation to CQB target - name='", animation_name, "', duration=", duration)
+			
+			if current_target_type == "cqb_swing":
+				animation_lib.apply_animation(target_instance, animation_name, duration, 0.0, null)
+			elif current_target_type == "disguised_enemy":
+				animation_lib.apply_animation(target_instance, animation_name, duration, 0.0, center_container)
+			else:
+				animation_lib.apply_start_pose(target_instance, animation_name)
+				animation_lib.apply_animation(target_instance, animation_name, duration, 0.0, null)
 	
 	# Start new target invisible for fade in
 	if target_instance:
@@ -993,46 +1036,69 @@ func start_drill_timer():
 	
 	# For CQB swing targets, reset and make soldier visible before starting
 	if current_target_type == "cqb_swing":
-		if target_instance.has_method("reset_target"):
+		print("[DrillsNetwork] start_drill_timer: CQB SWING - resetting target...")
+		if target_instance and target_instance.has_method("reset_target"):
 			target_instance.reset_target()
 			print("[DrillsNetwork] start_drill_timer: Reset CQB swing target")
-		var soldier = target_instance.get_node("Soldier")
+		
+		print("[DrillsNetwork] start_drill_timer: CQB SWING - getting Soldier node...")
+		var soldier = target_instance.get_node_or_null("Soldier")
 		if soldier:
+			print("[DrillsNetwork] start_drill_timer: Soldier BEFORE visible=", soldier.visible)
 			soldier.visible = true
-			print("[DrillsNetwork] start_drill_timer: Made CQB swing soldier visible")
+			print("[DrillsNetwork] start_drill_timer: Soldier AFTER visible=", soldier.visible, ", modulate=", soldier.modulate)
+		else:
+			push_error("[DrillsNetwork] start_drill_timer: CQB SWING - Soldier node NOT FOUND!")
 	
 	# Apply animation if configured
+	print("[DrillsNetwork] start_drill_timer: Animation check - animation_lib=", animation_lib != null, ", action.size=", current_animation_action.size())
 	if animation_lib and current_animation_action.size() > 0:
 		var duration = current_animation_action.get("duration", -1.0)
 		var animation_name = current_animation_action.get("name", "")
+		print("[DrillsNetwork] start_drill_timer: Applying animation: '", animation_name, "' duration=", duration)
 		
-		# For CQB swing targets in continuous mode, skip start pose (editor handles positioning)
-		if normalize_game_mode(game_mode) == "cqb" and current_target_type == "cqb_swing" and duration == -1.0:
-			print("[DrillsNetwork] start_drill_timer: CQB swing continuous mode - skipping start pose (editor handles positioning)")
-		# For disguised_enemy, always apply animation (flash_sequence scene switching)
-		elif normalize_game_mode(game_mode) == "cqb" and current_target_type == "disguised_enemy":
-			print("[DrillsNetwork] start_drill_timer: Disguised enemy target - applying flash_sequence animation")
-			animation_lib.apply_start_pose(target_instance, animation_name)
-			animation_lib.apply_animation(target_instance, animation_name, duration, 0.0, center_container)
-		# Skip animation for other CQB targets in continuous mode
-		elif normalize_game_mode(game_mode) == "cqb" and duration == -1.0:
-			print("[DrillsNetwork] start_drill_timer: CQB continuous mode detected (duration=-1) - skipping animation")
-		else:
-			print("[DrillsNetwork] start_drill_timer: Animation configured - applying animation: ", animation_name)
-			# For CQB swing, skip start pose as editor handles positioning
-			if not (normalize_game_mode(game_mode) == "cqb" and current_target_type == "cqb_swing"):
-				# Prime the start pose first to prevent an initial jump when the animation begins
-				animation_lib.apply_start_pose(target_instance, animation_name)
-			
-			# For flash_sequence animations, pass parent container for scene swapping
-			if animation_name == "disguised_enemy_flash":
-				print("[DrillsNetwork] start_drill_timer: Applying disguised_enemy_flash animation with container")
-				animation_lib.apply_animation(target_instance, animation_name, duration, 0.0, center_container)
+		# For CQB swing targets, skip start pose (editor handles positioning)
+		if normalize_game_mode(game_mode) == "cqb" and current_target_type == "cqb_swing":
+			print("[DrillsNetwork] start_drill_timer: CQB SWING - applying swing animation")
+			animation_lib.apply_animation(target_instance, animation_name, duration, 0.0, null)
+			# Verify soldier is visible (fallback safety check)
+			var soldier = target_instance.get_node_or_null("Soldier")
+			if soldier:
+				print("[DrillsNetwork] start_drill_timer: After animation - Soldier.visible=", soldier.visible)
+				if not soldier.visible:
+					soldier.visible = true
+					print("[DrillsNetwork] start_drill_timer: FALLBACK - Set soldier visible after animation apply")
 			else:
-				print("[DrillsNetwork] start_drill_timer: Applying animation without container")
-				animation_lib.apply_animation(target_instance, animation_name, duration, 0.0, null)
+				push_error("[DrillsNetwork] start_drill_timer: Soldier not found after animation!")
+		# For disguised_enemy, apply flash_sequence animation with container
+		elif normalize_game_mode(game_mode) == "cqb" and current_target_type == "disguised_enemy":
+			print("[DrillsNetwork] start_drill_timer: Disguised enemy - applying flash_sequence animation")
+			animation_lib.apply_animation(target_instance, animation_name, duration, 0.0, center_container)
+		# For other CQB targets (cqb_front, cqb_hostage, cqb_move), apply with start pose
+		elif normalize_game_mode(game_mode) == "cqb":
+			print("[DrillsNetwork] start_drill_timer: CQB target '", current_target_type, "' - applying animation '", animation_name, "'")
+			animation_lib.apply_start_pose(target_instance, animation_name)
+			animation_lib.apply_animation(target_instance, animation_name, duration, 0.0, null)
+		else:
+			print("[DrillsNetwork] start_drill_timer: Non-CQB target - applying animation: ", animation_name)
+			# Prime the start pose first to prevent an initial jump when the animation begins
+			animation_lib.apply_start_pose(target_instance, animation_name)
+			animation_lib.apply_animation(target_instance, animation_name, duration, 0.0, null)
 	else:
-		print("[DrillsNetwork] start_drill_timer: No animation configured (animation_lib=" + str(animation_lib != null) + ", action.size=" + str(current_animation_action.size()) + ")")
+		print("[DrillsNetwork] start_drill_timer: NO ANIMATION CONFIGURED - checking fallbacks")
+		# Fallback: if no animation was configured, still ensure CQB swing is visible
+		if current_target_type == "cqb_swing" and target_instance:
+			print("[DrillsNetwork] start_drill_timer: CQB SWING in ELSE block - ensuring visibility")
+			var soldier = target_instance.get_node_or_null("Soldier")
+			if soldier:
+				print("[DrillsNetwork] start_drill_timer: ELSE - Soldier.visible BEFORE=", soldier.visible)
+				if not soldier.visible:
+					soldier.visible = true
+					print("[DrillsNetwork] start_drill_timer: ELSE - Set soldier visible (was hidden)")
+				print("[DrillsNetwork] start_drill_timer: ELSE - Soldier.visible AFTER=", soldier.visible)
+			else:
+				push_error("[DrillsNetwork] start_drill_timer: ELSE - Soldier NOT FOUND for cqb_swing!")
+		print("[DrillsNetwork] start_drill_timer: No animation configured (animation_lib=", animation_lib != null, ", action.size=", current_animation_action.size(), ")")
 
 func _process(_delta):
 	"""Update timer"""
@@ -1447,11 +1513,12 @@ func _on_ble_end_command(content: Dictionary) -> void:
 			print("[DrillsNetwork] HttpService not available; cannot send end ack")
 
 func _on_animation_config(action: String, duration: float) -> void:
-	"""Handle animation configuration from mobile app"""
+	"""Handle animation configuration from mobile app (non-CQB targets only)"""
 	if DEBUG_ENABLED:
 		print("[DrillsNetwork] Received animation config for action: ", action, ", duration: ", duration)
 	
 	# Store the animation action for application when drill starts
+	# Note: CQB targets automatically use library defaults and ignore this signal
 	current_animation_action = {"name": action, "duration": duration}
 	
 	if DEBUG_ENABLED:

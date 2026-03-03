@@ -143,12 +143,15 @@ fun DrillFormView(
             devicesToAdd.forEach { device ->
                 val nextSeqNo = (targets.maxOfOrNull { it.seqNo } ?: 0) + 1
                 println("[DrillFormView] Auto-adding target for device: ${device.name} (${device.id})")
+                val defaultTargetType = DrillTargetsConfigData.getDefaultTargetTypeForDrillMode(drillMode)
                 targets = targets + DrillTargetsConfigData(
                     seqNo = nextSeqNo,
                     targetName = device.name,  // Assign device name directly
-                    targetType = DrillTargetsConfigData.getDefaultTargetTypeForDrillMode(drillMode),
+                    targetType = defaultTargetType,
                     timeout = 30.0,
-                    countedShots = 5
+                    countedShots = 5,
+                    action = DrillTargetsConfigData.getDefaultActionForTargetType(defaultTargetType, drillMode),
+                    duration = 3.0
                 )
                 // Mark this device as auto-added
                 autoAddedDeviceIds = autoAddedDeviceIds + device.id.toString()
@@ -477,12 +480,15 @@ fun DrillFormView(
                             
                             if (availableDeviceNames.isNotEmpty()) {
                                 val nextSeqNo = (targets.maxOfOrNull { it.seqNo } ?: 0) + 1
+                                val defaultTargetType = DrillTargetsConfigData.getDefaultTargetTypeForDrillMode(drillMode)
                                 targets = targets + DrillTargetsConfigData(
                                     seqNo = nextSeqNo,
                                     targetName = availableDeviceNames.first(),  // Assign first available device
-                                    targetType = DrillTargetsConfigData.getDefaultTargetTypeForDrillMode(drillMode),
+                                    targetType = defaultTargetType,
                                     timeout = 30.0,
-                                    countedShots = 5
+                                    countedShots = 5,
+                                    action = DrillTargetsConfigData.getDefaultActionForTargetType(defaultTargetType, drillMode),
+                                    duration = 0.0
                                 )
                             }
                         },

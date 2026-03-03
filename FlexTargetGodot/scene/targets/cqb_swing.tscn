@@ -4,11 +4,11 @@
 [ext_resource type="Texture2D" uid="uid://oag46ktkmxyt" path="res://asset/cqb-enemy-swing.png" id="2_v85u7"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_qgphj"]
-radius = 123.065025
+radius = 129.062
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_glney"]
-radius = 160.89374
-height = 658.30054
+radius = 147.94257
+height = 567.82947
 
 [sub_resource type="Animation" id="Animation_l8tdf"]
 length = 0.001
@@ -297,7 +297,7 @@ position = Vector2(-26, -325)
 shape = SubResource("CircleShape2D_qgphj")
 
 [node name="body" type="CollisionShape2D" parent="Soldier"]
-position = Vector2(-156.99997, 139)
+position = Vector2(-138.99997, 79)
 rotation = 0.17802358
 shape = SubResource("CapsuleShape2D_glney")
 
