@@ -595,24 +595,35 @@ class DrillExecutionManager(
             var cqbResults: List<CQBShotResult>? = null
             var cqbPassed: Boolean? = null
 
-            val drillMode = (drillSetup.mode ?: "").lowercase()
-            println("[DrillExecutionManager] Repeat $repeatIndex: drillMode='$drillMode', checking if == 'cqb'")
+            val drillMode = (drillSetup.mode ?: "").lowercase().trim()
+            println("[DrillExecutionManager] Repeat $repeatIndex: drillMode='$drillMode' (length=${drillMode.length})")
             
             if (drillMode == "cqb") {
-                val targetDevices = targets.mapNotNull { it.targetName }.filter { it.isNotEmpty() }
-                println("[DrillExecutionManager] CQB Mode detected! targetDevices=$targetDevices, count=${targetDevices.size}")
-                println("[DrillExecutionManager] Processing ${adjustedShots.size} shots for CQB validation")
+                // Extract actual target types from shots (not from targets list which contains device IDs)
+                val targetTypesFromShots = adjustedShots
+                    .mapNotNull { it.content.actualTargetType }
+                    .distinct()
+                    .filter { it.isNotEmpty() }
                 
-                val cqbDrillResult = CQBScoringUtility.generateCQBDrillResult(
-                    shots = adjustedShots,
-                    drillDuration = totalTime,
-                    targetDevices = targetDevices
-                )
-                cqbResults = cqbDrillResult.shotResults
-                cqbPassed = cqbDrillResult.drilPassed
-                println("[DrillExecutionManager] CQB Result: drilPassed=$cqbPassed, shotResults count=${cqbResults?.size}")
+                println("[DrillExecutionManager] ✅ CQB Mode detected!")
+                println("[DrillExecutionManager]   Shots contain target types: $targetTypesFromShots")
+                
+                if (targetTypesFromShots.isNotEmpty()) {
+                    println("[DrillExecutionManager] Processing ${adjustedShots.size} shots for CQB validation")
+                    
+                    val cqbDrillResult = CQBScoringUtility.generateCQBDrillResult(
+                        shots = adjustedShots,
+                        drillDuration = totalTime,
+                        targetDevices = targetTypesFromShots
+                    )
+                    cqbResults = cqbDrillResult.shotResults
+                    cqbPassed = cqbDrillResult.drilPassed
+                    println("[DrillExecutionManager] ✅ CQB Result: drilPassed=$cqbPassed, shotResults count=${cqbResults?.size}")
+                } else {
+                    println("[DrillExecutionManager] ⚠️ CQB Mode but no target types found in shots!")
+                }
             } else {
-                println("[DrillExecutionManager] Not a CQB drill (mode='$drillMode'), skipping CQB calculation")
+                println("[DrillExecutionManager] ❌ Not a CQB drill (mode='$drillMode'), skipping CQB calculation")
             }
 
             val summary = DrillRepeatSummary(
@@ -689,17 +700,16 @@ class DrillExecutionManager(
             println("[DrillExecutionManager] Shot decoded successfully - cmd: ${shot.content.actualCommand}, ha: ${shot.content.actualHitArea}, device: ${shot.device ?: "unknown"}")
 
             // Filter shots by repeat number: only accept shots for the current repeat
+            // Device sends 1-based repeat numbers (same as app)
             val shotRepeatNumber = shot.content.actualRepeat
-            // Device sends 0-based repeat numbers, convert to 1-based app repeat
-            val adjustedShotRepeatNumber = (shotRepeatNumber ?: 0) + 1
-            if (adjustedShotRepeatNumber != currentRepeat) {
-                println("[DrillExecutionManager] Ignoring shot from repeat $shotRepeatNumber (adjusted to $adjustedShotRepeatNumber), currently in repeat $currentRepeat")
+            if (shotRepeatNumber != null && shotRepeatNumber != currentRepeat) {
+                println("[DrillExecutionManager] Ignoring shot from repeat $shotRepeatNumber, currently in repeat $currentRepeat")
                 return
             }
             if (shotRepeatNumber == null) {
                 println("[DrillExecutionManager] Shot has no repeat number, accepting for current repeat $currentRepeat")
             } else {
-                println("[DrillExecutionManager] Shot repeat $shotRepeatNumber (adjusted to $adjustedShotRepeatNumber) matches current repeat $currentRepeat")
+                println("[DrillExecutionManager] Shot repeat $shotRepeatNumber matches current repeat $currentRepeat")
             }
 
             val event = ShotEvent(shot, Date())

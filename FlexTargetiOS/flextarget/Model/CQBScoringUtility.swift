@@ -100,6 +100,44 @@ class CQBScoringUtility {
         }
     }
     
+    /// Validate disguised_enemy target (requires 2+ valid shots on disguised_enemy AND 0 shots on disguised_enemy_surrender)
+    /// - Parameters:
+    ///   - validShotsOnDisguisedEnemy: Number of valid (head/body) shots on disguised_enemy
+    ///   - totalShotsOnSurrender: Total shots on disguised_enemy_surrender
+    /// - Returns: CQBShotResult with green card if both conditions met, red card otherwise
+    static func validateDisguisedEnemy(validShotsOnDisguisedEnemy: Int, totalShotsOnSurrender: Int) -> CQBShotResult {
+        if validShotsOnDisguisedEnemy >= 2 && totalShotsOnSurrender == 0 {
+            return CQBShotResult(
+                targetName: "disguised_enemy",
+                isThreat: true,
+                expectedShots: 2,
+                actualValidShots: validShotsOnDisguisedEnemy,
+                cardStatus: .green,
+                failureReason: nil
+            )
+        } else if totalShotsOnSurrender > 0 {
+            let reason = "Shot surrendering variant (\(totalShotsOnSurrender) shot\(totalShotsOnSurrender == 1 ? "" : "s"))"
+            return CQBShotResult(
+                targetName: "disguised_enemy",
+                isThreat: true,
+                expectedShots: 2,
+                actualValidShots: validShotsOnDisguisedEnemy,
+                cardStatus: .red,
+                failureReason: reason
+            )
+        } else {
+            let reason = "Missed \(2 - validShotsOnDisguisedEnemy) shot\(2 - validShotsOnDisguisedEnemy == 1 ? "" : "s")"
+            return CQBShotResult(
+                targetName: "disguised_enemy",
+                isThreat: true,
+                expectedShots: 2,
+                actualValidShots: validShotsOnDisguisedEnemy,
+                cardStatus: .red,
+                failureReason: reason
+            )
+        }
+    }
+    
     // MARK: - CQB Drill Result Generation
     
     /// Generate CQB drill result from shots data
@@ -129,7 +167,14 @@ class CQBScoringUtility {
         for targetName in targetDevices {
             let targetShots = shotsByTarget[targetName] ?? []
             
-            if isThreatTarget(targetName) {
+            if targetName.lowercased() == "disguised_enemy" {
+                // Special validation for disguised_enemy: must have 2+ valid shots AND no shots on disguised_enemy_surrender
+                let validShotCount = targetShots.filter { isValidCQBHit($0.content.hitArea) }.count
+                let surrenderShots = shotsByTarget["disguised_enemy_surrender"] ?? []
+                let totalShotsOnSurrender = surrenderShots.count
+                let result = validateDisguisedEnemy(validShotsOnDisguisedEnemy: validShotCount, totalShotsOnSurrender: totalShotsOnSurrender)
+                results.append(result)
+            } else if isThreatTarget(targetName) {
                 // Threat target: count valid (head/body) shots
                 let validShotCount = targetShots.filter { isValidCQBHit($0.content.hitArea) }.count
                 let result = validateThreatTarget(targetName: targetName, validShotCount: validShotCount)

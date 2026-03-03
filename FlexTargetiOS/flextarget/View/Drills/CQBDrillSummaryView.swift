@@ -132,6 +132,11 @@ struct CQBDrillSummaryView: View {
             )
             .padding(.horizontal, 20)
             
+            // Target Status Indicator Row
+            if let cqbResults = summary.cqbResults, !cqbResults.isEmpty {
+                CQBTargetResultRow(results: cqbResults)
+            }
+            
             // Card results: Target-by-target pass/fail
             if let cqbResults = summary.cqbResults, !cqbResults.isEmpty {
                 VStack(spacing: 10) {

@@ -76,6 +76,30 @@ class DrillRecordViewModel(
 
     private fun createDrillRepeatSummary(resultWithShots: DrillResultWithShots): DrillRepeatSummary {
         val shots = convertShots(resultWithShots.shots)
+        
+        // Deserialize CQB results if stored
+        var cqbResults: List<com.flextarget.android.data.model.CQBShotResult>? = null
+        var cqbPassed: Boolean? = null
+        
+        println("[DrillRecordViewModel] Loading drill result id=${resultWithShots.drillResult.id}")
+        println("[DrillRecordViewModel]   cqbResults JSON: ${resultWithShots.drillResult.cqbResults}")
+        println("[DrillRecordViewModel]   cqbPassed: ${resultWithShots.drillResult.cqbPassed}")
+        
+        resultWithShots.drillResult.cqbResults?.let { jsonData ->
+            try {
+                println("[DrillRecordViewModel]   Attempting to deserialize CQB results from: $jsonData")
+                cqbResults = gson.fromJson(
+                    jsonData,
+                    Array<com.flextarget.android.data.model.CQBShotResult>::class.java
+                ).toList()
+                println("[DrillRecordViewModel]   ✅ Successfully deserialized ${cqbResults?.size} CQB results")
+            } catch (e: Exception) {
+                println("[DrillRecordViewModel]   ❌ Failed to deserialize CQB results: ${e.message}")
+                e.printStackTrace()
+            }
+        }
+        cqbPassed = resultWithShots.drillResult.cqbPassed
+        
         return DrillRepeatSummary(
             id = resultWithShots.drillResult.id,
             repeatIndex = 1,
@@ -85,6 +109,8 @@ class DrillRecordViewModel(
             fastest = calculateFastestShot(shots),
             score = calculateScore(shots),
             shots = shots,
+            cqbResults = cqbResults,
+            cqbPassed = cqbPassed,
             drillResultId = resultWithShots.drillResult.id
         )
     }

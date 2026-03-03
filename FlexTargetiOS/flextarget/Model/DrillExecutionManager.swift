@@ -648,16 +648,18 @@ class DrillExecutionManager {
         var cqbPassed: Bool? = nil
         
         if drillSetup.mode?.lowercased() == "cqb" {
-            // Get all target devices from the drill setup
-            let targetDevices = (drillSetup.targets?.allObjects as? [DrillTargetsConfig])?.compactMap { config -> String? in
-                guard let targetName = config.targetName, !targetName.isEmpty else { return nil }
-                return targetName
-            } ?? ([] as [String])
+            // Get actual target types from shots instead of from drill config
+            // The drill config targetName contains device IDs, not target types
+            // We need to extract the actual CQB target types (cqb_front, cqb_swing, etc.) from the shots
+            let targetTypesFromShots = Set(adjustedShots.compactMap { shot -> String? in
+                let targetType = shot.content.targetType
+                return !targetType.isEmpty ? targetType : nil
+            })
             
             let cqbDrillResult = CQBScoringUtility.generateCQBDrillResult(
                 shots: adjustedShots,
                 drillDuration: totalTime,
-                targetDevices: targetDevices
+                targetDevices: Array(targetTypesFromShots)
             )
             
             cqbResults = cqbDrillResult.shotResults

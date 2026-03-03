@@ -410,6 +410,16 @@ fun TimerSessionView(
 
                         summaries.forEach { summary ->
                             println("[TimerSessionView] Creating DrillResultEntity with id=${summary.id}, competitionId=$competitionId, athleteId=$athleteId")
+                            
+                            // Serialize CQB results if present
+                            val cqbResultsJson = summary.cqbResults?.let { 
+                                val json = gson.toJson(it)
+                                println("[TimerSessionView]   CQB Results found: ${it.size} targets, JSON length: ${json.length}")
+                                println("[TimerSessionView]   CQB JSON: $json")
+                                json
+                            }
+                            println("[TimerSessionView]   cqbPassed=${summary.cqbPassed}, cqbResultsJson=${if (cqbResultsJson != null) "present" else "null"}")
+                            
                             val drillResult = DrillResultEntity(
                                 id = summary.id,
                                 date = Date(),
@@ -418,7 +428,9 @@ fun TimerSessionView(
                                 totalTime = summary.totalTime,
                                 drillSetupId = drillSetup.id,
                                 competitionId = competitionId,
-                                athleteId = athleteId
+                                athleteId = athleteId,
+                                cqbResults = cqbResultsJson,
+                                cqbPassed = summary.cqbPassed
                             )
 
                             val shots = summary.shots.map { shotData ->

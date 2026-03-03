@@ -136,6 +136,13 @@ private fun CQBDrillCard(summary: DrillRepeatSummary) {
                 }
             }
 
+            // Target Status Indicator Row
+            summary.cqbResults?.let { results ->
+                if (results.isNotEmpty()) {
+                    CQBTargetResultRow(results = results)
+                }
+            }
+
             // CQB Results
             summary.cqbResults?.let { results ->
                 if (results.isNotEmpty()) {

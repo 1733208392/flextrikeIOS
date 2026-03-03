@@ -97,6 +97,44 @@ object CQBScoringUtility {
     }
 
     /**
+     * Validate disguised_enemy target (requires 2+ valid shots on disguised_enemy AND 0 shots on disguised_enemy_surrender)
+     */
+    fun validateDisguisedEnemy(
+        validShotsOnDisguisedEnemy: Int,
+        totalShotsOnSurrender: Int
+    ): CQBShotResult {
+        return if (validShotsOnDisguisedEnemy >= 2 && totalShotsOnSurrender == 0) {
+            CQBShotResult(
+                targetName = "disguised_enemy",
+                isThreat = true,
+                expectedShots = 2,
+                actualValidShots = validShotsOnDisguisedEnemy,
+                cardStatus = CQBShotResult.CardStatus.green
+            )
+        } else if (totalShotsOnSurrender > 0) {
+            val reason = "Shot surrendering variant ($totalShotsOnSurrender shot${if (totalShotsOnSurrender == 1) "" else "s"})"
+            CQBShotResult(
+                targetName = "disguised_enemy",
+                isThreat = true,
+                expectedShots = 2,
+                actualValidShots = validShotsOnDisguisedEnemy,
+                cardStatus = CQBShotResult.CardStatus.red,
+                failureReason = reason
+            )
+        } else {
+            val reason = "Missed ${2 - validShotsOnDisguisedEnemy} shot${if (2 - validShotsOnDisguisedEnemy == 1) "" else "s"}"
+            CQBShotResult(
+                targetName = "disguised_enemy",
+                isThreat = true,
+                expectedShots = 2,
+                actualValidShots = validShotsOnDisguisedEnemy,
+                cardStatus = CQBShotResult.CardStatus.red,
+                failureReason = reason
+            )
+        }
+    }
+
+    /**
      * Generate complete CQB drill result by validating all targets
      */
     fun generateCQBDrillResult(
@@ -116,15 +154,27 @@ object CQBScoringUtility {
             val targetShots = shotsByDevice[targetName] ?: emptyList()
             println("[CQBScoringUtility] Processing target='$targetName': isThreat=${isThreatTarget(targetName)}, isNonThreat=${isNonThreatTarget(targetName)}, shotCount=${targetShots.size}")
             
-            if (isThreatTarget(targetName)) {
-                val validHits = targetShots.count { isValidCQBHit(it.content.actualHitArea) }
-                println("[CQBScoringUtility]   -> Threat target: validHits=$validHits")
-                shotResults.add(validateThreatTarget(targetName, validHits))
-            } else if (isNonThreatTarget(targetName)) {
-                println("[CQBScoringUtility]   -> Non-threat target: totalShots=${targetShots.size}")
-                shotResults.add(validateNonThreatTarget(targetName, targetShots.size))
-            } else {
-                println("[CQBScoringUtility]   -> Unknown target type, skipping")
+            when {
+                targetName.lowercase() == "disguised_enemy" -> {
+                    // Special validation for disguised_enemy: must have 2+ valid shots AND no shots on disguised_enemy_surrender
+                    val validShotsOnDisguisedEnemy = targetShots.count { isValidCQBHit(it.content.actualHitArea) }
+                    val surrenderShots = shotsByDevice["disguised_enemy_surrender"] ?: emptyList()
+                    val totalShotsOnSurrender = surrenderShots.size
+                    println("[CQBScoringUtility]   -> Disguised enemy: validShots=$validShotsOnDisguisedEnemy, surrenderShots=$totalShotsOnSurrender")
+                    shotResults.add(validateDisguisedEnemy(validShotsOnDisguisedEnemy, totalShotsOnSurrender))
+                }
+                isThreatTarget(targetName) -> {
+                    val validHits = targetShots.count { isValidCQBHit(it.content.actualHitArea) }
+                    println("[CQBScoringUtility]   -> Threat target: validHits=$validHits")
+                    shotResults.add(validateThreatTarget(targetName, validHits))
+                }
+                isNonThreatTarget(targetName) -> {
+                    println("[CQBScoringUtility]   -> Non-threat target: totalShots=${targetShots.size}")
+                    shotResults.add(validateNonThreatTarget(targetName, targetShots.size))
+                }
+                else -> {
+                    println("[CQBScoringUtility]   -> Unknown target type, skipping")
+                }
             }
         }
         

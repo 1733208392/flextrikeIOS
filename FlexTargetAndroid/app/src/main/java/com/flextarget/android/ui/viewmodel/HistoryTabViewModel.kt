@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.flextarget.android.data.local.entity.DrillSetupEntity
+import com.flextarget.android.data.model.CQBShotResult
 import com.flextarget.android.data.model.DrillRepeatSummary
 import com.flextarget.android.data.model.DrillTargetsConfigData
 import com.flextarget.android.data.model.ShotData
@@ -149,6 +150,20 @@ class HistoryTabViewModel(
             val expandedTargets = targets.toExpandedDataObjects()
             val totalScore = ScoringUtility.calculateTotalScore(sortedShots, expandedTargets).toInt()
 
+            // Deserialize CQB results from JSON if present
+            var cqbResults: List<CQBShotResult>? = null
+            result.drillResult.cqbResults?.let { jsonData ->
+                try {
+                    cqbResults = gson.fromJson(
+                        jsonData,
+                        Array<CQBShotResult>::class.java
+                    ).toList()
+                } catch (e: Exception) {
+                    // Log deserialization failure but continue
+                    e.printStackTrace()
+                }
+            }
+
             return DrillRepeatSummary(
                 repeatIndex = 1, // Will be set by caller
                 totalTime = totalTime,
@@ -157,6 +172,8 @@ class HistoryTabViewModel(
                 fastest = fastestShot,
                 score = totalScore,
                 shots = sortedShots,
+                cqbResults = cqbResults,
+                cqbPassed = result.drillResult.cqbPassed,
                 drillResultId = drillResultId
             )
         } catch (e: Exception) {
