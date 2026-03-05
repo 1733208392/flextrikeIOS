@@ -1,0 +1,951 @@
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .interactive-player-{{ ai_gen_id }} {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    margin: 0 auto;
+    overflow: hidden;
+  }
+
+  .video-section-{{ ai_gen_id }} {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    transition: opacity 0.5s ease;
+  }
+
+  .video-section-{{ ai_gen_id }}.hidden {
+    display: none;
+  }
+
+  .ai-video-wrapper-{{ ai_gen_id }} {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: #000000;
+  }
+
+  .ai-video-container-{{ ai_gen_id }} {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+
+  .ai-video-container-{{ ai_gen_id }} video,
+  .ai-video-container-{{ ai_gen_id }} iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .ai-video-cover-{{ ai_gen_id }} {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+    transition: opacity 0.3s ease;
+  }
+
+  .ai-video-cover-{{ ai_gen_id }}.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .ai-video-play-button-{{ ai_gen_id }} {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    width: 80px;
+    height: 80px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+  }
+
+  .ai-video-play-button-{{ ai_gen_id }}:hover {
+    background-color: rgba(255, 255, 255, 1);
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+
+  .ai-video-play-button-{{ ai_gen_id }}.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .ai-video-play-button-{{ ai_gen_id }} svg {
+    width: 32px;
+    height: 32px;
+    margin-left: 4px;
+  }
+
+  .ai-video-controls-{{ ai_gen_id }} {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    z-index: 3;
+    display: flex;
+    gap: 10px;
+  }
+
+  .ai-video-control-button-{{ ai_gen_id }} {
+    width: 40px;
+    height: 40px;
+    background-color: rgba(0, 0, 0, 0.6);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s ease;
+    color: #ffffff;
+  }
+
+  .ai-video-control-button-{{ ai_gen_id }}:hover {
+    background-color: rgba(0, 0, 0, 0.8);
+  }
+
+  .ai-video-control-button-{{ ai_gen_id }} svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .ai-video-text-overlay-{{ ai_gen_id }} {
+    position: absolute;
+    left: 40px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 4;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 48px;
+    line-height: 1.2;
+    max-width: 50%;
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7);
+    font-family: 'TT Norms', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    letter-spacing: -0.5px;
+  }
+
+  .ai-video-text-overlay-{{ ai_gen_id }} > div:first-child {
+    color: #DE3823;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .sequence-section-{{ ai_gen_id }} {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: none;
+    z-index: 2;
+  }
+
+  #sequence-canvas-{{ ai_gen_id }} {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  .chapter-overlay-{{ ai_gen_id }} {
+    position: absolute;
+    left: 40px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 48px;
+    line-height: 1.2;
+    max-width: 50%;
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7);
+    font-family: 'TT Norms', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    letter-spacing: -0.5px;
+    pointer-events: none;
+  }
+
+  .chapter-overlay-{{ ai_gen_id }}.right {
+    left: auto;
+    right: 40px;
+  }
+
+  .chapter-overlay-{{ ai_gen_id }} > div:first-child {
+    color: #DE3823;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .chapter-overlay-{{ ai_gen_id }} > div:nth-child(2),
+  .chapter-overlay-{{ ai_gen_id }} > div:nth-child(3) {
+    font-size: 16px;
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
+  @media screen and (max-width: 1024px) {
+    .ai-video-text-overlay-{{ ai_gen_id }} {
+      font-size: 36px;
+      left: 30px;
+    }
+
+    .ai-video-text-overlay-{{ ai_gen_id }} > div:first-child {
+      font-size: 42px;
+    }
+
+    .chapter-overlay-{{ ai_gen_id }} {
+      font-size: 36px;
+      left: 30px;
+    }
+
+    .chapter-overlay-{{ ai_gen_id }}.right {
+      left: auto;
+      right: 30px;
+    }
+
+    .chapter-overlay-{{ ai_gen_id }} > div:first-child {
+      font-size: 42px;
+    }
+
+    .chapter-overlay-{{ ai_gen_id }} > div:nth-child(2),
+    .chapter-overlay-{{ ai_gen_id }} > div:nth-child(3) {
+      font-size: 12px;
+    }
+  }
+
+  @media screen and (max-width: 749px) {
+    .ai-video-play-button-{{ ai_gen_id }} {
+      width: 60px;
+      height: 60px;
+    }
+
+    .ai-video-play-button-{{ ai_gen_id }} svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    .ai-video-controls-{{ ai_gen_id }} {
+      bottom: 10px;
+      right: 10px;
+    }
+
+    .ai-video-control-button-{{ ai_gen_id }} {
+      width: 36px;
+      height: 36px;
+    }
+
+    .ai-video-text-overlay-{{ ai_gen_id }} {
+      font-size: 24px;
+      left: 20px;
+      max-width: 70%;
+    }
+
+    .ai-video-text-overlay-{{ ai_gen_id }} > div:first-child {
+      font-size: 28px;
+    }
+
+    .chapter-overlay-{{ ai_gen_id }} {
+      font-size: 24px;
+      left: 20px;
+      max-width: 70%;
+    }
+
+    .chapter-overlay-{{ ai_gen_id }}.right {
+      left: auto;
+      right: 20px;
+    }
+
+    .chapter-overlay-{{ ai_gen_id }} > div:first-child {
+      font-size: 28px;
+    }
+
+    .chapter-overlay-{{ ai_gen_id }} > div:nth-child(2),
+    .chapter-overlay-{{ ai_gen_id }} > div:nth-child(3) {
+      font-size: 10px;
+    }
+  }
+
+  .target-overlay-{{ ai_gen_id }} {
+    position: absolute;
+    left: 66.67vw;
+    top: 50%;
+    transform: translateY(-50%);
+    width: auto;
+    height: 50vh;
+    z-index: 5;
+    display: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .target-overlay-{{ ai_gen_id }}:hover {
+    transform: translateY(-50%) scale(1.05);
+  }
+
+  .target-overlay-{{ ai_gen_id }}:hover .target-image-{{ ai_gen_id }} {
+    opacity: 1;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+  }
+
+  .target-image-{{ ai_gen_id }} {
+    height: 100%;
+    width: auto;
+    opacity: 0.7;
+    transition: opacity 0.3s ease, box-shadow 0.3s ease;
+  }
+{% endstyle %}
+
+<video-seq-player-{{ ai_gen_id }}
+  class="color-{{ block.settings.color_scheme }}"
+  {{ block.shopify_attributes }}
+>
+  <div class="interactive-player-{{ ai_gen_id }}">
+    <div class="video-section-{{ ai_gen_id }}">
+      <div class="ai-video-wrapper-{{ ai_gen_id }}">
+        <div class="ai-video-text-overlay-{{ ai_gen_id }}">
+          <div>GRWOLF FLEXTARGET</div>
+          <div>Train Smarter</div>
+          <div>Shoot Sharper</div>
+          <div>Dominate Faster</div>
+        </div>
+        {% if block.settings.video_source == 'shopify' and block.settings.video_shopify != blank %}
+          <div class="ai-video-container-{{ ai_gen_id }}">
+            <video
+              class="ai-video-element-{{ ai_gen_id }}"
+              {% if block.settings.enable_loop %}loop{% endif %}
+              muted
+              playsinline
+              autoplay
+              preload="metadata"
+            >
+              <source src="{{ block.settings.video_shopify.sources[1].url }}" type="{{ block.settings.video_shopify.sources[1].mime_type }}">
+            </video>
+
+            {% if block.settings.cover_image %}
+              <img
+                src="{{ block.settings.cover_image | image_url: width: 1920 }}"
+                alt="{{ block.settings.cover_image.alt | escape }}"
+                class="ai-video-cover-{{ ai_gen_id }}"
+                loading="lazy"
+                width="{{ block.settings.cover_image.width }}"
+                height="{{ block.settings.cover_image.height }}"
+              >
+            {% endif %}
+
+            <button
+              class="ai-video-play-button-{{ ai_gen_id }}"
+              aria-label="Play video"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+            </button>
+
+            <div class="ai-video-controls-{{ ai_gen_id }}">
+              <button
+                class="ai-video-control-button-{{ ai_gen_id }} ai-video-mute-button-{{ ai_gen_id }}"
+                aria-label="Unmute video"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                  <line x1="23" y1="9" x2="17" y2="15"></line>
+                  <line x1="17" y1="9" x2="23" y2="15"></line>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+        {% elsif block.settings.video_source == 'youtube' and block.settings.video_url != blank %}
+          {% assign video_id = block.settings.video_url | split: 'v=' | last | split: '&' | first %}
+          {% if video_id == block.settings.video_url %}
+            {% assign video_id = block.settings.video_url | split: 'youtu.be/' | last | split: '?' | first %}
+          {% endif %}
+
+          <div class="ai-video-container-{{ ai_gen_id }}">
+            <div id="ai-youtube-player-{{ ai_gen_id }}" data-video-id="{{ video_id }}"></div>
+
+            {% if block.settings.cover_image %}
+              <img
+                src="{{ block.settings.cover_image | image_url: width: 1920 }}"
+                alt="{{ block.settings.cover_image.alt | escape }}"
+                class="ai-video-cover-{{ ai_gen_id }}"
+                loading="lazy"
+                width="{{ block.settings.cover_image.width }}"
+                height="{{ block.settings.cover_image.height }}"
+              >
+            {% endif %}
+
+            <button
+              class="ai-video-play-button-{{ ai_gen_id }}"
+              aria-label="Play video"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+            </button>
+          </div>
+
+        {% elsif block.settings.video_source == 'vimeo' and block.settings.video_url != blank %}
+          {% assign video_id = block.settings.video_url | split: 'vimeo.com/' | last | split: '?' | first %}
+
+          <div class="ai-video-container-{{ ai_gen_id }}">
+            <iframe
+              id="ai-vimeo-player-{{ ai_gen_id }}"
+              src="https://player.vimeo.com/video/{{ video_id }}?autoplay=1&muted=1&loop={{ block.settings.enable_loop }}&background=1"
+              frameborder="0"
+              allow="autoplay; fullscreen; picture-in-picture"
+              allowfullscreen
+            ></iframe>
+
+            {% if block.settings.cover_image %}
+              <img
+                src="{{ block.settings.cover_image | image_url: width: 1920 }}"
+                alt="{{ block.settings.cover_image.alt | escape }}"
+                class="ai-video-cover-{{ ai_gen_id }}"
+                loading="lazy"
+                width="{{ block.settings.cover_image.width }}"
+                height="{{ block.settings.cover_image.height }}"
+              >
+            {% endif %}
+
+            <button
+              class="ai-video-play-button-{{ ai_gen_id }}"
+              aria-label="Play video"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+            </button>
+          </div>
+
+        {% else %}
+          <div class="ai-video-placeholder-{{ ai_gen_id }}">
+            {{ 'hero-apparel-1' | placeholder_svg_tag }}
+            <div class="ai-video-empty-state-{{ ai_gen_id }}">
+              Next, add a video or video URL
+            </div>
+          </div>
+        {% endif %}
+      </div>
+
+      {% if block.settings.target_image %}
+        <div class="target-overlay-{{ ai_gen_id }}">
+          <img
+            src="{{ block.settings.target_image | image_url: width: 1920 }}"
+            alt="Target"
+            class="target-image-{{ ai_gen_id }}"
+            loading="lazy"
+            width="{{ block.settings.target_image.width }}"
+            height="{{ block.settings.target_image.height }}"
+          >
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="sequence-section-{{ ai_gen_id }}">
+      <canvas id="sequence-canvas-{{ ai_gen_id }}" width="1920" height="1080"></canvas>
+      <div class="chapter-overlay-{{ ai_gen_id }} chapter2-overlay-{{ ai_gen_id }} right" style="display:none;">
+        <div>HIGH-IMPACT RESIST</div>
+        <div>WITHSTANDS 100,000+ SHOTS AND EASILY REPLACEABLE</div>
+      </div>
+      <div class="chapter-overlay-{{ ai_gen_id }} chapter3-overlay-{{ ai_gen_id }}" style="display:none;">
+        <div>MILLIMETER ACCURACY</div>
+        <div>ACHIEVED BY PATENDED AI POWERED SONIC POSITIONING TECHNOLOGY</div>
+      </div>
+    </div>
+  </div>
+</video-seq-player-{{ ai_gen_id }}>
+
+<script>
+  (function() {
+    class InteractiveMediaPlayer{{ ai_gen_id }} extends HTMLElement {
+      constructor() {
+        super();
+        this.videoType = this.dataset.videoType || '{{ block.settings.video_source }}';
+        this.autoplay = true;
+        this.loop = {{ block.settings.enable_loop }};
+        this.triggerType = '{{ block.settings.transition_trigger }}';
+        this.isPlaying = false;
+        this.hasTransitioned = false;
+        this.isResuming = false;
+        this.sequenceImages = [];
+        this.currentFrame = 0;
+        this.totalFrames = {{ block.settings.total_frames | default: 96 }};
+        this.chapterFrames = "{{ block.settings.chapter_frames | default: '30,60,90' }}".split(',').map(f => parseInt(f.trim()) - 1);
+        this.lastFrameTime = 0;
+        this.frameDuration = 100;
+        this.animationId = null;
+        this.sequenceLoopCount = 0;
+      }
+
+      connectedCallback() {
+        this.videoSection = this.querySelector('.video-section-{{ ai_gen_id }}');
+        this.sequenceSection = this.querySelector('.sequence-section-{{ ai_gen_id }}');
+        this.canvas = this.querySelector('#sequence-canvas-{{ ai_gen_id }}');
+        this.ctx = this.canvas.getContext('2d');
+        this.chapter2Overlay = this.querySelector('.chapter2-overlay-{{ ai_gen_id }}');
+        this.chapter3Overlay = this.querySelector('.chapter3-overlay-{{ ai_gen_id }}');
+        this.targetOverlay = this.querySelector('.target-overlay-{{ ai_gen_id }}');
+
+        this.setupVideo();
+        this.setupTransitionListeners();
+      }
+
+      setupVideo() {
+        this.videoElement = this.querySelector('.ai-video-element-{{ ai_gen_id }}');
+        this.playButton = this.querySelector('.ai-video-play-button-{{ ai_gen_id }}');
+        this.muteButton = this.querySelector('.ai-video-mute-button-{{ ai_gen_id }}');
+        this.coverImage = this.querySelector('.ai-video-cover-{{ ai_gen_id }}');
+
+        if (this.targetOverlay) {
+          this.targetOverlay.addEventListener('click', () => {
+            this.transitionToSequence();
+          });
+        }
+
+        if (this.videoType === 'shopify' && this.videoElement) {
+          this.setupShopifyVideo();
+        } else if (this.videoType === 'youtube') {
+          this.setupYouTubeVideo();
+        } else if (this.videoType === 'vimeo') {
+          this.setupVimeoVideo();
+        }
+      }
+
+      setupShopifyVideo() {
+        if (this.playButton) {
+          this.playButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.playVideo();
+          });
+        }
+
+        if (this.muteButton) {
+          this.muteButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleMute();
+          });
+        }
+
+        if (this.autoplay) {
+          this.videoElement.addEventListener('loadedmetadata', () => {
+            this.playVideo();
+          });
+        }
+
+        this.videoElement.addEventListener('play', () => {
+          this.isPlaying = true;
+          if (!this.hasTransitioned) {
+            this.showTargetOverlay();
+          }
+        });
+
+        this.videoElement.addEventListener('pause', () => {
+          this.isPlaying = false;
+        });
+      }
+
+      setupYouTubeVideo() {
+        const playerElement = this.querySelector('#ai-youtube-player-{{ ai_gen_id }}');
+        if (!playerElement) return;
+
+        const videoId = playerElement.dataset.videoId;
+
+        if (!window.YT) {
+          const tag = document.createElement('script');
+          tag.src = 'https://www.youtube.com/iframe_api';
+          const firstScriptTag = document.getElementsByTagName('script')[0];
+          firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        }
+
+        const initPlayer = () => {
+          this.youtubePlayer = new YT.Player('ai-youtube-player-{{ ai_gen_id }}', {
+            videoId: videoId,
+            playerVars: {
+              autoplay: 1,
+              mute: 1,
+              loop: this.loop ? 1 : 0,
+              playlist: this.loop ? videoId : '',
+              controls: 0,
+              modestbranding: 1,
+              rel: 0
+            },
+            events: {
+              onReady: (event) => {
+                // Autoplay
+              },
+              onStateChange: (event) => {
+                if (event.data == YT.PlayerState.PLAYING) {
+                  this.isPlaying = true;
+                  this.hideCoverAndButton();
+                  if (!this.isResuming) {
+                    this.showTargetOverlay();
+                  }
+                }
+              }
+            }
+          });
+        };
+
+        if (window.YT && window.YT.Player) {
+          initPlayer();
+        } else {
+          window.onYouTubeIframeAPIReady = initPlayer;
+        }
+
+        if (this.playButton) {
+          this.playButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (this.youtubePlayer) {
+              this.youtubePlayer.playVideo();
+              this.hideCoverAndButton();
+              this.showTargetOverlay();
+            }
+          });
+        }
+      }
+
+      setupVimeoVideo() {
+        // Vimeo autoplay is handled in iframe src
+        setTimeout(() => {
+          this.hideCoverAndButton();
+          if (!this.isResuming) {
+            this.showTargetOverlay();
+          }
+        }, 100);
+
+        if (this.playButton) {
+          this.playButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.hideCoverAndButton();
+            this.showTargetOverlay();
+          });
+        }
+      }
+
+      playVideo() {
+        if (this.videoElement) {
+          this.videoElement.play();
+          this.hideCoverAndButton();
+          if (!this.isResuming) {
+            this.showTargetOverlay();
+          }
+        }
+      }
+
+      toggleMute() {
+        if (this.videoElement) {
+          this.isMuted = !this.isMuted;
+          this.videoElement.muted = this.isMuted;
+          this.updateMuteButton();
+        }
+      }
+
+      updateMuteButton() {
+        if (!this.muteButton) return;
+
+        const svg = this.isMuted
+          ? '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>'
+          : '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>';
+
+        this.muteButton.innerHTML = svg;
+        this.muteButton.setAttribute('aria-label', this.isMuted ? 'Unmute video' : 'Mute video');
+      }
+
+      hideCoverAndButton() {
+        if (this.coverImage) {
+          this.coverImage.classList.add('hidden');
+        }
+        if (this.playButton) {
+          this.playButton.classList.add('hidden');
+        }
+      }
+
+      showTargetOverlay() {
+        if (this.targetOverlay) {
+          this.targetOverlay.style.display = 'block';
+        }
+      }
+
+      hideTargetOverlay() {
+        if (this.targetOverlay) {
+          this.targetOverlay.style.display = 'none';
+        }
+      }
+
+      setupTransitionListeners() {
+        this.addEventListener('click', () => {
+          if (!this.hasTransitioned) {
+            this.transitionToSequence();
+          }
+        });
+
+        if (this.triggerType === 'scroll') {
+          this.addEventListener('wheel', (e) => {
+            if (!this.hasTransitioned) {
+              e.preventDefault();
+              this.transitionToSequence();
+            }
+          });
+        }
+      }
+
+      transitionToSequence() {
+        this.hasTransitioned = true;
+        this.pauseVideo();
+        this.hideTargetOverlay();
+        this.videoSection.style.display = 'none';
+        this.sequenceSection.style.display = 'block';
+        this.startSequence();
+      }
+
+      transitionToVideo() {
+        this.hasTransitioned = false;
+        this.stopSequence();
+        this.sequenceSection.style.display = 'none';
+        this.videoSection.style.display = 'block';
+        this.resumeVideo();
+        this.showTargetOverlay();
+      }
+
+      stopSequence() {
+        if (this.animationId) {
+          cancelAnimationFrame(this.animationId);
+          this.animationId = null;
+        }
+        this.currentFrame = 0;
+      }
+
+      resumeVideo() {
+        this.isResuming = true;
+        if (this.videoElement) {
+          this.videoElement.currentTime = 0;
+          this.playVideo();
+        }
+        if (this.youtubePlayer) {
+          this.youtubePlayer.seekTo(0);
+          this.youtubePlayer.playVideo();
+        }
+        // Vimeo: restart by reloading iframe
+        if (this.querySelector('#ai-vimeo-player-{{ ai_gen_id }}')) {
+          const vimeoIframe = this.querySelector('#ai-vimeo-player-{{ ai_gen_id }}');
+          const src = vimeoIframe.src;
+          vimeoIframe.src = src; // Reload to restart
+        }
+        this.isResuming = false;
+      }
+
+      pauseVideo() {
+        if (this.videoElement) {
+          this.videoElement.pause();
+        }
+        if (this.youtubePlayer) {
+          this.youtubePlayer.pauseVideo();
+        }
+        // Vimeo: difficult to pause programmatically, but since hidden, ok
+      }
+
+      startSequence() {
+        this.sequenceLoopCount = 0;
+        // Preload images
+        const urls = [{%- for i in (1..block.settings.total_frames) -%}{%- assign padded_i = i -%}{%- if i < 10 -%}{%- assign padded_i = '000' | append: padded_i -%}{%- elsif i < 100 -%}{%- assign padded_i = '00' | append: padded_i -%}{%- else -%}{%- assign padded_i = '0' | append: padded_i -%}{%- endif -%}"{{ padded_i | append: '.png' | asset_url }}"{%- if forloop.last == false -%},{%- endif -%}{%- endfor -%}];
+
+        this.sequenceImages = urls.map(url => {
+          const img = new Image();
+          img.src = url;
+          return img;
+        });
+
+        // Wait for the first image to load before starting
+        if (this.sequenceImages[0].complete) {
+          this.drawFrame(0);
+          this.animate();
+        } else {
+          this.sequenceImages[0].addEventListener('load', () => {
+            this.drawFrame(0);
+            this.animate();
+          });
+        }
+      }
+
+      drawFrame(frame) {
+        if (this.sequenceImages[frame] && this.sequenceImages[frame].complete) {
+          this.canvas.width = this.canvas.offsetWidth;
+          this.canvas.height = this.canvas.offsetHeight;
+          const img = this.sequenceImages[frame];
+          const scaleX = this.canvas.width / img.width;
+          const scaleY = this.canvas.height / img.height;
+          const scale = Math.max(scaleX, scaleY);
+          const scaledWidth = img.width * scale;
+          const scaledHeight = img.height * scale;
+          const x = (this.canvas.width - scaledWidth) / 2;
+          const y = (this.canvas.height - scaledHeight) / 2;
+          this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+          this.ctx.drawImage(img, x, y, scaledWidth, scaledHeight);
+          const currentChap = this.getCurrentChapter(frame);
+          this.chapter2Overlay.style.display = currentChap === 1 ? 'block' : 'none';
+          this.chapter3Overlay.style.display = currentChap === 2 ? 'block' : 'none';
+        }
+      }
+
+      getCurrentChapter(frame) {
+        for (let i = this.chapterFrames.length - 1; i >= 0; i--) {
+          if (frame >= this.chapterFrames[i]) {
+            return i;
+          }
+        }
+        return 0;
+      }
+
+      animate() {
+        const now = Date.now();
+        if (now - this.lastFrameTime >= this.frameDuration) {
+          this.drawFrame(this.currentFrame);
+          this.currentFrame = (this.currentFrame + 1) % this.totalFrames;
+          if (this.currentFrame == 0) {
+            this.sequenceLoopCount++;
+            if (this.sequenceLoopCount == 1) {
+              this.transitionToVideo();
+            }
+          }
+          this.lastFrameTime = now;
+        }
+        this.animationId = requestAnimationFrame(() => this.animate());
+      }
+    }
+
+    customElements.define('video-seq-player-{{ ai_gen_id }}', InteractiveMediaPlayer{{ ai_gen_id }});
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Vid Seq Player",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "Video source"
+    },
+    {
+      "type": "select",
+      "id": "video_source",
+      "label": "Video source",
+      "options": [
+        {
+          "value": "shopify",
+          "label": "Shopify hosted"
+        },
+        {
+          "value": "youtube",
+          "label": "YouTube"
+        },
+        {
+          "value": "vimeo",
+          "label": "Vimeo"
+        }
+      ],
+      "default": "shopify"
+    },
+    {
+      "type": "video",
+      "id": "video_shopify",
+      "label": "Shopify hosted video"
+    },
+    {
+      "type": "url",
+      "id": "video_url",
+      "label": "Video URL"
+    },
+    {
+      "type": "image_picker",
+      "id": "cover_image",
+      "label": "Cover image"
+    },
+    {
+      "type": "image_picker",
+      "id": "target_image",
+      "label": "Target image"
+    },
+    {
+      "type": "header",
+      "content": "Video settings"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_loop",
+      "label": "Loop video",
+      "default": true
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "Image sequence settings"
+    },
+    {
+      "type": "number",
+      "id": "total_frames",
+      "label": "Total Frames",
+      "default": 96
+    },
+    {
+      "type": "text",
+      "id": "chapter_frames",
+      "label": "Chapter Frames",
+      "default": "30,60,90"
+    },
+    {
+      "type": "header",
+      "content": "Transition settings"
+    },
+    {
+      "type": "select",
+      "id": "transition_trigger",
+      "label": "Transition trigger",
+      "options": [
+        {
+          "value": "click",
+          "label": "Click"
+        },
+        {
+          "value": "scroll",
+          "label": "Mouse scroll"
+        }
+      ],
+      "default": "click"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Vid Seq Player"
+    }
+  ]
+}
+{% endschema %}
