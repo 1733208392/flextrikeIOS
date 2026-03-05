@@ -43,6 +43,7 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+    opacity: 1;
   }
 
   .ai-video-cover-{{ ai_gen_id }} {
@@ -194,6 +195,110 @@
     }
   }
 
+  .ai-video-text-overlay-right-{{ ai_gen_id }} {
+    position: absolute;
+    left: 66.67%;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 4;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 48px;
+    line-height: 1.2;
+    max-width: 50%;
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7);
+    font-family: 'TT Norms', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    letter-spacing: -0.5px;
+    transition: opacity 0.3s ease;
+  }
+
+  .ai-video-text-overlay-right-{{ ai_gen_id }} > div:first-child {
+    color: #DE3823;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .ai-video-text-overlay-right-{{ ai_gen_id }}.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .ai-video-text-overlay-third-{{ ai_gen_id }} {
+    position: absolute;
+    left: 40px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 4;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 48px;
+    line-height: 1.2;
+    max-width: 50%;
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7);
+    font-family: 'TT Norms', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    letter-spacing: -0.5px;
+    transition: opacity 0.3s ease;
+  }
+
+  .ai-video-text-overlay-third-{{ ai_gen_id }} > div:first-child {
+    color: #DE3823;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .ai-video-text-overlay-third-{{ ai_gen_id }}.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  @media screen and (max-width: 1024px) {
+    .ai-video-text-overlay-third-{{ ai_gen_id }} {
+      font-size: 36px;
+      left: 30px;
+    }
+
+    .ai-video-text-overlay-third-{{ ai_gen_id }} > div:first-child {
+      font-size: 42px;
+    }
+  }
+
+  @media screen and (max-width: 749px) {
+    .ai-video-text-overlay-third-{{ ai_gen_id }} {
+      font-size: 18px;
+      left: 20px;
+      max-width: 70%;
+    }
+
+    .ai-video-text-overlay-third-{{ ai_gen_id }} > div:first-child {
+      font-size: 24px;
+    }
+  }
+
+  @media screen and (max-width: 1024px) {
+    .ai-video-text-overlay-right-{{ ai_gen_id }} {
+      font-size: 36px;
+      left: 66.67%;
+    }
+
+    .ai-video-text-overlay-right-{{ ai_gen_id }} > div:first-child {
+      font-size: 42px;
+    }
+  }
+
+  @media screen and (max-width: 749px) {
+    .ai-video-text-overlay-right-{{ ai_gen_id }} {
+      font-size: 18px;
+      left: 66.67%;
+      max-width: 70%;
+    }
+
+    .ai-video-text-overlay-right-{{ ai_gen_id }} > div:first-child {
+      font-size: 24px;
+    }
+  }
+
   @media screen and (max-width: 749px) {
     .ai-video-play-button-{{ ai_gen_id }} {
       width: 60px;
@@ -216,14 +321,46 @@
     }
 
     .ai-video-text-overlay-{{ ai_gen_id }} {
-      font-size: 24px;
+      font-size: 18px;
       left: 20px;
       max-width: 70%;
     }
 
     .ai-video-text-overlay-{{ ai_gen_id }} > div:first-child {
-      font-size: 28px;
+      font-size: 24px;
     }
+  }
+
+  .ai-video-image-button-{{ ai_gen_id }} {
+    position: absolute;
+    right: 16.66%;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 50vh;
+    height: 50vh;
+    max-width: 50%;
+    max-height: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    border: none;
+    background: none;
+    padding: 0;
+  }
+
+  .ai-video-image-button-{{ ai_gen_id }} img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    opacity: 0.7;
+    transition: opacity 0.3s ease, filter 0.3s ease;
+  }
+
+  .ai-video-image-button-{{ ai_gen_id }}:hover img {
+    opacity: 1;
+    filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.8)) drop-shadow(0 0 10px rgba(255, 255, 255, 0.6));
   }
 {% endstyle %}
 
@@ -241,6 +378,40 @@
       <div>Shoot Sharper</div>
       <div>Dominate Faster</div>
     </div>
+    <div class="ai-video-text-overlay-right-{{ ai_gen_id }} hidden">
+      <div>{{ block.settings.right_overlay_line1 }}</div>
+      <div>{{ block.settings.right_overlay_line2 }}</div>
+      <div>{{ block.settings.right_overlay_line3 }}</div>
+      <div>{{ block.settings.right_overlay_line4 }}</div>
+    </div>
+    <div class="ai-video-text-overlay-third-{{ ai_gen_id }} hidden">
+      <div>{{ block.settings.third_overlay_line1 }}</div>
+      <div>{{ block.settings.third_overlay_line2 }}</div>
+      <div>{{ block.settings.third_overlay_line3 }}</div>
+      <div>{{ block.settings.third_overlay_line4 }}</div>
+    </div>
+    {%- if block.settings.button_image != blank -%}
+      <button 
+        class="ai-video-image-button-{{ ai_gen_id }}" 
+        aria-label="Interactive button" 
+        type="button"
+        data-button-video-type="{{ block.settings.button_video_source }}"
+        {% if block.settings.button_video_source == 'shopify' and block.settings.button_video_shopify != blank %}
+          data-button-video-url="{{ block.settings.button_video_shopify.sources[1].url }}"
+          data-button-video-type-mime="{{ block.settings.button_video_shopify.sources[1].mime_type }}"
+        {% elsif block.settings.button_video_source == 'youtube' and block.settings.button_video_url != blank %}
+          data-button-video-id="{{ block.settings.button_video_url | split: 'v=' | last | split: '&' | first }}"
+        {% elsif block.settings.button_video_source == 'vimeo' and block.settings.button_video_url != blank %}
+          data-button-video-id="{{ block.settings.button_video_url | split: 'vimeo.com/' | last | split: '?' | first }}"
+        {% endif %}
+      >
+        {{
+          block.settings.button_image
+          | image_url: width: 800
+          | image_tag: alt: block.settings.button_image.alt
+        }}
+      </button>
+    {%- endif -%}
     {% if block.settings.video_source == 'shopify' and block.settings.video_shopify != blank %}
       <div class="ai-video-container-{{ ai_gen_id }}">
         <video
@@ -378,6 +549,18 @@
         this.playButton = this.querySelector('.ai-video-play-button-{{ ai_gen_id }}');
         this.muteButton = this.querySelector('.ai-video-mute-button-{{ ai_gen_id }}');
         this.coverImage = this.querySelector('.ai-video-cover-{{ ai_gen_id }}');
+        this.imageButton = this.querySelector('.ai-video-image-button-{{ ai_gen_id }}')
+        this.leftOverlay = this.querySelector('.ai-video-text-overlay-{{ ai_gen_id }}');
+        this.rightOverlay = this.querySelector('.ai-video-text-overlay-right-{{ ai_gen_id }}');
+        this.thirdOverlay = this.querySelector('.ai-video-text-overlay-third-{{ ai_gen_id }}');
+        this.isPlayingButtonVideo = false;
+
+        // Setup image button click handler
+        if (this.imageButton) {
+          this.imageButton.addEventListener('click', () => {
+            this.loadButtonVideo();
+          });
+        }
 
         if (this.videoType === 'shopify' && this.videoElement) {
           this.setupShopifyVideo();
@@ -507,6 +690,285 @@
           this.playButton.classList.add('hidden');
         }
       }
+
+      hideLeftOverlay() {
+        if (this.leftOverlay) {
+          this.leftOverlay.classList.add('hidden');
+        }
+      }
+
+      showLeftOverlay() {
+        if (this.leftOverlay) {
+          this.leftOverlay.classList.remove('hidden');
+        }
+      }
+
+      hideRightOverlay() {
+        if (this.rightOverlay) {
+          this.rightOverlay.classList.add('hidden');
+        }
+      }
+
+      showRightOverlay() {
+        if (this.rightOverlay) {
+          this.rightOverlay.classList.remove('hidden');
+        }
+      }
+
+      showThirdOverlay() {
+        if (this.thirdOverlay) {
+          this.thirdOverlay.classList.remove('hidden');
+        }
+      }
+
+      hideThirdOverlay() {
+        if (this.thirdOverlay) {
+          this.thirdOverlay.classList.add('hidden');
+        }
+      }
+
+      loadButtonVideo() {
+        const buttonVideoType = this.imageButton?.dataset.buttonVideoType;
+        if (!buttonVideoType) return;
+
+        // Hide the image button when loading new video
+        if (this.imageButton) {
+          this.imageButton.style.display = 'none';
+        }
+
+        // Manage overlay visibility
+        this.hideLeftOverlay();
+        this.hideRightOverlay();
+        this.hideThirdOverlay();
+        this.isPlayingButtonVideo = true;
+        this.thirdOverlayShown = false;
+        this.rightOverlayShown = false;
+
+        if (buttonVideoType === 'shopify' && this.imageButton?.dataset.buttonVideoUrl) {
+          // Load Shopify video
+          if (this.videoElement) {
+            this.videoElement.pause();
+            // Store original video source
+            this.originalVideoSrc = this.videoElement.querySelector('source')?.src;
+            
+            this.videoElement.src = this.imageButton.dataset.buttonVideoUrl;
+            this.videoElement.load();
+            this.videoElement.playbackRate = 0.5;
+            this.playVideo();
+            this.isPlaying = true;
+
+            // Setup progress tracking for third overlay
+            this.videoElement.addEventListener('timeupdate', () => this.handleButtonVideoProgress(), false);
+
+            // Listen for video end
+            this.videoElement.addEventListener('ended', () => this.onButtonVideoEnded(), { once: true });
+          }
+        } else if (buttonVideoType === 'youtube' && this.imageButton?.dataset.buttonVideoId) {
+          // Load YouTube video
+          if (this.youtubePlayer) {
+            this.youtubePlayer.loadVideoById(this.imageButton.dataset.buttonVideoId);
+            this.youtubePlayer.setPlaybackRate(0.5);
+            this.youtubePlayer.playVideo();
+
+            // Setup progress tracking
+            this.youtubeProgressInterval = setInterval(() => this.handleYouTubeProgress(), 100);
+
+            // Setup end event listener
+            this.youtubePlayerStateListener = (event) => {
+              if (event.data === 0) { // 0 = ENDED
+                clearInterval(this.youtubeProgressInterval);
+                this.youtubePlayer.removeEventListener('onStateChange', this.youtubePlayerStateListener);
+                this.onButtonVideoEnded();
+              }
+            };
+            this.youtubePlayer.addEventListener('onStateChange', this.youtubePlayerStateListener);
+          }
+        } else if (buttonVideoType === 'vimeo' && this.imageButton?.dataset.buttonVideoId) {
+          // For Vimeo, reload the iframe
+          const vimeoFrame = this.querySelector('#ai-vimeo-player-{{ ai_gen_id }}');
+          if (vimeoFrame) {
+            // Store original video ID
+            this.originalVimeoId = vimeoFrame.src.match(/video\/(\d+)/)?.[1];
+            
+            vimeoFrame.src = `https://player.vimeo.com/video/${this.imageButton.dataset.buttonVideoId}?autoplay=1&muted=1`;
+            
+            // Set playback rate to 0.5x
+            setTimeout(() => {
+              vimeoFrame.contentWindow.postMessage({method: 'setPlaybackRate', value: 0.5}, '*');
+            }, 500);
+            
+            // Setup progress tracking via postMessage
+            this.vimeoProgressListener = (event) => {
+              if (event.origin !== 'https://player.vimeo.com') return;
+              if (event.data.event === 'timeupdate') {
+                this.handleVimeoProgress(event.data);
+              } else if (event.data.event === 'finish') {
+                window.removeEventListener('message', this.vimeoProgressListener);
+                window.removeEventListener('message', this.vimeoMessageListener);
+                this.onButtonVideoEnded();
+              }
+            };
+            window.addEventListener('message', this.vimeoProgressListener);
+          }
+        }
+      }
+
+      handleButtonVideoProgress() {
+        if (!this.isPlayingButtonVideo || !this.videoElement) return;
+        
+        const duration = this.videoElement.duration;
+        if (!duration || duration === 0) return;
+        
+        const currentTime = this.videoElement.currentTime;
+        const progress = currentTime / duration;
+        
+        // Show right overlay at 1/10 of video length
+        if (progress >= 0.1 && !this.rightOverlayShown) {
+          this.showRightOverlay();
+          this.rightOverlayShown = true;
+        }
+        
+        // Hide right overlay at 1/3 of video length
+        if (progress >= 0.3333 && this.rightOverlayShown) {
+          this.hideRightOverlay();
+          this.rightOverlayShown = false;
+        }
+        
+        // Show third overlay at 1/2 of video length
+        if (progress >= 0.5 && !this.thirdOverlayShown) {
+          this.showThirdOverlay();
+          this.thirdOverlayShown = true;
+        }
+        
+        // Hide third overlay at 9/10 of video length
+        if (progress >= 0.9 && this.thirdOverlayShown) {
+          this.hideThirdOverlay();
+          this.thirdOverlayShown = false;
+        }
+      }
+
+      handleYouTubeProgress() {
+        if (!this.isPlayingButtonVideo || !this.youtubePlayer) return;
+        
+        try {
+          const currentTime = this.youtubePlayer.getCurrentTime();
+          const duration = this.youtubePlayer.getDuration();
+          
+          if (!duration || duration === 0) return;
+          
+          const progress = currentTime / duration;
+          
+          // Show right overlay at 1/10 of video length
+          if (progress >= 0.1 && !this.rightOverlayShown) {
+            this.showRightOverlay();
+            this.rightOverlayShown = true;
+          }
+          
+          // Hide right overlay at 1/3 of video length
+          if (progress >= 0.3333 && this.rightOverlayShown) {
+            this.hideRightOverlay();
+            this.rightOverlayShown = false;
+          }
+          
+          // Show third overlay at 1/2 of video length
+          if (progress >= 0.5 && !this.thirdOverlayShown) {
+            this.showThirdOverlay();
+            this.thirdOverlayShown = true;
+          }
+          
+          // Hide third overlay at 9/10 of video length
+          if (progress >= 0.9 && this.thirdOverlayShown) {
+            this.hideThirdOverlay();
+            this.thirdOverlayShown = false;
+          }
+        } catch (e) {
+          // YouTube API might not be ready yet
+        }
+      }
+
+      handleVimeoProgress(data) {
+        if (!this.isPlayingButtonVideo) return;
+        
+        const progress = data.seconds / data.duration;
+        
+        // Show right overlay at 1/10 of video length
+        if (progress >= 0.1 && !this.rightOverlayShown) {
+          this.showRightOverlay();
+          this.rightOverlayShown = true;
+        }
+        
+        // Hide right overlay at 1/3 of video length
+        if (progress >= 0.3333 && this.rightOverlayShown) {
+          this.hideRightOverlay();
+          this.rightOverlayShown = false;
+        }
+        
+        // Show third overlay at 1/2 of video length
+        if (progress >= 0.5 && !this.thirdOverlayShown) {
+          this.showThirdOverlay();
+          this.thirdOverlayShown = true;
+        }
+        
+        // Hide third overlay at 9/10 of video length
+        if (progress >= 0.9 && this.thirdOverlayShown) {
+          this.hideThirdOverlay();
+          this.thirdOverlayShown = false;
+        }
+      }
+
+      onButtonVideoEnded() {
+        // Cleanup progress tracking
+        this.isPlayingButtonVideo = false;
+        this.thirdOverlayShown = false;
+        this.rightOverlayShown = false;
+        if (this.youtubeProgressInterval) {
+          clearInterval(this.youtubeProgressInterval);
+        }
+        
+        // Remove Shopify video listener
+        if (this.videoElement) {
+          this.videoElement.removeEventListener('timeupdate', () => this.handleButtonVideoProgress());
+        }
+        
+        // Remove Vimeo listeners
+        if (this.vimeoProgressListener) {
+          window.removeEventListener('message', this.vimeoProgressListener);
+        }
+        
+        // Swap back to original video
+        const videoType = this.dataset.videoType;
+
+        if (videoType === 'shopify' && this.videoElement && this.originalVideoSrc) {
+          this.videoElement.pause();
+          this.videoElement.src = this.originalVideoSrc;
+          this.videoElement.load();
+          if (this.autoplay) {
+            this.playVideo();
+          }
+        } else if (videoType === 'youtube' && this.youtubePlayer) {
+          const playerElement = this.querySelector('#ai-youtube-player-{{ ai_gen_id }}');
+          const originalVideoId = playerElement.dataset.videoId;
+          this.youtubePlayer.loadVideoById(originalVideoId);
+          if (this.autoplay) {
+            this.youtubePlayer.playVideo();
+          }
+        } else if (videoType === 'vimeo' && this.originalVimeoId) {
+          const vimeoFrame = this.querySelector('#ai-vimeo-player-{{ ai_gen_id }}');
+          if (vimeoFrame) {
+            vimeoFrame.src = `https://player.vimeo.com/video/${this.originalVimeoId}?autoplay=${this.autoplay ? 1 : 0}&muted=1&loop=${this.loop ? 1 : 0}&background=1`;
+          }
+        }
+
+        // Show the image button again
+        if (this.imageButton) {
+          this.imageButton.style.display = 'flex';
+        }
+
+        // Manage overlay visibility
+        this.showLeftOverlay();
+        this.hideRightOverlay();
+        this.hideThirdOverlay();
+      }
     }
 
     customElements.define('video-player-{{ ai_gen_id }}', VideoPlayer{{ ai_gen_id }});
@@ -556,6 +1018,97 @@
       "type": "image_picker",
       "id": "cover_image",
       "label": "Cover image"
+    },
+    {
+      "type": "image_picker",
+      "id": "button_image",
+      "label": "Button Image (Optional)"
+    },
+    {
+      "type": "header",
+      "content": "Button Video (Optional)"
+    },
+    {
+      "type": "select",
+      "id": "button_video_source",
+      "label": "Button video source",
+      "options": [
+        {
+          "value": "shopify",
+          "label": "Shopify hosted"
+        },
+        {
+          "value": "youtube",
+          "label": "YouTube"
+        },
+        {
+          "value": "vimeo",
+          "label": "Vimeo"
+        }
+      ],
+      "default": "shopify"
+    },
+    {
+      "type": "video",
+      "id": "button_video_shopify",
+      "label": "Shopify hosted button video"
+    },
+    {
+      "type": "url",
+      "id": "button_video_url",
+      "label": "Button video URL"
+    },
+    {
+      "type": "header",
+      "content": "Overlay Text"
+    },
+    {
+      "type": "text",
+      "id": "right_overlay_line1",
+      "label": "Right Overlay - Line 1",
+      "default": "GRWOLF FLEXTARGET"
+    },
+    {
+      "type": "text",
+      "id": "right_overlay_line2",
+      "label": "Right Overlay - Line 2",
+      "default": "Train Smarter"
+    },
+    {
+      "type": "text",
+      "id": "right_overlay_line3",
+      "label": "Right Overlay - Line 3",
+      "default": "Shoot Sharper"
+    },
+    {
+      "type": "text",
+      "id": "right_overlay_line4",
+      "label": "Right Overlay - Line 4",
+      "default": "Dominate Faster"
+    },
+    {
+      "type": "text",
+      "id": "third_overlay_line1",
+      "label": "Third Overlay - Line 1",
+      "default": "GRWOLF FLEXTARGET"
+    },
+    {
+      "type": "text",
+      "id": "third_overlay_line2",
+      "label": "Third Overlay - Line 2",
+      "default": "Train Smarter"
+    },
+    {
+      "type": "text",
+      "id": "third_overlay_line3",
+      "label": "Third Overlay - Line 3",
+      "default": "Shoot Sharper"
+    },
+    {
+      "type": "text",
+      "id": "third_overlay_line4",
+      "label": "Third Overlay - Line 4",
+      "default": "Dominate Faster"
     },
     {
       "type": "header",
