@@ -130,6 +130,20 @@ private fun TargetGridContent(
     val horizontalSpacing = 24.dp
     val verticalSpacing = 40.dp
     
+    // Zigzag order: devices are positioned according to this pattern
+    val zigzagOrder = listOf(0, 1, 2, 5, 4, 3, 6, 7, 8, 11, 10, 9)
+    
+    // Create mapping from grid position to device index
+    val gridToDeviceMap = remember(deviceList.size) {
+        mutableMapOf<Int, Int>().apply {
+            for ((deviceIndex, gridPosition) in zigzagOrder.withIndex()) {
+                if (deviceIndex < deviceList.size) {
+                    this[gridPosition] = deviceIndex
+                }
+            }
+        }
+    }
+    
     // Store positions of rectangles for drawing lines
     var cellPositions by remember { mutableStateOf<Map<Int, Offset>>(emptyMap()) }
     
@@ -159,8 +173,9 @@ private fun TargetGridContent(
             modifier = Modifier
                 .fillMaxSize()
         ) {
-            items(cellCount) { index ->
-                val device = if (index < deviceList.size) deviceList[index] else null
+            items(cellCount) { gridPosition ->
+                val deviceIndex = gridToDeviceMap[gridPosition]
+                val device = deviceIndex?.let { deviceList[it] }
                 val config = device?.let { dev ->
                     targetConfigs.firstOrNull { it.targetName == dev.name }
                 }
@@ -176,7 +191,7 @@ private fun TargetGridContent(
                     },
                     onPositionChanged = { centerOffset ->
                         cellPositions = cellPositions.toMutableMap().apply {
-                            this[index] = centerOffset
+                            this[gridPosition] = centerOffset
                         }
                     }
                 )
