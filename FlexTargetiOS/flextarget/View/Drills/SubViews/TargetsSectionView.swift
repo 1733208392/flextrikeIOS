@@ -51,45 +51,58 @@ struct TargetsSectionView: View {
                     .opacity(isTargetListReceived ? 1.0 : 0.6)
                 }
             } else {
-                NavigationLink(destination: TargetConfigListViewV2(deviceList: bleManager.networkDevices, targetConfigs: $targetConfigs, onDone: onTargetConfigDone, drillMode: $drillMode)) {
-                    HStack(spacing: 8) {
-                        // Shield icon on the left
-                        Image(systemName: "shield")
-                            .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
-                            .padding(10)
-                            .background(Circle().fill(Color.white.opacity(0.1)))
-                            .overlay(
-                                Circle().stroke(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433), lineWidth: 2)
-                            )
-
-                        // Text label
-                        Text(NSLocalizedString("targets", comment: "Targets label"))
-                            .foregroundColor(.white)
-                            .font(.headline)
-
-                        Spacer()
-
-                        // Count
-                        Text(String(format: NSLocalizedString("targets_count_label", comment: "Number of targets"), targetConfigs.count))
-                            .foregroundColor(.white)
-                            .font(.headline)
-
-                        Spacer()
-
-                        // > symbol
-                        Text(">")
-                            .foregroundColor(.gray)
-                            .font(.headline)
+                // Conditional navigation: TargetLinkView for multiple devices, TargetConfigListViewV2 for single device
+                if bleManager.networkDevices.count > 1 {
+                    NavigationLink(destination: TargetLinkView(deviceList: bleManager.networkDevices, targetConfigs: $targetConfigs, onDone: onTargetConfigDone, drillMode: $drillMode)) {
+                        targetButtonContent
                     }
-                    .padding()
-                    .background(Color.gray.opacity(targetConfigs.count > 0 ? 0.2 : 0.1))
-                    .cornerRadius(16)
-                    .opacity(isTargetListReceived ? 1.0 : 0.6)
+                    .navigationTitle(NSLocalizedString("drill_setup", comment: "Navigation title for Drill Setup"))
+                    .disabled(!isTargetListReceived)
+                } else {
+                    NavigationLink(destination: TargetConfigListViewV2(deviceList: bleManager.networkDevices, targetConfigs: $targetConfigs, onDone: onTargetConfigDone, drillMode: $drillMode)) {
+                        targetButtonContent
+                    }
+                    .navigationTitle(NSLocalizedString("drill_setup", comment: "Navigation title for Drill Setup"))
+                    .disabled(!isTargetListReceived)
                 }
-                .navigationTitle(NSLocalizedString("drill_setup", comment: "Navigation title for Drill Setup"))
-                .disabled(!isTargetListReceived)
             }
         }
+    }
+    
+    private var targetButtonContent: some View {
+        HStack(spacing: 8) {
+            // Shield icon on the left
+            Image(systemName: "shield")
+                .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+                .padding(10)
+                .background(Circle().fill(Color.white.opacity(0.1)))
+                .overlay(
+                    Circle().stroke(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433), lineWidth: 2)
+                )
+
+            // Text label
+            Text(NSLocalizedString("targets", comment: "Targets label"))
+                .foregroundColor(.white)
+                .font(.headline)
+
+            Spacer()
+
+            // Count
+            Text(String(format: NSLocalizedString("targets_count_label", comment: "Number of targets"), targetConfigs.count))
+                .foregroundColor(.white)
+                .font(.headline)
+
+            Spacer()
+
+            // > symbol
+            Text(">")
+                .foregroundColor(.gray)
+                .font(.headline)
+        }
+        .padding()
+        .background(Color.gray.opacity(targetConfigs.count > 0 ? 0.2 : 0.1))
+        .cornerRadius(16)
+        .opacity(isTargetListReceived ? 1.0 : 0.6)
     }
 }
 

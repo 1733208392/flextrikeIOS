@@ -25,6 +25,7 @@
 /* DrillFormView */
 "drill_setup" = "Übung-Setup";
 "drill_mode" = "Übungsmodus";
+"target_link" = "Zielverbindung";
 
 /* DrillListView */
 "my_drills" = "Meine Übungen";

@@ -272,6 +272,7 @@ class AndroidBLEManager(private val context: Context) {
 
         override fun onCharacteristicChanged(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic) {
             val data = characteristic.value ?: return
+            println("[AndroidBLEManager] onCharacteristicChanged - received ${data.size} bytes")
 
             // Accumulate received data in buffer and extract complete messages atomically.
             // BLE callbacks can arrive on multiple Binder threads - synchronized for thread safety.
@@ -286,11 +287,13 @@ class AndroidBLEManager(private val context: Context) {
                 extractCompleteMessagesFromBuffer()
             }
 
+            println("[AndroidBLEManager] Extracted ${completeMessages.size} complete messages from buffer")
             completeMessages.forEach { completeMessage ->
                 try {
                     processMessage(completeMessage)
                 } catch (e: Exception) {
-                    println("Failed to parse BLE message: $completeMessage, error: ${e.message}")
+                    println("[AndroidBLEManager] Failed to parse BLE message: $completeMessage, error: ${e.message}")
+                    e.printStackTrace()
                 }
             }
         }
@@ -310,6 +313,7 @@ class AndroidBLEManager(private val context: Context) {
         val completeMessages = mutableListOf<String>()
 
         val bufferString = String(messageBuffer.toByteArray(), Charsets.UTF_8)
+        println("[AndroidBLEManager] extractCompleteMessagesFromBuffer - buffer has ${messageBuffer.size} bytes, string: $bufferString")
 
         for (i in bufferString.indices) {
             val char = bufferString[i]
@@ -324,17 +328,37 @@ class AndroidBLEManager(private val context: Context) {
 
                 // Complete message found
                 if (braceCount == 0 && messageStart != -1) {
-                    completeMessages.add(bufferString.substring(messageStart, i + 1))
+                    val message = bufferString.substring(messageStart, i + 1)
+                    completeMessages.add(message)
+                    println("[AndroidBLEManager] Extracted complete message: $message")
                     currentIndex = i + 1
                 }
             }
         }
 
-        // Remove processed messages from buffer
+        // Remove processed messages from buffer, including any garbage before the next message
         if (currentIndex > 0) {
             repeat(currentIndex.coerceAtMost(messageBuffer.size)) {
                 if (messageBuffer.isNotEmpty()) {
                     messageBuffer.removeAt(0)
+                }
+            }
+            println("[AndroidBLEManager] Removed $currentIndex bytes from buffer, remaining: ${messageBuffer.size} bytes")
+        }
+        
+        // If there's still data left and it doesn't start with {, find the next { and discard everything before it
+        // This cleans up any garbage that might have been received before a new message
+        if (messageBuffer.isNotEmpty()) {
+            val remainingString = String(messageBuffer.toByteArray(), Charsets.UTF_8)
+            val nextOpenBrace = remainingString.indexOf('{')
+            if (nextOpenBrace > 0) {
+                val garbageFound = remainingString.substring(0, nextOpenBrace)
+                println("[AndroidBLEManager] Found garbage before next message: $garbageFound")
+                println("[AndroidBLEManager] Discarding $nextOpenBrace garbage bytes")
+                repeat(nextOpenBrace) {
+                    if (messageBuffer.isNotEmpty()) {
+                        messageBuffer.removeAt(0)
+                    }
                 }
             }
         }
@@ -378,6 +402,7 @@ class AndroidBLEManager(private val context: Context) {
                 }
                 type == "netlink" && action == "device_list" -> {
                     val dataArray = json.optJSONArray("data")
+                    println("[AndroidBLEManager] Processing netlink device_list, dataArray: $dataArray")
                     if (dataArray != null) {
                         val devices = mutableListOf<NetworkDevice>()
                         for (i in 0 until dataArray.length()) {
@@ -388,11 +413,14 @@ class AndroidBLEManager(private val context: Context) {
                                 mode = deviceJson.optString("mode", "")
                             )
                             devices.add(device)
+                            println("[AndroidBLEManager] Added device: ${device.name} (mode: ${device.mode})")
                         }
-                        println("Received netlink device_list: $devices")
+                        println("[AndroidBLEManager] Received netlink device_list with ${devices.size} devices: $devices")
                         BLEManager.shared.networkDevices = devices
                         BLEManager.shared.lastDeviceListUpdate = Date()
-                        // TODO: Post notification or callback for device list updated
+                        println("[AndroidBLEManager] Updated BLEManager.shared.networkDevices to ${BLEManager.shared.networkDevices.size} devices")
+                    } else {
+                        println("[AndroidBLEManager] device_list dataArray is null!")
                     }
                 }
                 type == "netlink" && action == "forward" -> {

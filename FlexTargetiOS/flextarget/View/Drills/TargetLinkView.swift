@@ -1,0 +1,264 @@
+import SwiftUI
+import Foundation
+
+struct TargetLinkView: View {
+    let deviceList: [NetworkDevice]
+    @Binding var targetConfigs: [DrillTargetsConfigData]
+    let onDone: () -> Void
+    @Binding var drillMode: String
+    
+    @Environment(\.dismiss) private var dismiss
+    
+    private let gridColumns = Array(repeating: GridItem(.flexible(), spacing: 24), count: 3)
+    private let rectangleHeight: CGFloat = 150
+    private var rectangleWidth: CGFloat { rectangleHeight * 9 / 16 } // 9x16 aspect ratio
+    
+    var body: some View {
+        ZStack {
+            Color.black.ignoresSafeArea()
+            
+            VStack(spacing: 20) {
+                ScrollView {
+                    Spacer()
+                    gridContent
+                }
+                .frame(maxHeight: .infinity)
+            }
+        }
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                Text(NSLocalizedString("target_link", comment: "Target Link title"))
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                    .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+            }
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button(action: {
+                    onDone()
+                    dismiss()
+                }) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+                }
+            }
+        }
+        .onAppear {
+            initializeTargetConfigs()
+        }
+    }
+    
+    @ViewBuilder
+    private var gridContent: some View {
+        ZStack(alignment: .topLeading) {
+            // Connection lines overlay
+            Canvas { context, size in
+                var mutableContext = context
+                drawConnectionLines(context: &mutableContext, canvasSize: size)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            
+            // Grid background (on top so it's tappable)
+            LazyVGrid(columns: gridColumns, spacing: 40) {
+                ForEach(0..<12, id: \.self) { index in
+                    if index < deviceList.count {
+                        let device = deviceList[index]
+                        let config = targetConfigs.first { $0.targetName == device.name }
+                        
+                        NavigationLink(destination: TargetConfigListViewV2(
+                            deviceList: deviceList,
+                            targetConfigs: $targetConfigs,
+                            onDone: onDone,
+                            drillMode: $drillMode,
+                            singleDeviceMode: true,
+                            deviceNameFilter: device.name
+                        )) {
+                            TargetRectangleView(
+                                deviceName: device.name,
+                                config: config,
+                                width: rectangleWidth,
+                                height: rectangleHeight
+                            )
+                        }
+                    } else {
+                        // Empty slot
+                        RoundedRectangle(cornerRadius: 0)
+                            .stroke(Color.gray.opacity(0.3), lineWidth: 6)
+                            .frame(width: rectangleWidth, height: rectangleHeight)
+                    }
+                }
+            }
+            .padding(16)
+        }
+    }
+    
+    private func drawConnectionLines(context: inout GraphicsContext, canvasSize: CGSize) {
+        let gridWidth = 3
+        let horizontalSpacing: CGFloat = 24
+        let verticalSpacing: CGFloat = 40
+        let paddingLeftRight: CGFloat = 16
+        let paddingTop: CGFloat = 16
+        let lineWidth: CGFloat = 4
+        let lineColor = Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433)
+        
+        // Calculate actual available width for grid
+        let availableWidth = canvasSize.width - 2 * paddingLeftRight
+        let totalHorizontalSpacing = CGFloat(gridWidth - 1) * horizontalSpacing
+        let totalRectangleWidth = availableWidth - totalHorizontalSpacing
+        let cellWidth = totalRectangleWidth / CGFloat(gridWidth)
+        let cellHeight = rectangleHeight
+        
+        // Snake pattern for 3x4 grid: 0→1→2, 2↓5, 5→4→3, 3↓6, 6→7→8, 8↓11, 11→10→9
+        let snakePattern: [(Int, Int)] = [
+            (0, 1), (1, 2), // Row 0: 0→1→2 (left to right)
+            (2, 5), // Transition: 2↓5 (down)
+            (5, 4), (4, 3), // Row 1: 5→4→3 (right to left)
+            (3, 6), // Transition: 3↓6 (down)
+            (6, 7), (7, 8), // Row 2: 6→7→8 (left to right)
+            (8, 11), // Transition: 8↓11 (down)
+            (11, 10), (10, 9) // Row 3: 11→10→9 (right to left)
+        ]
+        
+        for (fromIndex, toIndex) in snakePattern {
+            guard fromIndex < deviceList.count && toIndex < deviceList.count else { continue }
+            
+            let fromPos = getGridPosition(index: fromIndex, gridWidth: gridWidth)
+            let toPos = getGridPosition(index: toIndex, gridWidth: gridWidth)
+            
+            let fromRect = getRectangleBounds(row: fromPos.row, col: fromPos.col, paddingLeft: paddingLeftRight, paddingTop: paddingTop, cellWidth: cellWidth, cellHeight: cellHeight, horizontalSpacing: horizontalSpacing, verticalSpacing: verticalSpacing)
+            let toRect = getRectangleBounds(row: toPos.row, col: toPos.col, paddingLeft: paddingLeftRight, paddingTop: paddingTop, cellWidth: cellWidth, cellHeight: cellHeight, horizontalSpacing: horizontalSpacing, verticalSpacing: verticalSpacing)
+            
+            let fromPoint = getExitPoint(rect: fromRect, to: toPos, from: fromPos)
+            let toPoint = getEntryPoint(rect: toRect, from: fromPos, to: toPos)
+            
+            var line = Path()
+            line.move(to: fromPoint)
+            line.addLine(to: toPoint)
+            
+            context.stroke(line, with: .color(lineColor), lineWidth: lineWidth)
+        }
+    }
+    
+    private func getGridPosition(index: Int, gridWidth: Int) -> (row: Int, col: Int) {
+        return (index / gridWidth, index % gridWidth)
+    }
+    
+    private func getRectangleBounds(row: Int, col: Int, paddingLeft: CGFloat, paddingTop: CGFloat, cellWidth: CGFloat, cellHeight: CGFloat, horizontalSpacing: CGFloat, verticalSpacing: CGFloat) -> CGRect {
+        let x = paddingLeft + CGFloat(col) * (cellWidth + horizontalSpacing)
+        let y = paddingTop + CGFloat(row) * (cellHeight + verticalSpacing)
+        return CGRect(x: x, y: y, width: cellWidth, height: cellHeight)
+    }
+    
+    private func getExitPoint(rect: CGRect, to toPos: (row: Int, col: Int), from fromPos: (row: Int, col: Int)) -> CGPoint {
+        let verticalLineShorten: CGFloat = 15
+        // Determine exit point based on direction to target
+        if toPos.row > fromPos.row {
+            // Moving down - shorten the line
+            return CGPoint(x: rect.midX, y: rect.maxY + verticalLineShorten)
+        } else if toPos.row < fromPos.row {
+            // Moving up - shorten the line
+            return CGPoint(x: rect.midX, y: rect.minY - verticalLineShorten)
+        } else if toPos.col > fromPos.col {
+            // Moving right
+            return CGPoint(x: rect.maxX, y: rect.midY)
+        } else {
+            // Moving left
+            return CGPoint(x: rect.minX, y: rect.midY)
+        }
+    }
+    
+    private func getEntryPoint(rect: CGRect, from fromPos: (row: Int, col: Int), to toPos: (row: Int, col: Int)) -> CGPoint {
+        let verticalLineShorten: CGFloat = 15
+        // Determine entry point based on direction from source
+        if fromPos.row < toPos.row {
+            // Coming from above - shorten the line
+            return CGPoint(x: rect.midX, y: rect.minY - verticalLineShorten)
+        } else if fromPos.row > toPos.row {
+            // Coming from below - shorten the line
+            return CGPoint(x: rect.midX, y: rect.maxY + verticalLineShorten)
+        } else if fromPos.col < toPos.col {
+            // Coming from left
+            return CGPoint(x: rect.minX, y: rect.midY)
+        } else {
+            // Coming from right
+            return CGPoint(x: rect.maxX, y: rect.midY)
+        }
+    }
+    
+    private func initializeTargetConfigs() {
+        // Follow zig-zag pattern for seqNo assignment: 0,1,2,5,4,3,6,7,8,11,10,9
+        let zigzagOrder = [0, 1, 2, 5, 4, 3, 6, 7, 8, 11, 10, 9]
+        var updated = targetConfigs
+        
+        for (zigzagIndex, deviceIndex) in zigzagOrder.enumerated() {
+            guard deviceIndex < deviceList.count else { break }
+            
+            let device = deviceList[deviceIndex]
+            if !updated.contains(where: { $0.targetName == device.name }) {
+                let newConfig = DrillTargetsConfigData(
+                    seqNo: zigzagIndex + 1,
+                    targetName: device.name,
+                    targetType: defaultTargetType(),
+                    timeout: 30.0,
+                    countedShots: 5
+                )
+                updated.append(newConfig)
+            }
+        }
+        
+        // Sort by seqNo to maintain order
+        updated.sort { $0.seqNo < $1.seqNo }
+        targetConfigs = updated
+    }
+    
+    private func defaultTargetType() -> String {
+        switch drillMode {
+        case "ipsc":
+            return "ipsc"
+        case "idpa":
+            return "idpa"
+        case "cqb":
+            return "cqb_front"
+        default:
+            return "ipsc"
+        }
+    }
+}
+
+struct TargetRectangleView: View {
+    let deviceName: String
+    let config: DrillTargetsConfigData?
+    let width: CGFloat
+    let height: CGFloat
+    
+    var body: some View {
+        VStack(spacing: 8) {
+            if let config = config, !config.targetType.isEmpty {
+                Image(config.primaryTargetType())
+                    .resizable()
+                    .scaledToFit()
+                    .frame(height: height * 0.6)
+                    .padding(8)
+            } else {
+                Image(systemName: "questionmark.circle")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(height: height * 0.4)
+                    .foregroundColor(.gray)
+            }
+            
+            Text(deviceName)
+                .font(.caption)
+                .fontWeight(.semibold)
+                .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+                .lineLimit(1)
+                .truncationMode(.tail)
+        }
+        .frame(width: width, height: height)
+        .background(Color.gray.opacity(0.1))
+        .border(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433), width: 6)
+    }
+}
+
+

@@ -20,6 +20,7 @@
 /* DrillFormView */
 "drill_setup" = "Drill Setup";
 "drill_mode" = "Drill Mode";
+"target_link" = "TARGETLINK";
 
 /* DrillListView */
 "my_drills" = "My Drills";

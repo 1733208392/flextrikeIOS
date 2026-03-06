@@ -44,6 +44,7 @@ fun TargetConfigListViewV2(
     bleManager: BLEManager,
     targetConfigs: List<DrillTargetsConfigData>,
     drillMode: String,
+    selectedDeviceName: String? = null,
     onUpdateTargetTypes: (Int, List<String>) -> Unit,
     onAddTarget: () -> Unit = {},
     onDone: () -> Unit,
@@ -55,7 +56,20 @@ fun TargetConfigListViewV2(
 
     var localDrillMode by remember(drillMode) { mutableStateOf(drillMode) }
 
-    val primaryConfig = targetConfigs.firstOrNull() ?: return
+    // Single-target mode: filter to the selected device only
+    val filteredConfigs = if (selectedDeviceName != null) {
+        targetConfigs.filter { it.targetName == selectedDeviceName }
+    } else {
+        targetConfigs
+    }
+    
+    val isSingleTargetMode = selectedDeviceName != null
+    val primaryConfig = filteredConfigs.firstOrNull() ?: return
+    
+    // Find the index of the primary config in the original targetConfigs list
+    val primaryConfigIndexInOriginalList = targetConfigs.indexOfFirst { 
+        it.targetName == primaryConfig.targetName && it.seqNo == primaryConfig.seqNo 
+    }.takeIf { it >= 0 } ?: 0
     
     var selectedTargetTypes by remember { 
         mutableStateOf(primaryConfig.parseTargetTypes())
@@ -227,7 +241,7 @@ fun TargetConfigListViewV2(
                     onRemoveType = { index ->
                         if (index < selectedTargetTypes.size) {
                             selectedTargetTypes = selectedTargetTypes.toMutableList().also { it.removeAt(index) }
-                            onUpdateTargetTypes(0, selectedTargetTypes)
+                            onUpdateTargetTypes(primaryConfigIndexInOriginalList, selectedTargetTypes)
                         }
                         isDeleteMode = false
                     }
@@ -242,13 +256,14 @@ fun TargetConfigListViewV2(
                     selectedTargetTypes = selectedTargetTypes,
                     accentColor = accentRed,
                     isSelectingMode = isSelectingMode && !isDeleteMode,
+                    isSingleTargetMode = isSingleTargetMode,
                     onSelectingModeChange = { 
                         isSelectingMode = it
                         if (it) isDeleteMode = false
                     },
                     onTypesChanged = { newTypes ->
                         selectedTargetTypes = newTypes
-                        onUpdateTargetTypes(0, newTypes)
+                        onUpdateTargetTypes(primaryConfigIndexInOriginalList, newTypes)
                     }
                 )
 
@@ -505,6 +520,7 @@ private fun TargetTypeSelectionViewV2(
     selectedTargetTypes: List<String>,
     accentColor: Color,
     isSelectingMode: Boolean,
+    isSingleTargetMode: Boolean = false,
     onSelectingModeChange: (Boolean) -> Unit,
     onTypesChanged: (List<String>) -> Unit
 ) {
@@ -623,7 +639,14 @@ private fun TargetTypeSelectionViewV2(
                     if (isSelectingMode) {
                         IconButton(
                             onClick = {
-                                onTypesChanged(selectedTargetTypes + type)
+                                val newTypes = if (isSingleTargetMode) {
+                                    // Single-target mode: replace with the selected type
+                                    listOf(type)
+                                } else {
+                                    // Multi-target mode: append the type
+                                    selectedTargetTypes + type
+                                }
+                                onTypesChanged(newTypes)
                             },
                             modifier = Modifier
                                 .align(Alignment.TopEnd)

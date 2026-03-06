@@ -1519,17 +1519,14 @@ class WriteCharacteristic extends bleno.Characteristic {
             type: 'netlink',
             action: 'device_list',
             data: [
-              { mode: 'master', name: '01' }
-            ]
+              { mode: 'master', name: 'DE3823FF' },{ mode: 'slave', name: 'DE3824FF' },{ mode: 'slave', name: 'DE3825FF' },{ mode: 'slave', name: 'DE3826FF' }
+            ] 
           };
           
-          // Send response back to Mobile App
-          if (this.notifyCharacteristic) {
-            this.notifyCharacteristic.sendToMobileApp(response);
-            console.log('[CombinedServer] Sent device_list response to Mobile App with 8 devices');
-          } else {
-            console.log('[CombinedServer] Cannot send device_list response: notify characteristic not available');
-          }
+          // Send response back to Mobile App using chunked message sending for BLE MTU compatibility
+          console.log('[CombinedServer] Sending device_list response using chunked message sending');
+          sendMessageInChunks(response);
+          console.log('[CombinedServer] Sent device_list response chunks to Mobile App with 2 devices');
         }
 
       } catch (error) {
@@ -1556,15 +1553,15 @@ function sendMessageInChunks(data) {
   }
 
   const jsonString = JSON.stringify(data);
-  const maxChunkSize = 100;
+  const maxChunkSize = 18; // 18 bytes per chunk to fit safely in 20-byte BLE MTU
   const chunks = [];
   
-  // Split the message into chunks of max 100 bytes
+  // Split the message into chunks of max 18 bytes (fits in BLE 20-byte MTU)
   for (let i = 0; i < jsonString.length; i += maxChunkSize) {
     chunks.push(jsonString.slice(i, i + maxChunkSize));
   }
   
-  console.log(`[CombinedServer] Splitting message into ${chunks.length} chunks`);
+  console.log(`[CombinedServer] Splitting message into ${chunks.length} chunks of max ${maxChunkSize} bytes`);
   
   // Send all chunks with delay to ensure proper ordering
   chunks.forEach((chunk, index) => {

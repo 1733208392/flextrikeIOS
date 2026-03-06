@@ -365,6 +365,7 @@
     <string name="targets_count">%d</string>
     <string name="arrow_right">></string>
     <string name="targets_section">TARGET</string>
+    <string name="target_link">TARGET LINK</string>
     
     <!-- Results & Competition -->
     <string name="results">Results</string>
@@ -420,4 +421,5 @@
     <string name="instruction_long_press_delete">LONG PRESS TARGET ABOVE TO DELETE</string>
     <string name="instruction_long_press_add">LONG PRESS TARGET BELOW TO ADD</string>
     <string name="add">Add</string>
+    <string name="drag_to_set_target">DRAG TO SET TARGET</string>
 </resources>

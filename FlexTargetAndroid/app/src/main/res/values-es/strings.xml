@@ -341,8 +341,7 @@
     <string name="save_changes">Guardar Cambios</string>
     <string name="targets_count">%d objetivos</string>
     <string name="arrow_right">></string>
-    <string name="targets_section">Objetivos</string>
-    
+    <string name="targets_section">Objetivos</string>    <string name="target_link">Enlace de Objetivo</string>    
     <!-- Results & Competition -->
     <string name="results">Resultados</string>
     <string name="no_results_yet">Sin resultados aún</string>
@@ -412,4 +411,5 @@
     <string name="instruction_long_press_delete">MANTENGA PRESIONADO EL OBJETIVO ARRIBA PARA ELIMINAR</string>
     <string name="instruction_long_press_add">MANTENGA PRESIONADO EL OBJETIVO ABAJO PARA AÑADIR</string>
     <string name="add">Añadir</string>
+    <string name="drag_to_set_target">ARRASTRA PARA ESTABLECER OBJETIVO</string>
 </resources>

@@ -25,6 +25,7 @@
 /* DrillFormView */
 "drill_setup" = "訓練設定";
 "drill_mode" = "訓練模式";
+"target_link" = "目標連結";
 
 /* DrillListView */
 "my_drills" = "我的訓練";

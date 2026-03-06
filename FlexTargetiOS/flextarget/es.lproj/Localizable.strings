@@ -25,6 +25,7 @@
 /* DrillFormView */
 "drill_setup" = "Configuración de Ejercicio";
 "drill_mode" = "Modo de Ejercicio";
+"target_link" = "Enlace de Objetivo";
 
 /* DrillListView */
 "my_drills" = "Mis Ejercicios";

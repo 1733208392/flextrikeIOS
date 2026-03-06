@@ -25,6 +25,7 @@
 /* DrillFormView */
 "drill_setup" = "ドリル設定";
 "drill_mode" = "ドリルモード";
+"target_link" = "ターゲットリンク";
 
 /* DrillListView */
 "my_drills" = "マイドリル";

@@ -342,8 +342,7 @@
     <string name="save_changes">保存更改</string>
     <string name="targets_count">%d 个标靶</string>
     <string name="arrow_right">></string>
-    <string name="targets_section">标靶</string>
-    
+    <string name="targets_section">标靶</string>    <string name="target_link">靶链接</string>    
     <!-- Results & Competition -->
     <string name="results">结果</string>
     <string name="no_results_yet">还没有结果</string>
@@ -413,4 +412,5 @@
     <string name="instruction_long_press_delete">长按上方目标进行删除</string>
     <string name="instruction_long_press_add">长按下方目标进行新增</string>
     <string name="add">新增</string>
+    <string name="drag_to_set_target">拖拽设置目标</string>
 </resources>

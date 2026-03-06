@@ -337,8 +337,7 @@
     <string name="save_changes">Änderungen speichern</string>
     <string name="targets_count">%d Ziele</string>
     <string name="arrow_right">></string>
-    <string name="targets_section">Ziele</string>
-    
+    <string name="targets_section">Ziele</string>    <string name="target_link">Zielverbindung</string>    
     <!-- Results & Competition -->
     <string name="results">Ergebnisse</string>
     <string name="no_results_yet">Noch keine Ergebnisse</string>
@@ -411,4 +410,5 @@
     <string name="instruction_long_press_delete">ZUM LÖSCHEN ZIEL OBEN LANGE DRÜCKEN</string>
     <string name="instruction_long_press_add">ZUM HINZUFÜGEN ZIEL UNTEN LANGE DRÜCKEN</string>
     <string name="add">Hinzufügen</string>
+    <string name="drag_to_set_target">ZIEHEN UM ZIEL ZU SETZEN</string>
 </resources>

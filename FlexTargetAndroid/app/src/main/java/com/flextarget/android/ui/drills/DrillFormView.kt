@@ -51,6 +51,7 @@ enum class DrillFormMode {
 
 enum class DrillFormScreen {
     FORM,
+    TARGET_LINK,
     TARGET_CONFIG
 }
 
@@ -83,6 +84,7 @@ fun DrillFormView(
     var pause by remember(existingDrill) { mutableStateOf(existingDrill?.pause ?: 5) }
     var targets by remember { mutableStateOf<List<DrillTargetsConfigData>>(emptyList()) }
     var autoAddedDeviceIds by remember { mutableStateOf(setOf<String>()) }
+    var selectedDeviceForConfig by remember { mutableStateOf<String?>(null) }
     val isTargetListReceivedDerived by derivedStateOf { bleManager.networkDevices.isNotEmpty() }
     var currentScreen by remember { mutableStateOf(DrillFormScreen.FORM) }
     var showEditDisabledAlert by remember { mutableStateOf(false) }
@@ -309,14 +311,15 @@ fun DrillFormView(
 
     Scaffold(
         topBar = {
-            // Only show TopAppBar when TimerSessionView or DrillSummaryView is not visible and not on TARGET_CONFIG
-            if (showTopBar && currentScreen != DrillFormScreen.TARGET_CONFIG) {
+            // Only show TopAppBar when TimerSessionView or DrillSummaryView is not visible and not on TARGET_CONFIG or TARGET_LINK
+            if (showTopBar && currentScreen != DrillFormScreen.TARGET_CONFIG && currentScreen != DrillFormScreen.TARGET_LINK) {
                 CenterAlignedTopAppBar(
                 title = {
                     Text(
                         text = when (currentScreen) {
                             DrillFormScreen.FORM -> if (mode == DrillFormMode.ADD) stringResource(R.string.add_drill) else stringResource(R.string.edit_drill)
                             DrillFormScreen.TARGET_CONFIG -> targets.firstOrNull()?.targetName.orEmpty()
+                            DrillFormScreen.TARGET_LINK -> stringResource(R.string.add_drill)
                         },
                         color = md_theme_dark_onPrimary
                     )
@@ -326,6 +329,7 @@ fun DrillFormView(
                         when (currentScreen) {
                             DrillFormScreen.FORM -> onBack()
                             DrillFormScreen.TARGET_CONFIG -> currentScreen = DrillFormScreen.FORM
+                            DrillFormScreen.TARGET_LINK -> currentScreen = DrillFormScreen.FORM
                         }
                     }) {
                         Icon(
@@ -439,7 +443,18 @@ fun DrillFormView(
                         targets = targets,
                         isTargetListReceived = isTargetListReceivedDerived,
                         bleManager = bleManager,
-                        onNavigateToTargetConfig = { if (!isEditingDisabled) currentScreen = DrillFormScreen.TARGET_CONFIG else showEditDisabledAlert = true },
+                        onNavigateToTargetConfig = { 
+                            if (!isEditingDisabled) {
+                                // Navigate to TARGET_LINK if multiple devices, otherwise go directly to TARGET_CONFIG
+                                currentScreen = if (bleManager.networkDevices.size > 1) {
+                                    DrillFormScreen.TARGET_LINK
+                                } else {
+                                    DrillFormScreen.TARGET_CONFIG
+                                }
+                            } else {
+                                showEditDisabledAlert = true
+                            }
+                        },
                         isSaving = isSaving,
                         onSavingChange = { isSaving = it },
                         isFormValid = isFormValid,
@@ -459,11 +474,29 @@ fun DrillFormView(
                         }
                     )
                 }
+                DrillFormScreen.TARGET_LINK -> {
+                    TargetLinkView(
+                        bleManager = bleManager,
+                        targetConfigs = targets,
+                        drillMode = drillMode,
+                        onUpdateTargetConfigs = { updatedConfigs ->
+                            targets = updatedConfigs
+                        },
+                        onNavigateToConfig = { deviceName ->
+                            selectedDeviceForConfig = deviceName
+                            currentScreen = DrillFormScreen.TARGET_CONFIG
+                        },
+                        onBack = {
+                            currentScreen = DrillFormScreen.FORM
+                        }
+                    )
+                }
                 DrillFormScreen.TARGET_CONFIG -> {
                     TargetConfigListViewV2(
                         bleManager = bleManager,
                         targetConfigs = targets,
                         drillMode = drillMode,
+                        selectedDeviceName = selectedDeviceForConfig,
                         onUpdateTargetTypes = { index, types ->
                             if (index < targets.size) {
                                 targets = targets.toMutableList().apply {
@@ -496,7 +529,7 @@ fun DrillFormView(
                             currentScreen = DrillFormScreen.FORM
                         },
                         onBack = {
-                            currentScreen = DrillFormScreen.FORM
+                            currentScreen = DrillFormScreen.TARGET_LINK
                         },
                         onDrillModeChange = { newMode ->
                             drillMode = newMode

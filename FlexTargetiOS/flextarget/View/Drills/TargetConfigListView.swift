@@ -324,7 +324,7 @@ struct TargetRowView: View {
 
             // Details rows
             VStack(spacing: 12) {
-                cardColumn(title: NSLocalizedString("type", comment: "Type label"), value: localizedTargetTypeName(config.targetType), icon: config.targetType, action: { activeSheet = .type })
+                cardColumn(title: NSLocalizedString("type", comment: "Type label"), value: localizedTargetTypeName(config.targetType), icon: config.primaryTargetType(), action: { activeSheet = .type })
 
                 if drillMode == "cqb" {
                     let isCQBType = ["cqb_swing", "cqb_front", "cqb_move", "disguised_enemy", "cqb_hostage"].contains(config.targetType)
@@ -673,6 +673,8 @@ struct TargetConfigListViewV2: View {
     @Binding var targetConfigs: [DrillTargetsConfigData]
     let onDone: () -> Void
     @Binding var drillMode: String
+    var singleDeviceMode: Bool = false
+    var deviceNameFilter: String? = nil
 
     @Environment(\.dismiss) private var dismiss
     @State private var currentTypeIndex: Int = 0
@@ -737,7 +739,9 @@ struct TargetConfigListViewV2: View {
                 }
                 
                 targetRectSection
-                Text("LONG PRESS and DRAG TO ADD/DELETE TARGET")
+                Text(singleDeviceMode ? 
+                    NSLocalizedString("drag_to_set_target", comment: "Drag to set target") : 
+                    NSLocalizedString("long_press_drag_add_delete_target", comment: "Long press and drag to add/delete target"))
                     .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                     .font(.caption)
                     .multilineTextAlignment(.center)
@@ -819,8 +823,14 @@ struct TargetConfigListViewV2: View {
     }
 
     private var primaryConfigIndex: Int? {
-        guard !targetConfigs.isEmpty else { return nil }
-        return 0
+        if singleDeviceMode, let deviceName = deviceNameFilter {
+            // In single device mode, find the config matching the device name
+            return targetConfigs.firstIndex { $0.targetName == deviceName }
+        } else {
+            // In multi-device mode, use first config
+            guard !targetConfigs.isEmpty else { return nil }
+            return 0
+        }
     }
 
     private var primaryConfig: DrillTargetsConfigData? {
@@ -1052,11 +1062,18 @@ struct TargetConfigListViewV2: View {
         provider.loadObject(ofClass: NSString.self) { object, _ in
             guard let targetType = object as? String else { return }
             DispatchQueue.main.async {
-                var updated = selectedTargetTypes
-                if !updated.contains(targetType) {
-                    updated.append(targetType)
-                    updateSelectedTargetTypes(updated)
-                    currentTypeIndex = max(0, updated.count - 1)
+                if singleDeviceMode {
+                    // In single device mode, replace the current type
+                    updateSelectedTargetTypes([targetType])
+                    currentTypeIndex = 0
+                } else {
+                    // In multi-device mode, append to the list
+                    var updated = selectedTargetTypes
+                    if !updated.contains(targetType) {
+                        updated.append(targetType)
+                        updateSelectedTargetTypes(updated)
+                        currentTypeIndex = max(0, updated.count - 1)
+                    }
                 }
             }
         }
