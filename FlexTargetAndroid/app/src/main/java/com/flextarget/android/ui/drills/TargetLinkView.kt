@@ -289,6 +289,7 @@ private fun DrawScope.drawConnectionLines(
     gridColumns: Int
 ) {
     val dotRadius = 6f
+    val maxCellIndex = 12 // 3x4 grid = 12 cells total
     
     // Snake pattern for 3x4 grid: 0→1→2, 2↓5, 5→4→3, 3↓6, 6→7→8, 8↓11, 11→10→9
     val snakePattern = listOf(
@@ -302,8 +303,8 @@ private fun DrawScope.drawConnectionLines(
     )
     
     for ((fromIndex, toIndex) in snakePattern) {
-        // Only draw dots when both connected targets are active (have devices)
-        if (fromIndex >= deviceListSize || toIndex >= deviceListSize) continue
+        // Skip if indices are beyond grid
+        if (fromIndex >= maxCellIndex || toIndex >= maxCellIndex) continue
         if (fromIndex !in cellPositions || toIndex !in cellPositions) continue
         
         val fromPoint = cellPositions[fromIndex] ?: continue
@@ -315,9 +316,18 @@ private fun DrawScope.drawConnectionLines(
             y = (fromPoint.y + toPoint.y) / 2f
         )
         
-        // Draw accent-colored dot at the connection point
+        // Determine dot color: accent color if both targets are active, grey otherwise
+        val dotColor = if (fromIndex < deviceListSize && toIndex < deviceListSize) {
+            // Both targets have devices
+            accentColor
+        } else {
+            // One or both targets are empty
+            Color.Gray.copy(alpha = 0.3f)
+        }
+        
+        // Draw dot at the connection point
         drawCircle(
-            color = accentColor,
+            color = dotColor,
             radius = dotRadius,
             center = midpoint
         )
