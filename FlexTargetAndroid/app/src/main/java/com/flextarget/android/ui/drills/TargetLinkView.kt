@@ -122,7 +122,7 @@ private fun TargetGridContent(
     onDeviceSelected: (String) -> Unit
 ) {
     val gridColumns = 3
-    val gridRows = 4
+    val gridRows = 5
     val cellCount = gridColumns * gridRows
     
     val rectangleHeight = 150.dp
@@ -147,54 +147,36 @@ private fun TargetGridContent(
     // Store positions of rectangles for drawing lines
     var cellPositions by remember { mutableStateOf<Map<Int, Offset>>(emptyMap()) }
     
-    Box(
+    // Grid of target rectangles (scrollable)
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(gridColumns),
+        horizontalArrangement = Arrangement.spacedBy(horizontalSpacing),
+        verticalArrangement = Arrangement.spacedBy(verticalSpacing),
+        contentPadding = PaddingValues(16.dp),
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
     ) {
-        // Grid of target rectangles (scrollable) - must be first so it receives touch events
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(gridColumns),
-            horizontalArrangement = Arrangement.spacedBy(horizontalSpacing),
-            verticalArrangement = Arrangement.spacedBy(verticalSpacing),
-            modifier = Modifier
-                .fillMaxSize()
-        ) {
-            items(cellCount) { gridPosition ->
-                val deviceIndex = gridToDeviceMap[gridPosition]
-                val device = deviceIndex?.let { deviceList[it] }
-                val config = device?.let { dev ->
-                    targetConfigs.firstOrNull { it.targetName == dev.name }
-                }
-                
-                TargetRectangle(
-                    device = device,
-                    config = config,
-                    width = rectangleWidth,
-                    height = rectangleHeight,
-                    accentColor = accentColor,
-                    onSelected = {
-                        device?.let { onDeviceSelected(it.name) }
-                    },
-                    onPositionChanged = { centerOffset ->
-                        cellPositions = cellPositions.toMutableMap().apply {
-                            this[gridPosition] = centerOffset
-                        }
-                    }
-                )
+        items(cellCount) { gridPosition ->
+            val deviceIndex = gridToDeviceMap[gridPosition]
+            val device = deviceIndex?.let { deviceList[it] }
+            val config = device?.let { dev ->
+                targetConfigs.firstOrNull { it.targetName == dev.name }
             }
-        }
-        
-        // Connection dots canvas (drawn on top but doesn't intercept touches)
-        Canvas(
-            modifier = Modifier
-                .matchParentSize()
-        ) {
-            drawConnectionLines(
-                cellPositions = cellPositions,
-                gridToDeviceMap = gridToDeviceMap,
+            
+            TargetRectangle(
+                device = device,
+                config = config,
+                width = rectangleWidth,
+                height = rectangleHeight,
                 accentColor = accentColor,
-                gridColumns = gridColumns
+                onSelected = {
+                    device?.let { onDeviceSelected(it.name) }
+                },
+                onPositionChanged = { centerOffset ->
+                    cellPositions = cellPositions.toMutableMap().apply {
+                        this[gridPosition] = centerOffset
+                    }
+                }
             )
         }
     }
