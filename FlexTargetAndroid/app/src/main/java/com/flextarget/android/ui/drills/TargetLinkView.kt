@@ -152,20 +152,7 @@ private fun TargetGridContent(
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        // Connection lines canvas (drawn behind the grid, doesn't affect layout)
-        Canvas(
-            modifier = Modifier
-                .matchParentSize()
-        ) {
-            drawConnectionLines(
-                cellPositions = cellPositions,
-                gridToDeviceMap = gridToDeviceMap,
-                accentColor = accentColor,
-                gridColumns = gridColumns
-                )
-        }
-        
-        // Grid of target rectangles (scrollable)
+        // Grid of target rectangles (scrollable) - must be first so it receives touch events
         LazyVerticalGrid(
             columns = GridCells.Fixed(gridColumns),
             horizontalArrangement = Arrangement.spacedBy(horizontalSpacing),
@@ -196,6 +183,19 @@ private fun TargetGridContent(
                     }
                 )
             }
+        }
+        
+        // Connection dots canvas (drawn on top but doesn't intercept touches)
+        Canvas(
+            modifier = Modifier
+                .matchParentSize()
+        ) {
+            drawConnectionLines(
+                cellPositions = cellPositions,
+                gridToDeviceMap = gridToDeviceMap,
+                accentColor = accentColor,
+                gridColumns = gridColumns
+            )
         }
     }
 }
