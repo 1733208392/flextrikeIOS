@@ -352,13 +352,11 @@ private fun initializeTargetConfigs(
     drillMode: String
 ): List<DrillTargetsConfigData> {
     // Follow zig-zag pattern for seqNo assignment: 0,1,2,5,4,3,6,7,8,11,10,9
+    // These are grid positions, devices are assigned sequentially
     val zigzagOrder = listOf(0, 1, 2, 5, 4, 3, 6, 7, 8, 11, 10, 9)
     val configs = mutableListOf<DrillTargetsConfigData>()
     
-    for ((zigzagIndex, deviceIndex) in zigzagOrder.withIndex()) {
-        if (deviceIndex >= deviceList.size) break
-        
-        val device = deviceList[deviceIndex]
+    for ((seqNo, device) in deviceList.withIndex()) {
         val defaultType = when (drillMode.lowercase()) {
             "ipsc" -> "ipsc"
             "idpa" -> "idpa"
@@ -368,7 +366,7 @@ private fun initializeTargetConfigs(
         
         configs.add(
             DrillTargetsConfigData(
-                seqNo = zigzagIndex + 1,
+                seqNo = seqNo + 1,
                 targetName = device.name,
                 targetType = defaultType,
                 timeout = 30.0,
