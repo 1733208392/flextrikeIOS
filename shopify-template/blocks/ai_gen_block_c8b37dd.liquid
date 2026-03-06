@@ -329,15 +329,54 @@
     .ai-video-text-overlay-{{ ai_gen_id }} > div:first-child {
       font-size: 24px;
     }
+
+    .ai-video-image-button-{{ ai_gen_id }} {
+      width: 40vw;
+      height: 40vw;
+      max-width: 80%;
+      max-height: 80%;
+      right: 5%;
+    }
+  }
+
+  @media screen and (max-width: 480px) {
+    .ai-video-image-button-{{ ai_gen_id }} {
+      width: 28vw;
+      height: 28vw;
+      max-width: 60%;
+      max-height: 60%;
+      right: 10%;
+    }
+  }
+
+  /* Safari-specific fixes for mobile */
+  @supports (-webkit-touch-callout: none) {
+    .ai-video-image-button-{{ ai_gen_id }} {
+      width: 35vw;
+      height: 35vw;
+      max-width: 50%;
+      max-height: 50%;
+      right: 15%;
+    }
+    
+    @media screen and (max-width: 480px) {
+      .ai-video-image-button-{{ ai_gen_id }} {
+        width: 22vw;
+        height: 22vw;
+        max-width: 45%;
+        max-height: 45%;
+        right: 13%;
+      }
+    }
   }
 
   .ai-video-image-button-{{ ai_gen_id }} {
     position: absolute;
-    right: 16.66%;
+    right: 10%;
     top: 50%;
     transform: translateY(-50%);
-    width: 50vh;
-    height: 50vh;
+    width: 40vw;
+    height: 40vw;
     max-width: 50%;
     max-height: 50%;
     display: flex;
@@ -356,6 +395,10 @@
     object-fit: contain;
     opacity: 0.7;
     transition: opacity 0.3s ease, filter 0.3s ease;
+  }
+
+  .ai-video-image-button-{{ ai_gen_id }}.hidden {
+    display: none !important;
   }
 
   .ai-video-image-button-{{ ai_gen_id }}:hover img {
@@ -554,10 +597,14 @@
         this.rightOverlay = this.querySelector('.ai-video-text-overlay-right-{{ ai_gen_id }}');
         this.thirdOverlay = this.querySelector('.ai-video-text-overlay-third-{{ ai_gen_id }}');
         this.isPlayingButtonVideo = false;
+        this.autoLoopMode = false;
+        this.userInteracted = false;
 
         // Setup image button click handler
         if (this.imageButton) {
           this.imageButton.addEventListener('click', () => {
+            this.userInteracted = true;
+            this.autoLoopMode = false;
             this.loadButtonVideo();
           });
         }
@@ -596,6 +643,16 @@
 
         this.videoElement.addEventListener('pause', () => {
           this.isPlaying = false;
+        });
+
+        // Auto-play button video when main video ends
+        this.videoElement.addEventListener('ended', () => {
+          if (!this.isPlayingButtonVideo && !this.userInteracted && this.imageButton?.dataset.buttonVideoType) {
+            this.autoLoopMode = true;
+            setTimeout(() => {
+              this.loadButtonVideo();
+            }, 300);
+          }
         });
       }
 
@@ -733,7 +790,7 @@
 
         // Hide the image button when loading new video
         if (this.imageButton) {
-          this.imageButton.style.display = 'none';
+          this.imageButton.classList.add('hidden');
         }
 
         // Manage overlay visibility
@@ -942,26 +999,52 @@
           this.videoElement.pause();
           this.videoElement.src = this.originalVideoSrc;
           this.videoElement.load();
-          if (this.autoplay) {
-            this.playVideo();
+          
+          // Only auto-play if in auto-loop mode (1st video naturally ended, no user interaction)
+          if (this.autoLoopMode) {
+            this.videoElement.addEventListener('loadedmetadata', () => {
+              this.playVideo();
+              // Show image button after video starts playing
+              if (this.imageButton) {
+                this.imageButton.classList.remove('hidden');
+              }
+            }, { once: true });
+          } else {
+            // User clicked button - just show button, let user decide
+            if (this.imageButton) {
+              this.imageButton.classList.remove('hidden');
+            }
           }
         } else if (videoType === 'youtube' && this.youtubePlayer) {
           const playerElement = this.querySelector('#ai-youtube-player-{{ ai_gen_id }}');
           const originalVideoId = playerElement.dataset.videoId;
           this.youtubePlayer.loadVideoById(originalVideoId);
-          if (this.autoplay) {
+          
+          // Only auto-play if in auto-loop mode (1st video naturally ended, no user interaction)
+          if (this.autoLoopMode) {
             this.youtubePlayer.playVideo();
+            // Show image button after video starts playing
+            if (this.imageButton) {
+              this.imageButton.classList.remove('hidden');
+            }
+          } else {
+            // User clicked button - just show button, let user decide
+            if (this.imageButton) {
+              this.imageButton.classList.remove('hidden');
+            }
           }
         } else if (videoType === 'vimeo' && this.originalVimeoId) {
           const vimeoFrame = this.querySelector('#ai-vimeo-player-{{ ai_gen_id }}');
           if (vimeoFrame) {
-            vimeoFrame.src = `https://player.vimeo.com/video/${this.originalVimeoId}?autoplay=${this.autoplay ? 1 : 0}&muted=1&loop=${this.loop ? 1 : 0}&background=1`;
+            // Only auto-play if in auto-loop mode (1st video naturally ended, no user interaction)
+            const shouldAutoPlay = this.autoLoopMode;
+            vimeoFrame.src = `https://player.vimeo.com/video/${this.originalVimeoId}?autoplay=${shouldAutoPlay ? 1 : 0}&muted=1&loop=${this.loop ? 1 : 0}&background=1`;
+            
+            // Always show image button when returning to main video
+            if (this.imageButton) {
+              this.imageButton.classList.remove('hidden');
+            }
           }
-        }
-
-        // Show the image button again
-        if (this.imageButton) {
-          this.imageButton.style.display = 'flex';
         }
 
         // Manage overlay visibility

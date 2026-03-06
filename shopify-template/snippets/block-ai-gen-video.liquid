@@ -1,0 +1,338 @@
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-video-section-{{ ai_gen_id }} {
+    display: block;
+    position: relative;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  .ai-video-wrapper-{{ ai_gen_id }} {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    background-color: #000000;
+    height: 100vh;
+  }
+
+  .ai-video-container-{{ ai_gen_id }} {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .ai-video-container-{{ ai_gen_id }} video,
+  .ai-video-container-{{ ai_gen_id }} iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .ai-video-cover-{{ ai_gen_id }} {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+    transition: opacity 0.3s ease;
+  }
+
+  .ai-video-cover-{{ ai_gen_id }}.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .ai-video-play-button-{{ ai_gen_id }} {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    width: 80px;
+    height: 80px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+  }
+
+  .ai-video-play-button-{{ ai_gen_id }}:hover {
+    background-color: rgba(255, 255, 255, 1);
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+
+  .ai-video-play-button-{{ ai_gen_id }}.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .ai-video-play-button-{{ ai_gen_id }} svg {
+    width: 32px;
+    height: 32px;
+    margin-left: 4px;
+  }
+
+  .ai-video-text-overlay-{{ ai_gen_id }} {
+    position: absolute;
+    left: 40px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 4;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 48px;
+    line-height: 1.2;
+    max-width: 50%;
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7);
+    font-family: 'TT Norms', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    letter-spacing: -0.5px;
+  }
+
+  .ai-video-text-overlay-{{ ai_gen_id }} > div:first-child {
+    color: #DE3823;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  @media screen and (max-width: 1024px) {
+    .ai-video-text-overlay-{{ ai_gen_id }} {
+      font-size: 36px;
+      left: 30px;
+    }
+
+    .ai-video-text-overlay-{{ ai_gen_id }} > div:first-child {
+      font-size: 42px;
+    }
+  }
+
+  @media screen and (max-width: 749px) {
+    .ai-video-play-button-{{ ai_gen_id }} {
+      width: 60px;
+      height: 60px;
+    }
+
+    .ai-video-play-button-{{ ai_gen_id }} svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    .ai-video-text-overlay-{{ ai_gen_id }} {
+      font-size: 24px;
+      left: 20px;
+      max-width: 70%;
+    }
+
+    .ai-video-text-overlay-{{ ai_gen_id }} > div:first-child {
+      font-size: 28px;
+    }
+  }
+{% endstyle %}
+
+<video-player-{{ ai_gen_id }}
+  class="ai-video-section-{{ ai_gen_id }} color-{{ block.settings.color_scheme }}"
+  data-video-type="{{ block.settings.video_source }}"
+  data-autoplay="true"
+  data-loop="{{ block.settings.enable_loop }}"
+>
+  <div class="ai-video-wrapper-{{ ai_gen_id }}">
+    <div class="ai-video-text-overlay-{{ ai_gen_id }}">
+      <div>GRWOLF FLEXTARGET</div>
+      <div>Train Smarter</div>
+      <div>Shoot Sharper</div>
+      <div>Dominate Faster</div>
+    </div>
+
+    {% if block.settings.video_source == 'shopify' and block.settings.video_shopify != blank %}
+      <div class="ai-video-container-{{ ai_gen_id }}">
+        <video
+          class="ai-video-element-{{ ai_gen_id }}"
+          {% if block.settings.enable_loop %}loop{% endif %}
+          muted
+          playsinline
+          preload="metadata"
+        >
+          <source src="{{ block.settings.video_shopify.sources[1].url }}" type="{{ block.settings.video_shopify.sources[1].mime_type }}">
+        </video>
+
+        {% if block.settings.cover_image %}
+          <img
+            src="{{ block.settings.cover_image | image_url: width: 1920 }}"
+            alt="{{ block.settings.cover_image.alt | escape }}"
+            class="ai-video-cover-{{ ai_gen_id }}"
+            loading="lazy"
+            width="{{ block.settings.cover_image.width }}"
+            height="{{ block.settings.cover_image.height }}"
+          >
+        {% endif %}
+
+        <button
+          class="ai-video-play-button-{{ ai_gen_id }}"
+          aria-label="Play video"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8 5v14l11-7z"/>
+          </svg>
+        </button>
+      </div>
+
+    {% elsif block.settings.video_source == 'youtube' and block.settings.video_url != blank %}
+      {% assign video_id = block.settings.video_url | split: 'v=' | last | split: '&' | first %}
+      {% if video_id == block.settings.video_url %}
+        {% assign video_id = block.settings.video_url | split: 'youtu.be/' | last | split: '?' | first %}
+      {% endif %}
+
+      <div class="ai-video-container-{{ ai_gen_id }}">
+        <div id="ai-youtube-player-{{ ai_gen_id }}" data-video-id="{{ video_id }}"></div>
+
+        {% if block.settings.cover_image %}
+          <img
+            src="{{ block.settings.cover_image | image_url: width: 1920 }}"
+            alt="{{ block.settings.cover_image.alt | escape }}"
+            class="ai-video-cover-{{ ai_gen_id }}"
+            loading="lazy"
+            width="{{ block.settings.cover_image.width }}"
+            height="{{ block.settings.cover_image.height }}"
+          >
+        {% endif %}
+
+        <button
+          class="ai-video-play-button-{{ ai_gen_id }}"
+          aria-label="Play video"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8 5v14l11-7z"/>
+          </svg>
+        </button>
+      </div>
+
+    {% elsif block.settings.video_source == 'vimeo' and block.settings.video_url != blank %}
+      {% assign video_id = block.settings.video_url | split: 'vimeo.com/' | last | split: '?' | first %}
+
+      <div class="ai-video-container-{{ ai_gen_id }}">
+        <iframe
+          id="ai-vimeo-player-{{ ai_gen_id }}"
+          src="https://player.vimeo.com/video/{{ video_id }}?autoplay=1&muted=1&loop={{ block.settings.enable_loop }}&background=1"
+          frameborder="0"
+          allow="autoplay; fullscreen; picture-in-picture"
+          allowfullscreen
+        ></iframe>
+
+        {% if block.settings.cover_image %}
+          <img
+            src="{{ block.settings.cover_image | image_url: width: 1920 }}"
+            alt="{{ block.settings.cover_image.alt | escape }}"
+            class="ai-video-cover-{{ ai_gen_id }}"
+            loading="lazy"
+            width="{{ block.settings.cover_image.width }}"
+            height="{{ block.settings.cover_image.height }}"
+          >
+        {% endif %}
+
+        <button
+          class="ai-video-play-button-{{ ai_gen_id }}"
+          aria-label="Play video"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8 5v14l11-7z"/>
+          </svg>
+        </button>
+      </div>
+
+    {% else %}
+      <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #2a2a2a; color: white;">
+        <p>Add a video to this block</p>
+      </div>
+    {% endif %}
+  </div>
+</video-player-{{ ai_gen_id }}>
+
+<script>
+  (function() {
+    class VideoPlayer{{ ai_gen_id | replace: '-', '' }} extends HTMLElement {
+      constructor() {
+        super();
+        this.videoType = this.dataset.videoType;
+        this.autoplay = this.dataset.autoplay === 'true';
+        this.loop = this.dataset.loop === 'true';
+        this.isPlaying = false;
+        this.isMuted = true;
+      }
+
+      connectedCallback() {
+        this.videoElement = this.querySelector('.ai-video-element-{{ ai_gen_id }}');
+        this.playButton = this.querySelector('.ai-video-play-button-{{ ai_gen_id }}');
+        this.coverImage = this.querySelector('.ai-video-cover-{{ ai_gen_id }}');
+
+        if (this.videoType === 'shopify' && this.videoElement) {
+          this.setupShopifyVideo();
+        } else if (this.videoType === 'youtube') {
+          this.setupYouTubeVideo();
+        } else if (this.videoType === 'vimeo') {
+          this.setupVimeoVideo();
+        }
+      }
+
+      setupShopifyVideo() {
+        if (this.playButton) {
+          this.playButton.addEventListener('click', () => {
+            this.playVideo();
+          });
+        }
+
+        if (this.autoplay) {
+          this.videoElement.addEventListener('loadedmetadata', () => {
+            this.playVideo();
+          });
+        }
+      }
+
+      setupYouTubeVideo() {
+        if (this.playButton) {
+          this.playButton.addEventListener('click', () => {
+            this.hideCoverAndButton();
+          });
+        }
+      }
+
+      setupVimeoVideo() {
+        if (this.playButton) {
+          this.playButton.addEventListener('click', () => {
+            this.hideCoverAndButton();
+          });
+        }
+      }
+
+      playVideo() {
+        if (this.videoElement) {
+          this.videoElement.play();
+          this.hideCoverAndButton();
+        }
+      }
+
+      hideCoverAndButton() {
+        if (this.coverImage) {
+          this.coverImage.classList.add('hidden');
+        }
+        if (this.playButton) {
+          this.playButton.classList.add('hidden');
+        }
+      }
+    }
+
+    const className = 'VideoPlayer' + '{{ ai_gen_id }}'.replace(/-/g, '');
+    customElements.define('video-player-{{ ai_gen_id }}', VideoPlayer{{ ai_gen_id | replace: '-', '' }});
+  })();
+</script>
