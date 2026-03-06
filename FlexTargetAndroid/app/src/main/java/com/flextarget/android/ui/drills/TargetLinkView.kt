@@ -122,13 +122,13 @@ private fun TargetGridContent(
     onDeviceSelected: (String) -> Unit
 ) {
     val gridColumns = 3
-    val gridRows = 5
+    val gridRows = 4
     val cellCount = gridColumns * gridRows
     
     val rectangleHeight = 150.dp
     val rectangleWidth = rectangleHeight * 9f / 16f // 9x16 aspect ratio
     val horizontalSpacing = 24.dp
-    val verticalSpacing = 40.dp
+    val verticalSpacing = 24.dp
     
     // Zigzag order: devices are positioned according to this pattern
     val zigzagOrder = listOf(0, 1, 2, 5, 4, 3, 6, 7, 8, 11, 10, 9)
@@ -147,37 +147,55 @@ private fun TargetGridContent(
     // Store positions of rectangles for drawing lines
     var cellPositions by remember { mutableStateOf<Map<Int, Offset>>(emptyMap()) }
     
-    // Grid of target rectangles (scrollable)
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(gridColumns),
-        horizontalArrangement = Arrangement.spacedBy(horizontalSpacing),
-        verticalArrangement = Arrangement.spacedBy(verticalSpacing),
-        contentPadding = PaddingValues(16.dp),
+    Box(
         modifier = Modifier
             .fillMaxSize()
+            .padding(16.dp)
     ) {
-        items(cellCount) { gridPosition ->
-            val deviceIndex = gridToDeviceMap[gridPosition]
-            val device = deviceIndex?.let { deviceList[it] }
-            val config = device?.let { dev ->
-                targetConfigs.firstOrNull { it.targetName == dev.name }
-            }
-            
-            TargetRectangle(
-                device = device,
-                config = config,
-                width = rectangleWidth,
-                height = rectangleHeight,
+        // Connection lines canvas (drawn behind the grid, doesn't affect layout)
+        Canvas(
+            modifier = Modifier
+                .matchParentSize()
+        ) {
+            drawConnectionLines(
+                cellPositions = cellPositions,
+                gridToDeviceMap = gridToDeviceMap,
                 accentColor = accentColor,
-                onSelected = {
-                    device?.let { onDeviceSelected(it.name) }
-                },
-                onPositionChanged = { centerOffset ->
-                    cellPositions = cellPositions.toMutableMap().apply {
-                        this[gridPosition] = centerOffset
-                    }
+                gridColumns = gridColumns
+                )
+        }
+        
+        // Grid of target rectangles (scrollable)
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(gridColumns),
+            horizontalArrangement = Arrangement.spacedBy(horizontalSpacing),
+            verticalArrangement = Arrangement.spacedBy(verticalSpacing),
+            modifier = Modifier
+                .fillMaxSize()
+        ) {
+            items(cellCount) { gridPosition ->
+                val deviceIndex = gridToDeviceMap[gridPosition]
+                val device = deviceIndex?.let { deviceList[it] }
+                val config = device?.let { dev ->
+                    targetConfigs.firstOrNull { it.targetName == dev.name }
                 }
-            )
+                
+                TargetRectangle(
+                    device = device,
+                    config = config,
+                    width = rectangleWidth,
+                    height = rectangleHeight,
+                    accentColor = accentColor,
+                    onSelected = {
+                        device?.let { onDeviceSelected(it.name) }
+                    },
+                    onPositionChanged = { centerOffset ->
+                        cellPositions = cellPositions.toMutableMap().apply {
+                            this[gridPosition] = centerOffset
+                        }
+                    }
+                )
+            }
         }
     }
 }
