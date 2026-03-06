@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalDensity
@@ -147,7 +148,7 @@ private fun TargetGridContent(
                 deviceListSize = deviceList.size,
                 accentColor = accentColor,
                 gridColumns = gridColumns
-            )
+                )
         }
         
         // Grid of target rectangles (scrollable)
@@ -281,14 +282,13 @@ private fun TargetRectangle(
     }
 }
 
-private fun drawConnectionLines(
+private fun DrawScope.drawConnectionLines(
     cellPositions: Map<Int, Offset>,
     deviceListSize: Int,
     accentColor: Color,
     gridColumns: Int
 ) {
-    val lineWidth = 4f
-    val lineColor = accentColor.copy(alpha = 0.8f)
+    val dotRadius = 6f
     
     // Snake pattern for 3x4 grid: 0→1→2, 2↓5, 5→4→3, 3↓6, 6→7→8, 8↓11, 11→10→9
     val snakePattern = listOf(
@@ -302,14 +302,25 @@ private fun drawConnectionLines(
     )
     
     for ((fromIndex, toIndex) in snakePattern) {
+        // Only draw dots when both connected targets are active (have devices)
         if (fromIndex >= deviceListSize || toIndex >= deviceListSize) continue
         if (fromIndex !in cellPositions || toIndex !in cellPositions) continue
         
         val fromPoint = cellPositions[fromIndex] ?: continue
         val toPoint = cellPositions[toIndex] ?: continue
         
-        // Draw line (using drawContext.canvas - this requires Modifier extension)
-        // For now, we'll use a simpler approach in the actual implementation
+        // Calculate midpoint between the two targets
+        val midpoint = Offset(
+            x = (fromPoint.x + toPoint.x) / 2f,
+            y = (fromPoint.y + toPoint.y) / 2f
+        )
+        
+        // Draw accent-colored dot at the connection point
+        drawCircle(
+            color = accentColor,
+            radius = dotRadius,
+            center = midpoint
+        )
     }
 }
 
