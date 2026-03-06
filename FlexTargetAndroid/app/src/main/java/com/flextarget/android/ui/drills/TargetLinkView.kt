@@ -159,7 +159,7 @@ private fun TargetGridContent(
         ) {
             drawConnectionLines(
                 cellPositions = cellPositions,
-                deviceListSize = deviceList.size,
+                gridToDeviceMap = gridToDeviceMap,
                 accentColor = accentColor,
                 gridColumns = gridColumns
                 )
@@ -299,7 +299,7 @@ private fun TargetRectangle(
 
 private fun DrawScope.drawConnectionLines(
     cellPositions: Map<Int, Offset>,
-    deviceListSize: Int,
+    gridToDeviceMap: Map<Int, Int>,
     accentColor: Color,
     gridColumns: Int
 ) {
@@ -331,8 +331,8 @@ private fun DrawScope.drawConnectionLines(
             y = (fromPoint.y + toPoint.y) / 2f
         )
         
-        // Determine dot color: accent color if both targets are active, grey otherwise
-        val dotColor = if (fromIndex < deviceListSize && toIndex < deviceListSize) {
+        // Determine dot color: accent color if both grid positions have devices, grey otherwise
+        val dotColor = if (fromIndex in gridToDeviceMap && toIndex in gridToDeviceMap) {
             // Both targets have devices
             accentColor
         } else {
