@@ -48,6 +48,9 @@ struct DrillFormView: View {
     @State private var showTargetConfigAlert: Bool = false
     @State private var showDrillSavedAlert = false
     @State private var lastDeviceCount: Int = 0
+    @State private var isSaving: Bool = false
+    @State private var savedDrillSetup: DrillSetup? = nil
+    @State private var hasCreatedDrillinAddMode: Bool = false
     
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.managedObjectContext) private var environmentContext
@@ -61,10 +64,18 @@ struct DrillFormView: View {
     }
 
     private var currentDrillSetup: DrillSetup? {
-        if case .edit(let setup) = mode {
+        if case .edit(let setup) = effectiveMode {
             return setup
         }
         return nil
+    }
+    
+    private var effectiveMode: DrillFormMode {
+        // If this is Add mode and we've saved a drill, switch to Edit mode for that drill
+        if case .add = mode, let savedDrill = savedDrillSetup {
+            return .edit(savedDrill)
+        }
+        return mode
     }
     
     private var isEditingDisabled: Bool {
@@ -282,10 +293,10 @@ struct DrillFormView: View {
                     .fontWeight(.semibold)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background((bleManager.isConnected && !isEditingDisabled) ? Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433) : Color.gray)
+                    .background((bleManager.isConnected && !isEditingDisabled && !isSaving) ? Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433) : Color.gray)
                     .cornerRadius(8)
             }
-            .disabled(!bleManager.isConnected || isEditingDisabled || drillName.isEmpty)
+            .disabled(!bleManager.isConnected || isEditingDisabled || drillName.isEmpty || isSaving)
             
             Button(action: saveAndStartDrill) {
                 Text(NSLocalizedString("start_drill", comment: "Start drill button"))
@@ -314,6 +325,13 @@ struct DrillFormView: View {
         return true
     }
     
+    private var isAddModeSaved: Bool {
+        if case .add = mode {
+            return isAddModeDrillSaved
+        }
+        return false
+    }
+    
     private func attemptToGoBack() {
         presentationMode.wrappedValue.dismiss()
     }
@@ -321,10 +339,29 @@ struct DrillFormView: View {
     // MARK: - Save Logic
     
     private func saveDrill() {
+        // Prevent concurrent saves
+        guard !isSaving else {
+            print("Save already in progress, ignoring duplicate save request")
+            return
+        }
+        
+        // In Add Mode, prevent re-creating a drill that has already been saved
+        // But check effectiveMode, not mode, so we allow updates after first save
+        if case .add = effectiveMode, hasCreatedDrillinAddMode {
+            print("Drill already created in this session, cannot create duplicate")
+            return
+        }
+        
+        // Mark as creating immediately to prevent race conditions (only for initial add mode)
+        if case .add = mode, case .add = effectiveMode {
+            hasCreatedDrillinAddMode = true
+        }
+        
+        isSaving = true
         targets = targetConfigs
         
         do {
-            switch mode {
+            switch effectiveMode {
             case .add:
                 createNewDrillSetup()
                 
@@ -381,10 +418,9 @@ struct DrillFormView: View {
                     try viewContext.save()
                     print("Save successful!")
 
-                    // Mark as saved in Add Mode
-                    if case .add = mode {
-                        isAddModeDrillSaved = true
-                    }
+                    // If this is Add Mode and we haven't saved yet, capture the newly created drill
+                    // (This now happens immediately after creation in createNewDrillSetup())
+                    print("Drill persisted to database successfully")
 
                     // Notify listeners that the repository changed so UI can refresh
                     DispatchQueue.main.async {
@@ -392,6 +428,7 @@ struct DrillFormView: View {
                     }
                     
                     showDrillSavedAlert = true
+                    isSaving = false
                 } catch let saveError as NSError {
                     print("Save failed with NSError:")
                     print("  localizedDescription: \(saveError.localizedDescription)")
@@ -424,12 +461,15 @@ struct DrillFormView: View {
                         print("Validation object: \(validationObject)")
                     }
                     
+                    isSaving = false
                     throw saveError
                 }
             } else {
                 print("No changes to save")
+                isSaving = false
             }
         } catch let error as NSError {
+            isSaving = false
             print("Failed to save drill setup: \(error.localizedDescription)")
             print("Error code: \(error.code)")
             print("Error domain: \(error.domain)")
@@ -444,23 +484,37 @@ struct DrillFormView: View {
             // Rollback the failed changes to clean up the context
             print("Rolling back failed changes...")
             viewContext.rollback()
+            isSaving = false
         } catch {
             print("Unknown error: \(error)")
             
             // Rollback on unknown error too
             print("Rolling back failed changes...")
             viewContext.rollback()
+            isSaving = false
         }
     }
     
     private func saveAndStartDrill() {
         targets = targetConfigs
         
+        // In Add Mode, prevent re-creating a drill that has already been saved
+        // But check effectiveMode, not mode, so we allow updates after first save
+        if case .add = effectiveMode, hasCreatedDrillinAddMode {
+            print("Drill already created in this session, cannot create duplicate")
+            return
+        }
+        
+        // Mark as creating immediately to prevent race conditions (only for initial add mode)
+        if case .add = mode, case .add = effectiveMode {
+            hasCreatedDrillinAddMode = true
+        }
+        
         // First, save the drill
         var drillSetupToStart: DrillSetup?
         
         do {
-            switch mode {
+            switch effectiveMode {
             case .add:
                 createNewDrillSetup()
                 // Get the newly created drill setup from inserted objects
@@ -480,11 +534,6 @@ struct DrillFormView: View {
             if viewContext.hasChanges {
                 try viewContext.save()
                 print("Drill saved successfully before starting execution")
-                
-                // Mark as saved in Add Mode
-                if case .add = mode {
-                    isAddModeDrillSaved = true
-                }
             }
             
             // Now navigate to timer session
@@ -557,9 +606,18 @@ struct DrillFormView: View {
                 print("Target validation failed: \(error)")
             }
         }
+        
+        // Capture the drill reference immediately so effectiveMode switches to edit
+        if case .add = mode, savedDrillSetup == nil {
+            savedDrillSetup = drillSetup
+            isAddModeDrillSaved = true
+            print("Captured drill reference immediately after creation: \(drillSetup.name ?? "Unknown")")
+        }
     }
     
-    private func updateExistingDrillSetup(_ drillSetup: DrillSetup) {
+    private func updateExistingDrillSetup(_ drillSetup: DrillSetup?) {
+        guard let drillSetup = drillSetup else { return }
+        
         drillSetup.name = drillName
         drillSetup.desc = description
         drillSetup.repeats = Int32(repeatsValue)
@@ -666,7 +724,12 @@ struct DrillFormView: View {
         }
     }
     
-    private func saveDrillResultsFromSummaries(_ summaries: [DrillRepeatSummary], for drillSetup: DrillSetup) {
+    private func saveDrillResultsFromSummaries(_ summaries: [DrillRepeatSummary], for drillSetup: DrillSetup?) {
+        guard let drillSetup = drillSetup else {
+            print("Failed to save drill results: drillSetup is nil")
+            return
+        }
+        
         guard let drillId = drillSetup.id else {
             print("Failed to save drill results: drillSetup.id is nil")
             return
