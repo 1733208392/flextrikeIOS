@@ -27,22 +27,18 @@ struct TargetsSectionView: View {
                             )
 
                         // Text label
-                        Text(NSLocalizedString("targets", comment: "Targets label"))
+                        Text(String(format: NSLocalizedString("targets_screen", comment: "Targets label"), targetConfigs.count))
                             .foregroundColor(.white)
                             .font(.headline)
+                            .onAppear {
+                                print("TargetsSectionView: Displaying count \(targetConfigs.count)")
+                            }
 
                         Spacer()
 
-                        // Count
-                        Text(String(format: NSLocalizedString("targets_count_label", comment: "Number of targets"), targetConfigs.count))
-                            .foregroundColor(.white)
-                            .font(.headline)
-
-                        Spacer()
-
-                        // > symbol
-                        Text(">")
-                            .foregroundColor(.gray)
+                        // Chevron right icon
+                        Image(systemName: "chevron.right")
+                            .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                             .font(.headline)
                     }
                     .padding()
@@ -53,7 +49,7 @@ struct TargetsSectionView: View {
             } else {
                 // Conditional navigation: TargetLinkView for multiple devices, TargetConfigListViewV2 for single device
                 if bleManager.networkDevices.count > 1 {
-                    NavigationLink(destination: TargetLinkView(deviceList: bleManager.networkDevices, targetConfigs: $targetConfigs, onDone: onTargetConfigDone, drillMode: $drillMode)) {
+                    NavigationLink(destination: TargetLinkView(bleManager: bleManager, targetConfigs: $targetConfigs, onDone: onTargetConfigDone, drillMode: $drillMode)) {
                         targetButtonContent
                     }
                     .navigationTitle(NSLocalizedString("drill_setup", comment: "Navigation title for Drill Setup"))
@@ -81,22 +77,15 @@ struct TargetsSectionView: View {
                 )
 
             // Text label
-            Text(NSLocalizedString("targets", comment: "Targets label"))
+            Text(String(format: NSLocalizedString("targets_screen", comment: "Targets label"), targetConfigs.count))
                 .foregroundColor(.white)
                 .font(.headline)
 
             Spacer()
 
-            // Count
-            Text(String(format: NSLocalizedString("targets_count_label", comment: "Number of targets"), targetConfigs.count))
-                .foregroundColor(.white)
-                .font(.headline)
-
-            Spacer()
-
-            // > symbol
-            Text(">")
-                .foregroundColor(.gray)
+            // Chevron right icon
+            Image(systemName: "chevron.right")
+                .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                 .font(.headline)
         }
         .padding()

@@ -689,6 +689,9 @@ struct TargetConfigListViewV2: View {
             Color.black.ignoresSafeArea()
 
             VStack(spacing: 20) {
+//                if singleDeviceMode {
+//                    print("TargetConfigListViewV2: singleDeviceMode=true, deviceNameFilter=\(deviceNameFilter ?? "nil")")
+//                }
                 Spacer(minLength: 10)
                 // Drill Mode Segment Control
                 HStack(spacing: 0) {

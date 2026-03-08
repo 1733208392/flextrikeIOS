@@ -302,7 +302,7 @@
     <!-- Drill Form View strings -->
     <string name="add_drill">添加演练</string>
     <string name="edit_drill">编辑演练</string>
-    <string name="targets_screen">标靶</string>
+    <string name="targets_screen">TargetLink(%d)</string>
 
     <string name="add_target">添加标靶</string>
     <string name="lock">锁定</string>
@@ -411,6 +411,7 @@
     <string name="add_target_type">新增目标类型</string>
     <string name="instruction_long_press_delete">长按上方目标进行删除</string>
     <string name="instruction_long_press_add">长按下方目标进行新增</string>
+    <string name="long_press_drag_add_delete_target">长按并拖拽以添加/删除目标</string>
     <string name="add">新增</string>
     <string name="drag_to_set_target">拖拽设置目标</string>
 </resources>

@@ -42,6 +42,7 @@
 "untitled" = "無題";
 "copy" = "コピー";
 "targets" = "ターゲット";
+"targets_screen" = "TargetLink(%d)";
 "targets_count" = "%d個のターゲット";
 "performed" = "実行済み";
 "delay_seconds" = "遅延: %d秒";
@@ -459,6 +460,8 @@
 "remote_control" = "リモートコントロール";
 "remote_control_description" = "ターゲットをリモートで制御";
 "remote_control_instruction" = "スワイプしてナビゲート • タップして選択";
+"long_press_drag_add_delete_target" = "長押ししてドラッグしてターゲットを追加/削除";
+"drag_to_set_target" = "ドラッグしてターゲットを設定";
 "back_button" = "戻る";
 "home_button" = "ホーム";
 

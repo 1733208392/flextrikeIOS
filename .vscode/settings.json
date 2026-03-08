@@ -18,6 +18,7 @@
     "git commit": true,
     "swiftc": true,
     "comm": true,
-    "git add": true
+    "git add": true,
+    "strings": true
   }
 }

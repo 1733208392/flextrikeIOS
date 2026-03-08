@@ -301,7 +301,7 @@
     <!-- Drill Form View strings -->
     <string name="add_drill">Agregar Perforación</string>
     <string name="edit_drill">Editar Perforación</string>
-    <string name="targets_screen">Objetivos</string>
+    <string name="targets_screen">TargetLink(%d)</string>
 
     <string name="add_target">Agregar Objetivo</string>
     <string name="lock">Bloquear</string>
@@ -410,6 +410,7 @@
     <string name="add_target_type">Añadir tipo de objetivo</string>
     <string name="instruction_long_press_delete">MANTENGA PRESIONADO EL OBJETIVO ARRIBA PARA ELIMINAR</string>
     <string name="instruction_long_press_add">MANTENGA PRESIONADO EL OBJETIVO ABAJO PARA AÑADIR</string>
+    <string name="long_press_drag_add_delete_target">Mantén pulsado y arrastra para añadir/eliminar objetivo</string>
     <string name="add">Añadir</string>
     <string name="drag_to_set_target">ARRASTRA PARA ESTABLECER OBJETIVO</string>
 </resources>

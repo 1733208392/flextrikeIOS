@@ -325,7 +325,7 @@
     <!-- Drill Form View strings -->
     <string name="add_drill">ADD DRILL</string>
     <string name="edit_drill">EDIT DRILL</string>
-    <string name="targets_screen">Targets</string>
+    <string name="targets_screen">TargetLink(%d)</string>
     <string name="add_target">Add Target</string>
     <string name="lock">Lock</string>
     <string name="editing_disabled_message">Editing is disabled because this drill has results or is linked to a competition.</string>
@@ -420,6 +420,7 @@
     <string name="add_target_type">Add target type</string>
     <string name="instruction_long_press_delete">LONG PRESS TARGET ABOVE TO DELETE</string>
     <string name="instruction_long_press_add">LONG PRESS TARGET BELOW TO ADD</string>
+    <string name="long_press_drag_add_delete_target">Long press and drag to add/delete target</string>
     <string name="add">Add</string>
     <string name="drag_to_set_target">DRAG TO SET TARGET</string>
 </resources>

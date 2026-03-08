@@ -16,7 +16,7 @@ const WebSocket = require('ws');
 let netlinkStarted = true;
 let netlinkChannel = 0;
 let netlinkWorkMode = "master";
-let netlinkDeviceName = "01";
+let netlinkDeviceName = "DE3823FF";
 let netlinkBluetoothName = "Kai’s MacBook Pro";
 let netlinkWifiIp = "192.168.1.100"; // Mock IP for simulation
 
@@ -53,6 +53,14 @@ const connectedGodotClients = new Set();
 // Drill timing
 let drillStartTime = null; // Timestamp when drill started (for bullet t values)
 let gameStartTime = null; // Timestamp when game started (for bullet t values)
+
+// BLE Ready Command State
+let drillReadyState = {
+  isReady: false,
+  targetTypes: [], // Array of target types from ready command
+  readyCommand: null, // Full ready command content from mobile app
+  readyReceivedTime: null // Timestamp when ready command was received
+};
 
 // Function to get current drill time in milliseconds
 function getCurrentDrillTime() {
@@ -1193,6 +1201,53 @@ const httpServer = http.createServer((req, res) => {
       })(i);
     }
 
+  } else if (pathname === '/test/ble/ack-ready-devices' && req.method === 'POST') {
+    // ============================================================================
+    // TEST ENDPOINT: Send Ready Acknowledgements to Specific Devices
+    // ============================================================================
+    // Sends ack:ready to 6 specific target devices
+    //
+    // Usage:
+    //   curl -X POST http://localhost/test/ble/ack-ready-devices
+    //
+    // This endpoint sends ready acknowledgements to:
+    // - DE3823FF (master)
+    // - DE3824FF, DE3825FF, DE3826FF, DE3827FF, DE3828FF (slaves)
+    // ============================================================================
+    
+    const targetDevices = [
+      'DE3823FF',
+      // 'DE3824FF',
+      // 'DE3825FF',
+      // 'DE3826FF',
+      // 'DE3827FF',
+      // 'DE3828FF'
+    ];
+    
+    console.log(`[TestEndpoint] Ready Ack Devices: Sending ack:ready to ${targetDevices.length} devices`);
+    
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ 
+      code: 0, 
+      msg: `Sending ready acks to ${targetDevices.length} devices`,
+      devices: targetDevices
+    }));
+    
+    // Send ack:ready for each device at staggered intervals
+    targetDevices.forEach((deviceName, index) => {
+      setTimeout(() => {
+        const ackMessage = {
+          action: 'forward',
+          type: 'netlink',
+          content: { ack: 'ready' },
+          device: deviceName
+        };
+        
+        forwardToMobileApp(ackMessage);
+        console.log(`[TestEndpoint] Ready Ack Devices: Sent ack:ready for device ${deviceName}`);
+      }, (index + 1) * 200); // 200ms staggered intervals
+    });
+
   } else {
     let body = '';
     req.on('data', chunk => {
@@ -1503,9 +1558,69 @@ class WriteCharacteristic extends bleno.Characteristic {
         if (parsedData.action === 'netlink_forward' && parsedData.content) {
           console.log('[CombinedServer] Forwarding netlink message from Mobile App to Godot');
           
+          // Handle ready command - send immediate acknowledgement to mobile app
+          if (parsedData.content.command === 'ready') {
+            console.log('[CombinedServer] *** BLE READY COMMAND RECEIVED ***');
+            console.log('[CombinedServer] Ready command details:', JSON.stringify(parsedData.content, null, 2));
+            
+            // Extract target types (support both single string and array formats)
+            let targetTypes = [];
+            if (Array.isArray(parsedData.content.targetType)) {
+              targetTypes = parsedData.content.targetType;
+            } else if (typeof parsedData.content.targetType === 'string') {
+              targetTypes = [parsedData.content.targetType];
+            }
+            
+            // Update drill ready state
+            drillReadyState.isReady = true;
+            drillReadyState.targetTypes = targetTypes;
+            drillReadyState.readyCommand = parsedData.content;
+            drillReadyState.readyReceivedTime = Date.now();
+            
+            console.log('[CombinedServer] Drill ready state updated. Target types:', targetTypes);
+            console.log('[CombinedServer] Timeout:', parsedData.content.timeout, 'seconds');
+            console.log('[CombinedServer] Delay:', parsedData.content.delay, 'seconds');
+            
+            // Send acknowledgement back to mobile app via BLE notify using optimized function
+            const ackSent = sendBLEAcknowledgement('ready');
+            if (ackSent) {
+              console.log('[CombinedServer] *** BLE READY ACKNOWLEDGEMENT CONFIRMED ***');
+            } else {
+              console.log('[CombinedServer] *** WARNING: BLE READY ACKNOWLEDGEMENT FAILED ***');
+            }
+            
+            // Auto-send ready acknowledgements to the 6 target devices
+            const targetDevices = [
+              'DE3823FF',
+              // 'DE3824FF',
+              // 'DE3825FF',
+              // 'DE3826FF',
+              // 'DE3827FF',
+              // 'DE3828FF'
+            ];
+            
+            console.log('[CombinedServer] Auto-sending ready acks to 6 target devices');
+            targetDevices.forEach((deviceName, index) => {
+              setTimeout(() => {
+                const deviceAckMessage = {
+                  action: 'forward',
+                  type: 'netlink',
+                  content: { ack: 'ready' },
+                  device: deviceName
+                };
+                
+                forwardToMobileApp(deviceAckMessage);
+                console.log(`[CombinedServer] Auto-sent ack:ready for device ${deviceName}`);
+              }, (index + 1) * 100); // 100ms staggered intervals
+            });
+          }
+          
           // Check for end command to reset drill timing
           if (parsedData.content.command === 'end') {
-            console.log('[CombinedServer] End command received, resetting drill start time');
+            console.log('[CombinedServer] End command received, resetting drill ready state');
+            drillReadyState.isReady = false;
+            drillReadyState.targetTypes = [];
+            drillReadyState.readyCommand = null;
             drillStartTime = null;
           }
           
@@ -1519,7 +1634,12 @@ class WriteCharacteristic extends bleno.Characteristic {
             type: 'netlink',
             action: 'device_list',
             data: [
-              { mode: 'master', name: 'DE3823FF' },{ mode: 'slave', name: 'DE3824FF' },{ mode: 'slave', name: 'DE3825FF' },{ mode: 'slave', name: 'DE3826FF' }
+              { mode: 'master',name:'DE3823FF'},
+              // { mode: 'slave',name:'DE3824FF'},
+              // { mode: 'slave',name:'DE3825FF'},
+              // { mode: 'slave',name:'DE3826FF'}
+              // { mode: 'slave',name:'DE3827FF'},
+              // { mode: 'slave',name:'DE3828FF'}
             ] 
           };
           
@@ -1554,16 +1674,25 @@ function sendMessageInChunks(data) {
 
   const jsonString = JSON.stringify(data);
   const maxChunkSize = 18; // 18 bytes per chunk to fit safely in 20-byte BLE MTU
-  const chunks = [];
   
-  // Split the message into chunks of max 18 bytes (fits in BLE 20-byte MTU)
+  // If message is small enough, send it complete with delimiter
+  const messageWithDelimiter = jsonString + '\r\n';
+  if (messageWithDelimiter.length <= 20) {
+    console.log(`[CombinedServer] Sending complete BLE message (${messageWithDelimiter.length} bytes): ${jsonString}`);
+    const buffer = Buffer.from(messageWithDelimiter);
+    mobileAppBLEClient._updateValueCallback(buffer);
+    return;
+  }
+  
+  // Otherwise split into chunks
+  const chunks = [];
   for (let i = 0; i < jsonString.length; i += maxChunkSize) {
     chunks.push(jsonString.slice(i, i + maxChunkSize));
   }
   
   console.log(`[CombinedServer] Splitting message into ${chunks.length} chunks of max ${maxChunkSize} bytes`);
   
-  // Send all chunks with delay to ensure proper ordering
+  // Send all chunks with longer delay to ensure proper ordering and reconstruction
   chunks.forEach((chunk, index) => {
     setTimeout(() => {
       const isLastChunk = index === chunks.length - 1;
@@ -1573,8 +1702,39 @@ function sendMessageInChunks(data) {
       mobileAppBLEClient._updateValueCallback(buffer);
       
       console.log(`[CombinedServer] Sent chunk ${index + 1}/${chunks.length} (${buffer.length} bytes)${isLastChunk ? ' [END]' : ''}: ${chunkToSend}`);
-    }, index * 50); // 50ms delay between chunks
+    }, index * 100); // 100ms delay between chunks for more reliable delivery
   });
+}
+
+// Function to send BLE acknowledgement with guaranteed delivery
+function sendBLEAcknowledgement(ackType) {
+  if (!mobileAppBLEClient || !mobileAppBLEClient._updateValueCallback) {
+    console.log('[CombinedServer] ERROR: No Mobile App connected via BLE - cannot send acknowledgement');
+    return false;
+  }
+
+  // Create acknowledgement message with proper format: {"action":"forward","content":{"ack":"ready"},"device":"01","type":"netlink"}
+  const ackObject = {
+    action: 'forward',
+    content: { ack: ackType },
+    device: netlinkDeviceName,
+    type: 'netlink'
+  };
+  
+  const ackMessage = JSON.stringify(ackObject) + '\r\n';
+  
+  console.log(`[CombinedServer] Sending BLE ${ackType} acknowledgement (${ackMessage.length} bytes)`);
+  console.log(`[CombinedServer] Message content: ${ackMessage.trim()}`);
+  
+  try {
+    const buffer = Buffer.from(ackMessage);
+    mobileAppBLEClient._updateValueCallback(buffer);
+    console.log(`[CombinedServer] ✓ BLE ${ackType} acknowledgement sent successfully`);
+    return true;
+  } catch (error) {
+    console.log(`[CombinedServer] ERROR: Failed to send BLE acknowledgement:`, error.message);
+    return false;
+  }
 }
 
 // Function to forward data from Godot to Mobile App

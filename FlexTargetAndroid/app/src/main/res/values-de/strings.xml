@@ -301,7 +301,7 @@
     <!-- Drill Form View strings -->
     <string name="add_drill">Bohrung hinzufügen</string>
     <string name="edit_drill">Bohrung bearbeiten</string>
-    <string name="targets_screen">Ziele</string>
+    <string name="targets_screen">TargetLink(%d)</string>
     <string name="add_target">Ziel hinzufügen</string>
     <string name="lock">Sperren</string>
     <string name="editing_disabled_message">Die Bearbeitung ist deaktiviert, da diese Bohrung Ergebnisse hat oder mit einem Wettkampf verknüpft ist.</string>
@@ -409,6 +409,7 @@
     <string name="add_target_type">Zieltyp hinzufügen</string>
     <string name="instruction_long_press_delete">ZUM LÖSCHEN ZIEL OBEN LANGE DRÜCKEN</string>
     <string name="instruction_long_press_add">ZUM HINZUFÜGEN ZIEL UNTEN LANGE DRÜCKEN</string>
+    <string name="long_press_drag_add_delete_target">Lange drücken und ziehen, um Ziel hinzuzufügen/löschen</string>
     <string name="add">Hinzufügen</string>
     <string name="drag_to_set_target">ZIEHEN UM ZIEL ZU SETZEN</string>
 </resources>

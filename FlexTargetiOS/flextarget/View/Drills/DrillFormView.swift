@@ -47,6 +47,7 @@ struct DrillFormView: View {
     @State private var drillSetupForTimer: DrillSetup? = nil
     @State private var showTargetConfigAlert: Bool = false
     @State private var showDrillSavedAlert = false
+    @State private var lastDeviceCount: Int = 0
     
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.managedObjectContext) private var environmentContext
@@ -171,6 +172,9 @@ struct DrillFormView: View {
                                 print("  Deleted: \(viewContext.deletedObjects.count)")
                                 viewContext.rollback()
                             }
+                            
+                            // Track initial device count
+                            lastDeviceCount = bleManager.networkDevices.count
                             
                             queryDeviceList()
                         }
@@ -649,6 +653,15 @@ struct DrillFormView: View {
             print("Device list received with \(deviceList.count) devices")
             DispatchQueue.main.async {
                 self.isTargetListReceived = true
+                
+                // Only clear target configs if the device count has actually changed
+                if self.lastDeviceCount > 0 && self.lastDeviceCount != deviceList.count {
+                    print("Device count changed from \(self.lastDeviceCount) to \(deviceList.count), clearing targetConfigs")
+                    self.targetConfigs = []
+                }
+                
+                // Update the tracked device count
+                self.lastDeviceCount = deviceList.count
             }
         }
     }

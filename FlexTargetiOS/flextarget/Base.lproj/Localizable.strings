@@ -38,6 +38,7 @@
 "untitled" = "Untitled";
 "copy_suffix" = " Copy";
 "targets" = "Targets";
+"targets_screen" = "TargetLink(%d)";
 "targets_count" = "%d targets";
 "performed" = "Performed";
 
@@ -350,6 +351,8 @@
 "remote_control" = "Remote Control";
 "remote_control_description" = "Control the target remotely";
 "remote_control_instruction" = "Swipe to navigate • Tap to select";
+"long_press_drag_add_delete_target" = "Long press and drag to add/delete target";
+"drag_to_set_target" = "Drag to set target";
 "back_button" = "Back";
 "home_button" = "Home";
 

@@ -302,7 +302,7 @@
     <!-- Drill Form View strings -->
     <string name="add_drill">ドリルを追加</string>
     <string name="edit_drill">ドリルを編集</string>
-    <string name="targets_screen">ターゲット</string>
+    <string name="targets_screen">TargetLink(%d)</string>
     <string name="add_target">ターゲットを追加</string>
     <string name="lock">ロック</string>
     <string name="editing_disabled_message">このドリルには結果があるか、競技会にリンクされているため、編集は無効です。</string>
@@ -412,6 +412,7 @@
     <string name="add_target_type">ターゲットタイプを追加</string>
     <string name="instruction_long_press_delete">上のターゲットを長押しして削除</string>
     <string name="instruction_long_press_add">下のターゲットを長押しして追加</string>
+    <string name="long_press_drag_add_delete_target">長押ししてドラッグしてターゲットを追加/削除</string>
     <string name="add">追加</string>
     <string name="drag_to_set_target">ドラッグしてターゲットを設定</string>
 </resources>

@@ -42,6 +42,7 @@
 "untitled" = "Unbenannt";
 "copy" = "Kopieren";
 "targets" = "Ziele";
+"targets_screen" = "TargetLink(%d)";
 "targets_count" = "%d Ziele";
 "performed" = "Ausgeführt";
 "delay_seconds" = "Verzögerung: %ds";
@@ -460,6 +461,8 @@
 "remote_control" = "Fernsteuerung";
 "remote_control_description" = "Steuern Sie das Ziel ferngesteuert";
 "remote_control_instruction" = "Wischen zum Navigieren • Tippen zum Auswählen";
+"long_press_drag_add_delete_target" = "Lange drücken und ziehen, um Ziel hinzuzufügen/löschen";
+"drag_to_set_target" = "Ziehen um Ziel zu setzen";
 "back_button" = "Zurück";
 "home_button" = "Startseite";
 

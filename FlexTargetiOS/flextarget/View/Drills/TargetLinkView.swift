@@ -2,14 +2,16 @@ import SwiftUI
 import Foundation
 
 struct TargetLinkView: View {
-    let deviceList: [NetworkDevice]
+    let bleManager: BLEManager
     @Binding var targetConfigs: [DrillTargetsConfigData]
     let onDone: () -> Void
     @Binding var drillMode: String
     
     @Environment(\.dismiss) private var dismiss
+    @State private var selectedConfigIndex: Int? = nil
+    @State private var navigateToConfig = false
     
-    private let gridColumns = Array(repeating: GridItem(.flexible(), spacing: 24), count: 3)
+    private let gridColumns = Array(repeating: GridItem(.flexible(), spacing: 12), count: 3)
     private let rectangleHeight: CGFloat = 150
     private var rectangleWidth: CGFloat { rectangleHeight * 9 / 16 } // 9x16 aspect ratio
     
@@ -45,6 +47,7 @@ struct TargetLinkView: View {
             }
         }
         .onAppear {
+            print("TargetLinkView: onAppear called with deviceList.count = \(bleManager.networkDevices.count)")
             initializeTargetConfigs()
         }
     }
@@ -61,19 +64,19 @@ struct TargetLinkView: View {
             
             // Grid background (on top so it's tappable)
             LazyVGrid(columns: gridColumns, spacing: 40) {
-                ForEach(0..<12, id: \.self) { index in
-                    if index < deviceList.count {
-                        let device = deviceList[index]
-                        let config = targetConfigs.first { $0.targetName == device.name }
+                ForEach(0...11, id: \.self) { (index: Int) in
+                    if index < bleManager.networkDevices.count {
+                        let device = bleManager.networkDevices[index]
                         
                         NavigationLink(destination: TargetConfigListViewV2(
-                            deviceList: deviceList,
+                            deviceList: bleManager.networkDevices,
                             targetConfigs: $targetConfigs,
                             onDone: onDone,
                             drillMode: $drillMode,
                             singleDeviceMode: true,
                             deviceNameFilter: device.name
                         )) {
+                            let config = targetConfigs.first { $0.targetName == device.name }
                             TargetRectangleView(
                                 deviceName: device.name,
                                 config: config,
@@ -84,7 +87,7 @@ struct TargetLinkView: View {
                     } else {
                         // Empty slot
                         RoundedRectangle(cornerRadius: 0)
-                            .stroke(Color.gray.opacity(0.3), lineWidth: 6)
+                            .stroke(Color.gray.opacity(0.15), lineWidth: 6)
                             .frame(width: rectangleWidth, height: rectangleHeight)
                     }
                 }
@@ -121,7 +124,7 @@ struct TargetLinkView: View {
         ]
         
         for (fromIndex, toIndex) in snakePattern {
-            guard fromIndex < deviceList.count && toIndex < deviceList.count else { continue }
+            guard fromIndex < bleManager.networkDevices.count && toIndex < bleManager.networkDevices.count else { continue }
             
             let fromPos = getGridPosition(index: fromIndex, gridWidth: gridWidth)
             let toPos = getGridPosition(index: toIndex, gridWidth: gridWidth)
@@ -132,11 +135,26 @@ struct TargetLinkView: View {
             let fromPoint = getExitPoint(rect: fromRect, to: toPos, from: fromPos)
             let toPoint = getEntryPoint(rect: toRect, from: fromPos, to: toPos)
             
-            var line = Path()
-            line.move(to: fromPoint)
-            line.addLine(to: toPoint)
+            // Draw dots instead of lines
+            let dotRadius: CGFloat = 3
+            let dotSpacing: CGFloat = 8
             
-            context.stroke(line, with: .color(lineColor), lineWidth: lineWidth)
+            // Calculate distance and number of dots
+            let dx = toPoint.x - fromPoint.x
+            let dy = toPoint.y - fromPoint.y
+            let distance = sqrt(dx * dx + dy * dy)
+            let numberOfDots = Int(ceil(Double(distance) / Double(dotSpacing)))
+            
+            for i in 1...max(1, numberOfDots - 1) {
+                let progress = CGFloat(i) / CGFloat(max(2, numberOfDots))
+                let dotX = fromPoint.x + dx * progress
+                let dotY = fromPoint.y + dy * progress
+                let dotPoint = CGPoint(x: dotX, y: dotY)
+                
+                var circle = Path()
+                circle.addEllipse(in: CGRect(x: dotPoint.x - dotRadius, y: dotPoint.y - dotRadius, width: dotRadius * 2, height: dotRadius * 2))
+                context.fill(circle, with: .color(lineColor))
+            }
         }
     }
     
@@ -191,25 +209,33 @@ struct TargetLinkView: View {
         let zigzagOrder = [0, 1, 2, 5, 4, 3, 6, 7, 8, 11, 10, 9]
         var updated = targetConfigs
         
-        for (zigzagIndex, deviceIndex) in zigzagOrder.enumerated() {
-            guard deviceIndex < deviceList.count else { break }
-            
-            let device = deviceList[deviceIndex]
+        print("TargetLinkView: Initializing configs for \(bleManager.networkDevices.count) devices")
+        print("TargetLinkView: Device names: \(bleManager.networkDevices.map { $0.name })")
+        print("TargetLinkView: Current targetConfigs has \(targetConfigs.count) items")
+        print("TargetLinkView: Existing target names: \(targetConfigs.map { $0.targetName })")
+        
+        // First, ensure all devices have configurations
+        for (index, device) in bleManager.networkDevices.enumerated() {
             if !updated.contains(where: { $0.targetName == device.name }) {
+                let seqNo = index < zigzagOrder.count ? zigzagOrder[index] + 1 : index + 1
                 let newConfig = DrillTargetsConfigData(
-                    seqNo: zigzagIndex + 1,
+                    seqNo: seqNo,
                     targetName: device.name,
                     targetType: defaultTargetType(),
                     timeout: 30.0,
                     countedShots: 5
                 )
                 updated.append(newConfig)
+                print("TargetLinkView: Added config for device \(device.name) at index \(index)")
+            } else {
+                print("TargetLinkView: Config already exists for device \(device.name)")
             }
         }
         
         // Sort by seqNo to maintain order
         updated.sort { $0.seqNo < $1.seqNo }
         targetConfigs = updated
+        print("TargetLinkView: Final targetConfigs has \(targetConfigs.count) items")
     }
     
     private func defaultTargetType() -> String {
@@ -232,6 +258,8 @@ struct TargetRectangleView: View {
     let width: CGFloat
     let height: CGFloat
     
+    private let accentColor = Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433)
+    
     var body: some View {
         VStack(spacing: 8) {
             if let config = config, !config.targetType.isEmpty {
@@ -241,23 +269,24 @@ struct TargetRectangleView: View {
                     .frame(height: height * 0.6)
                     .padding(8)
             } else {
-                Image(systemName: "questionmark.circle")
+                // Default IPSC target image
+                Image("ipsc")
                     .resizable()
                     .scaledToFit()
-                    .frame(height: height * 0.4)
-                    .foregroundColor(.gray)
+                    .frame(height: height * 0.6)
+                    .padding(8)
             }
             
             Text(deviceName)
                 .font(.caption)
                 .fontWeight(.semibold)
-                .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+                .foregroundColor(accentColor)
                 .lineLimit(1)
                 .truncationMode(.tail)
         }
         .frame(width: width, height: height)
-        .background(Color.gray.opacity(0.1))
-        .border(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433), width: 6)
+        .background(config != nil ? Color.gray.opacity(0.2) : Color.gray.opacity(0.1))
+        .border(config != nil ? accentColor : Color.gray.opacity(0.15), width: 6)
     }
 }
 

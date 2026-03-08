@@ -42,6 +42,7 @@
 "untitled" = "Sin título";
 "copy" = "Copiar";
 "targets" = "Objetivos";
+"targets_screen" = "TargetLink(%d)";
 "targets_count" = "%d objetivos";
 "performed" = "Realizado";
 "delay_seconds" = "retraso: %ds";
@@ -458,6 +459,8 @@
 "remote_control" = "Control Remoto";
 "remote_control_description" = "Controla el objetivo de forma remota";
 "remote_control_instruction" = "Desliza para navegar • Toca para seleccionar";
+"long_press_drag_add_delete_target" = "Mantén pulsado y arrastra para añadir/eliminar objetivo";
+"drag_to_set_target" = "Arrastra para establecer objetivo";
 "back_button" = "Atrás";
 "home_button" = "Inicio";
 

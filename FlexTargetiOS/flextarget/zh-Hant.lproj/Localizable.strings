@@ -42,6 +42,7 @@
 "untitled" = "未命名";
 "copy" = "複製";
 "targets" = "目標";
+"targets_screen" = "TargetLink(%d)";
 "targets_count" = "%d 個目標";
 "performed" = "已執行";
 "delay_seconds" = "延遲: %d秒";
@@ -461,6 +462,8 @@
 "remote_control" = "遠端控制";
 "remote_control_description" = "遠端控制目標";
 "remote_control_instruction" = "滑動導航 • 點擊選擇";
+"long_press_drag_add_delete_target" = "長按並拖拽以添加/刪除目標";
+"drag_to_set_target" = "拖拽設定目標";
 "back_button" = "返回";
 "home_button" = "主頁";
 
