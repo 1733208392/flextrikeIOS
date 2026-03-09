@@ -19,6 +19,7 @@ import coil.Coil
 import coil.ImageLoader
 import coil.decode.SvgDecoder
 import android.bluetooth.BluetoothAdapter
+import android.content.Context
 import android.os.Build
 import androidx.compose.runtime.*
 import androidx.compose.material3.AlertDialog
@@ -98,7 +99,15 @@ class MainActivity : ComponentActivity() {
     }
 
     private var showDisclosure by mutableStateOf(false)
-    private var disclosureShown = false
+    private var disclosureShown: Boolean
+        get() = getSharedPreferences("flex_target_prefs", Context.MODE_PRIVATE)
+            .getBoolean("disclosure_shown", false)
+        set(value) {
+            getSharedPreferences("flex_target_prefs", Context.MODE_PRIVATE)
+                .edit()
+                .putBoolean("disclosure_shown", value)
+                .apply()
+        }
     private var initialDisclosure = true
 
     private val requestBackgroundLocationLauncher = registerForActivityResult(
@@ -133,6 +142,9 @@ class MainActivity : ComponentActivity() {
         // Show disclosure before requesting permissions
         if (!disclosureShown) {
             showDisclosure = true
+        } else {
+            // Already shown, request permissions directly
+            requestPermissionsIfNeeded()
         }
 
         // Initialize BLE Manager
