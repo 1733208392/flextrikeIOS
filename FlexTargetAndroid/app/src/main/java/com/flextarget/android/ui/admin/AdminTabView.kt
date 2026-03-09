@@ -72,183 +72,298 @@ fun AdminTabView(
             .fillMaxSize()
             .background(Color.Black)
     ) {
-        when {
-            showRemoteControl.value -> {
-                RemoteControlView(
-                    bleManager = bleManager,
-                    onBack = {
-                        showRemoteControl.value = false
-                        showDeviceManagement.value = true
-                    }
-                )
-            }
-            showUploadTargetImage.value -> {
-                ImageCropViewV2(
-                    onDismiss = {
-                        showUploadTargetImage.value = false
-                        showDeviceManagement.value = true
-                    }
-                )
-            }
-            showOTAUpdate.value -> {
-                OTAUpdateView(
-                    otaViewModel = otaViewModel,
-                    bleViewModel = bleViewModel,
-                    authViewModel = authViewModel,
-                    onBack = {
-                        showOTAUpdate.value = false
-                        showDeviceManagement.value = true
-                    }
-                )
-            }
-            showConnectedDeviceDetails.value -> {
-                com.flextarget.android.ui.ble.ConnectSmartTargetView(
-                    bleManager = bleManager,
-                    isAlreadyConnected = true,
-                    onDismiss = {
-                        showConnectedDeviceDetails.value = false
-                        showDeviceManagement.value = true
-                    }
-                )
-            }
-            showQRScanner.value -> {
-                com.flextarget.android.ui.qr.QRScannerView(
-                    onQRScanned = { code ->
-                        // Set auto-connect target with scanned device name
-                        bleManager.setAutoConnectTarget(code)
-                        showQRScanner.value = false
-                        showDeviceManagement.value = true
-                    },
-                    onDismiss = {
-                        showQRScanner.value = false
-                        showDeviceManagement.value = true
-                    }
-                )
-            }
-            showManualDeviceSelect.value -> {
-                ManualDeviceSelectionView(
-                    bleManager = bleManager,
-                    onBack = {
-                        showManualDeviceSelect.value = false
-                        showDeviceManagement.value = true
-                    },
-                    onDeviceSelected = { _ ->
-                        showManualDeviceSelect.value = false
-                        showDeviceManagement.value = true
-                    }
-                )
-            }
-            showMainMenu.value -> {
-                AdminMainMenuView(
-                    isDeviceConnected = bleManager.isConnected,
-                    userName = authUiState.userName,
-                    onDeviceManagementClick = {
-                        showMainMenu.value = false
-                        showDeviceManagement.value = true
-                    },
-                    onUserProfileClick = {
-                        showMainMenu.value = false
-                        if (authUiState.isAuthenticated) {
+        // Check if user is NOT authenticated - show auth flows (login, registration, forgot password)
+        if (!authUiState.isAuthenticated) {
+            when {
+                showLogin.value -> {
+                    LoginScreen(
+                        authViewModel = authViewModel,
+                        onLoginSuccess = {
+                            showLogin.value = false
                             showUserProfile.value = true
-                        } else {
+                        },
+                        onRegisterClick = {
+                            showLogin.value = false
+                            showRegistration.value = true
+                        },
+                        onForgotPasswordClick = {
+                            showLogin.value = false
+                            showForgotPassword.value = true
+                        },
+                        onBackClick = {
+                            showLogin.value = false
+                            showMainMenu.value = true
+                        }
+                    )
+                }
+                showRegistration.value -> {
+                    RegistrationScreen(
+                        authViewModel = authViewModel,
+                        onRegistrationSuccess = {
+                            showRegistration.value = false
+                            showUserProfile.value = true
+                        },
+                        onBackClick = {
+                            showRegistration.value = false
                             showLogin.value = true
                         }
+                    )
+                }
+                showForgotPassword.value -> {
+                    ForgotPasswordScreen(
+                        onResetSuccess = {
+                            showForgotPassword.value = false
+                            showUserProfile.value = true
+                        },
+                        onBackClick = {
+                            showForgotPassword.value = false
+                            showLogin.value = true
+                        }
+                    )
+                }
+                else -> {
+                    // Device management flows available even when not authenticated
+                    when {
+                        showRemoteControl.value -> {
+                            RemoteControlView(
+                                bleManager = bleManager,
+                                onBack = {
+                                    showRemoteControl.value = false
+                                    showDeviceManagement.value = true
+                                }
+                            )
+                        }
+                        showUploadTargetImage.value -> {
+                            ImageCropViewV2(
+                                onDismiss = {
+                                    showUploadTargetImage.value = false
+                                    showDeviceManagement.value = true
+                                }
+                            )
+                        }
+                        showQRScanner.value -> {
+                            com.flextarget.android.ui.qr.QRScannerView(
+                                onQRScanned = { code ->
+                                    bleManager.setAutoConnectTarget(code)
+                                    showQRScanner.value = false
+                                    showDeviceManagement.value = true
+                                },
+                                onDismiss = {
+                                    showQRScanner.value = false
+                                    showDeviceManagement.value = true
+                                }
+                            )
+                        }
+                        showManualDeviceSelect.value -> {
+                            ManualDeviceSelectionView(
+                                bleManager = bleManager,
+                                onBack = {
+                                    showManualDeviceSelect.value = false
+                                    showDeviceManagement.value = true
+                                },
+                                onDeviceSelected = { _ ->
+                                    showManualDeviceSelect.value = false
+                                    showDeviceManagement.value = true
+                                }
+                            )
+                        }
+                        showConnectedDeviceDetails.value -> {
+                            com.flextarget.android.ui.ble.ConnectSmartTargetView(
+                                bleManager = bleManager,
+                                isAlreadyConnected = true,
+                                onDismiss = {
+                                    showConnectedDeviceDetails.value = false
+                                    showDeviceManagement.value = true
+                                }
+                            )
+                        }
+                        showDeviceManagement.value -> {
+                            DeviceManagementView(
+                                isDeviceConnected = bleManager.isConnected,
+                                onBack = {
+                                    showDeviceManagement.value = false
+                                    showMainMenu.value = true
+                                },
+                                onManualSelectClick = {
+                                    showDeviceManagement.value = false
+                                    showManualDeviceSelect.value = true
+                                },
+                                onQRScanClick = {
+                                    showDeviceManagement.value = false
+                                    showQRScanner.value = true
+                                },
+                                onConnectedDeviceClick = {
+                                    showDeviceManagement.value = false
+                                    showConnectedDeviceDetails.value = true
+                                },
+                                onOTAUpdateClick = {
+                                    // Prompt user to login for OTA updates
+                                    showDeviceManagement.value = false
+                                    showLogin.value = true
+                                },
+                                onRemoteControlClick = {
+                                    showDeviceManagement.value = false
+                                    showRemoteControl.value = true
+                                },
+                                onUploadTargetImageClick = {
+                                    showDeviceManagement.value = false
+                                    showUploadTargetImage.value = true
+                                }
+                            )
+                        }
+                        else -> {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(Color.Black)
+                            ) {
+                                AdminMainMenuView(
+                                    isDeviceConnected = bleManager.isConnected,
+                                    userName = authUiState.userName,
+                                    onDeviceManagementClick = {
+                                        showMainMenu.value = false
+                                        showDeviceManagement.value = true
+                                    },
+                                    onUserProfileClick = {
+                                        showMainMenu.value = false
+                                        showLogin.value = true
+                                    }
+                                )
+                            }
+                        }
                     }
-                )
+                }
             }
-            showDeviceManagement.value -> {
-                DeviceManagementView(
-                    isDeviceConnected = bleManager.isConnected,
-                    onBack = {
-                        showDeviceManagement.value = false
-                        showMainMenu.value = true
-                    },
-                    onManualSelectClick = {
-                        showDeviceManagement.value = false
-                        showManualDeviceSelect.value = true
-                    },
-                    onQRScanClick = {
-                        showDeviceManagement.value = false
-                        showQRScanner.value = true
-                    },
-                    onConnectedDeviceClick = {
-                        showDeviceManagement.value = false
-                        showConnectedDeviceDetails.value = true
-                    },
-                    onOTAUpdateClick = {
-                        showDeviceManagement.value = false
-                        showOTAUpdate.value = true
-                    },
-                    onRemoteControlClick = {
-                        showDeviceManagement.value = false
-                        showRemoteControl.value = true
-                    },
-                    onUploadTargetImageClick = {
-                        showDeviceManagement.value = false
-                        showUploadTargetImage.value = true
-                    }
-                )
-            }
-            showUserProfile.value -> {
-                UserProfileView(
-                    authViewModel = authViewModel,
-                    onBack = {
-                        showUserProfile.value = false
-                        showMainMenu.value = true
-                    },
-                    onLogout = {
-                        // User was logged out (401 token expired), show login
-                        showUserProfile.value = false
-                        showMainMenu.value = false
-                        showLogin.value = true
-                    }
-                )
-            }
-            showLogin.value -> {
-                LoginScreen(
-                    authViewModel = authViewModel,
-                    onLoginSuccess = {
-                        showLogin.value = false
-                        showUserProfile.value = true
-                    },
-                    onRegisterClick = {
-                        showLogin.value = false
-                        showRegistration.value = true
-                    },
-                    onForgotPasswordClick = {
-                        showLogin.value = false
-                        showForgotPassword.value = true
-                    },
-                    onBackClick = {
-                        showLogin.value = false
-                        showMainMenu.value = true
-                    }
-                )
-            }
-            showRegistration.value -> {
-                RegistrationScreen(
-                    authViewModel = authViewModel,
-                    onRegistrationSuccess = {
-                        showRegistration.value = false
-                        showUserProfile.value = true
-                    },
-                    onBackClick = {
-                        showRegistration.value = false
-                        showLogin.value = true
-                    }
-                )
-            }
-            showForgotPassword.value -> {
-                ForgotPasswordScreen(
-                    onResetSuccess = {
-                        showForgotPassword.value = false
-                        showUserProfile.value = true
-                    },
-                    onBackClick = {
-                        showForgotPassword.value = false
-                        showLogin.value = true
-                    }
-                )
+        } else {
+            // User is authenticated - show device management flows
+            when {
+                showRemoteControl.value -> {
+                    RemoteControlView(
+                        bleManager = bleManager,
+                        onBack = {
+                            showRemoteControl.value = false
+                            showDeviceManagement.value = true
+                        }
+                    )
+                }
+                showUploadTargetImage.value -> {
+                    ImageCropViewV2(
+                        onDismiss = {
+                            showUploadTargetImage.value = false
+                            showDeviceManagement.value = true
+                        }
+                    )
+                }
+                showOTAUpdate.value -> {
+                    OTAUpdateView(
+                        otaViewModel = otaViewModel,
+                        bleViewModel = bleViewModel,
+                        authViewModel = authViewModel,
+                        onBack = {
+                            showOTAUpdate.value = false
+                            showDeviceManagement.value = true
+                        }
+                    )
+                }
+                showConnectedDeviceDetails.value -> {
+                    com.flextarget.android.ui.ble.ConnectSmartTargetView(
+                        bleManager = bleManager,
+                        isAlreadyConnected = true,
+                        onDismiss = {
+                            showConnectedDeviceDetails.value = false
+                            showDeviceManagement.value = true
+                        }
+                    )
+                }
+                showQRScanner.value -> {
+                    com.flextarget.android.ui.qr.QRScannerView(
+                        onQRScanned = { code ->
+                            // Set auto-connect target with scanned device name
+                            bleManager.setAutoConnectTarget(code)
+                            showQRScanner.value = false
+                            showDeviceManagement.value = true
+                        },
+                        onDismiss = {
+                            showQRScanner.value = false
+                            showDeviceManagement.value = true
+                        }
+                    )
+                }
+                showManualDeviceSelect.value -> {
+                    ManualDeviceSelectionView(
+                        bleManager = bleManager,
+                        onBack = {
+                            showManualDeviceSelect.value = false
+                            showDeviceManagement.value = true
+                        },
+                        onDeviceSelected = { _ ->
+                            showManualDeviceSelect.value = false
+                            showDeviceManagement.value = true
+                        }
+                    )
+                }
+                showMainMenu.value -> {
+                    AdminMainMenuView(
+                        isDeviceConnected = bleManager.isConnected,
+                        userName = authUiState.userName,
+                        onDeviceManagementClick = {
+                            showMainMenu.value = false
+                            showDeviceManagement.value = true
+                        },
+                        onUserProfileClick = {
+                            showMainMenu.value = false
+                            showUserProfile.value = true
+                        }
+                    )
+                }
+                showDeviceManagement.value -> {
+                    DeviceManagementView(
+                        isDeviceConnected = bleManager.isConnected,
+                        onBack = {
+                            showDeviceManagement.value = false
+                            showMainMenu.value = true
+                        },
+                        onManualSelectClick = {
+                            showDeviceManagement.value = false
+                            showManualDeviceSelect.value = true
+                        },
+                        onQRScanClick = {
+                            showDeviceManagement.value = false
+                            showQRScanner.value = true
+                        },
+                        onConnectedDeviceClick = {
+                            showDeviceManagement.value = false
+                            showConnectedDeviceDetails.value = true
+                        },
+                        onOTAUpdateClick = {
+                            showDeviceManagement.value = false
+                            showOTAUpdate.value = true
+                        },
+                        onRemoteControlClick = {
+                            showDeviceManagement.value = false
+                            showRemoteControl.value = true
+                        },
+                        onUploadTargetImageClick = {
+                            showDeviceManagement.value = false
+                            showUploadTargetImage.value = true
+                        }
+                    )
+                }
+                showUserProfile.value -> {
+                    UserProfileView(
+                        authViewModel = authViewModel,
+                        onBack = {
+                            showUserProfile.value = false
+                            showMainMenu.value = true
+                        },
+                        onLogout = {
+                            // User was logged out (401 token expired), show login
+                            showUserProfile.value = false
+                            showMainMenu.value = false
+                            showLogin.value = true
+                        }
+                    )
+                }
             }
         }
     }
