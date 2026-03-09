@@ -12,6 +12,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -34,6 +35,7 @@ import com.flextarget.android.R
 import com.flextarget.android.data.ble.BLEManager
 import com.flextarget.android.data.ble.NetworkDevice
 import com.flextarget.android.data.model.DrillTargetsConfigData
+import androidx.compose.foundation.shape.RoundedCornerShape
 import com.flextarget.android.ui.theme.md_theme_dark_onPrimary
 
 /**
@@ -49,6 +51,7 @@ fun TargetLinkView(
     drillMode: String,
     onUpdateTargetConfigs: (List<DrillTargetsConfigData>) -> Unit,
     onNavigateToConfig: (String) -> Unit,
+    onDrillModeChange: (String) -> Unit,
     onBack: () -> Unit
 ) {
     val accentRed = Color(red = 0.87f, green = 0.22f, blue = 0.14f)
@@ -58,11 +61,36 @@ fun TargetLinkView(
         mutableStateOf(targetConfigs)
     }
     
+    var localDrillMode by remember(drillMode) {
+        mutableStateOf(drillMode)
+    }
+    
     // Initialize target configs on first appearance
     LaunchedEffect(deviceList, drillMode) {
         if (localConfigs.isEmpty() && deviceList.isNotEmpty()) {
             localConfigs = initializeTargetConfigs(deviceList, drillMode)
             onUpdateTargetConfigs(localConfigs)
+        }
+    }
+    
+    // Handle drill mode changes
+    fun changeDrillMode(newMode: String) {
+        if (newMode != localDrillMode) {
+            localDrillMode = newMode
+            onDrillModeChange(newMode)
+            
+            // Update all target types to the default for the new mode
+            val updatedConfigs = localConfigs.map { config ->
+                val defaultType = when (newMode.lowercase()) {
+                    "ipsc" -> "ipsc"
+                    "idpa" -> "idpa"
+                    "cqb" -> "cqb_front"
+                    else -> "ipsc"
+                }
+                config.copy(targetType = defaultType)
+            }
+            localConfigs = updatedConfigs
+            onUpdateTargetConfigs(updatedConfigs)
         }
     }
     
@@ -92,23 +120,121 @@ fun TargetLinkView(
             )
         }
     ) { paddingValues ->
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.Black)
-                .padding(paddingValues)
+                .padding(paddingValues),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Target grid with connection canvas (LazyVerticalGrid handles scrolling)
-            TargetGridContent(
-                deviceList = deviceList,
-                targetConfigs = localConfigs,
-                drillMode = drillMode,
-                accentColor = accentRed,
-                onDeviceSelected = { deviceName ->
-                    // Navigation to TargetConfigListViewV2 happens in the parent
-                    onNavigateToConfig(deviceName)
+            // Drill Mode Segment Control
+            Spacer(modifier = Modifier.height(16.dp))
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth(0.7f)
+                    .height(44.dp),
+                shape = RoundedCornerShape(12.dp),
+                color = Color.Gray.copy(alpha = 0.2f),
+                shadowElevation = 0.dp
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalArrangement = Arrangement.spacedBy(0.dp)
+                ) {
+                    // IPSC Button
+                    Surface(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .clickable {
+                                changeDrillMode("ipsc")
+                            },
+                        shape = RoundedCornerShape(topStart = 12.dp, bottomStart = 12.dp),
+                        color = if (localDrillMode == "ipsc") md_theme_dark_onPrimary else Color.Gray.copy(alpha = 0.2f),
+                        shadowElevation = 0.dp
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            if (localDrillMode == "ipsc") {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp),
+                                    tint = Color.White
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                            }
+                            Text(
+                                "IPSC",
+                                color = if (localDrillMode == "ipsc") Color.White else Color.Gray,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
+
+                    // CQB Button
+                    Surface(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .clickable {
+                                changeDrillMode("cqb")
+                            },
+                        shape = RoundedCornerShape(topEnd = 12.dp, bottomEnd = 12.dp),
+                        color = if (localDrillMode == "cqb") md_theme_dark_onPrimary else Color.Gray.copy(alpha = 0.2f),
+                        shadowElevation = 0.dp
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            if (localDrillMode == "cqb") {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp),
+                                    tint = Color.White
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                            }
+                            Text(
+                                "CQB",
+                                color = if (localDrillMode == "cqb") Color.White else Color.Gray,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
                 }
-            )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Target grid with connection canvas (LazyVerticalGrid handles scrolling)
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.TopCenter
+            ) {
+                TargetGridContent(
+                    deviceList = deviceList,
+                    targetConfigs = localConfigs,
+                    drillMode = localDrillMode,
+                    accentColor = accentRed,
+                    onDeviceSelected = { deviceName ->
+                        // Navigation to TargetConfigListViewV2 happens in the parent
+                        onNavigateToConfig(deviceName)
+                    }
+                )
+            }
         }
     }
 }
@@ -234,10 +360,10 @@ private fun TargetRectangle(
             ) {
                 // Target icon/image
                 if (config != null && config.targetType.isNotEmpty() && config.targetType != "[]") {
-                    val iconRes = getTargetIconResource(config.primaryTargetType())
-                    if (iconRes != 0) {
+                    val iconModel = getTargetIconResource(config.primaryTargetType())
+                    if (iconModel != null) {
                         AsyncImage(
-                            model = iconRes,
+                            model = iconModel,
                             contentDescription = config.targetType,
                             modifier = Modifier
                                 .fillMaxWidth(0.6f)
@@ -257,10 +383,10 @@ private fun TargetRectangle(
                     }
                 } else {
                     // Use IPSC target as default
-                    val defaultIconRes = getTargetIconResource("ipsc")
-                    if (defaultIconRes != 0) {
+                    val defaultIconModel = getTargetIconResource("ipsc")
+                    if (defaultIconModel != null) {
                         AsyncImage(
-                            model = defaultIconRes,
+                            model = defaultIconModel,
                             contentDescription = "IPSC Target",
                             modifier = Modifier
                                 .fillMaxWidth(0.6f)
@@ -349,16 +475,30 @@ private fun DrawScope.drawConnectionLines(
     }
 }
 
-private fun getTargetIconResource(targetType: String): Int {
-    // Return drawable resource ID based on target type
+private fun getTargetIconResource(targetType: String): Any? {
+    // Return drawable resource ID or asset URI based on target type
     return when (targetType.lowercase()) {
+        // IPSC targets (drawable resources)
         "ipsc" -> R.drawable.ipsc
         "hostage" -> R.drawable.hostage
         "special_1" -> R.drawable.ipsc_black_1
         "special_2" -> R.drawable.ipsc_black_2
         "paddle" -> R.drawable.paddle
         "popper" -> R.drawable.popper
-        else -> 0 // Placeholder
+        
+        // CQB targets (SVG assets)
+        "cqb_front" -> "file:///android_asset/cqb_front.svg"
+        "cqb_swing" -> "file:///android_asset/cqb_swing.svg"
+        "cqb_hostage" -> "file:///android_asset/cqb_hostoage.svg"  // Note: asset file has typo
+        "disguised_enemy" -> "file:///android_asset/disguise_enemy.svg"
+        
+        // IDPA targets (SVG assets)
+        "idpa" -> "file:///android_asset/idpa.svg"
+        "idpa_ns" -> "file:///android_asset/idpa-ns.svg"
+        "idpa_black_1" -> "file:///android_asset/idpa-hard-cover-1.svg"
+        "idpa_black_2" -> "file:///android_asset/idpa-hard-cover-2.svg"
+        
+        else -> null // No fallback - handled by TargetRectangle
     }
 }
 

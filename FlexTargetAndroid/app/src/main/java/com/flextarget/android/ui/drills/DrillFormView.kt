@@ -494,6 +494,9 @@ fun DrillFormView(
                             selectedDeviceForConfig = deviceName
                             currentScreen = DrillFormScreen.TARGET_CONFIG
                         },
+                        onDrillModeChange = { newMode ->
+                            drillMode = newMode
+                        },
                         onBack = {
                             currentScreen = DrillFormScreen.FORM
                         }
@@ -541,7 +544,8 @@ fun DrillFormView(
                         },
                         onDrillModeChange = { newMode ->
                             drillMode = newMode
-                        }
+                        },
+                        isReadOnlyMode = true
                     )
                 }
             }

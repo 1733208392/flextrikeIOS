@@ -49,7 +49,8 @@ fun TargetConfigListViewV2(
     onAddTarget: () -> Unit = {},
     onDone: () -> Unit,
     onBack: () -> Unit,
-    onDrillModeChange: (String) -> Unit
+    onDrillModeChange: (String) -> Unit,
+    isReadOnlyMode: Boolean = false
 ) {
     val accentRed = Color(red = 0.87f, green = 0.22f, blue = 0.14f)
     val darkGray = Color(red = 0.44f, green = 0.44f, blue = 0.44f)
@@ -85,11 +86,23 @@ fun TargetConfigListViewV2(
         else -> listOf("")
     }
     LaunchedEffect(localDrillMode) {
-        // Filter selectedTargetTypes to only include available types for the new mode
-        selectedTargetTypes = selectedTargetTypes.filter { it in availableTargetTypes }
-        if (selectedTargetTypes.isEmpty()) {
-            selectedTargetTypes = listOf(availableTargetTypes.firstOrNull() ?: "ipsc")
+        // Only update when not in read-only mode
+        if (!isReadOnlyMode) {
+            // Filter selectedTargetTypes to only include available types for the new mode
+            val filteredTypes = selectedTargetTypes.filter { it in availableTargetTypes }
+            val newSelectedTypes = if (filteredTypes.isEmpty()) {
+                listOf(availableTargetTypes.firstOrNull() ?: "ipsc")
+            } else {
+                filteredTypes
+            }
+            
+            // Update selectedTargetTypes and notify parent of the change
+            if (newSelectedTypes != selectedTargetTypes) {
+                selectedTargetTypes = newSelectedTypes
+                onUpdateTargetTypes(primaryConfigIndexInOriginalList, newSelectedTypes)
+            }
         }
+        
         // Ensure currentTypeIndex is valid
         if (currentTypeIndex >= selectedTargetTypes.size) {
             currentTypeIndex = 0
@@ -151,9 +164,11 @@ fun TargetConfigListViewV2(
                             modifier = Modifier
                                 .weight(1f)
                                 .fillMaxHeight()
-                                .clickable {
-                                    localDrillMode = "ipsc"
-                                    onDrillModeChange("ipsc")
+                                .clickable(enabled = !isReadOnlyMode) {
+                                    if (!isReadOnlyMode) {
+                                        localDrillMode = "ipsc"
+                                        onDrillModeChange("ipsc")
+                                    }
                                 },
                             shape = RoundedCornerShape(topStart = 12.dp, bottomStart = 12.dp),
                             color = if (localDrillMode == "ipsc") md_theme_dark_onPrimary else Color.Gray.copy(alpha = 0.2f),
@@ -189,9 +204,11 @@ fun TargetConfigListViewV2(
                             modifier = Modifier
                                 .weight(1f)
                                 .fillMaxHeight()
-                                .clickable {
-                                    localDrillMode = "cqb"
-                                    onDrillModeChange("cqb")
+                                .clickable(enabled = !isReadOnlyMode) {
+                                    if (!isReadOnlyMode) {
+                                        localDrillMode = "cqb"
+                                        onDrillModeChange("cqb")
+                                    }
                                 },
                             shape = RoundedCornerShape(topEnd = 12.dp, bottomEnd = 12.dp),
                             color = if (localDrillMode == "cqb") md_theme_dark_onPrimary else Color.Gray.copy(alpha = 0.2f),
