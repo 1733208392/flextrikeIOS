@@ -146,31 +146,47 @@ object CQBScoringUtility {
         
         println("[CQBScoringUtility] generateCQBDrillResult called: targetDevices=$targetDevices (count=${targetDevices.size}), shots=${shots.size}")
         
-        // Group shots by device
-        val shotsByDevice = shots.groupBy { it.device ?: it.target ?: "unknown" }
-        println("[CQBScoringUtility] Shots grouped by device: $shotsByDevice")
+        // Group shots by BOTH device ID and actualTargetType to support:
+        // 1. One device reporting multiple target types (e.g., Netlink/Simulator)
+        // 2. Multiple devices, each having one target type assigned
+        val shotsByTargetIdentifier = mutableMapOf<String, MutableList<ShotData>>()
+        
+        shots.forEach { shot ->
+            // Add to device-based group
+            val deviceId = (shot.device ?: shot.target ?: "unknown").lowercase()
+            shotsByTargetIdentifier.getOrPut(deviceId) { mutableListOf() }.add(shot)
+            
+            // Add to targetType-based group
+            val targetType = shot.content.actualTargetType.lowercase()
+            if (targetType.isNotEmpty() && targetType != deviceId) {
+                shotsByTargetIdentifier.getOrPut(targetType) { mutableListOf() }.add(shot)
+            }
+        }
+        
+        println("[CQBScoringUtility] Shots grouped by identifier keys: ${shotsByTargetIdentifier.keys}")
         
         for (targetName in targetDevices) {
-            val targetShots = shotsByDevice[targetName] ?: emptyList()
-            println("[CQBScoringUtility] Processing target='$targetName': isThreat=${isThreatTarget(targetName)}, isNonThreat=${isNonThreatTarget(targetName)}, shotCount=${targetShots.size}")
+            val normalizedTargetName = targetName.lowercase()
+            val targetShots = shotsByTargetIdentifier[normalizedTargetName] ?: emptyList()
+            println("[CQBScoringUtility] Processing target='$normalizedTargetName': isThreat=${isThreatTarget(normalizedTargetName)}, isNonThreat=${isNonThreatTarget(normalizedTargetName)}, shotCount=${targetShots.size}")
             
             when {
-                targetName.lowercase() == "disguised_enemy" -> {
+                normalizedTargetName == "disguised_enemy" -> {
                     // Special validation for disguised_enemy: must have 2+ valid shots AND no shots on disguised_enemy_surrender
                     val validShotsOnDisguisedEnemy = targetShots.count { isValidCQBHit(it.content.actualHitArea) }
-                    val surrenderShots = shotsByDevice["disguised_enemy_surrender"] ?: emptyList()
-                    val totalShotsOnSurrender = surrenderShots.size
+                    val surrenderShots = shotsByTargetIdentifier["disguised_enemy_surrender"] ?: emptyList()
+                    val totalShotsOnSurrender = surrenderShots.distinctBy { it.content }.size // ensure unique shots
                     println("[CQBScoringUtility]   -> Disguised enemy: validShots=$validShotsOnDisguisedEnemy, surrenderShots=$totalShotsOnSurrender")
                     shotResults.add(validateDisguisedEnemy(validShotsOnDisguisedEnemy, totalShotsOnSurrender))
                 }
-                isThreatTarget(targetName) -> {
+                isThreatTarget(normalizedTargetName) -> {
                     val validHits = targetShots.count { isValidCQBHit(it.content.actualHitArea) }
                     println("[CQBScoringUtility]   -> Threat target: validHits=$validHits")
-                    shotResults.add(validateThreatTarget(targetName, validHits))
+                    shotResults.add(validateThreatTarget(normalizedTargetName, validHits))
                 }
-                isNonThreatTarget(targetName) -> {
+                isNonThreatTarget(normalizedTargetName) -> {
                     println("[CQBScoringUtility]   -> Non-threat target: totalShots=${targetShots.size}")
-                    shotResults.add(validateNonThreatTarget(targetName, targetShots.size))
+                    shotResults.add(validateNonThreatTarget(normalizedTargetName, targetShots.size))
                 }
                 else -> {
                     println("[CQBScoringUtility]   -> Unknown target type, skipping")

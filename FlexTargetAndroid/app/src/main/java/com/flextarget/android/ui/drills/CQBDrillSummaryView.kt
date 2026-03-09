@@ -144,33 +144,33 @@ private fun CQBDrillCard(summary: DrillRepeatSummary) {
             }
 
             // CQB Results
-            summary.cqbResults?.let { results ->
-                if (results.isNotEmpty()) {
-                    Spacer(modifier = Modifier.height(16.dp))
+            // summary.cqbResults?.let { results ->
+            //     if (results.isNotEmpty()) {
+            //         Spacer(modifier = Modifier.height(16.dp))
 
-                    Text(
-                        text = stringResource(R.string.cqb_threat),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
-                    )
-                    results.filter { it.isThreat }.forEach { result ->
-                        TargetCardRow(result = result)
-                    }
+            //         Text(
+            //             text = stringResource(R.string.cqb_threat),
+            //             style = MaterialTheme.typography.titleMedium,
+            //             color = Color.White,
+            //             fontWeight = FontWeight.Bold
+            //         )
+            //         results.filter { it.isThreat }.forEach { result ->
+            //             TargetCardRow(result = result)
+            //         }
 
-                    Spacer(modifier = Modifier.height(12.dp))
+            //         Spacer(modifier = Modifier.height(12.dp))
 
-                    Text(
-                        text = stringResource(R.string.cqb_non_threat),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
-                    )
-                    results.filter { !it.isThreat }.forEach { result ->
-                        TargetCardRow(result = result)
-                    }
-                }
-            }
+            //         Text(
+            //             text = stringResource(R.string.cqb_non_threat),
+            //             style = MaterialTheme.typography.titleMedium,
+            //             color = Color.White,
+            //             fontWeight = FontWeight.Bold
+            //         )
+            //         results.filter { !it.isThreat }.forEach { result ->
+            //             TargetCardRow(result = result)
+            //         }
+            //     }
+            // }
         }
     }
 }
