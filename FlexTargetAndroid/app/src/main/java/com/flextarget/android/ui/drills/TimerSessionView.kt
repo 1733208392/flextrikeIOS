@@ -348,7 +348,7 @@ fun TimerSessionView(
         
         // Validate device configuration before proceeding
         val availableDevices = BLEManager.shared.networkDevices
-        val validationResult = validateAndUpdateDevices(expandedTargets, availableDevices, drillSetup.mode)
+        val validationResult = validateAndUpdateDevices(expandedTargets, availableDevices, drillSetup.mode ?: "ipsc")
         
         // Handle device validation result
         when (validationResult) {
