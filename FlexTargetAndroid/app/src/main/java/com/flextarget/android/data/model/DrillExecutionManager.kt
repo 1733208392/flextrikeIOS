@@ -751,7 +751,19 @@ sealed class DeviceValidationResult {
     data class NamesChanged(val updatedTargets: List<DrillTargetsConfigData>) : DeviceValidationResult()
 
     /**
-     * Device count doesn't match - user must reconfigure targets
+     * Device count changed but targets have been auto-updated with new device configurations
+     * @param updatedTargets List of updated target configurations with new devices added
+     * @param addedDevices Device names that were added
+     * @param removedDevices Device names that were removed
+     */
+    data class CountMismatchAutoUpdated(
+        val updatedTargets: List<DrillTargetsConfigData>,
+        val addedDevices: List<String>,
+        val removedDevices: List<String>
+    ) : DeviceValidationResult()
+
+    /**
+     * Device count doesn't match - user must reconfigure targets (fallback for complex cases)
      * @param configuredCount Number of targets configured in drill
      * @param availableCount Number of devices currently available
      * @param configuredDevices Device names from drill configuration
@@ -768,15 +780,17 @@ sealed class DeviceValidationResult {
 /**
  * Validates if available network devices match the configured targets in a drill.
  * If device count matches but names changed, automatically updates target names.
- * If device count doesn't match, returns error with details for user notification.
+ * If device count changed, auto-creates targets for new devices or removes targets for disconnected devices.
  *
  * @param configuredTargets List of targets configured in the drill
  * @param availableDevices List of devices currently available from device_list query
+ * @param drillMode Optional drill mode for default target type (used when creating targets for new devices)
  * @return DeviceValidationResult with outcome and any necessary updates
  */
 fun validateAndUpdateDevices(
     configuredTargets: List<DrillTargetsConfigData>,
-    availableDevices: List<NetworkDevice>
+    availableDevices: List<NetworkDevice>,
+    drillMode: String = "ipsc"
 ): DeviceValidationResult {
     // Get unique configured device names (one per device, ignoring multi-target configs on same device)
     val configuredDeviceNames = configuredTargets
@@ -784,42 +798,77 @@ fun validateAndUpdateDevices(
         .distinct()
     
     val availableDeviceNames = availableDevices.map { it.name }
+    val configuredSet = configuredDeviceNames.toSet()
+    val availableSet = availableDeviceNames.toSet()
     
-    Log.d("DeviceValidation", "Configured: ${configuredDeviceNames.size} devices, Available: ${availableDeviceNames.size} devices")
-    
-    // If counts don't match, return error
-    if (configuredDeviceNames.size != availableDeviceNames.size) {
-        return DeviceValidationResult.CountMismatch(
-            configuredCount = configuredDeviceNames.size,
-            availableCount = availableDeviceNames.size,
-            configuredDevices = configuredDeviceNames,
-            availableDevices = availableDeviceNames
-        )
-    }
+    Log.d("DeviceValidation", "Configured: ${configuredDeviceNames.size} devices (${configuredDeviceNames.joinToString(", ")}), Available: ${availableDeviceNames.size} devices (${availableDeviceNames.joinToString(", ")})")
     
     // If names are identical, no update needed
-    if (configuredDeviceNames.toSet() == availableDeviceNames.toSet()) {
+    if (configuredSet == availableSet) {
         return DeviceValidationResult.Success
     }
     
-    // Device count matches but names differ - update target names with new device names
-    // Create mapping from old device names to new device names by index
-    val deviceNameMapping = mutableMapOf<String, String>()
-    configuredDeviceNames.forEachIndexed { index, oldName ->
-        if (index < availableDeviceNames.size) {
-            deviceNameMapping[oldName] = availableDeviceNames[index]
+    // Check if devices have been added or removed
+    val addedDevices = availableSet - configuredSet
+    val removedDevices = configuredSet - availableSet
+    
+    // If only name changes (same devices, different names), rename by index mapping
+    if (addedDevices.isEmpty() && removedDevices.isEmpty()) {
+        // Device count matches but names differ - update target names with new device names
+        val deviceNameMapping = mutableMapOf<String, String>()
+        configuredDeviceNames.forEachIndexed { index, oldName ->
+            if (index < availableDeviceNames.size) {
+                deviceNameMapping[oldName] = availableDeviceNames[index]
+            }
         }
-    }
-    
-    // Update all targets whose targetName is in the mapping
-    val updatedTargets = configuredTargets.map { target ->
-        target.targetName?.let { oldName ->
-            deviceNameMapping[oldName]?.let { newName ->
-                target.copy(targetName = newName)
+        
+        val updatedTargets = configuredTargets.map { target ->
+            target.targetName?.let { oldName ->
+                deviceNameMapping[oldName]?.let { newName ->
+                    target.copy(targetName = newName)
+                } ?: target
             } ?: target
-        } ?: target
+        }
+        
+        Log.d("DeviceValidation", "Device names changed: $configuredDeviceNames -> $availableDeviceNames")
+        return DeviceValidationResult.NamesChanged(updatedTargets)
     }
     
-    Log.d("DeviceValidation", "Device names changed: $configuredDeviceNames -> $availableDeviceNames")
-    return DeviceValidationResult.NamesChanged(updatedTargets)
+    // Device count changed - auto-update by keeping valid targets and adding/removing as needed
+    val updatedTargets = mutableListOf<DrillTargetsConfigData>()
+    var nextSeqNo = 1
+    
+    // Keep targets for devices that still exist (update names if needed)
+    val remainingConfig = configuredTargets.filter { target ->
+        target.targetName in availableSet
+    }
+    
+    remainingConfig.forEach { target ->
+        updatedTargets.add(target.copy(seqNo = nextSeqNo))
+        nextSeqNo++
+    }
+    
+    // Add targets for new devices with default configuration
+    addedDevices.sorted().forEach { newDeviceName ->
+        val defaultTargetType = DrillTargetsConfigData.getDefaultTargetTypeForDrillMode(drillMode)
+        updatedTargets.add(
+            DrillTargetsConfigData(
+                seqNo = nextSeqNo,
+                targetName = newDeviceName,
+                targetType = defaultTargetType,
+                timeout = 30.0,
+                countedShots = 5,
+                action = DrillTargetsConfigData.getDefaultActionForTargetType(defaultTargetType, drillMode),
+                duration = 3.0
+            )
+        )
+        nextSeqNo++
+    }
+    
+    Log.d("DeviceValidation", "Auto-updated targets: Added devices=$addedDevices, Removed devices=$removedDevices, NewTargets.size=${updatedTargets.size}")
+    return DeviceValidationResult.CountMismatchAutoUpdated(
+        updatedTargets = updatedTargets,
+        addedDevices = addedDevices.sorted(),
+        removedDevices = removedDevices.sorted()
+    )
 }

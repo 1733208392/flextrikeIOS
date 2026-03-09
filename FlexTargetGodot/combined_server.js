@@ -1217,11 +1217,11 @@ const httpServer = http.createServer((req, res) => {
     
     const targetDevices = [
       'DE3823FF',
-      // 'DE3824FF',
-      // 'DE3825FF',
-      // 'DE3826FF',
-      // 'DE3827FF',
-      // 'DE3828FF'
+      'DE3824FF',
+      'DE3825FF',
+      'DE3826FF',
+      'DE3827FF',
+      'DE3828FF'
     ];
     
     console.log(`[TestEndpoint] Ready Ack Devices: Sending ack:ready to ${targetDevices.length} devices`);
@@ -1592,11 +1592,11 @@ class WriteCharacteristic extends bleno.Characteristic {
             // Auto-send ready acknowledgements to the 6 target devices
             const targetDevices = [
               'DE3823FF',
-              // 'DE3824FF',
-              // 'DE3825FF',
-              // 'DE3826FF',
-              // 'DE3827FF',
-              // 'DE3828FF'
+              'DE3824FF',
+              'DE3825FF',
+              'DE3826FF',
+              'DE3827FF',
+              'DE3828FF'
             ];
             
             console.log('[CombinedServer] Auto-sending ready acks to 6 target devices');
@@ -1635,11 +1635,11 @@ class WriteCharacteristic extends bleno.Characteristic {
             action: 'device_list',
             data: [
               { mode: 'master',name:'DE3823FF'},
-              // { mode: 'slave',name:'DE3824FF'},
-              // { mode: 'slave',name:'DE3825FF'},
-              // { mode: 'slave',name:'DE3826FF'}
-              // { mode: 'slave',name:'DE3827FF'},
-              // { mode: 'slave',name:'DE3828FF'}
+              { mode: 'slave',name:'DE3824FF'},
+              { mode: 'slave',name:'DE3825FF'},
+              { mode: 'slave',name:'DE3826FF'},
+              { mode: 'slave',name:'DE3827FF'},
+              { mode: 'slave',name:'DE3828FF'}
             ] 
           };
           

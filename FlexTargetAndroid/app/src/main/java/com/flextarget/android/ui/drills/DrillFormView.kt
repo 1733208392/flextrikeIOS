@@ -165,18 +165,26 @@ fun DrillFormView(
             }
         } else if (bleManager.networkDevices.isNotEmpty() && existingDrill != null && targets.isNotEmpty()) {
             // For existing drills, check if devices have changed
-            val validationResult = validateAndUpdateDevices(targets, bleManager.networkDevices)
+            val validationResult = validateAndUpdateDevices(targets, bleManager.networkDevices, drillMode)
             when (validationResult) {
-                is DeviceValidationResult.CountMismatch -> {
-                    deviceMismatchWarningMessage = "Warning: Device count changed!\n" +
-                        "Configured: ${validationResult.configuredCount} (${validationResult.configuredDevices.joinToString(", ")})\n" +
-                        "Available: ${validationResult.availableCount} (${validationResult.availableDevices.joinToString(", ")})\n\n" +
-                        "Please reconfigure the drill targets to match the currently available devices."
-                    showDeviceMismatchWarning = true
+                is DeviceValidationResult.CountMismatchAutoUpdated -> {
+                    // Auto-update targets with new/removed devices
+                    targets = validationResult.updatedTargets
+                    println("[DrillFormView] Auto-updated drill targets for device changes")
+                    println("[DrillFormView] Added devices: ${validationResult.addedDevices}")
+                    println("[DrillFormView] Removed devices: ${validationResult.removedDevices}")
                 }
                 is DeviceValidationResult.NamesChanged -> {
                     // Auto-update target names silently
                     targets = validationResult.updatedTargets
+                }
+                is DeviceValidationResult.CountMismatch -> {
+                    // Fallback: Should rarely occur with the new auto-update logic
+                    deviceMismatchWarningMessage = "Warning: Device count changed!\n" +
+                        "Configured: ${validationResult.configuredCount} (${validationResult.configuredDevices.joinToString(", ")})\n" +
+                        "Available: ${validationResult.availableCount} (${validationResult.availableDevices.joinToString(", ")})\n\n" +
+                        "Drill targets have been automatically updated to match available devices."
+                    showDeviceMismatchWarning = true
                 }
                 is DeviceValidationResult.Success -> {
                     // No action needed

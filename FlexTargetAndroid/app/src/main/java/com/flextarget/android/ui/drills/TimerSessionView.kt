@@ -348,10 +348,17 @@ fun TimerSessionView(
         
         // Validate device configuration before proceeding
         val availableDevices = BLEManager.shared.networkDevices
-        val validationResult = validateAndUpdateDevices(expandedTargets, availableDevices)
+        val validationResult = validateAndUpdateDevices(expandedTargets, availableDevices, drillSetup.mode)
         
         // Handle device validation result
         when (validationResult) {
+            is DeviceValidationResult.CountMismatchAutoUpdated -> {
+                // Device count changed but targets have been auto-updated
+                expandedTargets = validationResult.updatedTargets
+                println("[TimerSessionView] Device count changed but auto-updated targets")
+                println("[TimerSessionView] Added devices: ${validationResult.addedDevices}")
+                println("[TimerSessionView] Removed devices: ${validationResult.removedDevices}")
+            }
             is DeviceValidationResult.CountMismatch -> {
                 // Device count doesn't match - show alert and don't proceed with readiness check
                 deviceMismatchMessage = "Target device count mismatch:\n" +
