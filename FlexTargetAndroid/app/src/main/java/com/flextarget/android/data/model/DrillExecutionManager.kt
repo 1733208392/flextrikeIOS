@@ -700,10 +700,19 @@ class DrillExecutionManager(
             println("[DrillExecutionManager] Shot decoded successfully - cmd: ${shot.content.actualCommand}, ha: ${shot.content.actualHitArea}, device: ${shot.device ?: "unknown"}")
 
             // Filter shots by repeat number: only accept shots for the current repeat
-            // Device sends 1-based repeat numbers (same as app)
-            val shotRepeatNumber = shot.content.actualRepeat
+            // Device repeat indexing is inconsistent: CQB starts from 0, IPSC/IDPA starts from 1.
+            // Normalize everything to 1-based to match currentRepeat.
+            val rawRepeat = shot.content.actualRepeat
+            val shotRepeatNumber = if (rawRepeat != null) {
+                if (drillSetup.mode?.lowercase() == "cqb") {
+                    rawRepeat + 1 // Convert 0-based to 1-based
+                } else {
+                    rawRepeat // Already 1-based for IPSC/IDPA
+                }
+            } else null
+
             if (shotRepeatNumber != null && shotRepeatNumber != currentRepeat) {
-                println("[DrillExecutionManager] Ignoring shot from repeat $shotRepeatNumber, currently in repeat $currentRepeat")
+                println("[DrillExecutionManager] Ignoring shot from repeat $shotRepeatNumber, currently in repeat $currentRepeat (raw rep: $rawRepeat, mode: ${drillSetup.mode})")
                 return
             }
             if (shotRepeatNumber == null) {

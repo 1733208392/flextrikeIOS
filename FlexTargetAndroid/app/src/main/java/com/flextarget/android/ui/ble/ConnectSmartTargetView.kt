@@ -374,7 +374,7 @@ fun ConnectSmartTargetView(
                             shape = RoundedCornerShape(8.dp)
                         ) {
                             Text(
-                                text = "Upgrade Firmware",
+                                text = "UPGRADE FIRMWARE",
                                 color = md_theme_dark_primary,
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Medium

@@ -540,12 +540,17 @@ fun DrillFormView(
                             currentScreen = DrillFormScreen.FORM
                         },
                         onBack = {
-                            currentScreen = DrillFormScreen.TARGET_LINK
+                            if (bleManager.networkDevices.size > 1) {
+                                currentScreen = DrillFormScreen.TARGET_LINK
+                            } else {
+                                currentScreen = DrillFormScreen.FORM
+                            }
                         },
                         onDrillModeChange = { newMode ->
                             drillMode = newMode
                         },
-                        isReadOnlyMode = true
+                        isReadOnlyMode = bleManager.networkDevices.size > 1,
+                        fromScreen = if (bleManager.networkDevices.size > 1) DrillFormScreen.TARGET_LINK else DrillFormScreen.FORM
                     )
                 }
             }

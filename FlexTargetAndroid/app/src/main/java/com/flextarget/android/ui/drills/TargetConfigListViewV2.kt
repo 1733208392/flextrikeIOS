@@ -50,7 +50,8 @@ fun TargetConfigListViewV2(
     onDone: () -> Unit,
     onBack: () -> Unit,
     onDrillModeChange: (String) -> Unit,
-    isReadOnlyMode: Boolean = false
+    isReadOnlyMode: Boolean = false,
+    fromScreen: DrillFormScreen = DrillFormScreen.TARGET_LINK
 ) {
     val accentRed = Color(red = 0.87f, green = 0.22f, blue = 0.14f)
     val darkGray = Color(red = 0.44f, green = 0.44f, blue = 0.44f)
@@ -122,7 +123,6 @@ fun TargetConfigListViewV2(
                 },
                 navigationIcon = {
                     IconButton(onClick = {
-                        onDone()
                         onBack()
                     }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back), tint = accentRed)
@@ -656,11 +656,15 @@ private fun TargetTypeSelectionViewV2(
                     if (isSelectingMode) {
                         IconButton(
                             onClick = {
-                                val newTypes = if (isSingleTargetMode) {
-                                    // Single-target mode: replace with the selected type
-                                    listOf(type)
+                                val newTypes = if (selectedTargetTypes.contains(type)) {
+                                    // Already in list, so remove it
+                                    if (selectedTargetTypes.size > 1) {
+                                        selectedTargetTypes - type
+                                    } else {
+                                        selectedTargetTypes // Keep at least one
+                                    }
                                 } else {
-                                    // Multi-target mode: append the type
+                                    // Not in list, add it
                                     selectedTargetTypes + type
                                 }
                                 onTypesChanged(newTypes)
