@@ -688,7 +688,7 @@ bonus_label,BONUS,奖励,ボーナス,獎勵
 replay_button,REPL,重玩,リプレイ,重玩
 software_upgrade,SOFTWARE UPGRADE,软件升级,ソフトウェアのアップグレード,軟體升級
 wifi_status_unknown,"WiFi Status: Unknown","WiFi 状态：未知","WiFi ステータス: 不明","WiFi 狀態：未知"
-wifi_connected,"WiFi CONNECTION OK","✓ WiFi 已连接 (%s)","✓ WiFi 接続済み (%s)","✓ WiFi 已連線 (%s)"
+wifi_connected,"WiFi CONNECTION OK","✓ WiFi 已连接","✓ WiFi 接続済み","✓ WiFi 已連線"
 wifi_not_connected,"✗ WiFi NOT READY","✗ WiFi 未连接","✗ WiFi 未接続","✗ WiFi 未連線"
 waiting_upgrade_command,"WAITING FOR MOBILE APP ...","正在等待来自移动应用的升级指令...","モバイルアプリからのアップグレードコマンドを待機中...","正在等待來自行動應用的升級指令..."
 downloading_software,DOWNLOADING ...,正在下载软件...,ソフトウェアをダウンロード中...,正在下載軟體...
