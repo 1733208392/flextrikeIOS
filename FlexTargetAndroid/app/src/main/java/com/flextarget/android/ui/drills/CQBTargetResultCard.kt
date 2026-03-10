@@ -60,25 +60,8 @@ fun CQBTargetResultCard(result: CQBShotResult) {
                             .build(),
                         contentDescription = result.targetName,
                         modifier = Modifier
-                            .size(60.dp)
+                            .size(70.dp)
                             .padding(4.dp)
-                    )
-                } else {
-                    Text(
-                        text = stringResource(
-                            id = when (result.targetName) {
-                                "cqb_front" -> R.string.cqb_front
-                                "cqb_swing" -> R.string.cqb_swing
-                                "cqb_hostage" -> R.string.cqb_hostage
-                                "disguised_enemy" -> R.string.disguised_enemy
-                                else -> R.string.cqb // fallback
-                            }
-                        ),
-                        color = Color.White,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(4.dp),
-                        maxLines = 2
                     )
                 }
             }

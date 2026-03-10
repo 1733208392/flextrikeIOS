@@ -151,26 +151,33 @@ class CQBScoringUtility {
         drillDuration: Double,
         targetDevices: [String]
     ) -> CQBDrillResult {
-        // Group shots by target device name
-        var shotsByTarget: [String: [ShotData]] = [:]
+        // Group shots by BOTH device ID and actual targetType to support:
+        // 1. One device reporting multiple target types (e.g., Netlink/Simulator)
+        // 2. Multiple devices, each having one target type assigned
+        var shotsByTargetType: [String: [ShotData]] = [:]
         for shot in shots {
-            let device = shot.device ?? "unknown"
-            if shotsByTarget[device] == nil {
-                shotsByTarget[device] = []
+            let targetType = shot.content.targetType
+            if !targetType.isEmpty {
+                if shotsByTargetType[targetType] == nil {
+                    shotsByTargetType[targetType] = []
+                }
+                shotsByTargetType[targetType]?.append(shot)
             }
-            shotsByTarget[device]?.append(shot)
         }
         
         var results: [CQBShotResult] = []
         
-        // Validate each target device
-        for targetName in targetDevices {
-            let targetShots = shotsByTarget[targetName] ?? []
+        // Use the union of targetDevices and targetTypes from shots to ensure we don't miss anything
+        let allTargetNames = Array(Set(targetDevices + Array(shotsByTargetType.keys)))
+        
+        // Validate each target type
+        for targetName in allTargetNames {
+            let targetShots = shotsByTargetType[targetName] ?? []
             
             if targetName.lowercased() == "disguised_enemy" {
                 // Special validation for disguised_enemy: must have 2+ valid shots AND no shots on disguised_enemy_surrender
                 let validShotCount = targetShots.filter { isValidCQBHit($0.content.hitArea) }.count
-                let surrenderShots = shotsByTarget["disguised_enemy_surrender"] ?? []
+                let surrenderShots = shotsByTargetType["disguised_enemy_surrender"] ?? []
                 let totalShotsOnSurrender = surrenderShots.count
                 let result = validateDisguisedEnemy(validShotsOnDisguisedEnemy: validShotCount, totalShotsOnSurrender: totalShotsOnSurrender)
                 results.append(result)

@@ -55,7 +55,7 @@ struct TargetsSectionView: View {
                     .navigationTitle(NSLocalizedString("drill_setup", comment: "Navigation title for Drill Setup"))
                     .disabled(!isTargetListReceived)
                 } else {
-                    NavigationLink(destination: TargetConfigListViewV2(deviceList: bleManager.networkDevices, targetConfigs: $targetConfigs, onDone: onTargetConfigDone, drillMode: $drillMode)) {
+                    NavigationLink(destination: TargetConfigListViewV2(deviceList: bleManager.networkDevices, targetConfigs: $targetConfigs, onDone: onTargetConfigDone, drillMode: $drillMode, isFromTargetLink: false)) {
                         targetButtonContent
                     }
                     .navigationTitle(NSLocalizedString("drill_setup", comment: "Navigation title for Drill Setup"))

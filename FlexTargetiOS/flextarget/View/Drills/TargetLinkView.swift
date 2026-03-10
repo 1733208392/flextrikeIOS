@@ -20,6 +20,52 @@ struct TargetLinkView: View {
             Color.black.ignoresSafeArea()
             
             VStack(spacing: 20) {
+                // Drill Mode Segment Control
+                HStack(spacing: 0) {
+                    // IPSC Button
+                    Button(action: {
+                        drillMode = "ipsc"
+                    }) {
+                        HStack(spacing: 6) {
+                            if drillMode == "ipsc" {
+                                Image(systemName: "checkmark")
+                                    .font(.system(size: 14, weight: .semibold))
+                            }
+                            Text("IPSC")
+                                .font(.system(size: 14, weight: .medium))
+                        }
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 44)
+                        .foregroundColor(drillMode == "ipsc" ? .white : .gray)
+                        .background(drillMode == "ipsc" ? Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433) : Color.gray.opacity(0.2))
+                    }
+                    
+                    // CQB Button
+                    Button(action: {
+                        drillMode = "cqb"
+                    }) {
+                        HStack(spacing: 6) {
+                            if drillMode == "cqb" {
+                                Image(systemName: "checkmark")
+                                    .font(.system(size: 14, weight: .semibold))
+                            }
+                            Text("CQB")
+                                .font(.system(size: 14, weight: .medium))
+                        }
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 44)
+                        .foregroundColor(drillMode == "cqb" ? .white : .gray)
+                        .background(drillMode == "cqb" ? Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433) : Color.gray.opacity(0.2))
+                    }
+                }
+                .frame(maxWidth: 200)
+                .background(Color.gray.opacity(0.2))
+                .cornerRadius(12)
+                .padding(.top, 10)
+                .onChange(of: drillMode) { _ in
+                    updateTargetConfigsForMode()
+                }
+
                 ScrollView {
                     Spacer()
                     gridContent
@@ -74,7 +120,8 @@ struct TargetLinkView: View {
                             onDone: onDone,
                             drillMode: $drillMode,
                             singleDeviceMode: true,
-                            deviceNameFilter: device.name
+                            deviceNameFilter: device.name,
+                            isFromTargetLink: true
                         )) {
                             let config = targetConfigs.first { $0.targetName == device.name }
                             TargetRectangleView(
@@ -236,6 +283,20 @@ struct TargetLinkView: View {
         updated.sort { $0.seqNo < $1.seqNo }
         targetConfigs = updated
         print("TargetLinkView: Final targetConfigs has \(targetConfigs.count) items")
+    }
+
+    private func updateTargetConfigsForMode() {
+        var updated = targetConfigs
+        for i in 0..<updated.count {
+            updated[i].targetType = defaultTargetType()
+            // Reset to default action for mode if needed (mostly for CQB)
+            if drillMode == "cqb" {
+                updated[i].action = "flash"
+            } else {
+                updated[i].action = ""
+            }
+        }
+        targetConfigs = updated
     }
     
     private func defaultTargetType() -> String {

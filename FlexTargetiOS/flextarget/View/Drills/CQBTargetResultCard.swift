@@ -26,6 +26,25 @@ struct CQBTargetResultCard: View {
         result.cardStatus == .green ? .green : Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433)
     }
     
+    private var targetIconName: String {
+        switch result.targetName {
+        case "cqb_front":
+            return "cqb_front"
+        case "cqb_swing":
+            return "cqb_swing"
+        case "cqb_moving":
+            return "cqb_move"
+        case "cqb_hostage":
+            return "cqb_hostage"
+        case "disguised_enemy":
+            return "disguised_enemy"
+        case "disguised_enemy_surrender":
+            return "disguised_enemy_surrender"
+        default:
+            return ""
+        }
+    }
+    
     var body: some View {
         ZStack {
             // Card background
@@ -36,14 +55,21 @@ struct CQBTargetResultCard: View {
                         .stroke(Color.white.opacity(0.1), lineWidth: 1)
                 )
             
-            // Text content
-            VStack(spacing: 4) {
-                Text(targetName)
-                    .font(.system(size: 12, weight: .bold))
-                    .foregroundColor(.white)
-                    .lineLimit(2)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 4)
+            // Text content and Icon
+            VStack(spacing: 8) {
+                if !targetIconName.isEmpty {
+                    Image(targetIconName)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 50)
+                        .foregroundColor(.white)
+                } else {
+                    Image(systemName: "target")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 50)
+                        .foregroundColor(.white.opacity(0.5))
+                }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             
