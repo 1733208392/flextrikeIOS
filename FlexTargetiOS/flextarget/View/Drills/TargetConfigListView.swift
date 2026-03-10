@@ -730,10 +730,30 @@ struct TargetConfigListViewV2: View {
                             .frame(maxWidth: .infinity)
                             .frame(height: 44)
                             .foregroundColor(drillMode == "cqb" ? .white : .gray)
-                            .background(drillMode == "cqb" ? Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433) : Color.gray.opacity(0.2))
+                            .background(drillMode == "cqb" ? Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.1372549019607843) : Color.gray.opacity(0.2))
+                        }
+
+                        // Gaming Button
+                        if singleDeviceMode {
+                            Button(action: {
+                                drillMode = "gaming"
+                            }) {
+                                HStack(spacing: 6) {
+                                    if drillMode == "gaming" {
+                                        Image(systemName: "checkmark")
+                                            .font(.system(size: 14, weight: .semibold))
+                                    }
+                                    Text("Gaming")
+                                        .font(.system(size: 14, weight: .medium))
+                                }
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 44)
+                                .foregroundColor(drillMode == "gaming" ? .white : .gray)
+                                .background(drillMode == "gaming" ? Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.1372549019607843) : Color.gray.opacity(0.2))
+                            }
                         }
                     }
-                    .frame(maxWidth: 200)
+                    .frame(maxWidth: singleDeviceMode ? 280 : 200)
                     .background(Color.gray.opacity(0.2))
                     .cornerRadius(12)
                     .onChange(of: drillMode) { newValue in
@@ -799,6 +819,8 @@ struct TargetConfigListViewV2: View {
             return ["idpa", "idpa_ns", "idpa_black_1", "idpa_black_2"]
         case "cqb":
             return ["cqb_swing", "cqb_front", "cqb_move", "disguised_enemy", "cqb_hostage"]
+        case "gaming":
+            return ["clay pigeon"]
         default:
             return ["ipsc"]
         }
@@ -816,6 +838,8 @@ struct TargetConfigListViewV2: View {
             return "idpa"
         case "cqb":
             return "cqb_front"
+        case "gaming":
+            return "clay pigeon"
         default:
             return "ipsc"
         }

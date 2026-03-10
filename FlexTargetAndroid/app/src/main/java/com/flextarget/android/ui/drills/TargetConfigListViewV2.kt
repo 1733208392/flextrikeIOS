@@ -84,6 +84,7 @@ fun TargetConfigListViewV2(
         "ipsc" -> listOf("ipsc", "hostage", "paddle", "popper", "special_1", "special_2")
         "idpa" -> listOf("idpa", "idpa_ns", "idpa_black_1", "idpa_black_2")
         "cqb" -> listOf("disguised_enemy", "cqb_swing", "cqb_front", "cqb_hostage")
+        "gaming" -> listOf("clay pigeon")
         else -> listOf("")
     }
     LaunchedEffect(localDrillMode) {
@@ -210,7 +211,7 @@ fun TargetConfigListViewV2(
                                         onDrillModeChange("cqb")
                                     }
                                 },
-                            shape = RoundedCornerShape(topEnd = 12.dp, bottomEnd = 12.dp),
+                            shape = if (isSingleTargetMode) RoundedCornerShape(0.dp) else RoundedCornerShape(topEnd = 12.dp, bottomEnd = 12.dp),
                             color = if (localDrillMode == "cqb") md_theme_dark_onPrimary else Color.Gray.copy(alpha = 0.2f),
                             shadowElevation = 0.dp
                         ) {
@@ -236,6 +237,48 @@ fun TargetConfigListViewV2(
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Medium
                                 )
+                            }
+                        }
+
+                        // Gaming Button
+                        if (isSingleTargetMode) {
+                            Surface(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxHeight()
+                                    .clickable(enabled = !isReadOnlyMode) {
+                                        if (!isReadOnlyMode) {
+                                            localDrillMode = "gaming"
+                                            onDrillModeChange("gaming")
+                                        }
+                                    },
+                                shape = RoundedCornerShape(topEnd = 12.dp, bottomEnd = 12.dp),
+                                color = if (localDrillMode == "gaming") md_theme_dark_onPrimary else Color.Gray.copy(alpha = 0.2f),
+                                shadowElevation = 0.dp
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(horizontal = 12.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
+                                    if (localDrillMode == "gaming") {
+                                        Icon(
+                                            imageVector = Icons.Default.Check,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(18.dp),
+                                            tint = Color.White
+                                        )
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                    }
+                                    Text(
+                                        "Gaming",
+                                        color = if (localDrillMode == "gaming") Color.White else Color.Gray,
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
                             }
                         }
                     }

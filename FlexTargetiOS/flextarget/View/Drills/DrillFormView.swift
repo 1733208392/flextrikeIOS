@@ -51,6 +51,7 @@ struct DrillFormView: View {
     @State private var isSaving: Bool = false
     @State private var savedDrillSetup: DrillSetup? = nil
     @State private var hasCreatedDrillinAddMode: Bool = false
+    @State private var navigateToGamingController: Bool = false
     
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.managedObjectContext) private var environmentContext
@@ -233,6 +234,20 @@ struct DrillFormView: View {
                                 showAckTimeoutAlert = true
                                 navigateToTimerSession = false
                             }
+                        }
+                    )
+                }
+            } label: {
+                EmptyView()
+            }
+
+            NavigationLink(isActive: $navigateToGamingController) {
+                if let drillSetup = drillSetupForTimer {
+                    GamingControllerView(
+                        drillSetup: drillSetup,
+                        bleManager: bleManager,
+                        onGameEnd: {
+                            // Can add hooks here for history saving etc
                         }
                     )
                 }
@@ -536,14 +551,18 @@ struct DrillFormView: View {
                 print("Drill saved successfully before starting execution")
             }
             
-            // Now navigate to timer session
+            // Now navigate to timer session or gaming controller
             guard let drillSetup = drillSetupToStart else {
                 print("Failed to get drill setup for starting")
                 return
             }
             
             drillSetupForTimer = drillSetup
-            navigateToTimerSession = true
+            if drillMode == "gaming" {
+                navigateToGamingController = true
+            } else {
+                navigateToTimerSession = true
+            }
         } catch {
             print("Failed to save drill setup before starting: \(error)")
             viewContext.rollback()

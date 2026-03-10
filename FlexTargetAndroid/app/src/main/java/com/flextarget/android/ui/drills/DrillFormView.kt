@@ -60,7 +60,8 @@ enum class DrillSessionScreen {
     TIMER,
     SUMMARY,
     RESULT,
-    REPLAY
+    REPLAY,
+    GAMING
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -428,6 +429,21 @@ fun DrillFormView(
                         println("[DrillFormView] REPLAY screen but drill=${timerSessionDrill} or replay summary=${selectedReplaySummary}")
                     }
                 }
+                
+                DrillSessionScreen.GAMING -> {
+                    if (timerSessionDrill != null && androidBleManager != null) {
+                        GamingControllerView(
+                            drillSetup = timerSessionDrill!!,
+                            bleManager = androidBleManager,
+                            onGameEnd = {
+                                drillSessionScreen = DrillSessionScreen.NONE
+                            },
+                            onBack = {
+                                drillSessionScreen = DrillSessionScreen.NONE
+                            }
+                        )
+                    }
+                }
             }
         } else {
             // Normal form view
@@ -477,7 +493,11 @@ fun DrillFormView(
                         onStartDrill = { sessionDrill, sessionTargets ->
                             timerSessionDrill = sessionDrill
                             timerSessionTargets = sessionTargets
-                            drillSessionScreen = DrillSessionScreen.TIMER
+                            if (drillMode == "gaming") {
+                                drillSessionScreen = DrillSessionScreen.GAMING
+                            } else {
+                                drillSessionScreen = DrillSessionScreen.TIMER
+                            }
                             showTimerSession = true
                         }
                     )
