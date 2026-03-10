@@ -486,6 +486,33 @@
 "reset_password_button" = "Reset Password";
 "send_code" = "Send Code";
 
+/* OTA Updates */
+"ota_update_title" = "OTA Update";
+"ota_current_version" = "Current Version";
+"ota_checking" = "Checking for updates...";
+"ota_available" = "UPDATE AVAILABLE";
+"ota_available_description" = "A new firmware version is available for your device";
+"ota_up_to_date" = "UP TO DATE";
+"ota_about_title" = "About OTA Updates";
+"ota_about_description" = "Keep your device connected during the entire update process";
+"ota_failed" = "FAILED";
+"ota_done_button" = "Done";
+"check_now" = "Check Now";
+"ota_update_now" = "Update Now";
+"ota_updating" = "Updating...";
+"ota_msg_preparing" = "Preparing update...";
+"ota_msg_downloading" = "Downloading...";
+"ota_msg_reloading" = "Reloading...";
+"ota_msg_verifying" = "Verifying...";
+"ota_msg_success" = "Update Successful";
+"ota_retry_verification" = "Retry Verification";
+"ota_recovery_backup" = "Recovery (Restore Backup)";
+"ota_confirm_title" = "Start OTA Update?";
+"ota_confirm_message" = "Are you sure you want to update to version %@?";
+"ota_failed_to_start_title" = "Failed to Start Update";
+"ota_game_disk_not_found" = "Game disk not found on device";
+"connect_device_prompt" = "Please connect to your device";
+
 /* Logout */
 "logout_confirm" = "Are you sure you want to logout?";
 /* IDPA Drill Summary */

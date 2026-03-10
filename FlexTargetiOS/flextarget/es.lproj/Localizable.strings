@@ -473,7 +473,29 @@
 /* Logout */
 "logout_confirm" = "¿Estás seguro de que quieres cerrar sesión?";
 
-/* Server selection */
-"server_label" = "Servidor: ";
-"server_international" = "Internacional";
-"server_china" = "China";
+/* OTA Actualización */
+"ota_update_title" = "Actualización OTA";
+"ota_current_version" = "Versión actual";
+"ota_checking" = "Buscando actualizaciones...";
+"ota_available" = "Actualización disponible";
+"ota_available_description" = "Su dispositivo tiene una nueva versión de firmware disponible";
+"ota_up_to_date" = "Está actualizado";
+"ota_about_title" = "Acerca de la actualización OTA";
+"ota_about_description" = "Mantenga el dispositivo conectado durante todo el proceso de actualización";
+"ota_failed" = "Fallido";
+"ota_done_button" = "Hecho";
+"check_now" = "Comprobar ahora";
+"ota_update_now" = "Actualizar ahora";
+"ota_updating" = "Actualizando...";
+"ota_msg_preparing" = "Preparando actualización...";
+"ota_msg_downloading" = "Descargando...";
+"ota_msg_reloading" = "Recargando...";
+"ota_msg_verifying" = "Verificando...";
+"ota_msg_success" = "Actualización exitosa";
+"ota_retry_verification" = "Reintentar verificación";
+"ota_recovery_backup" = "Recuperación (Restaurar copia de seguridad)";
+"ota_confirm_title" = "¿Iniciar actualización OTA?";
+"ota_confirm_message" = "¿Desea actualizar a la versión %@?";
+"ota_failed_to_start_title" = "Error al iniciar actualización";
+"ota_game_disk_not_found" = "Disco de juego no encontrado en dispositivo";
+"connect_device_prompt" = "Conecte su dispositivo";

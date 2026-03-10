@@ -489,7 +489,29 @@
 /* Logout */
 "logout_confirm" = "您確定要登出嗎？";
 
-/* Server selection */
-"server_label" = "伺服器: ";
-"server_international" = "國際";
-"server_china" = "中國";
+/* OTA更新 */
+"ota_update_title" = "OTA更新";
+"ota_current_version" = "當前版本";
+"ota_checking" = "檢查更新中...";
+"ota_available" = "有可用更新";
+"ota_available_description" = "您的裝置有新的韌體版本可用";
+"ota_up_to_date" = "已是最新版本";
+"ota_about_title" = "關於OTA更新";
+"ota_about_description" = "在整個更新過程中請保持裝置連接";
+"ota_failed" = "失敗";
+"ota_done_button" = "完成";
+"check_now" = "立即檢查";
+"ota_update_now" = "立即更新";
+"ota_updating" = "更新中...";
+"ota_msg_preparing" = "準備更新中...";
+"ota_msg_downloading" = "下載中...";
+"ota_msg_reloading" = "重新加載中...";
+"ota_msg_verifying" = "驗證中...";
+"ota_msg_success" = "更新成功";
+"ota_retry_verification" = "重試驗證";
+"ota_recovery_backup" = "恢復 (還原備份)";
+"ota_confirm_title" = "開始OTA更新?";
+"ota_confirm_message" = "確定要更新到版本 %@ 嗎?";
+"ota_failed_to_start_title" = "更新啟動失敗";
+"ota_game_disk_not_found" = "裝置上未找到遊戲磁碟";
+"connect_device_prompt" = "請連接到您的裝置";

@@ -475,7 +475,29 @@
 /* Logout */
 "logout_confirm" = "Sind Sie sicher, dass Sie sich abmelden möchten?";
 
-/* Server selection */
-"server_label" = "Server: ";
-"server_international" = "International";
-"server_china" = "China";
+/* OTA-Aktualisierung */
+"ota_update_title" = "OTA-Aktualisierung";
+"ota_current_version" = "Aktuelle Version";
+"ota_checking" = "Aktualisierungen werden geprüft...";
+"ota_available" = "Aktualisierung verfügbar";
+"ota_available_description" = "Auf Ihrem Gerät ist eine neue Firmware-Version verfügbar";
+"ota_up_to_date" = "Aktuell";
+"ota_about_title" = "Über OTA-Aktualisierung";
+"ota_about_description" = "Halten Sie Ihr Gerät während des Aktualisierungsvorgangs angeschlossen";
+"ota_failed" = "Fehler";
+"ota_done_button" = "Fertig";
+"check_now" = "Jetzt prüfen";
+"ota_update_now" = "Jetzt aktualisieren";
+"ota_updating" = "Wird aktualisiert...";
+"ota_msg_preparing" = "Aktualisierung wird vorbereitet...";
+"ota_msg_downloading" = "Wird heruntergeladen...";
+"ota_msg_reloading" = "Wird erneut geladen...";
+"ota_msg_verifying" = "Wird verifiziert...";
+"ota_msg_success" = "Aktualisierung erfolgreich";
+"ota_retry_verification" = "Verifizierung erneut versuchen";
+"ota_recovery_backup" = "Wiederherstellung (Backup wiederherstellen)";
+"ota_confirm_title" = "OTA-Aktualisierung starten?";
+"ota_confirm_message" = "Möchten Sie auf Version %@ aktualisieren?";
+"ota_failed_to_start_title" = "Aktualisierung konnte nicht gestartet werden";
+"ota_game_disk_not_found" = "Spielfestplatte auf Gerät nicht gefunden";
+"connect_device_prompt" = "Verbinden Sie Ihr Gerät";
