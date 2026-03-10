@@ -587,9 +587,19 @@ struct DrillResultView: View {
                             .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                     }
                 }
+
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    if !shots.isEmpty {
+                        ShareLink(item: generateCSVFile()) {
+                            Image(systemName: "square.and.arrow.up")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+                        }
+                    }
+                }
             }
             .navigationTitle("Result")
-                .onAppear {
+            .onAppear {
                     ensureSelectedTargetIsValid()
 
                     // If there are shots and no selection yet, focus the first shot
@@ -641,6 +651,16 @@ struct DrillResultView: View {
     }
 
     
+
+    private func generateCSVFile() -> URL {
+        let drillName = drillSetup.name ?? "Drill"
+        let summary = repeatSummary ?? DrillRepeatSummary(repeatIndex: 0, totalTime: 0, numShots: shots.count, firstShot: 0, fastest: 0, score: 0, shots: shots)
+        let csvString = CSVExporter.generateSingleRepeatCSV(drillName: drillName, summary: summary)
+        let fileName = "\(drillName.replacingOccurrences(of: " ", with: "_"))_Repeat_\(summary.repeatIndex + 1).csv"
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
+        try? csvString.write(to: url, atomically: true, encoding: String.Encoding.utf8)
+        return url
+    }
 
     private func startDotsTimer() {
         dotsTimer?.invalidate()

@@ -627,11 +627,27 @@ struct DrillSummaryView: View {
             }
 
             Spacer()
+
+            if !summaries.isEmpty {
+                ShareLink(item: generateCSVFile()) {
+                    Image(systemName: "square.and.arrow.up")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+                }
+            }
         }
         .padding(.horizontal, 20)
         .padding(.top, 16)
         .padding(.bottom, 12)
         .background(Color.black.opacity(0.95))
+    }
+
+    private func generateCSVFile() -> URL {
+        let csvString = CSVExporter.generateDrillSessionCSV(drillSetup: drillSetup, summaries: summaries)
+        let fileName = "\(drillName.replacingOccurrences(of: " ", with: "_"))_Results.csv"
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
+        try? csvString.write(to: url, atomically: true, encoding: .utf8)
+        return url
     }
 
     private var emptyState: some View {
