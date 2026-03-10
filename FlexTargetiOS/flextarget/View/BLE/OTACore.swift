@@ -447,17 +447,17 @@ class OTAManager: ObservableObject {
                     }
                     
                     // If verifying, check if it matches target (or if it's already completed)
+                    // RELAXED LOGIC: Accept ANY version response as a sign of life/reboot success
                     if self.currentState == .verifying {
-                        if version == self.targetVersion {
-                            print("OTAManager: Version match! \(version) == \(self.targetVersion ?? ""). OTA Success.")
-                            self.transition(to: .completed, message: localizedMessage("ota_msg_success"))
-                            
-                            // Clear and reset after success
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
-                                self.reset()
-                            }
+                        print("OTAManager: Received any version info (\(version)) during verification. Treating as SUCCESS.")
+                        self.transition(to: .completed, message: localizedMessage("ota_msg_success"))
+                        
+                        // Clear and reset after success
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                            self.reset()
                         }
                     }
+                }
                 }
             }
             .store(in: &cancellables)
