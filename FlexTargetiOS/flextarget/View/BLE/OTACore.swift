@@ -458,7 +458,6 @@ class OTAManager: ObservableObject {
                         }
                     }
                 }
-                }
             }
             .store(in: &cancellables)
             
