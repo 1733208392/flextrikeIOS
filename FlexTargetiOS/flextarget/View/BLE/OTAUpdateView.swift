@@ -9,28 +9,69 @@ struct OTAUpdateView: View {
     @State private var selectedVersion: OTAVersion?
     @State private var latestVersion: OTAVersion?
     @State private var isLoadingLatest = true
+    @State private var isCheckingForUpdates = false
     
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
             
-            VStack(spacing: 20) {
-                if otaManager.currentState == .idle {
-                    versionListView
-                } else {
-                    otaProgressView
+            VStack(spacing: 0) {
+                // Navigation bar
+                HStack {
+                    Button(action: { dismiss() }) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.white)
+                    }
+                    
+                    Spacer()
+                    
+                    Text(NSLocalizedString("ota_update_title", comment: "OTA Update"))
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.white)
+                    
+                    Spacer()
+                    
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.clear)
                 }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
                 
-                Spacer()
+                Divider()
+                    .background(Color.white.opacity(0.1))
+                
+                // Main content
+                ScrollView {
+                    VStack(spacing: 16) {
+                        // Device not connected card
+                        if !bleManager.isConnected {
+                            deviceNotConnectedCard
+                        } else {
+                            // Current version card
+                            currentVersionCard
+                            
+                            // State-based content
+                            stateBasedContent
+                            
+                            // Unified button
+                            unifiedButton
+                            
+                            // Info card
+                            infoCard
+                        }
+                    }
+                    .padding(16)
+                }
             }
-            .padding()
         }
-        .navigationTitle(NSLocalizedString("ota_update_title", comment: "OTA Update"))
-        .navigationBarTitleDisplayMode(.inline)
-        
         .onAppear {
             otaManager.fetchHistory()
-            fetchLatestVersion()
+            otaManager.queryCurrentDeviceVersion()
+            if otaManager.currentState == .idle {
+                checkForUpdates()
+            }
         }
         .alert(NSLocalizedString("ota_confirm_title", comment: "Start OTA?"), isPresented: $showingConfirmation, presenting: selectedVersion) { version in
             Button(NSLocalizedString("ota_cancel_button", comment: "Cancel"), role: .cancel) { }
@@ -46,190 +87,399 @@ struct OTAUpdateView: View {
                 dismiss()
             }
         } message: {
-            Text(NSLocalizedString("ota_game_disk_not_found", comment: "Game disk not found on device"))
+            Text(otaManager.otaFailureReason.isEmpty ? NSLocalizedString("ota_game_disk_not_found", comment: "Game disk not found on device") : otaManager.otaFailureReason)
         }
     }
     
-    private func fetchLatestVersion() {
-        bleManager.getAuthData { result in
-            switch result {
-            case .success(let authData):
-                Task {
-                    do {
-                        let latest = try await OTAService.shared.getLatestOTAVersion(authData: authData)
-                        DispatchQueue.main.async {
-                            self.latestVersion = latest
-                            self.isLoadingLatest = false
-                        }
-                    } catch {
-                        DispatchQueue.main.async {
-                            self.isLoadingLatest = false
-                        }
-                        print("OTAUpdateView: Failed to fetch latest version: \(error)")
-                    }
-                }
-            case .failure(let error):
-                print("OTAUpdateView: Failed to get auth data: \(error)")
-                DispatchQueue.main.async {
-                    self.isLoadingLatest = false
-                }
+    // MARK: - UI Components
+    
+    private var deviceNotConnectedCard: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.system(size: 32))
+                .foregroundColor(.red)
+            
+            Text(NSLocalizedString("connection_required", comment: "CONNECTION REQUIRED"))
+                .font(.system(size: 14, weight: .bold))
+                .foregroundColor(.white)
+            
+            Text(NSLocalizedString("connect_device_prompt", comment: "Connect device"))
+                .font(.system(size: 12))
+                .foregroundColor(.gray)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(16)
+        .background(Color.white.opacity(0.05))
+        .cornerRadius(8)
+    }
+    
+    private var currentVersionCard: some View {
+        VStack(spacing: 8) {
+            Text(NSLocalizedString("ota_current_version", comment: "Current Version"))
+                .font(.system(size: 12))
+                .foregroundColor(.gray)
+            
+            Text(otaManager.currentDeviceVersion ?? "---")
+                .font(.system(size: 20, weight: .bold))
+                .foregroundColor(.white)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(16)
+        .background(Color.white.opacity(0.05))
+        .cornerRadius(8)
+    }
+    
+    private var stateBasedContent: some View {
+        Group {
+            switch otaManager.currentState {
+            case .idle:
+                idleStateView
+            case .preparing, .waitingForReadyToDownload:
+                preparingStateView
+            case .downloading:
+                downloadingStateView
+            case .reloading:
+                reloadingStateView
+            case .verifying:
+                verifyingStateView
+            case .completed:
+                completedStateView
+            case .failed:
+                failedStateView
             }
         }
     }
     
-    private var versionListView: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                Text(NSLocalizedString("ota_version_history", comment: "Version History"))
-                    .font(.headline)
-                    .foregroundColor(.white)
-                
-                // Show latest version first if available
-                if let latest = latestVersion {
-                    versionRow(latest, isLatest: true)
-                }
-                
-                if otaManager.history.isEmpty {
-                    if isLoadingLatest {
-                        Text(NSLocalizedString("ota_fetching_history", comment: "Fetching history..."))
-                            .foregroundColor(.gray)
-                    } else if latestVersion == nil {
-                        Text(NSLocalizedString("ota_fetching_history", comment: "Fetching history..."))
-                            .foregroundColor(.gray)
-                    }
-                } else {
-                    // Show history, excluding duplicate latest version
-                    ForEach(otaManager.history) { version in
-                        if latestVersion?.version != version.version {
-                            versionRow(version, isLatest: false)
-                        }
-                    }
-                }
+    private var idleStateView: some View {
+        Group {
+            if isLoadingLatest {
+                loadingCard(message: NSLocalizedString("ota_checking", comment: "Checking for updates..."))
+            } else if let available = otaManager.availableVersion, let current = otaManager.currentDeviceVersion, available != current {
+                updateAvailableCard
+            } else {
+                upToDateCard
             }
         }
     }
     
-    private func versionRow(_ version: OTAVersion, isLatest: Bool) -> some View {
-        Button(action: {
-            selectedVersion = version
-            showingConfirmation = true
-        }) {
-            HStack {
+    private var updateAvailableCard: some View {
+        VStack(spacing: 12) {
+            HStack(spacing: 12) {
+                Image(systemName: "arrow.down.circle.fill")
+                    .font(.system(size: 24))
+                    .foregroundColor(.red)
+                
                 VStack(alignment: .leading, spacing: 4) {
-                    HStack {
-                        Text("v\(version.version)")
-                            .font(.system(.headline, design: .monospaced))
-                            .foregroundColor(.white)
-                        if isLatest {
-                            Text(NSLocalizedString("ota_latest_version", comment: "Latest"))
-                                .font(.caption)
-                                .foregroundColor(.green)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 2)
-                                .background(Color.green.opacity(0.2))
-                                .cornerRadius(4)
-                        }
-                    }
-                    Text("SHA1: \(version.checksum.prefix(8))...")
-                        .font(.caption)
+                    Text(NSLocalizedString("ota_available", comment: "UPDATE AVAILABLE"))
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundColor(.white)
+                    
+                    Text("Version \(otaManager.availableVersion ?? "---")")
+                        .font(.system(size: 12))
                         .foregroundColor(.gray)
                 }
                 
                 Spacer()
-                
-                Image(systemName: "arrow.down.circle")
-                    .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
             }
-            .padding()
-            .background(Color.gray.opacity(0.1))
-            .cornerRadius(10)
+            
+            Text(NSLocalizedString("ota_available_description", comment: "New version available"))
+                .font(.system(size: 12))
+                .foregroundColor(.white)
+                .multilineTextAlignment(.leading)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(16)
+        .background(Color.white.opacity(0.08))
+        .cornerRadius(8)
     }
     
-    private var otaProgressView: some View {
-        VStack(spacing: 30) {
-            Spacer()
+    private var upToDateCard: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "checkmark.circle.fill")
+                .font(.system(size: 24))
+                .foregroundColor(.green)
             
-            ZStack {
-                Circle()
-                    .stroke(Color.gray.opacity(0.2), lineWidth: 10)
-                    .frame(width: 150, height: 150)
-                
-                if otaManager.currentState == .completed {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 80))
-                        .foregroundColor(.green)
-                } else if otaManager.currentState == .failed {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .font(.system(size: 80))
-                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
-                } else {
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433)))
-                        .scaleEffect(2.0)
-                }
-            }
-            
-            VStack(spacing: 12) {
-                Text(otaManager.currentState.rawValue.uppercased())
-                    .font(.headline)
-                    .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
-                
-                Text(otaManager.progressMessage)
-                    .font(.body)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(NSLocalizedString("ota_up_to_date", comment: "UP TO DATE"))
+                    .font(.system(size: 12, weight: .bold))
                     .foregroundColor(.white)
-                    .multilineTextAlignment(.center)
                 
-                if let target = otaManager.targetVersion {
-                    Text(NSLocalizedString("ota_target_version", comment: "Target Version:") + " \(target)")
-                        .font(.caption)
+                if let lastCheck = otaManager.lastCheckTime {
+                    Text("Last checked: \(lastCheck.prefix(10))")
+                        .font(.system(size: 10))
                         .foregroundColor(.gray)
                 }
             }
             
-            if otaManager.currentState == .failed {
-                VStack(spacing: 16) {
-                    Button(action: {
-                        otaManager.retryVerification()
-                    }) {
-                        Text(NSLocalizedString("ota_retry_verification", comment: "Retry Verification"))
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
-                            .cornerRadius(10)
-                    }
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(16)
+        .background(Color.white.opacity(0.05))
+        .cornerRadius(8)
+    }
+    
+    private var preparingStateView: some View {
+        VStack(spacing: 12) {
+            ProgressView()
+                .progressViewStyle(CircularProgressViewStyle(tint: Color(red: 0.87, green: 0.22, blue: 0.14)))
+            
+            Text(otaManager.progressMessage.isEmpty ? NSLocalizedString("ota_msg_preparing", comment: "Preparing...") : otaManager.progressMessage)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(.white)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(16)
+        .background(Color.white.opacity(0.05))
+        .cornerRadius(8)
+    }
+    
+    private var downloadingStateView: some View {
+        VStack(spacing: 12) {
+            ProgressView()
+                .progressViewStyle(CircularProgressViewStyle(tint: Color(red: 0.87, green: 0.22, blue: 0.14)))
+            
+            Text(NSLocalizedString("ota_msg_downloading", comment: "Downloading..."))
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(.white)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(16)
+        .background(Color.white.opacity(0.05))
+        .cornerRadius(8)
+    }
+    
+    private var reloadingStateView: some View {
+        VStack(spacing: 12) {
+            ProgressView()
+                .progressViewStyle(CircularProgressViewStyle(tint: Color(red: 0.87, green: 0.22, blue: 0.14)))
+            
+            Text(NSLocalizedString("ota_msg_reloading", comment: "Reloading..."))
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(.white)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(16)
+        .background(Color.white.opacity(0.05))
+        .cornerRadius(8)
+    }
+    
+    private var verifyingStateView: some View {
+        VStack(spacing: 12) {
+            ProgressView()
+                .progressViewStyle(CircularProgressViewStyle(tint: Color(red: 0.87, green: 0.22, blue: 0.14)))
+            
+            Text(NSLocalizedString("ota_msg_verifying", comment: "Verifying..."))
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(.white)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(16)
+        .background(Color.white.opacity(0.05))
+        .cornerRadius(8)
+    }
+    
+    private var completedStateView: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "checkmark.circle.fill")
+                .font(.system(size: 48))
+                .foregroundColor(.green)
+            
+            Text(NSLocalizedString("ota_msg_success", comment: "Update Successful"))
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(.green)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(16)
+        .background(Color.green.opacity(0.08))
+        .cornerRadius(8)
+    }
+    
+    private var failedStateView: some View {
+        VStack(spacing: 12) {
+            HStack(spacing: 12) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(.system(size: 24))
+                    .foregroundColor(.red)
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(NSLocalizedString("ota_failed", comment: "FAILED"))
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundColor(.white)
                     
-                    Button(action: {
-                        otaManager.recovery()
-                    }) {
-                        Text(NSLocalizedString("ota_recovery_backup", comment: "Recovery (Restore Backup)"))
-                            .font(.headline)
-                            .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433), lineWidth: 1))
+                    if let error = otaManager.errorMessage {
+                        Text(error)
+                            .font(.system(size: 11))
+                            .foregroundColor(.gray)
+                            .lineLimit(2)
                     }
                 }
-                .padding(.top, 20)
+                
+                Spacer()
             }
             
-            if otaManager.currentState == .completed {
-                Button(action: {
-                    otaManager.reset()
-                }) {
-                    Text(NSLocalizedString("ota_done_button", comment: "Done"))
-                        .font(.headline)
+            HStack(spacing: 12) {
+                Button(action: { otaManager.retryVerification() }) {
+                    Text(NSLocalizedString("ota_retry_verification", comment: "Retry"))
+                        .font(.system(size: 12, weight: .semibold))
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.green)
-                        .cornerRadius(10)
+                        .padding(.vertical, 8)
+                        .background(Color.red)
+                        .cornerRadius(6)
+                }
+                
+                Button(action: { otaManager.recovery() }) {
+                    Text(NSLocalizedString("ota_recovery_backup", comment: "Recovery"))
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(.red)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8)
+                        .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.red, lineWidth: 1))
                 }
             }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(16)
+        .background(Color.white.opacity(0.08))
+        .cornerRadius(8)
+    }
+    
+    private var unifiedButton: some View {
+        Button(action: buttonAction) {
+            Text(buttonTitle)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(buttonForeColor)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .background(buttonBgColor)
+                .cornerRadius(8)
+        }
+        .disabled(!buttonEnabled)
+    }
+    
+    private var infoCard: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                Image(systemName: "info.circle.fill")
+                    .font(.system(size: 16))
+                    .foregroundColor(.white.opacity(0.6))
+                
+                Text(NSLocalizedString("ota_about_title", comment: "About OTA Updates"))
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(.white)
+                
+                Spacer()
+            }
             
-            Spacer()
+            Text(NSLocalizedString("ota_about_description", comment: "Make sure device remains connected during update"))
+                .font(.system(size: 11))
+                .foregroundColor(.white.opacity(0.7))
+                .lineLimit(3)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12)
+        .background(Color.white.opacity(0.05))
+        .cornerRadius(8)
+    }
+    
+    private func loadingCard(message: String) -> some View {
+        VStack(spacing: 12) {
+            ProgressView()
+                .progressViewStyle(CircularProgressViewStyle(tint: Color(red: 0.87, green: 0.22, blue: 0.14)))
+            
+            Text(message)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(.white)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(16)
+        .background(Color.white.opacity(0.05))
+        .cornerRadius(8)
+    }
+    
+    // MARK: - Helpers
+    
+    private var buttonTitle: String {
+        switch otaManager.currentState {
+        case .idle:
+            if isLoadingLatest || isCheckingForUpdates {
+                return NSLocalizedString("ota_checking", comment: "Checking...")
+            } else if otaManager.availableVersion != nil && otaManager.availableVersion != otaManager.currentDeviceVersion {
+                return NSLocalizedString("ota_update_now", comment: "Update Now")
+            } else {
+                return NSLocalizedString("check_now", comment: "Check Now")
+            }
+        case .preparing, .waitingForReadyToDownload, .downloading, .reloading, .verifying:
+            return NSLocalizedString("ota_updating", comment: "Updating...")
+        case .completed:
+            return NSLocalizedString("ota_done_button", comment: "Done")
+        case .failed:
+            return NSLocalizedString("ota_retry_verification", comment: "Retry")
+        }
+    }
+    
+    private var buttonEnabled: Bool {
+        switch otaManager.currentState {
+        case .idle:
+            return !isLoadingLatest && !isCheckingForUpdates && bleManager.isConnected
+        case .completed:
+            return true
+        case .failed:
+            return true
+        default:
+            return false
+        }
+    }
+    
+    private var buttonForeColor: Color {
+        .white
+    }
+    
+    private var buttonBgColor: Color {
+        switch otaManager.currentState {
+        case .completed:
+            return .green
+        case .failed:
+            return .red
+        default:
+            return Color(red: 0.87, green: 0.22, blue: 0.14)
+        }
+    }
+    
+    private func buttonAction() {
+        switch otaManager.currentState {
+        case .idle:
+            if otaManager.availableVersion != nil && otaManager.availableVersion != otaManager.currentDeviceVersion {
+                if let version = otaManager.history.first(where: { $0.version == otaManager.availableVersion }) {
+                    selectedVersion = version
+                    showingConfirmation = true
+                }
+            } else {
+                checkForUpdates()
+            }
+        case .completed:
+            otaManager.reset()
+            dismiss()
+        case .failed:
+            otaManager.retryVerification()
+        default:
+            break
+        }
+    }
+    
+    private func checkForUpdates() {
+        isCheckingForUpdates = true
+        otaManager.checkForUpdates()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            isCheckingForUpdates = false
         }
     }
 }
+
+#Preview {
+    OTAUpdateView()
+}
+

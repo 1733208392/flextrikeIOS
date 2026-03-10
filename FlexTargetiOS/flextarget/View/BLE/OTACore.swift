@@ -127,6 +127,10 @@ class OTAManager: ObservableObject {
     @Published var showOTAFailureAlert: Bool = false
     @Published var otaFailureReason: String = ""
     @Published var history: [OTAVersion] = []
+    @Published var currentDeviceVersion: String?
+    @Published var availableVersion: String?
+    @Published var progress: Int = 0
+    @Published var lastCheckTime: String?
     
     private var currentOTAVersion: OTAVersion?
     private var preparationStartTime: Date?
@@ -421,18 +425,27 @@ class OTAManager: ObservableObject {
             
         NotificationCenter.default.publisher(for: .bleVersionInfoReceived)
             .sink { [weak self] notification in
-                guard let self = self, self.currentState == .verifying else { return }
+                guard let self = self else { return }
                 
                 if let version = notification.userInfo?["version"] as? String {
-                    print("OTAManager: Received version info: \(version), target: \(self.targetVersion ?? "nil")")
-                    if version == self.targetVersion {
-                        self.transition(to: .completed, message: localizedMessage("ota_msg_success"))
-                        // Finalize
-                        BLEManager.shared.finishGameDiskOTA()
-                        
-                        // Clear state after success
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
-                            self.reset()
+                    print("OTAManager: Received version info: \(version)")
+                    
+                    // Update current device version
+                    DispatchQueue.main.async {
+                        self.currentDeviceVersion = version
+                    }
+                    
+                    // If verifying, check if it matches target
+                    if self.currentState == .verifying {
+                        if version == self.targetVersion {
+                            self.transition(to: .completed, message: localizedMessage("ota_msg_success"))
+                            // Finalize
+                            BLEManager.shared.finishGameDiskOTA()
+                            
+                            // Clear state after success
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                                self.reset()
+                            }
                         }
                     }
                 }
@@ -507,9 +520,11 @@ class OTAManager: ObservableObject {
     func reset() {
         currentState = .idle
         targetVersion = nil
+        availableVersion = nil
         currentOTAVersion = nil
         progressMessage = ""
         errorMessage = nil
+        progress = 0
         preparationStartTime = nil
         prepareGameDiskOTACompleted = false
         stopPrepareGameDiskOTATimeout()
@@ -542,5 +557,30 @@ class OTAManager: ObservableObject {
                 }
             }
         }
+    }
+    
+    func checkForUpdates() {
+        BLEManager.shared.getAuthData { result in
+            switch result {
+            case .success(let authData):
+                Task {
+                    do {
+                        let latest = try await OTAService.shared.getLatestOTAVersion(authData: authData)
+                        DispatchQueue.main.async {
+                            self.availableVersion = latest.version
+                            self.lastCheckTime = ISO8601DateFormatter().string(from: Date())
+                        }
+                    } catch {
+                        print("OTAManager: Failed to fetch latest version: \(error)")
+                    }
+                }
+            case .failure(let error):
+                print("OTAManager: Failed to get auth data: \(error)")
+            }
+        }
+    }
+    
+    func queryCurrentDeviceVersion() {
+        BLEManager.shared.queryVersion()
     }
 }
