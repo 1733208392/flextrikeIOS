@@ -491,7 +491,7 @@
 "ota_current_version" = "Current Version";
 "ota_checking" = "Checking for updates...";
 "ota_available" = "UPDATE AVAILABLE";
-"ota_available_description" = "A new firmware version is available for your device";
+"ota_available_description" = "A new software version is available for your device";
 "ota_up_to_date" = "UP TO DATE";
 "ota_about_title" = "About OTA Updates";
 "ota_about_description" = "Keep your device connected during the entire update process";

@@ -494,7 +494,7 @@
 "ota_current_version" = "當前版本";
 "ota_checking" = "檢查更新中...";
 "ota_available" = "有可用更新";
-"ota_available_description" = "您的裝置有新的韌體版本可用";
+"ota_available_description" = "您的裝置有新的軟體版本可用";
 "ota_up_to_date" = "已是最新版本";
 "ota_about_title" = "關於OTA更新";
 "ota_about_description" = "在整個更新過程中請保持裝置連接";

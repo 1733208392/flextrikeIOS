@@ -478,7 +478,7 @@
 "ota_current_version" = "Versión actual";
 "ota_checking" = "Buscando actualizaciones...";
 "ota_available" = "Actualización disponible";
-"ota_available_description" = "Su dispositivo tiene una nueva versión de firmware disponible";
+"ota_available_description" = "Su dispositivo tiene una nueva versión de software disponible";
 "ota_up_to_date" = "Está actualizado";
 "ota_about_title" = "Acerca de la actualización OTA";
 "ota_about_description" = "Mantenga el dispositivo conectado durante todo el proceso de actualización";

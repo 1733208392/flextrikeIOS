@@ -480,7 +480,7 @@
 "ota_current_version" = "Aktuelle Version";
 "ota_checking" = "Aktualisierungen werden geprüft...";
 "ota_available" = "Aktualisierung verfügbar";
-"ota_available_description" = "Auf Ihrem Gerät ist eine neue Firmware-Version verfügbar";
+"ota_available_description" = "Auf Ihrem Gerät ist eine neue Software-Version verfügbar";
 "ota_up_to_date" = "Aktuell";
 "ota_about_title" = "Über OTA-Aktualisierung";
 "ota_about_description" = "Halten Sie Ihr Gerät während des Aktualisierungsvorgangs angeschlossen";

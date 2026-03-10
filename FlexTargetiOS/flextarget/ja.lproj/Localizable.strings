@@ -479,7 +479,7 @@
 "ota_current_version" = "現在のバージョン";
 "ota_checking" = "更新を確認中...";
 "ota_available" = "利用可能な更新";
-"ota_available_description" = "デバイスに利用可能な新しいファームウェアバージョンがあります";
+"ota_available_description" = "デバイスに利用可能な新しいソフトウェアバージョンがあります";
 "ota_up_to_date" = "最新版です";
 "ota_about_title" = "OTA更新について";
 "ota_about_description" = "更新プロセス全体でデバイスを接続したままにしてください";
