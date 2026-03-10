@@ -412,11 +412,22 @@ class OTAManager: ObservableObject {
                 guard let self = self, self.currentState == .downloading else { return }
                 
                 if let version = notification.userInfo?["version"] as? String, version == self.targetVersion {
+                    print("OTAManager: Download complete for version \(version). Transitioning to reloading.")
                     self.transition(to: .reloading, message: localizedMessage("ota_msg_reloading"))
-                    BLEManager.shared.reloadUI()
+                    
+                    // Finsh OTA on the device side BEFORE reloading the UI
+                    // This tells the device to exit the maintenance/download state
+                    print("OTAManager: Sending finish_game_disk_ota directive")
+                    BLEManager.shared.finishGameDiskOTA()
+                    
+                    // Delay the UI reload slightly to ensure the finish directive is processed
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                        print("OTAManager: Sending reload_ui directive")
+                        BLEManager.shared.reloadUI()
+                    }
                     
                     // After reloading, we start verifying
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
                         self.transition(to: .verifying, message: localizedMessage("ota_msg_verifying"))
                     }
                 }
@@ -435,14 +446,13 @@ class OTAManager: ObservableObject {
                         self.currentDeviceVersion = version
                     }
                     
-                    // If verifying, check if it matches target
+                    // If verifying, check if it matches target (or if it's already completed)
                     if self.currentState == .verifying {
                         if version == self.targetVersion {
+                            print("OTAManager: Version match! \(version) == \(self.targetVersion ?? ""). OTA Success.")
                             self.transition(to: .completed, message: localizedMessage("ota_msg_success"))
-                            // Finalize
-                            BLEManager.shared.finishGameDiskOTA()
                             
-                            // Clear state after success
+                            // Clear and reset after success
                             DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
                                 self.reset()
                             }
@@ -560,22 +570,29 @@ class OTAManager: ObservableObject {
     }
     
     func checkForUpdates() {
-        BLEManager.shared.getAuthData { result in
-            switch result {
-            case .success(let authData):
-                Task {
-                    do {
-                        let latest = try await OTAService.shared.getLatestOTAVersion(authData: authData)
-                        DispatchQueue.main.async {
-                            self.availableVersion = latest.version
-                            self.lastCheckTime = ISO8601DateFormatter().string(from: Date())
+        Task {
+            BLEManager.shared.getAuthData { result in
+                switch result {
+                case .success(let authData):
+                    Task {
+                        do {
+                            let latest = try await OTAService.shared.getLatestOTAVersion(authData: authData)
+                            DispatchQueue.main.async {
+                                self.availableVersion = latest.version
+                                self.lastCheckTime = ISO8601DateFormatter().string(from: Date())
+                                print("OTAManager: checkForUpdates succeeded - available version: \(latest.version)")
+                            }
+                        } catch {
+                            DispatchQueue.main.async {
+                                print("OTAManager: Failed to fetch latest version: \(error)")
+                            }
                         }
-                    } catch {
-                        print("OTAManager: Failed to fetch latest version: \(error)")
+                    }
+                case .failure(let error):
+                    DispatchQueue.main.async {
+                        print("OTAManager: Failed to get auth data: \(error)")
                     }
                 }
-            case .failure(let error):
-                print("OTAManager: Failed to get auth data: \(error)")
             }
         }
     }
