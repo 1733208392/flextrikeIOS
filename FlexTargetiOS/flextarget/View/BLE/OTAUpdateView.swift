@@ -7,41 +7,12 @@ struct OTAUpdateView: View {
     
     @State private var showingConfirmation = false
     @State private var selectedVersion: OTAVersion?
-    @State private var latestVersion: OTAVersion?
-    @State private var isLoadingLatest = true
-    @State private var isCheckingForUpdates = false
     
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
             
             VStack(spacing: 0) {
-                // Navigation bar
-                HStack {
-                    Button(action: { dismiss() }) {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(.white)
-                    }
-                    
-                    Spacer()
-                    
-                    Text(NSLocalizedString("ota_update_title", comment: "OTA Update"))
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.white)
-                    
-                    Spacer()
-                    
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.clear)
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
-                
-                Divider()
-                    .background(Color.white.opacity(0.1))
-                
                 // Main content
                 ScrollView {
                     VStack(spacing: 16) {
@@ -66,6 +37,9 @@ struct OTAUpdateView: View {
                 }
             }
         }
+        .navigationTitle(NSLocalizedString("ota_update_title", comment: "OTA Update"))
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(false)
         .onAppear {
             otaManager.fetchHistory()
             otaManager.queryCurrentDeviceVersion()
@@ -153,7 +127,7 @@ struct OTAUpdateView: View {
     
     private var idleStateView: some View {
         Group {
-            if isLoadingLatest {
+            if otaManager.availableVersion == nil {
                 loadingCard(message: NSLocalizedString("ota_checking", comment: "Checking for updates..."))
             } else if let available = otaManager.availableVersion, let current = otaManager.currentDeviceVersion, available != current {
                 updateAvailableCard
@@ -405,7 +379,7 @@ struct OTAUpdateView: View {
     private var buttonTitle: String {
         switch otaManager.currentState {
         case .idle:
-            if isLoadingLatest || isCheckingForUpdates {
+            if otaManager.availableVersion == nil {
                 return NSLocalizedString("ota_checking", comment: "Checking...")
             } else if otaManager.availableVersion != nil && otaManager.availableVersion != otaManager.currentDeviceVersion {
                 return NSLocalizedString("ota_update_now", comment: "Update Now")
@@ -424,7 +398,7 @@ struct OTAUpdateView: View {
     private var buttonEnabled: Bool {
         switch otaManager.currentState {
         case .idle:
-            return !isLoadingLatest && !isCheckingForUpdates && bleManager.isConnected
+            return otaManager.availableVersion != nil && bleManager.isConnected
         case .completed:
             return true
         case .failed:
@@ -453,9 +427,32 @@ struct OTAUpdateView: View {
         switch otaManager.currentState {
         case .idle:
             if otaManager.availableVersion != nil && otaManager.availableVersion != otaManager.currentDeviceVersion {
+                // Try from already loaded history
                 if let version = otaManager.history.first(where: { $0.version == otaManager.availableVersion }) {
                     selectedVersion = version
                     showingConfirmation = true
+                } else {
+                    // If not found in history, try to fetch it again or start with latest known info
+                    bleManager.getAuthData { result in
+                        switch result {
+                        case .success(let authData):
+                            Task {
+                                do {
+                                    let latest = try await OTAService.shared.getLatestOTAVersion(authData: authData)
+                                    if latest.version == otaManager.availableVersion {
+                                        DispatchQueue.main.async {
+                                            selectedVersion = latest
+                                            showingConfirmation = true
+                                        }
+                                    }
+                                } catch {
+                                    print("OTAUpdateView: Failed to refetch version for buttonAction: \(error)")
+                                }
+                            }
+                        case .failure(let error):
+                            print("OTAUpdateView: Auth failed for buttonAction: \(error)")
+                        }
+                    }
                 }
             } else {
                 checkForUpdates()
@@ -471,11 +468,7 @@ struct OTAUpdateView: View {
     }
     
     private func checkForUpdates() {
-        isCheckingForUpdates = true
         otaManager.checkForUpdates()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-            isCheckingForUpdates = false
-        }
     }
 }
 
