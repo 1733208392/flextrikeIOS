@@ -1,0 +1,47 @@
+[gd_scene load_steps=4 format=3 uid="uid://blpfvgwnmvx3c"]
+
+[ext_resource type="Script" uid="uid://db5y0860wyxee" path="res://script/games/clay_pigeon.gd" id="1_script"]
+[ext_resource type="PackedScene" uid="uid://bvtdvj3rleh6v" path="res://scene/games/status_bar.tscn" id="2_status_bar"]
+[ext_resource type="Texture2D" uid="uid://bjjd8mjqtptf6" path="res://asset/clay-pigeon-back.png" id="3_h5a0r"]
+
+[node name="ClayPigeonGame" type="Node2D"]
+script = ExtResource("1_script")
+
+[node name="StatusBar" parent="." instance=ExtResource("2_status_bar")]
+
+[node name="Background" type="CanvasLayer" parent="."]
+layer = -1
+
+[node name="Sprite2D" type="Sprite2D" parent="Background"]
+position = Vector2(360, 640)
+texture = ExtResource("3_h5a0r")
+
+[node name="GameOverLayer" type="CanvasLayer" parent="."]
+layer = 100
+visible = false
+
+[node name="GameOverPanel" type="Panel" parent="GameOverLayer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="GameOverLabel" type="Label" parent="GameOverLayer/GameOverPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -39.0
+offset_top = -8.0
+offset_right = 39.0
+offset_bottom = 8.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 32
+text = "GAME OVER"
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(360, 640)

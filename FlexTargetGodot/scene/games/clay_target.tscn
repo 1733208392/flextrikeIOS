@@ -1,0 +1,124 @@
+[gd_scene load_steps=21 format=3 uid="uid://c7ee4u6nk62nb"]
+
+[ext_resource type="Script" uid="uid://bhfd3qlj4pao6" path="res://script/games/clay_target.gd" id="1_2ee7u"]
+[ext_resource type="Texture2D" uid="uid://bco86hqtyeuch" path="res://asset/clay_explode-sheet.png" id="1_68175"]
+[ext_resource type="Texture2D" uid="uid://csbu3m3fbdwti" path="res://asset/clay_debris.png" id="2_2ee7u"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_acko5"]
+atlas = ExtResource("1_68175")
+region = Rect2(0, 0, 128, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_8fnx5"]
+atlas = ExtResource("1_68175")
+region = Rect2(128, 0, 128, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_pfmpo"]
+atlas = ExtResource("1_68175")
+region = Rect2(256, 0, 128, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_y3au5"]
+atlas = ExtResource("1_68175")
+region = Rect2(384, 0, 128, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_yspkf"]
+atlas = ExtResource("1_68175")
+region = Rect2(512, 0, 128, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_82rli"]
+atlas = ExtResource("1_68175")
+region = Rect2(640, 0, 128, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5gjgn"]
+atlas = ExtResource("1_68175")
+region = Rect2(768, 0, 128, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ep14k"]
+atlas = ExtResource("1_68175")
+region = Rect2(896, 0, 128, 128)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_7rfrt"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_acko5")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_8fnx5")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_pfmpo")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_y3au5")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_yspkf")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_82rli")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5gjgn")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ep14k")
+}],
+"loop": false,
+"name": &"default",
+"speed": 12.0
+}]
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_8fnx5"]
+particles_animation = true
+particles_anim_h_frames = 3
+particles_anim_v_frames = 1
+particles_anim_loop = true
+
+[sub_resource type="Gradient" id="Gradient_8fnx5"]
+colors = PackedColorArray(1, 1, 1, 1, 0, 0, 0, 1)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_pfmpo"]
+gradient = SubResource("Gradient_8fnx5")
+
+[sub_resource type="CurveTexture" id="CurveTexture_pfmpo"]
+
+[sub_resource type="Curve" id="Curve_y3au5"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_yspkf"]
+curve = SubResource("Curve_y3au5")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_82rli"]
+particle_flag_disable_z = true
+radial_velocity_min = -2.2351742e-05
+radial_velocity_max = 999.99994
+radial_velocity_curve = SubResource("CurveTexture_pfmpo")
+gravity = Vector3(0, 98, 0)
+scale_min = 0.5
+scale_max = 2.0
+scale_curve = SubResource("CurveTexture_yspkf")
+color_ramp = SubResource("GradientTexture1D_pfmpo")
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_8fnx5"]
+radius = 68.06615
+
+[node name="ClayTarget" type="Node2D"]
+script = ExtResource("1_2ee7u")
+
+[node name="ClayExplode" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_7rfrt")
+
+[node name="GPUParticles2D" type="GPUParticles2D" parent="."]
+material = SubResource("CanvasItemMaterial_8fnx5")
+emitting = false
+amount = 24
+texture = ExtResource("2_2ee7u")
+one_shot = true
+explosiveness = 1.0
+process_material = SubResource("ParticleProcessMaterial_82rli")
+
+[node name="Area2D" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+shape = SubResource("CircleShape2D_8fnx5")

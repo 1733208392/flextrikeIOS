@@ -508,6 +508,9 @@ class AndroidBLEManager(private val context: Context) {
                             BLEManager.shared.onDeviceVersionUpdated?.invoke(version)
                         }
                     }
+                    
+                    // Always emit forward messages to the netlink flow for game UI listeners
+                    _netlinkForwardMessage.tryEmit(json)
                 }
                 // OTA Messages - matching iOS format
                 // Handle prepare_game_disk_ota success

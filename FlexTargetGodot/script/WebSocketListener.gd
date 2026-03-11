@@ -2,9 +2,10 @@ extends Node
 
 const DEBUG_DISABLED = true
 #const WEBSOCKET_URL = "ws://127.0.0.1/websocket"
-const WEBSOCKET_URL = "ws://192.168.0.113/websocket"
+const WEBSOCKET_URL = "ws://192.168.50.161/websocket"
 
 signal data_received(data)
+signal netlink_forward(data: Dictionary)
 signal bullet_hit(pos: Vector2, a: int, t: int)
 signal menu_control(directive: String)
 signal ble_ready_command(content: Dictionary)
@@ -227,6 +228,9 @@ func _handle_ble_forwarded_command(parsed):
 	var content = parsed
 	if not DEBUG_DISABLED:
 		print("[WebSocket] BLE forwarded command content: ", content)
+
+	# Emit for any game listeners
+	netlink_forward.emit(content)
 
 	# Handle start_game_upgrade action - forward to software_upgrade scene
 	if content.get("action") == "start_game_upgrade":

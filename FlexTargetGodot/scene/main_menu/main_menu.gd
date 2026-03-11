@@ -133,6 +133,7 @@ func _ready():
 	var ws_listener = get_node_or_null("/root/WebSocketListener")
 	if ws_listener:
 		ws_listener.menu_control.connect(_on_menu_control)
+		ws_listener.netlink_forward.connect(_on_netlink_forward)
 		# Connect BLE ready command signal to jump to drills scene
 		if ws_listener.has_signal("ble_ready_command"):
 			ws_listener.ble_ready_command.connect(_on_ble_ready_command)
@@ -317,6 +318,16 @@ func _on_games_pressed():
 	else:
 		if not DEBUG_DISABLED:
 			print("[Menu] Warning: Node not in tree, cannot change scene")
+
+func _on_netlink_forward(data: Dictionary):
+	var game = data.get("game", "")
+	var cmd = data.get("cmd", "")
+	
+	if game == "clay pigeon" and cmd == "start":
+		if not DEBUG_DISABLED:
+			print("[Menu] Received start command for clay pigeon game")
+		if is_inside_tree():
+			get_tree().change_scene_to_file("res://scene/games/clay_pigeon.tscn")
 
 func _on_option_pressed():
 	if upgrade_in_progress:

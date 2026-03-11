@@ -177,6 +177,8 @@ func _on_remote_enter():
 		_on_chimptest_pressed()
 	elif selected_option == 6:
 		_on_quickreact_pressed()
+	elif selected_option == 7:
+		_on_clay_pigeon_pressed()
 
 func _on_remote_back_pressed():
 	"""Handle back press from remote control to return to main menu"""
@@ -261,3 +263,10 @@ func _on_quickreact_pressed():
 	selected_option = 6
 	_save_last_selection()
 	get_tree().change_scene_to_file("res://scene/benchmark/quickreact.tscn")
+
+func _on_clay_pigeon_pressed():
+	"""Handle clay pigeon button press"""
+	print("[Menu] Clay Pigeon selected")
+	selected_option = 7
+	_save_last_selection()
+	get_tree().change_scene_to_file("res://scene/games/clay_pigeon.tscn")
