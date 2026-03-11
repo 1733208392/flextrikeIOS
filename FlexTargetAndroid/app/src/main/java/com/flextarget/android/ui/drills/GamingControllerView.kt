@@ -9,6 +9,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,9 +24,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.drawscope.Stroke
 import com.flextarget.android.data.ble.AndroidBLEManager
 import com.flextarget.android.data.local.entity.DrillSetupEntity
 import com.flextarget.android.ui.theme.ttNormFontFamily
+import com.flextarget.android.R
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 
@@ -32,7 +39,7 @@ import org.json.JSONObject
 fun GamingControllerView(
     drillSetup: DrillSetupEntity,
     bleManager: AndroidBLEManager,
-    onGameEnd: () -> Void = {},
+    onGameEnd: () -> Unit = {},
     onBack: () -> Unit
 ) {
     val accentRed = Color(red = 0.87f, green = 0.22f, blue = 0.14f)
@@ -42,6 +49,7 @@ fun GamingControllerView(
     var isGameStarted by remember { mutableStateOf(false) }
     var showResult by remember { mutableStateOf(false) }
     var touchpadScale by remember { mutableStateOf(1.0f) }
+    var lastLaunchTime by remember { mutableStateOf(0L) }
     
     val coroutineScope = rememberCoroutineScope()
 
@@ -70,7 +78,8 @@ fun GamingControllerView(
     fun sendGameCommand(cmd: String, direction: String? = null) {
         // In Android, we need the device name from the targets
         // This is a simplified lookup assuming single target as per requirements
-        val targetName = bleManager.networkDevices.value.firstOrNull()?.name ?: "Target"
+        // Accessing networkDevices from BLEManager.shared since AndroidBLEManager might not have it directly
+        val targetName = com.flextarget.android.data.ble.BLEManager.shared.networkDevices.firstOrNull()?.name ?: "Target"
         
         val content = JSONObject().apply {
             put("game", "clay pigeon")
@@ -84,13 +93,22 @@ fun GamingControllerView(
             put("content", content)
         }
         
+        println("[GamingControllerView] Sending command: $cmd, direction: $direction, message: $message")
         bleManager.sendMessage(message.toString())
     }
 
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { },
+                title = {
+                    Text(
+                        "Clay Pigeon",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = accentRed,
+                        fontFamily = ttNormFontFamily
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = accentRed)
@@ -105,20 +123,10 @@ fun GamingControllerView(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 30.dp),
+                .padding(horizontal = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            // Title
-            Text(
-                "Clay Pigeon",
-                fontSize = 32.sp,
-                fontWeight = FontWeight.Bold,
-                color = accentRed,
-                fontFamily = ttNormFontFamily,
-                modifier = Modifier.padding(top = 20.dp)
-            )
-
             // Content Area
             Box(
                 modifier = Modifier.weight(1f),
@@ -129,7 +137,8 @@ fun GamingControllerView(
                         // Touchpad
                         Box(
                             modifier = Modifier
-                                .size(280.dp)
+                                .fillMaxWidth(0.9f)
+                                .aspectRatio(1f)
                                 .scale(touchpadScale)
                                 .background(
                                     Brush.linearGradient(
@@ -141,7 +150,7 @@ fun GamingControllerView(
                                     drawCircle(
                                         color = accentRed.copy(alpha = 0.5f),
                                         radius = size.minDimension / 2,
-                                        style = androidx.compose.ui.graphics.drawscope.Stroke(width = 4.dp.toPx())
+                                        style = Stroke(width = 4.dp.toPx())
                                     )
                                 }
                                 .pointerInput(isGameStarted) {
@@ -150,10 +159,8 @@ fun GamingControllerView(
                                             onDragStart = { touchpadScale = 0.95f },
                                             onDragEnd = { touchpadScale = 1.0f },
                                             onDragCancel = { touchpadScale = 1.0f },
-                                            onDrag = { change, dragAmount ->
+                                            onDrag = { change, _ ->
                                                 change.consume()
-                                                // Handle swipe direction detection on drag end 
-                                                // Logic performed in onDragEnd for simplicity
                                             }
                                         )
                                     }
@@ -169,7 +176,10 @@ fun GamingControllerView(
                                             onDrag = { change, dragAmount -> 
                                                 change.consume()
                                                 // Simplified: immediately respond to significant drag
-                                                if (dragAmount.getDistance() > 30f) {
+                                                // Add debouncing to prevent multiple rapid sends
+                                                val currentTime = System.currentTimeMillis()
+                                                if (dragAmount.getDistance() > 30f && (currentTime - lastLaunchTime > 800)) {
+                                                    lastLaunchTime = currentTime
                                                     val x = dragAmount.x
                                                     val y = dragAmount.y
                                                     var direction = "center"
@@ -180,8 +190,8 @@ fun GamingControllerView(
                                                     } else if (x < -40f) {
                                                         direction = "left"
                                                     }
+                                                    println("[GamingControllerView] Swipe detected! distance=${dragAmount.getDistance()}, direction=$direction")
                                                     sendGameCommand("launch", direction)
-                                                    // Consume gesture so it doesn't repeat immediately
                                                 }
                                             }
                                         )
@@ -190,7 +200,7 @@ fun GamingControllerView(
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
-                                painter = painterResource(id = android.R.drawable.stat_sys_touch), // Placeholder icon
+                                imageVector = Icons.Default.KeyboardArrowUp,
                                 contentDescription = null,
                                 modifier = Modifier.size(80.dp),
                                 tint = accentRed.copy(alpha = 0.2f)
@@ -198,9 +208,9 @@ fun GamingControllerView(
                             
                             // Visual direction hints
                             Box(modifier = Modifier.fillMaxSize().padding(40.dp)) {
-                                Icon(painterResource(R.drawable.ic_arrow_up), null, Modifier.align(Alignment.TopCenter), accentRed.copy(alpha = 0.4f))
-                                Icon(painterResource(R.drawable.ic_arrow_left), null, Modifier.align(Alignment.CenterStart), accentRed.copy(alpha = 0.4f))
-                                Icon(painterResource(R.drawable.ic_arrow_right), null, Modifier.align(Alignment.CenterEnd), accentRed.copy(alpha = 0.4f))
+                                Icon(Icons.Default.KeyboardArrowUp, null, Modifier.align(Alignment.TopCenter), accentRed.copy(alpha = 0.4f))
+                                Icon(Icons.Default.KeyboardArrowLeft, null, Modifier.align(Alignment.CenterStart), accentRed.copy(alpha = 0.4f))
+                                Icon(Icons.Default.KeyboardArrowRight, null, Modifier.align(Alignment.CenterEnd), accentRed.copy(alpha = 0.4f))
                             }
                         }
                         
@@ -252,7 +262,7 @@ fun GamingControllerView(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 30.dp),
+                    .padding(bottom = 80.dp),
                 horizontalArrangement = Arrangement.spacedBy(20.dp)
             ) {
                 if (!isGameStarted) {

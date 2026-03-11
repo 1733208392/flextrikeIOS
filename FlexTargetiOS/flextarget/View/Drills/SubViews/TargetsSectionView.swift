@@ -55,7 +55,7 @@ struct TargetsSectionView: View {
                     .navigationTitle(NSLocalizedString("drill_setup", comment: "Navigation title for Drill Setup"))
                     .disabled(!isTargetListReceived)
                 } else {
-                    NavigationLink(destination: TargetConfigListViewV2(deviceList: bleManager.networkDevices, targetConfigs: $targetConfigs, onDone: onTargetConfigDone, drillMode: $drillMode, isFromTargetLink: false)) {
+                    NavigationLink(destination: TargetConfigListViewV2(deviceList: bleManager.networkDevices, targetConfigs: $targetConfigs, onDone: onTargetConfigDone, drillMode: $drillMode, singleDeviceMode: true, isFromTargetLink: false)) {
                         targetButtonContent
                     }
                     .navigationTitle(NSLocalizedString("drill_setup", comment: "Navigation title for Drill Setup"))
@@ -104,9 +104,8 @@ struct DrillSetupSectionView_Previews: PreviewProvider {
                     isTargetListReceived: .constant(true),
                     bleManager: BLEManager.shared,
                     targetConfigs: .constant([
-                        DrillTargetsConfigData(seqNo: 1, targetName: "Target A", targetType: "Standard", timeout: 30, countedShots: 5),
-                        DrillTargetsConfigData(seqNo: 2, targetName: "Target B", targetType: "Paper", timeout: 25, countedShots: 3),
-                        DrillTargetsConfigData(seqNo: 3, targetName: "Target C", targetType: "Electronic", timeout: 20, countedShots: 10)
+                        DrillTargetsConfigData(seqNo: 1, targetName: "Target A", targetType: "ipsc", timeout: 30, countedShots: 5),
+                        DrillTargetsConfigData(seqNo: 2, targetName: "Target B", targetType: "ipsc", timeout: 25, countedShots: 3)
                     ]),
                     onTargetConfigDone: {},
                     drillMode: .constant("ipsc")
@@ -114,6 +113,5 @@ struct DrillSetupSectionView_Previews: PreviewProvider {
             }
             .padding()
         }
-        .environmentObject(BLEManager.shared)
     }
 }

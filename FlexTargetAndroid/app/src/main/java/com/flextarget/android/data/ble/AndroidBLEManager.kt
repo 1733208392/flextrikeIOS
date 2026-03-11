@@ -19,6 +19,9 @@ import java.util.*
 import org.json.JSONObject
 import com.google.gson.Gson
 import com.flextarget.android.data.model.ShotData
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import org.json.JSONArray
 
 /**
@@ -45,6 +48,9 @@ class AndroidBLEManager(private val context: Context) {
 
     // Callback for shot data
     var onShotReceived: ((ShotData) -> Unit)? = null
+
+    private val _netlinkForwardMessage = MutableSharedFlow<JSONObject>(extraBufferCapacity = 10)
+    val netlinkForwardMessage: SharedFlow<JSONObject> = _netlinkForwardMessage.asSharedFlow()
 
     // Callback for netlink forward messages (acks, etc.)
     var onNetlinkForwardReceived: ((Map<String, Any>) -> Unit)? = null
@@ -427,6 +433,9 @@ class AndroidBLEManager(private val context: Context) {
                     // Handle all netlink forward messages
                     val messageMap = jsonToMap(json)
                     
+                    // Emit to SharedFlow for modern reactive handling
+                    _netlinkForwardMessage.tryEmit(json)
+                    
                     // Notify legacy callback for backward compatibility
                     this.onNetlinkForwardReceived?.invoke(messageMap)
                     
@@ -721,6 +730,13 @@ class AndroidBLEManager(private val context: Context) {
             // Split into chunks and send sequentially
             writeChunks(data, 0)
         }
+    }
+
+    /**
+     * Sends a JSON message to the connected device.
+     */
+    fun sendMessage(message: String) {
+        writeJSON(message)
     }
 
     private fun writeChunks(data: ByteArray, startIndex: Int) {

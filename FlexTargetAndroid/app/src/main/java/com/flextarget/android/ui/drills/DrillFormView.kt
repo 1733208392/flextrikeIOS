@@ -469,10 +469,16 @@ fun DrillFormView(
                         bleManager = bleManager,
                         onNavigateToTargetConfig = { 
                             if (!isEditingDisabled) {
-                                // Navigate to TARGET_LINK if multiple devices, otherwise go directly to TARGET_CONFIG
-                                currentScreen = if (bleManager.networkDevices.size > 1) {
-                                    DrillFormScreen.TARGET_LINK
+                                // Navigate to TARGET_LINK if multiple devices OR if we need to pick the single device for Gaming mode
+                                currentScreen = if (bleManager.networkDevices.size > 1 || bleManager.networkDevices.size == 1) {
+                                    if (bleManager.networkDevices.size == 1) {
+                                        selectedDeviceForConfig = bleManager.networkDevices.first().name
+                                        DrillFormScreen.TARGET_CONFIG
+                                    } else {
+                                        DrillFormScreen.TARGET_LINK
+                                    }
                                 } else {
+                                    // Fallback if no devices yet (should be caught by button enablement)
                                     DrillFormScreen.TARGET_CONFIG
                                 }
                             } else {

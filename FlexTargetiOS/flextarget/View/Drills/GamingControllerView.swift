@@ -1,10 +1,6 @@
 import SwiftUI
 import CoreData
 
-extension Notification.Name {
-    static let bleNetlinkForwardReceived = Notification.Name("bleNetlinkForwardReceived")
-}
-
 struct GamingControllerView: View {
     let drillSetup: DrillSetup
     let bleManager: BLEManager
@@ -254,14 +250,14 @@ struct GamingControllerView: View {
         
         if let jsonData = try? JSONSerialization.data(withJSONObject: message),
            let jsonString = String(data: jsonData, encoding: .utf8) {
-            bleManager.sendMessage(jsonString)
+            bleManager.writeJSON(jsonString)
             print("[Gaming] Sent: \(jsonString)")
         }
     }
     
     private func setupResultListener() {
         // Listen for netlink forward messages which are parsed by BLEManager
-        NotificationCenter.default.addObserver(forName: .bleNetlinkForwardReceived, object: nil, queue: .main) { notification in
+        NotificationCenter.default.addObserver(forName: Notification.Name("bleNetlinkForwardReceived"), object: nil, queue: .main) { notification in
             guard let userInfo = notification.userInfo,
                   let json = userInfo["json"] as? [String: Any],
                   let content = json["content"] as? [String: Any],
