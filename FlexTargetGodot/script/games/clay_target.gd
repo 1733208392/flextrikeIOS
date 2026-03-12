@@ -3,7 +3,7 @@ extends Node2D
 class_name ClayTarget
 
 var velocity = Vector2.ZERO
-var gravity = 400.0 # Adjust based on screen scale
+var gravity = 180.0 # Adjust based on screen scale
 var rotation_speed = 0.0
 
 @onready var sprite = $ClayExplode
@@ -37,7 +37,32 @@ func _on_bullet_hit(hit_pos: Vector2, _a: int = 0, _t: int = 0):
 	
 	# Check if hit is within the collision shape
 	var collision_shape = area.get_node("CollisionShape2D")
-	if collision_shape and collision_shape.shape is CircleShape2D:
+	if collision_shape and collision_shape.shape is CapsuleShape2D:
+		var capsule = collision_shape.shape as CapsuleShape2D
+		var radius = capsule.radius
+		var half_height = (capsule.height * 0.5) - radius
+		
+		# For CapsuleShape2D, the height is the total length including ends.
+		# The capsule is oriented along the Y axis in Godot by default.
+		var dist_to_axis = abs(local_hit_pos.x)
+		var dist_along_axis = abs(local_hit_pos.y)
+		
+		var inside = false
+		if dist_along_axis <= half_height:
+			# Within the cylindrical part
+			inside = dist_to_axis <= radius
+		else:
+			# Within the hemispherical ends
+			var circle_center_dist = dist_along_axis - half_height
+			inside = sqrt(pow(dist_to_axis, 2) + pow(circle_center_dist, 2)) <= radius
+			
+		if inside:
+			print("[ClayTarget] Hit detected at: ", hit_pos)
+			hit()
+			# Disconnect after being hit
+			if WebSocketListener.bullet_hit.is_connected(_on_bullet_hit):
+				WebSocketListener.bullet_hit.disconnect(_on_bullet_hit)
+	elif collision_shape and collision_shape.shape is CircleShape2D:
 		var circle = collision_shape.shape as CircleShape2D
 		if local_hit_pos.length() <= circle.radius:
 			print("[ClayTarget] Hit detected at: ", hit_pos)

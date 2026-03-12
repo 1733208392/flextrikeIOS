@@ -1,6 +1,6 @@
 extends Node
 
-const DEBUG_DISABLED = true
+const DEBUG_DISABLED = false
 const WEBSOCKET_URL = "ws://127.0.0.1/websocket"
 #const WEBSOCKET_URL = "ws://192.168.50.161/websocket"
 
@@ -14,6 +14,7 @@ signal ble_end_command(content: Dictionary)
 signal animation_config(action: String, duration: float)
 signal target_name_received(target_name: String)
 signal provision_step_received(step: String)
+signal sensor_trigger_received(sensor_name: String, value: int)
 
 var socket: WebSocketPeer
 var bullet_spawning_enabled: bool = true
@@ -34,7 +35,7 @@ var minimum_shot_spacing: float = 0.015  # 15ms minimum between individual shots
 var pending_bullet_hits: Array[Vector2] = []  # Track pending bullet hit signals
 
 # Directive throttling to prevent duplicates from long press or hardware congestion
-var directive_cooldown: float = 0.1  # 100ms cooldown between identical directives
+var directive_cooldown: float = 0.5  # 100ms cooldown between identical directives
 var last_directive_times: Dictionary = {}
 
 func _ready():
@@ -143,8 +144,8 @@ func _process_websocket_json(json_string):
 	if parsed and parsed.has("type") and parsed["type"] == "telemetry" and parsed.has("data"):
 		var telemetry = parsed["data"]
 		var telemetry_str = JSON.stringify(telemetry)
-		if not DEBUG_DISABLED:
-			print("[WebSocket] Telemetry received: ", telemetry_str)
+		#if not DEBUG_DISABLED:
+			#print("[WebSocket] Telemetry received: ", telemetry_str)
 		return
 	
 	# print("[WebSocket] Parsed data: ", parsed)
@@ -166,6 +167,15 @@ func _process_websocket_json(json_string):
 		if not DEBUG_DISABLED:
 			print("[WebSocket] Emitting menu_control with directive: ", directive)
 		menu_control.emit(directive)
+		return
+
+	# Handle trigger message
+	if parsed and parsed.has("type") and parsed["type"] == "trigger":
+		var sensor_name = parsed.get("sensor", "")
+		var sensor_value = parsed.get("value", 0)
+		if not DEBUG_DISABLED:
+			print("[WebSocket] Trigger received: sensor=", sensor_name, " value=", sensor_value)
+		sensor_trigger_received.emit(sensor_name, int(sensor_value))
 		return
 	
 	# Handle BLE forwarded / netlink commands

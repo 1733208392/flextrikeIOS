@@ -1,14 +1,15 @@
-[gd_scene load_steps=4 format=3 uid="uid://blpfvgwnmvx3c"]
+[gd_scene load_steps=6 format=3 uid="uid://blpfvgwnmvx3c"]
 
 [ext_resource type="Script" uid="uid://db5y0860wyxee" path="res://script/games/clay_pigeon.gd" id="1_script"]
 [ext_resource type="PackedScene" uid="uid://bvtdvj3rleh6v" path="res://scene/games/status_bar.tscn" id="2_status_bar"]
 [ext_resource type="Texture2D" uid="uid://bjjd8mjqtptf6" path="res://asset/clay-pigeon-back.png" id="3_h5a0r"]
+[ext_resource type="Texture2D" uid="uid://bdukprgs8gb5q" path="res://asset/games/clay-pigeon-howtoplay.png" id="4_1lsc8"]
+[ext_resource type="Theme" uid="uid://cdynjfvdtavlt" path="res://scene/main_menu/main_menu_button_theme.tres" id="5_hkner"]
 
 [node name="ClayPigeonGame" type="Node2D"]
 script = ExtResource("1_script")
 
 [node name="StatusBar" parent="." instance=ExtResource("2_status_bar")]
-visible = false
 
 [node name="Background" type="CanvasLayer" parent="."]
 layer = -1
@@ -43,6 +44,27 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_font_sizes/font_size = 32
 text = "GAME OVER"
+
+[node name="HowtoplayOverlay" type="CanvasLayer" parent="."]
+
+[node name="Sprite2D" type="Sprite2D" parent="HowtoplayOverlay"]
+position = Vector2(360, 640)
+texture = ExtResource("4_1lsc8")
+
+[node name="Button" type="Button" parent="HowtoplayOverlay"]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -196.0
+offset_top = -117.0
+offset_right = 179.0
+offset_bottom = -19.0
+grow_horizontal = 2
+grow_vertical = 0
+theme = ExtResource("5_hkner")
+text = "START"
 
 [node name="Camera2D" type="Camera2D" parent="."]
 position = Vector2(360, 640)
