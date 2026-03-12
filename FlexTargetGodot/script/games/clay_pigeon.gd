@@ -54,7 +54,8 @@ func _on_menu_control(directive: String):
 		"shake":
 			# Explode all active clay targets and shake camera
 			print("[ClayPigeon] Shake directive received")
-			_shake_camera(40.0, 0.5)
+			_shake_camera(60.0, 0.6) # Even higher intensity
+			_play_lightning_effect() # Visual flash
 			for child in get_children():
 				if child.has_method("hit"):
 					child.hit()
@@ -161,6 +162,9 @@ func _shake_camera(intensity: float = 10.0, duration: float = 0.5):
 		return
 	print("Camera found: ", camera)
 	
+	# Ensure the camera is active
+	camera.make_current()
+	
 	var original_offset = camera.offset
 	var shake_timer = 0.0
 	
@@ -177,6 +181,31 @@ func _shake_camera(intensity: float = 10.0, duration: float = 0.5):
 	# Reset camera to original position
 	camera.offset = original_offset
 	print("Camera shake complete")
+
+func _play_lightning_effect():
+	"""Play a lightning bolt animation across the sky (Visual confirmation)"""
+	var lightning = ColorRect.new()
+	lightning.name = "Lightning"
+	lightning.color = Color.WHITE
+	lightning.color.a = 0.0
+	
+	var canvas_layer = CanvasLayer.new()
+	canvas_layer.layer = 100
+	add_child(canvas_layer)
+	canvas_layer.add_child(lightning)
+	
+	var viewport_size = get_viewport_rect().size
+	lightning.position = Vector2.ZERO
+	lightning.size = viewport_size
+	
+	var tween = create_tween()
+	for i in range(3):
+		tween.tween_property(lightning, "color:a", 0.6, 0.05)
+		tween.tween_property(lightning, "color:a", 0.0, 0.05)
+		if i < 2:
+			tween.tween_callback(func(): await get_tree().create_timer(0.1).timeout)
+	
+	tween.tween_callback(canvas_layer.queue_free)
 
 func _input(event):
 	# Desktop/Mouse debugging

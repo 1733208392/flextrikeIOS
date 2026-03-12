@@ -8,6 +8,7 @@
 script = ExtResource("1_script")
 
 [node name="StatusBar" parent="." instance=ExtResource("2_status_bar")]
+visible = false
 
 [node name="Background" type="CanvasLayer" parent="."]
 layer = -1
