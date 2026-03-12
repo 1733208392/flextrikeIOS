@@ -56,14 +56,24 @@ func _on_menu_control(directive: String):
 				# If game over, return to menu or restart
 				get_tree().change_scene_to_file("res://scene/main_menu/main_menu.tscn")
 			else:
-				# Stop the game if already started
-				_stop_game()
+				# Trigger a burst mode that launches 10 clay targets
+				_burst_launch(10, 0.2)
+		"back":
+			# Stop the game and dismiss (go back)
+			_stop_game()
 		"up":
 			if not game_over: _launch_by_string_direction("center")
 		"left":
 			if not game_over: _launch_by_string_direction("left")
 		"right":
 			if not game_over: _launch_by_string_direction("right")
+
+func _burst_launch(count: int, delay: float):
+	for i in range(count):
+		if game_over: break
+		launch_clay()
+		if delay > 0:
+			await get_tree().create_timer(delay).timeout
 
 func _launch_by_string_direction(direction: String):
 	var velocity = Vector2.ZERO
