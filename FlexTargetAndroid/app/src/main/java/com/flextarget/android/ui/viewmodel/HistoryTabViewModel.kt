@@ -114,12 +114,35 @@ class HistoryTabViewModel(
         }
     }
 
-    private fun convertToSummary(
+    private suspend fun convertToSummary(
         result: com.flextarget.android.data.local.entity.DrillResultWithShots,
         targets: List<com.flextarget.android.data.local.entity.DrillTargetsConfigEntity> = emptyList(),
         drillResultId: UUID
     ): DrillRepeatSummary? {
         try {
+            val drillMode = drillSetupRepository.getDrillSetupById(result.drillResult.drillSetupId ?: return null)?.mode?.lowercase()
+            
+            if (drillMode == "gaming") {
+                val statsJson = result.drillResult.adjustedHitZones ?: "{}"
+                val stats = try {
+                    gson.fromJson(statsJson, Map::class.java) as? Map<String, Double>
+                } catch (e: Exception) {
+                    null
+                }
+                
+                return DrillRepeatSummary(
+                    repeatIndex = 1,
+                    totalTime = 0.0,
+                    numShots = stats?.get("hits")?.toInt() ?: 0,
+                    firstShot = 0.0,
+                    fastest = 0.0,
+                    score = 0,
+                    shots = emptyList(),
+                    adjustedHitZones = stats?.mapValues { it.value.toInt() },
+                    drillResultId = drillResultId
+                )
+            }
+
             val shots = result.shots.mapNotNull { shot ->
                 shot.data?.let { data ->
                     try {

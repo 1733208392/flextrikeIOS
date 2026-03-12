@@ -24,7 +24,7 @@ fun GameDrillResultView(
     score: String,
     hits: String,
     misses: String,
-    onReplay: () -> Unit,
+    onReplay: () -> Unit = {},
     onDone: () -> Unit
 ) {
     val accentRed = Color(0xffde3823)

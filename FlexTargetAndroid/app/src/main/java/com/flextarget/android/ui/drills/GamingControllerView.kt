@@ -28,12 +28,19 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.drawscope.Stroke
 import com.flextarget.android.data.ble.AndroidBLEManager
+import com.flextarget.android.data.local.entity.DrillResultEntity
 import com.flextarget.android.data.local.entity.DrillSetupEntity
+import com.flextarget.android.data.repository.DrillResultRepository
 import com.flextarget.android.ui.theme.ttNormFontFamily
 import com.flextarget.android.R
+import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONObject
+import java.util.Date
+import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,6 +50,8 @@ fun GamingControllerView(
     onGameEnd: () -> Unit = {},
     onBack: () -> Unit
 ) {
+    val context = LocalContext.current
+    val drillResultRepository = remember { DrillResultRepository.getInstance(context) }
     val accentRed = Color(red = 0.87f, green = 0.22f, blue = 0.14f)
     var score by remember { mutableStateOf("0") }
     var hitCount by remember { mutableStateOf("0") }
@@ -54,6 +63,30 @@ fun GamingControllerView(
     var isStopping by remember { mutableStateOf(false) }
     
     val coroutineScope = rememberCoroutineScope()
+
+    fun saveGameResult() {
+        coroutineScope.launch {
+            val stats = JSONObject().apply {
+                put("hits", hitCount.toIntOrNull() ?: 0)
+                put("misses", missCount.toIntOrNull() ?: 0)
+            }
+            
+            val result = DrillResultEntity(
+                id = UUID.randomUUID(),
+                date = Date(),
+                drillId = drillSetup.id,
+                drillSetupId = drillSetup.id,
+                sessionId = UUID.randomUUID(),
+                totalTime = 0.0,
+                adjustedHitZones = stats.toString()
+            )
+            
+            withContext(Dispatchers.IO) {
+                drillResultRepository.insertDrillResult(result)
+            }
+            println("[GamingControllerView] Result saved to database")
+        }
+    }
 
     // Setup result listener
     LaunchedEffect(Unit) {
@@ -70,15 +103,14 @@ fun GamingControllerView(
                         missCount = content.optString("miss", "0")
                         
                         // If we are already in the process of stopping, show result immediately or after short delay
-                        if (isStopping) {
+                        if (isStopping || content.optString("cmd") == "stop" || content.has("score")) {
+                            if (isGameStarted) {
+                                saveGameResult()
+                            }
                             delay(500) // Small grace period to ensure command-response sequence is clear
                             showResult = true
                             isGameStarted = false
                             isStopping = false
-                        } else {
-                            // If we receive results unexpectedly (e.g. game ended on its own), show them
-                            showResult = true
-                            isGameStarted = false
                         }
                     }
                 }
@@ -89,6 +121,11 @@ fun GamingControllerView(
     }
 
     fun sendGameCommand(cmd: String, direction: String? = null) {
+        if (cmd == "start") {
+            hitCount = "0"
+            missCount = "0"
+            score = "0"
+        }
         // In Android, we need the device name from the targets
         // This is a simplified lookup assuming single target as per requirements
         // Accessing networkDevices from BLEManager.shared since AndroidBLEManager might not have it directly

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c64vql7ibtb08"
-path="res://.godot/imported/bolt-icon.png-2f49c55a69ecceb627bbdccc83c82087.ctex"
+uid="uid://tk18ofnhbmrx"
+path="res://.godot/imported/clay-pigeon.png-e9e74fe099b3682ac04466542a707104.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Projects/FlexTargetRepo/FlexTargetGodot/asset/bolt-icon.png"
-dest_files=["res://.godot/imported/bolt-icon.png-2f49c55a69ecceb627bbdccc83c82087.ctex"]
+source_file="res://asset/games/game_menu/clay-pigeon.png"
+dest_files=["res://.godot/imported/clay-pigeon.png-e9e74fe099b3682ac04466542a707104.ctex"]
 
 [params]
 

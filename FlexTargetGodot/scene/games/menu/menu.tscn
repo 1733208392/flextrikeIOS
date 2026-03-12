@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3 uid="uid://cgosfq33rfilf"]
+[gd_scene load_steps=20 format=3 uid="uid://cgosfq33rfilf"]
 
 [ext_resource type="Script" uid="uid://csw1htde5tl1j" path="res://script/games/menu.gd" id="1_8nwqc"]
 [ext_resource type="Texture2D" uid="uid://dd7g7gcxb7pif" path="res://asset/games/game_menu/fruit-ninja-selected.png" id="2_lira2"]
@@ -16,6 +16,8 @@
 [ext_resource type="Texture2D" uid="uid://kbclcpus4isr" path="res://asset/games/game_menu/chimp-test-selected.png" id="14_mb7bb"]
 [ext_resource type="Texture2D" uid="uid://b3ine75vcis0m" path="res://asset/games/game_menu/quick-reaction.png" id="15_utt30"]
 [ext_resource type="Texture2D" uid="uid://bq7d8pfa8a277" path="res://asset/games/game_menu/quick-reaction-selected.png" id="16_a45au"]
+[ext_resource type="Texture2D" uid="uid://tk18ofnhbmrx" path="res://asset/games/game_menu/clay-pigeon.png" id="17_1y5gc"]
+[ext_resource type="Texture2D" uid="uid://ckyq4gfdnv6nq" path="res://asset/games/game_menu/clay-pigeon-selected.png" id="18_os4tv"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_68t83"]
 bg_color = Color(0.03137255, 0.03137255, 0.03137255, 1)
@@ -167,6 +169,23 @@ layout_mode = 2
 theme = ExtResource("4_2klep")
 toggle_mode = true
 text = "REACTION TEST"
+
+[node name="HBoxContainer8" type="VBoxContainer" parent="Panel/ScrollContainer/GridContainer"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="claypigeon" type="TextureButton" parent="Panel/ScrollContainer/GridContainer/HBoxContainer8"]
+layout_mode = 2
+texture_normal = ExtResource("17_1y5gc")
+texture_pressed = ExtResource("18_os4tv")
+texture_hover = ExtResource("18_os4tv")
+texture_focused = ExtResource("18_os4tv")
+
+[node name="Label" type="Button" parent="Panel/ScrollContainer/GridContainer/HBoxContainer8"]
+layout_mode = 2
+theme = ExtResource("4_2klep")
+toggle_mode = true
+text = "CLAY PIGEON"
 
 [node name="VBoxContainer" type="VBoxContainer" parent="Panel"]
 layout_mode = 1

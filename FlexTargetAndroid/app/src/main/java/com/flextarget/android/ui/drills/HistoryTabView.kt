@@ -265,17 +265,34 @@ fun HistoryTabView(
                                         verticalArrangement = Arrangement.spacedBy(8.dp)
                                     ) {
                                         session.results.forEachIndexed { index, summary ->
-                                            DrillSummaryCard(
-                                                drillSetup = session.setup,
-                                                summary = summary,
-                                                repeatNumber = index + 1,
-                                                onClick = {
-                                                    onNavigateToSummary(session.setup, listOf(summary))
-                                                },
-                                                onDelete = {
-                                                    summary.drillResultId?.let { viewModel.deleteDrillResult(it) }
-                                                }
-                                            )
+                                            if (session.setup.mode?.lowercase() == "gaming") {
+                                                val hits = summary.adjustedHitZones?.get("hits") ?: 0
+                                                val misses = summary.adjustedHitZones?.get("misses") ?: 0
+                                                DrillSummaryCard(
+                                                    drillSetup = session.setup,
+                                                    summary = summary,
+                                                    repeatNumber = index + 1,
+                                                    showGamingStats = true,
+                                                    onClick = {
+                                                        onNavigateToSummary(session.setup, listOf(summary))
+                                                    },
+                                                    onDelete = {
+                                                        summary.drillResultId?.let { viewModel.deleteDrillResult(it) }
+                                                    }
+                                                )
+                                            } else {
+                                                DrillSummaryCard(
+                                                    drillSetup = session.setup,
+                                                    summary = summary,
+                                                    repeatNumber = index + 1,
+                                                    onClick = {
+                                                        onNavigateToSummary(session.setup, listOf(summary))
+                                                    },
+                                                    onDelete = {
+                                                        summary.drillResultId?.let { viewModel.deleteDrillResult(it) }
+                                                    }
+                                                )
+                                            }
                                         }
                                     }
                                 }
@@ -359,6 +376,7 @@ private fun DrillSummaryCard(
     drillSetup: DrillSetupEntity,
     summary: DrillRepeatSummary,
     repeatNumber: Int,
+    showGamingStats: Boolean = false,
     onClick: () -> Unit,
     onDelete: () -> Unit
 ) {
@@ -388,17 +406,28 @@ private fun DrillSummaryCard(
                 horizontalAlignment = Alignment.End,
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Text(
-                    String.format("%.2fs", summary.totalTime),
-                    color = Color.Red,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    "${summary.numShots} ${stringResource(R.string.shots_label)}",
-                    color = Color.Gray,
-                    style = MaterialTheme.typography.bodySmall
-                )
+                if (showGamingStats) {
+                    val hits = summary.adjustedHitZones?.get("hits") ?: 0
+                    val misses = summary.adjustedHitZones?.get("misses") ?: 0
+                    Text(
+                        "$hits Hits / $misses Misses",
+                        color = Color.Red,
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                } else {
+                    Text(
+                        String.format("%.2fs", summary.totalTime),
+                        color = Color.Red,
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        "${summary.numShots} ${stringResource(R.string.shots_label)}",
+                        color = Color.Gray,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
             }
             IconButton(onClick = onDelete) {
                 Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Red)

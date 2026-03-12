@@ -6,6 +6,7 @@ struct GamingControllerView: View {
     let bleManager: BLEManager
     var onGameEnd: () -> Void
     
+    @Environment(\.managedObjectContext) private var viewContext
     @Environment(\.dismiss) private var dismiss
     @State private var score: String = "0"
     @State private var hitCount: String = "0"
@@ -285,6 +286,7 @@ struct GamingControllerView: View {
         
         // If we represent a final state (score/hit/miss present) or were waiting for a stop
         if content["score"] != nil || isStopping {
+            saveGameResult()
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 withAnimation {
                     showResult = true
@@ -292,6 +294,38 @@ struct GamingControllerView: View {
                     isGameStarted = false
                 }
             }
+        }
+    }
+    
+    private func saveGameResult() {
+        let context = viewContext
+        let newResult = DrillResult(context: context)
+        newResult.id = UUID()
+        newResult.sessionId = UUID()
+        newResult.date = Date()
+        newResult.drillSetup = drillSetup
+        newResult.drillId = drillSetup.id
+        
+        // Save hits/misses in adjustedHitZones as JSON for the history view to parse
+        let stats = ["hits": Int(hitCount) ?? 0, "misses": Int(missCount) ?? 0]
+        if let statsData = try? JSONEncoder().encode(stats),
+           let statsString = String(data: statsData, encoding: .utf8) {
+            newResult.adjustedHitZones = statsString
+        }
+        
+        newResult.totalTime = NSNumber(value: 0) // No time tracking for gaming mode yet
+        
+        // We can store the score in a custom field or reuse one
+        // For now, let's just use the score directly if we had a field, 
+        // but DrillResult doesn't have a direct 'score' field (it's calculated).
+        // Let's store it in cqbResults as a string representation if needed, 
+        // or just let the summary view calculate it or read from adjustedHitZones.
+        
+        do {
+            try context.save()
+            print("[Gaming] Result saved to database")
+        } catch {
+            print("[Gaming] Error saving result: \(error)")
         }
     }
 }

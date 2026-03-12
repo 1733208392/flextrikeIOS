@@ -54,6 +54,19 @@ fun DrillSummaryView(
     athleteName: String = "",
     onCompetitionSubmit: () -> Unit = {}
 ) {
+    if (drillSetup.mode?.lowercase() == "gaming") {
+        val summary = summaries.firstOrNull()
+        val stats = summary?.adjustedHitZones
+        GameDrillResultView(
+            gameName = drillSetup.name ?: "Game",
+            score = "0",
+            hits = (stats?.get("hits") ?: 0).toString(),
+            misses = (stats?.get("misses") ?: 0).toString(),
+            onDone = onBack
+        )
+        return
+    }
+
     // Observe connectivity and pending submissions from shared DrillViewModel (AppContainer)
     val sharedVm = AppContainer.drillViewModel
     val connectivity by sharedVm.connectivityStatus.collectAsState()

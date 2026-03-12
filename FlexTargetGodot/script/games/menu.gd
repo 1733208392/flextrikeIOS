@@ -13,6 +13,7 @@ var button_tictactoe: TextureButton
 var button_painter: TextureButton
 var button_chimptest: TextureButton
 var button_quickreact: TextureButton
+var button_claypigeon: TextureButton
 var fruitcatcher_label: Button
 var monkeyduel_label: Button
 var mole_attack_label: Button
@@ -20,6 +21,7 @@ var tictactoe_label: Button
 var painter_label: Button
 var chimptest_label: Button
 var quickreact_label: Button
+var claypigeon_label: Button
 var scroll_container: ScrollContainer
 
 func _ready():
@@ -37,6 +39,7 @@ func _ready():
 	button_painter = get_node("Panel/ScrollContainer/GridContainer/HBoxContainer5/painter")
 	button_chimptest = get_node("Panel/ScrollContainer/GridContainer/HBoxContainer6/chimptest")
 	button_quickreact = get_node("Panel/ScrollContainer/GridContainer/HBoxContainer7/quickreact")
+	button_claypigeon = get_node("Panel/ScrollContainer/GridContainer/HBoxContainer8/claypigeon")
 
 	scroll_container = get_node("Panel/ScrollContainer")
 
@@ -48,9 +51,10 @@ func _ready():
 	painter_label = get_node("Panel/ScrollContainer/GridContainer/HBoxContainer5/Label")
 	chimptest_label = get_node("Panel/ScrollContainer/GridContainer/HBoxContainer6/Label")
 	quickreact_label = get_node("Panel/ScrollContainer/GridContainer/HBoxContainer7/Label")
+	claypigeon_label = get_node("Panel/ScrollContainer/GridContainer/HBoxContainer8/Label")
 	
 	# Populate menu options arrays
-	main_menu_options = [button_fruitcatcher, button_monkeyduel, button_mole_attack, button_tictactoe, button_painter, button_chimptest, button_quickreact]
+	main_menu_options = [button_fruitcatcher, button_monkeyduel, button_mole_attack, button_tictactoe, button_painter, button_chimptest, button_quickreact, button_claypigeon]
 
 	# Connect button signals
 	button_fruitcatcher.pressed.connect(_on_fruitcatcher_pressed)
@@ -60,6 +64,7 @@ func _ready():
 	button_painter.pressed.connect(_on_painter_pressed)
 	button_chimptest.pressed.connect(_on_chimptest_pressed)
 	button_quickreact.pressed.connect(_on_quickreact_pressed)
+	button_claypigeon.pressed.connect(_on_clay_pigeon_pressed)
 
 	# Connect label signals
 	fruitcatcher_label.pressed.connect(_on_fruitcatcher_pressed)
@@ -69,6 +74,7 @@ func _ready():
 	painter_label.pressed.connect(_on_painter_pressed)
 	chimptest_label.pressed.connect(_on_chimptest_pressed)
 	quickreact_label.pressed.connect(_on_quickreact_pressed)
+	claypigeon_label.pressed.connect(_on_clay_pigeon_pressed)
 
 	# Connect to remote control directives
 	var remote_control = get_node_or_null("/root/MenuController")
@@ -95,6 +101,8 @@ func _ready():
 		chimptest_label.text = tr("chimp_test")
 	if quickreact_label:
 		quickreact_label.text = tr("quick_react")
+	if claypigeon_label:
+		claypigeon_label.text = tr("clay_pigeon")
 
 	# Default to FruitNinja (FruitCatcher at index 0)
 	selected_option = 0
@@ -204,6 +212,7 @@ func _update_selection():
 		painter_label.button_pressed = (selected_option == 4)
 		chimptest_label.button_pressed = (selected_option == 5)
 		quickreact_label.button_pressed = (selected_option == 6)
+		claypigeon_label.button_pressed = (selected_option == 7)
 		
 		# Auto-scroll based on selected row
 		var row = selected_option / COLS

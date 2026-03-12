@@ -303,10 +303,24 @@ struct HistoryTabView: View {
                                             if isExpanded {
                                                 VStack(spacing: 8) {
                                                     ForEach(session.results, id: \.objectID) { result in
-                                                        NavigationLink(destination: DrillSummaryView(drillSetup: session.setup, summaries: createSummaries(from: result) ?? [])
-                                                            .environment(\.managedObjectContext, persistenceController.container.viewContext)) {
-                                                            if let summaries = createSummaries(from: result) {
-                                                                DrillSummaryCard(drillSetup: session.setup, summaries: summaries, onDelete: { deleteResult(result) })
+                                                        if session.setup.mode?.lowercased() == "gaming" {
+                                                            let stats = try? JSONDecoder().decode([String: Int].self, from: result.adjustedHitZones?.data(using: .utf8) ?? Data())
+                                                            NavigationLink(destination: GameDrillResultView(
+                                                                gameName: session.setup.name ?? "Game",
+                                                                score: "0", // Simplified for now
+                                                                hits: "\(stats?["hits"] ?? 0)",
+                                                                misses: "\(stats?["misses"] ?? 0)",
+                                                                onReplay: {}, // No replay from history
+                                                                onDone: {} // Done dismisses via NavigationLink
+                                                            )) {
+                                                                DrillSummaryCard(drillSetup: session.setup, summaries: [], stats: stats, onDelete: { deleteResult(result) })
+                                                            }
+                                                        } else {
+                                                            NavigationLink(destination: DrillSummaryView(drillSetup: session.setup, summaries: createSummaries(from: result) ?? [])
+                                                                .environment(\.managedObjectContext, persistenceController.container.viewContext)) {
+                                                                if let summaries = createSummaries(from: result) {
+                                                                    DrillSummaryCard(drillSetup: session.setup, summaries: summaries, onDelete: { deleteResult(result) })
+                                                                }
                                                             }
                                                         }
                                                     }
@@ -430,6 +444,7 @@ struct HistoryTabView: View {
 struct DrillSummaryCard: View {
     let drillSetup: DrillSetup
     let summaries: [DrillRepeatSummary]
+    var stats: [String: Int]? = nil // Optional for Gaming mode
     let onDelete: () -> Void
     
     var body: some View {
@@ -445,12 +460,18 @@ struct DrillSummaryCard: View {
                 }
                 Spacer()
                 VStack(alignment: .trailing, spacing: 4) {
-                    Text(String(format: "%.2fs", summaries.first?.totalTime ?? 0))
-                        .font(.caption)
-                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
-                    Text(String(summaries.first?.shots.count ?? 0) + " shots")
-                        .font(.caption)
-                        .foregroundColor(.gray)
+                    if let gamingStats = stats {
+                        Text("\(gamingStats["hits"] ?? 0) Hits / \(gamingStats["misses"] ?? 0) Misses")
+                            .font(.caption)
+                            .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+                    } else {
+                        Text(String(format: "%.2fs", summaries.first?.totalTime ?? 0))
+                            .font(.caption)
+                            .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+                        Text(String(summaries.first?.shots.count ?? 0) + " shots")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                    }
                 }
                 Button(action: onDelete) {
                     Image(systemName: "trash")
