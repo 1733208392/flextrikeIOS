@@ -26,6 +26,19 @@ func _ready():
 	score_label.text = str(score)
 	game_over_panel.hide()
 	
+	# Move background out of CanvasLayer so it shakes with the camera
+	var background_layer = get_node_or_null("Background")
+	if background_layer and background_layer is CanvasLayer:
+		var sprite = background_layer.get_node_or_null("Sprite2D")
+		if sprite:
+			background_layer.remove_child(sprite)
+			add_child(sprite)
+			sprite.owner = self
+			# Ensure it's behind everything else
+			move_child(sprite, 0)
+			# Hide the now empty CanvasLayer
+			background_layer.visible = false
+	
 	# Let the app know we are ready
 	HttpService.start_game(func(result, response_code, _headers, _body):
 		print("Clay Pigeon started - Result: ", result)
@@ -171,14 +184,22 @@ func _shake_camera(intensity: float = 10.0, duration: float = 0.5):
 	# Use a while loop to perform the shake over time
 	while shake_timer < duration:
 		var shake_amount = intensity * (1.0 - shake_timer / duration)
-		camera.offset = original_offset + Vector2(
+		var offset_pos = Vector2(
 			randf_range(-shake_amount, shake_amount),
 			randf_range(-shake_amount, shake_amount)
 		)
+		
+		# Move the entire root node for a guaranteed shake
+		self.position = offset_pos
+		
+		# Also shake camera for good measure
+		camera.offset = original_offset + offset_pos
+		
 		shake_timer += get_process_delta_time()
 		await get_tree().process_frame
 	
-	# Reset camera to original position
+	# Reset position
+	self.position = Vector2.ZERO
 	camera.offset = original_offset
 	print("Camera shake complete")
 
