@@ -35,12 +35,24 @@ import com.google.gson.Gson
 import android.util.Log
 import kotlin.math.abs
 import com.flextarget.android.ui.theme.md_theme_dark_onPrimary
+import android.content.Context
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
+import androidx.compose.ui.platform.LocalContext
+import kotlin.math.sqrt
 
 @Composable
 fun RemoteControlView(
     bleManager: BLEManager = BLEManager.shared,
     onBack: () -> Unit
 ) {
+    val context = LocalContext.current
+    val lastShakeTime = remember { mutableStateOf(0L) }
+    val shakeThreshold = 15f
+    val shakeDebounceMs = 500L
+    
     val lastSwipeTime = remember { mutableStateOf(0L) }
     val swipeDebounceMs = 300 // Debounce swipe gestures
     val showVolumeBar = remember { mutableStateOf(false) }
@@ -55,6 +67,47 @@ fun RemoteControlView(
             .fillMaxSize()
             .background(Color.Black)
     ) {
+        // Shake detection logic
+        DisposableEffect(Unit) {
+            val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+            val accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+
+            val sensorEventListener = object : SensorEventListener {
+                override fun onSensorChanged(event: SensorEvent?) {
+                    if (event != null && event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
+                        val x = event.values[0]
+                        val y = event.values[1]
+                        val z = event.values[2]
+
+                        val magnitude = sqrt(x * x + y * y + z * z) - SensorManager.GRAVITY_EARTH
+                        
+                        if (magnitude > shakeThreshold) {
+                            val currentTime = System.currentTimeMillis()
+                            if (currentTime - lastShakeTime.value > shakeDebounceMs) {
+                                lastShakeTime.value = currentTime
+                                Log.d("RemoteControl", "Shake detected!")
+                                sendRemoteCommand("shake")
+                            }
+                        }
+                    }
+                }
+
+                override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+            }
+
+            accelerometer?.let {
+                sensorManager.registerListener(
+                    sensorEventListener,
+                    it,
+                    SensorManager.SENSOR_DELAY_UI
+                )
+            }
+
+            onDispose {
+                sensorManager.unregisterListener(sensorEventListener)
+            }
+        }
+
         LaunchedEffect(Unit) {
             bleManager.onForwardReceived = { message ->
                 val content = message["content"] as? Map<String, Any>
@@ -479,6 +532,7 @@ private fun sendRemoteCommand(command: String) {
             "homepage" -> "homepage"
             "volume_up" -> "volume_up"
             "volume_down" -> "volume_down"
+            "shake" -> "shake"
             else -> "enter"
         }
     )

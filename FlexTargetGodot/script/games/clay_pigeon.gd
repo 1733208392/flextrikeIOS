@@ -8,6 +8,9 @@ var hit_count = 0
 var miss_count = 0
 var game_over = false
 
+var shake_intensity = 0.0
+var shake_duration = 0.0
+
 @onready var score_label = $StatusBar/TopBar/Score
 @onready var coin_icon = $StatusBar/TopBar/CoinIcon
 @onready var game_over_panel = $GameOverLayer/GameOverPanel
@@ -51,6 +54,13 @@ func _on_netlink_forward(data: Dictionary):
 func _on_menu_control(directive: String):
 	# Handle remote controller directives
 	match directive:
+		"shake":
+			# Explode all active clay targets and shake camera
+			shake_intensity = 15.0
+			shake_duration = 0.5
+			for child in get_children():
+				if child is ClayTarget:
+					child.hit()
 		"enter":
 			if game_over:
 				# If game over, return to menu or restart
@@ -145,8 +155,15 @@ func _on_target_destroyed(points):
 func _on_target_missed():
 	miss_count += 1
 	
-func _process(_delta):
-	pass
+func _process(delta):
+	if shake_duration > 0:
+		shake_duration -= delta
+		$Camera2D.offset = Vector2(
+			randf_range(-shake_intensity, shake_intensity), 
+			randf_range(-shake_intensity, shake_intensity)
+		)
+	else:
+		$Camera2D.offset = Vector2.ZERO
 
 func _input(event):
 	# Desktop/Mouse debugging

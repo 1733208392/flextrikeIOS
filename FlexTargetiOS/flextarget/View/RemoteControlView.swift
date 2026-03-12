@@ -1,5 +1,17 @@
 import SwiftUI
 
+extension NSNotification.Name {
+    static let deviceDidShake = NSNotification.Name("deviceDidShake")
+}
+
+extension UIWindow {
+    open override func motionEnded(_ motion: UIEvent.EventSubtype, with event: UIEvent?) {
+        if motion == .motionShake {
+            NotificationCenter.default.post(name: .deviceDidShake, object: nil)
+        }
+    }
+}
+
 struct RemoteControlView: View {
     @ObservedObject var bleManager = BLEManager.shared
     @Environment(\.presentationMode) var presentationMode
@@ -236,6 +248,9 @@ struct RemoteControlView: View {
                     showNameDialog = false
                 }
             )
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .deviceDidShake)) { _ in
+            sendCommand("shake")
         }
         .navigationBarBackButtonHidden(true)
     }
