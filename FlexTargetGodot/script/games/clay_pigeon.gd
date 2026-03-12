@@ -20,6 +20,7 @@ func _ready():
 	if WebSocketListener:
 		WebSocketListener.netlink_forward.connect(_on_netlink_forward)
 		WebSocketListener.bullet_hit.connect(_on_bullet_hit)
+		WebSocketListener.menu_control.connect(_on_menu_control)
 	
 	# Initial UI
 	score_label.text = str(score)
@@ -46,6 +47,23 @@ func _on_netlink_forward(data: Dictionary):
 			launch_clay()
 	elif cmd == "stop":
 		_stop_game()
+
+func _on_menu_control(directive: String):
+	# Handle remote controller directives
+	match directive:
+		"enter":
+			if game_over:
+				# If game over, return to menu or restart
+				get_tree().change_scene_to_file("res://scene/main_menu/main_menu.tscn")
+			else:
+				# Stop the game if already started
+				_stop_game()
+		"up":
+			if not game_over: _launch_by_string_direction("center")
+		"left":
+			if not game_over: _launch_by_string_direction("left")
+		"right":
+			if not game_over: _launch_by_string_direction("right")
 
 func _launch_by_string_direction(direction: String):
 	var velocity = Vector2.ZERO
