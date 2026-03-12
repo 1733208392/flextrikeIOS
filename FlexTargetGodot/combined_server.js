@@ -1627,6 +1627,20 @@ class WriteCharacteristic extends bleno.Characteristic {
           sendToGodot({ type: 'netlink', data: parsedData.content });
         }
         
+        // Handle remote_control actions from Mobile App
+        if (parsedData.action === 'remote_control' && parsedData.directive) {
+          console.log(`[CombinedServer] Received remote_control action: ${parsedData.directive}`);
+          
+          // Forward as a menu control directive to Godot
+          const controlMessage = {
+            type: 'control',
+            directive: parsedData.directive
+          };
+          
+          sendToGodot(controlMessage);
+          console.log(`[CombinedServer] Forwarded remote_control as menu control directive: ${parsedData.directive}`);
+        }
+        
         // Handle specific commands
         if (parsedData.action === 'netlink_query_device_list') {
           console.log('[CombinedServer] Processing query_device_list from Mobile App');
