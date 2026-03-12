@@ -38,6 +38,7 @@ import com.flextarget.android.data.model.DeviceValidationResult
 import com.flextarget.android.ui.theme.AppButton
 import com.flextarget.android.ui.drills.TargetConfigListView
 import com.flextarget.android.ui.drills.TargetConfigListViewV2
+import java.util.UUID
 import com.flextarget.android.ui.theme.md_theme_dark_onPrimary
 import com.flextarget.android.ui.theme.md_theme_dark_primary
 import kotlinx.coroutines.CoroutineScope
@@ -72,7 +73,8 @@ fun DrillFormView(
     existingDrill: DrillSetupEntity? = null,
     onBack: () -> Unit,
 //    onDrillSaved: (DrillSetupEntity) -> Unit = {},
-    viewModel: DrillFormViewModel
+    viewModel: DrillFormViewModel,
+    initialScreen: DrillFormScreen = DrillFormScreen.FORM
 ) {
     val coroutineScope = rememberCoroutineScope()
     val androidBleManager = bleManager.androidManager
@@ -87,7 +89,7 @@ fun DrillFormView(
     var autoAddedDeviceIds by remember { mutableStateOf(setOf<String>()) }
     var selectedDeviceForConfig by remember { mutableStateOf<String?>(null) }
     val isTargetListReceivedDerived by derivedStateOf { bleManager.networkDevices.isNotEmpty() }
-    var currentScreen by remember { mutableStateOf(DrillFormScreen.FORM) }
+    var currentScreen by remember { mutableStateOf(initialScreen) }
     var showEditDisabledAlert by remember { mutableStateOf(false) }
     var drillResultCount by remember { mutableStateOf(0) }
     var showDeviceMismatchWarning by remember { mutableStateOf(false) }
@@ -163,6 +165,11 @@ fun DrillFormView(
             println("[DrillFormView.LaunchedEffect] FINAL targets.size=${targets.size}")
             targets.forEachIndexed { index, target ->
                 println("[DrillFormView.LaunchedEffect] FinalTarget[$index]: name='${target.targetName}', type='${target.targetType}'")
+            }
+
+            // If we are starting directly in TARGET_CONFIG and there's only one device, select it
+            if (currentScreen == DrillFormScreen.TARGET_CONFIG && bleManager.networkDevices.size == 1) {
+                selectedDeviceForConfig = bleManager.networkDevices.first().name
             }
         } else if (bleManager.networkDevices.isNotEmpty() && existingDrill != null && targets.isNotEmpty()) {
             // For existing drills, check if devices have changed
@@ -574,6 +581,55 @@ fun DrillFormView(
                         },
                         onDrillModeChange = { newMode ->
                             drillMode = newMode
+                        },
+                        onStartDrill = {
+                            // Ensure form a basic name if it's empty for quick start
+                            if (drillName.isBlank()) {
+                                drillName = "QUICK DRILL"
+                            }
+                            
+                            val sessionDrill = DrillSetupEntity(
+                                id = UUID.randomUUID(),
+                                name = drillName,
+                                desc = description,
+                                mode = drillMode,
+                                repeats = repeats,
+                                pause = pause
+                            )
+                            
+                            val sessionTargets = targets.map { config ->
+                                DrillTargetsConfigEntity(
+                                    id = UUID.randomUUID(),
+                                    seqNo = config.seqNo,
+                                    targetName = config.targetName,
+                                    targetType = config.targetType,
+                                    timeout = config.timeout,
+                                    countedShots = config.countedShots,
+                                    action = config.action,
+                                    duration = config.duration,
+                                    drillSetupId = sessionDrill.id
+                                )
+                            }
+
+                            // Auto-save the new drill and its targets to satisfy foreign key constraints
+                            coroutineScope.launch {
+                                try {
+                                    viewModel.saveNewDrillWithTargets(sessionDrill, targets)
+                                    println("[DrillFormView] Quick drill auto-saved successfully")
+                                } catch (e: Exception) {
+                                    println("[DrillFormView] Quick drill auto-save FAILED: ${e.message}")
+                                    e.printStackTrace()
+                                }
+                            }
+
+                            timerSessionDrill = sessionDrill
+                            timerSessionTargets = sessionTargets
+                            if (drillMode == "gaming") {
+                                drillSessionScreen = DrillSessionScreen.GAMING
+                            } else {
+                                drillSessionScreen = DrillSessionScreen.TIMER
+                            }
+                            showTimerSession = true
                         },
                         isReadOnlyMode = bleManager.networkDevices.size > 1,
                         fromScreen = if (bleManager.networkDevices.size > 1) DrillFormScreen.TARGET_LINK else DrillFormScreen.FORM

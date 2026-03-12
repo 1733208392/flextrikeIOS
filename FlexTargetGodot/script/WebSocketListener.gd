@@ -1,6 +1,6 @@
 extends Node
 
-const DEBUG_DISABLED = false
+const DEBUG_DISABLED = true
 const WEBSOCKET_URL = "ws://127.0.0.1/websocket"
 #const WEBSOCKET_URL = "ws://192.168.50.161/websocket"
 

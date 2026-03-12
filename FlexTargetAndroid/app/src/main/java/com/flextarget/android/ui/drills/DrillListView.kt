@@ -52,6 +52,7 @@ fun DrillListView(
     var showDrillForm by remember { mutableStateOf(false) }
     var drillFormMode by remember { mutableStateOf(DrillFormMode.ADD) }
     var selectedDrill by remember { mutableStateOf<DrillSetupEntity?>(null) }
+    var initialFormScreen by remember { mutableStateOf(DrillFormScreen.FORM) }
 
     val showTopBar by remember(showDrillForm) {
         derivedStateOf { !showDrillForm }
@@ -126,6 +127,12 @@ fun DrillListView(
                             IconButton(onClick = {
                                 drillFormMode = DrillFormMode.ADD
                                 selectedDrill = null
+                                // Determine initial screen based on device count
+                                initialFormScreen = when {
+                                    bleManager.networkDevices.size == 1 -> DrillFormScreen.TARGET_CONFIG
+                                    bleManager.networkDevices.size > 1 -> DrillFormScreen.TARGET_LINK
+                                    else -> DrillFormScreen.FORM
+                                }
                                 showDrillForm = true
                             }) {
                                 Icon(
@@ -408,7 +415,8 @@ fun DrillListView(
                 factory = com.flextarget.android.ui.viewmodel.DrillFormViewModel.Factory(
                     DrillSetupRepository.getInstance(LocalContext.current)
                 )
-            )
+            ),
+            initialScreen = initialFormScreen
         )
     }
 

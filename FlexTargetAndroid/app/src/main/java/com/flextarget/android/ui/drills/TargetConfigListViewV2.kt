@@ -12,6 +12,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
@@ -29,6 +30,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.runtime.*
 import androidx.compose.ui.text.font.FontWeight
 import coil.compose.AsyncImage
@@ -50,6 +52,7 @@ fun TargetConfigListViewV2(
     onDone: () -> Unit,
     onBack: () -> Unit,
     onDrillModeChange: (String) -> Unit,
+    onStartDrill: (() -> Unit)? = null,
     isReadOnlyMode: Boolean = false,
     fromScreen: DrillFormScreen = DrillFormScreen.TARGET_LINK
 ) {
@@ -122,11 +125,13 @@ fun TargetConfigListViewV2(
                         fontSize = 18.sp
                     )
                 },
-                navigationIcon = {
-                    IconButton(onClick = {
-                        onBack()
-                    }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back), tint = accentRed)
+                actions = {
+                    IconButton(onClick = onDone) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "Advanced Config",
+                            tint = accentRed
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.Black)
@@ -145,7 +150,7 @@ fun TargetConfigListViewV2(
                     }
                 },
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
                 // Drill Mode Segment Control
                 Surface(
@@ -284,7 +289,8 @@ fun TargetConfigListViewV2(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(10.dp))
+                // Reduced spacing
+                Spacer(modifier = Modifier.height(2.dp))
 
                 // Target Rectangle Section with Carousel
                 TargetRectSection(
@@ -307,7 +313,8 @@ fun TargetConfigListViewV2(
                     }
                 )
 
-                Spacer(modifier = Modifier.height(10.dp))
+                // Reduced spacing
+                Spacer(modifier = Modifier.height(2.dp))
 
                 // Target Type Selection View
                 TargetTypeSelectionViewV2(
@@ -326,6 +333,36 @@ fun TargetConfigListViewV2(
                         onUpdateTargetTypes(primaryConfigIndexInOriginalList, newTypes)
                     }
                 )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Action Buttons at the bottom
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth(0.85f)
+                        .padding(bottom = 32.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    if (onStartDrill != null) {
+                        Button(
+                            onClick = onStartDrill,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(56.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = accentRed),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text(
+                                "QUICK START",
+                                color = Color.White,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Black,
+                                fontFamily = ttNormFontFamily
+                            )
+                        }
+                    }
+                }
 
                 Spacer(modifier = Modifier.weight(1f))
             }

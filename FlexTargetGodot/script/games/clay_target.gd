@@ -3,7 +3,7 @@ extends Node2D
 class_name ClayTarget
 
 var velocity = Vector2.ZERO
-var gravity = 180.0 # Adjust based on screen scale
+var gravity = 120.0 # Adjust based on screen scale
 var rotation_speed = 0.0
 
 @onready var sprite = $ClayExplode
