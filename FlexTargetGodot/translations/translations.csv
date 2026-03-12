@@ -730,3 +730,10 @@ chimp_level,LEVEL ,关卡 ,レベル ,關卡
 chimp_status,STATUS,状态,ステータス,狀態
 chimp_test,CHIMP TEST,猩猩测试,チンパンジーテスト,猩猩測試
 quick_react,QUICK REACT,快速反应,クイックリアクト,快速反應
+clay_pigeon,CLAY PIGEON,飛碟射擊,飛碟射撃,飛碟射擊
+hits,HITS,命中,命中,命中
+misses,MISSES,脱靶,ミス,脫靶
+score,SCORE,得分,スコア,得分
+game_over,GAME OVER,游戏结束,ゲームオーバー,遊戲結束
+replay,REPLAY,重赛,再試行,重賽
+done,DONE,完成,終了,完成
