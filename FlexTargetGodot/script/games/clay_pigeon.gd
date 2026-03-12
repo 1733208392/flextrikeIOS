@@ -8,9 +8,6 @@ var hit_count = 0
 var miss_count = 0
 var game_over = false
 
-var shake_intensity = 0.0
-var shake_duration = 0.0
-
 @onready var score_label = $StatusBar/TopBar/Score
 @onready var coin_icon = $StatusBar/TopBar/CoinIcon
 @onready var game_over_panel = $GameOverLayer/GameOverPanel
@@ -56,10 +53,10 @@ func _on_menu_control(directive: String):
 	match directive:
 		"shake":
 			# Explode all active clay targets and shake camera
-			shake_intensity = 15.0
-			shake_duration = 0.5
+			print("[ClayPigeon] Shake directive received")
+			_shake_camera(40.0, 0.5)
 			for child in get_children():
-				if child is ClayTarget:
+				if child.has_method("hit"):
 					child.hit()
 		"enter":
 			if game_over:
@@ -155,15 +152,31 @@ func _on_target_destroyed(points):
 func _on_target_missed():
 	miss_count += 1
 	
-func _process(delta):
-	if shake_duration > 0:
-		shake_duration -= delta
-		$Camera2D.offset = Vector2(
-			randf_range(-shake_intensity, shake_intensity), 
-			randf_range(-shake_intensity, shake_intensity)
+func _shake_camera(intensity: float = 10.0, duration: float = 0.5):
+	"""Shake the camera with specified intensity and duration"""
+	print("_shake_camera called! Intensity: ", intensity, ", Duration: ", duration)
+	var camera = get_node_or_null("Camera2D")
+	if not camera:
+		print("ERROR: Camera2D not found!")
+		return
+	print("Camera found: ", camera)
+	
+	var original_offset = camera.offset
+	var shake_timer = 0.0
+	
+	# Use a while loop to perform the shake over time
+	while shake_timer < duration:
+		var shake_amount = intensity * (1.0 - shake_timer / duration)
+		camera.offset = original_offset + Vector2(
+			randf_range(-shake_amount, shake_amount),
+			randf_range(-shake_amount, shake_amount)
 		)
-	else:
-		$Camera2D.offset = Vector2.ZERO
+		shake_timer += get_process_delta_time()
+		await get_tree().process_frame
+	
+	# Reset camera to original position
+	camera.offset = original_offset
+	print("Camera shake complete")
 
 func _input(event):
 	# Desktop/Mouse debugging
