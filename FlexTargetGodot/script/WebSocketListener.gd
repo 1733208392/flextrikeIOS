@@ -167,6 +167,23 @@ func _process_websocket_json(json_string):
 			print("[WebSocket] Emitting menu_control with directive: ", directive)
 		menu_control.emit(directive)
 		return
+
+	# Handle remote_control action
+	if parsed and parsed.get("action") == "remote_control" and parsed.has("directive"):
+		var directive = parsed["directive"]
+		var current_time = Time.get_ticks_msec() / 1000.0
+
+		if last_directive_times.has(directive):
+			var time_diff = current_time - last_directive_times[directive]
+			if time_diff < directive_cooldown:
+				return
+
+		last_directive_times[directive] = current_time
+
+		if not DEBUG_DISABLED:
+			print("[WebSocket] Remote Control Emitting menu_control: ", directive)
+		menu_control.emit(directive)
+		return
 	
 	# Handle BLE forwarded / netlink commands
 	if parsed and (parsed.get("type") in ["netlink", "forward"] or parsed.get("action") == "forward"):
