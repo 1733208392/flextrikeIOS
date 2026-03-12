@@ -181,20 +181,6 @@ fun TargetConfigListView(
     }
 }
 
-private fun queryDeviceList(bleManager: BLEManager) {
-    if (!bleManager.isConnected) {
-        println("BLE not connected, cannot query device list")
-        return
-    }
-
-    val command = mapOf("action" to "netlink_query_device_list")
-    val jsonString = JSONObject(command).toString()
-
-    println("Query message length: ${jsonString.toByteArray().size}")
-    bleManager.writeJSON(jsonString)
-    println("Sent netlink_query_device_list command: $jsonString")
-}
-
 private fun addAllAvailableTargets(
     networkDevices: List<NetworkDevice>,
     targetConfigs: List<DrillTargetsConfigData>,

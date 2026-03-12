@@ -871,7 +871,8 @@ private fun FormScreen(
 
 
 
-private fun queryDeviceList(bleManager: BLEManager) {
+// Moved to public for access from DrillListView
+fun queryDeviceList(bleManager: BLEManager) {
     if (!bleManager.isConnected) {
         println("BLE not connected, cannot query device list")
         return

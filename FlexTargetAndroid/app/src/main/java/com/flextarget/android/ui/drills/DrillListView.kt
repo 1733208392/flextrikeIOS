@@ -60,6 +60,13 @@ fun DrillListView(
 
     val drillSetups by viewModel.drillSetups.collectAsState(initial = emptyList())
 
+    // Query device list on startup to ensure bleManager.networkDevices is populated
+    LaunchedEffect(bleManager.isConnected) {
+        if (bleManager.isConnected) {
+            queryDeviceList(bleManager)
+        }
+    }
+
     val filteredDrills = remember(drillSetups, searchQuery) {
         if (searchQuery.isEmpty()) {
             drillSetups
