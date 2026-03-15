@@ -130,4 +130,3 @@ func _on_netlink_status_loaded():
 		_set_network_started(started)
 		# print("StatusBar: netlink started=", started)
 		
-

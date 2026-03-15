@@ -1,0 +1,153 @@
+[gd_scene format=3 uid="uid://bn7hb1oqxmyri"]
+
+[ext_resource type="Script" uid="uid://ck2o3wodcst08" path="res://script/games/rhythm/rhythm_game.gd" id="1_game"]
+[ext_resource type="Theme" uid="uid://cdynjfvdtavlt" path="res://scene/main_menu/main_menu_button_theme.tres" id="2_swubk"]
+
+[sub_resource type="GDScript" id="GDScript_staff"]
+script/source = "extends Control
+
+const NOTE_Y_OFFSETS = {
+	\"C3\": 60, \"D3\": 50, \"E3\": 40, \"F3\": 30, \"G3\": 20, \"A3\": 10, \"B3\": 0,
+	\"C4\": -10, \"D4\": -20, \"E4\": -30, \"F4\": -40, \"G4\": -50, \"A4\": -60, \"B4\": -70
+}
+
+func _draw():
+	var w = size.x
+	var h = size.y
+	var color = Color(0.87, 0.22, 0.14)
+	var line_spacing = h / 6.0
+
+	# Draw 5 lines of the staff
+	for i in range(5):
+		var y = (i + 1) * line_spacing
+		draw_line(Vector2(0, y), Vector2(w, y), color, 2.0)
+
+	var main_game = get_node_or_null(\"../..\")
+	if not main_game or not \"collected_notes\" in main_game:
+		return
+
+	var notes = main_game.collected_notes
+	var spacing = w / 9.0
+	var center_y = 3 * line_spacing # Center line (B3/C4 area)
+
+	for i in range(notes.size()):
+		var note_name = notes[i]
+		var x = (i + 1) * spacing
+		
+		# Calculate Y based on note pitch
+		var y_offset = NOTE_Y_OFFSETS.get(note_name, 0)
+		var y = center_y + y_offset
+		
+		# Draw Note Head
+		draw_circle(Vector2(x, y), 8, color)
+		# Draw Stem
+		draw_line(Vector2(x + 7, y), Vector2(x + 7, y - 25), color, 3.0)
+"
+
+[node name="RhythmGame" type="Node2D" unique_id=105767178]
+script = ExtResource("1_game")
+
+[node name="Background" type="ColorRect" parent="." unique_id=1802245238]
+offset_right = 720.0
+offset_bottom = 1280.0
+color = Color(0.12, 0.12, 0.12, 1)
+
+[node name="UI" type="Control" parent="." unique_id=1873799754]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 720.0
+offset_bottom = 1280.0
+
+[node name="TopBar" type="HBoxContainer" parent="UI" unique_id=1407039591]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 40.0
+offset_top = 40.0
+offset_right = -40.0
+offset_bottom = 100.0
+grow_horizontal = 2
+alignment = 1
+
+[node name="ComboLabel" type="Label" parent="UI/TopBar" unique_id=835465458]
+layout_mode = 2
+size_flags_horizontal = 3
+theme = ExtResource("2_swubk")
+theme_override_colors/font_color = Color(0.87, 0.22, 0.14, 1)
+theme_override_font_sizes/font_size = 28
+text = "COMBO: 0"
+
+[node name="ScoreLabel" type="Label" parent="UI/TopBar" unique_id=1656031478]
+layout_mode = 2
+theme = ExtResource("2_swubk")
+theme_override_colors/font_color = Color(0.87, 0.22, 0.14, 1)
+theme_override_font_sizes/font_size = 28
+text = "SCORE: 0"
+horizontal_alignment = 2
+
+[node name="BPMLabel" type="Label" parent="UI" unique_id=651193481]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 42.0
+offset_top = 150.0
+offset_bottom = 200.0
+grow_horizontal = 2
+theme = ExtResource("2_swubk")
+theme_override_colors/font_color = Color(0.87, 0.22, 0.14, 1)
+theme_override_font_sizes/font_size = 24
+text = "BPM: 60"
+
+[node name="CountdownLabel" type="Label" parent="UI" unique_id=1279002825]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -100.0
+offset_top = -100.0
+offset_right = 100.0
+offset_bottom = 100.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2_swubk")
+theme_override_colors/font_color = Color(0.87, 0.22, 0.14, 1)
+theme_override_font_sizes/font_size = 120
+text = "5"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="StaffDisplay" type="Control" parent="UI" unique_id=75219236]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 220.0
+offset_bottom = 320.0
+grow_horizontal = 2
+script = SubResource("GDScript_staff")
+
+[node name="CenterContainer" type="CenterContainer" parent="UI" unique_id=680609406]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -920.0
+offset_bottom = -60.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="GridContainer" type="GridContainer" parent="UI/CenterContainer" unique_id=1441652184]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/h_separation = 30
+theme_override_constants/v_separation = 30
+columns = 3
+
+[node name="BeatTimer" type="Timer" parent="." unique_id=1946944386]
+
+[node name="MelodyPlayer" type="AudioStreamPlayer" parent="." unique_id=978728738]
+
+[connection signal="timeout" from="BeatTimer" to="." method="_on_beat_timer_timeout"]

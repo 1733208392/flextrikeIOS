@@ -1,0 +1,23 @@
+[gd_scene format=3 uid="uid://dp7v6v7v6v7v"]
+
+[ext_resource type="Theme" uid="uid://cdynjfvdtavlt" path="res://scene/main_menu/main_menu_button_theme.tres" id="1_3pjo2"]
+[ext_resource type="Script" uid="uid://yf6jm2mr63e2" path="res://script/games/rhythm/rhythm_tile.gd" id="1_rhy1"]
+
+[node name="RhythmTile" type="Button" unique_id=1518285186]
+custom_minimum_size = Vector2(80, 80)
+offset_right = 80.0
+offset_bottom = 80.0
+focus_mode = 0
+theme = ExtResource("1_3pjo2")
+script = ExtResource("1_rhy1")
+
+[node name="Pulse" type="ColorRect" parent="." unique_id=1236003983]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 0.2)

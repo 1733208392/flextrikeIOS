@@ -6,3 +6,6 @@
 # Node modules
 node_modules/
 package-lock.json
+
+# Ignore Csound GDExtension binaries and addon
+addons/csound/

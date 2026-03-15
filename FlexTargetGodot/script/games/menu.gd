@@ -14,6 +14,7 @@ var button_painter: TextureButton
 var button_chimptest: TextureButton
 var button_quickreact: TextureButton
 var button_claypigeon: TextureButton
+var button_rhythm: TextureButton
 var fruitcatcher_label: Button
 var monkeyduel_label: Button
 var mole_attack_label: Button
@@ -22,6 +23,7 @@ var painter_label: Button
 var chimptest_label: Button
 var quickreact_label: Button
 var claypigeon_label: Button
+var rhythm_label: Button
 var scroll_container: ScrollContainer
 
 func _ready():
@@ -40,6 +42,7 @@ func _ready():
 	button_chimptest = get_node("Panel/ScrollContainer/GridContainer/HBoxContainer6/chimptest")
 	button_quickreact = get_node("Panel/ScrollContainer/GridContainer/HBoxContainer7/quickreact")
 	button_claypigeon = get_node("Panel/ScrollContainer/GridContainer/HBoxContainer8/claypigeon")
+	button_rhythm = get_node_or_null("Panel/ScrollContainer/GridContainer/HBoxContainer9/rhythm")
 
 	scroll_container = get_node("Panel/ScrollContainer")
 
@@ -52,9 +55,12 @@ func _ready():
 	chimptest_label = get_node("Panel/ScrollContainer/GridContainer/HBoxContainer6/Label")
 	quickreact_label = get_node("Panel/ScrollContainer/GridContainer/HBoxContainer7/Label")
 	claypigeon_label = get_node("Panel/ScrollContainer/GridContainer/HBoxContainer8/Label")
+	rhythm_label = get_node_or_null("Panel/ScrollContainer/GridContainer/HBoxContainer9/Label")
 	
 	# Populate menu options arrays
 	main_menu_options = [button_fruitcatcher, button_monkeyduel, button_mole_attack, button_tictactoe, button_painter, button_chimptest, button_quickreact, button_claypigeon]
+	if button_rhythm:
+		main_menu_options.append(button_rhythm)
 
 	# Connect button signals
 	button_fruitcatcher.pressed.connect(_on_fruitcatcher_pressed)
@@ -65,6 +71,8 @@ func _ready():
 	button_chimptest.pressed.connect(_on_chimptest_pressed)
 	button_quickreact.pressed.connect(_on_quickreact_pressed)
 	button_claypigeon.pressed.connect(_on_clay_pigeon_pressed)
+	if button_rhythm:
+		button_rhythm.pressed.connect(_on_rhythm_pressed)
 
 	# Connect label signals
 	fruitcatcher_label.pressed.connect(_on_fruitcatcher_pressed)
@@ -75,6 +83,8 @@ func _ready():
 	chimptest_label.pressed.connect(_on_chimptest_pressed)
 	quickreact_label.pressed.connect(_on_quickreact_pressed)
 	claypigeon_label.pressed.connect(_on_clay_pigeon_pressed)
+	if rhythm_label:
+		rhythm_label.pressed.connect(_on_rhythm_pressed)
 
 	# Connect to remote control directives
 	var remote_control = get_node_or_null("/root/MenuController")
@@ -95,6 +105,8 @@ func _ready():
 		mole_attack_label.text = tr("mole_attack")
 	if tictactoe_label:
 		tictactoe_label.text = tr("tictactoe")
+	if rhythm_label:
+		rhythm_label.text = "Rhythm Game"
 	if painter_label:
 		painter_label.text = tr("shoot_painter")
 	if chimptest_label:
@@ -279,3 +291,9 @@ func _on_clay_pigeon_pressed():
 	selected_option = 7
 	_save_last_selection()
 	get_tree().change_scene_to_file("res://scene/games/clay_pigeon.tscn")
+
+func _on_rhythm_pressed():
+	print("[Menu] Rhythm Game selected")
+	selected_option = 8
+	_save_last_selection()
+	get_tree().change_scene_to_file("res://scene/games/rhythm/rhythm_game.tscn")
