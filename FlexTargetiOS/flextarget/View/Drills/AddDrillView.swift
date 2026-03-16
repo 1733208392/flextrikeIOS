@@ -7,10 +7,48 @@ struct AddDrillView: View {
     let bleManager: BLEManager
     
     @Environment(\.managedObjectContext) private var viewContext
+    @State private var defaultDrill: DrillSetup?
+    @State private var isLoading = true
     
     var body: some View {
-        DrillFormView(bleManager: bleManager, mode: .add)
-            .environment(\.managedObjectContext, viewContext)
+        if isLoading {
+            ProgressView()
+                .onAppear {
+                    createAndNavigateToDefaultDrill()
+                }
+        } else if let drill = defaultDrill {
+            DrillFormView(bleManager: bleManager, mode: .edit(drill), isFromNewDrill: true)
+                .environment(\.managedObjectContext, viewContext)
+        } else {
+            DrillFormView(bleManager: bleManager, mode: .add)
+                .environment(\.managedObjectContext, viewContext)
+        }
+    }
+    
+    private func createAndNavigateToDefaultDrill() {
+        do {
+            let newDrill = DrillSetup(context: viewContext)
+            newDrill.id = UUID()
+            newDrill.name = "QUICK DRILL"
+            newDrill.desc = nil
+            newDrill.repeats = 1
+            newDrill.pause = 5
+            newDrill.drillDuration = 5.0
+            newDrill.mode = "ipsc"
+            
+            try viewContext.save()
+            print("Default drill created successfully with ID: \(newDrill.id?.uuidString ?? "unknown")")
+            
+            DispatchQueue.main.async {
+                defaultDrill = newDrill
+                isLoading = false
+            }
+        } catch {
+            print("Failed to create default drill: \(error)")
+            DispatchQueue.main.async {
+                isLoading = false
+            }
+        }
     }
 }
 

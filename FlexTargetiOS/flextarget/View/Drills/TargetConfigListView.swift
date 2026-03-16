@@ -676,6 +676,8 @@ struct TargetConfigListViewV2: View {
     var singleDeviceMode: Bool = false
     var deviceNameFilter: String? = nil
     var isFromTargetLink: Bool = false
+    var onSettings: (() -> Void)? = nil
+    var onStartDrill: (() -> Void)? = nil
 
     @Environment(\.dismiss) private var dismiss
     @State private var currentTypeIndex: Int = 0
@@ -771,38 +773,47 @@ struct TargetConfigListViewV2: View {
                     .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                     .font(.caption)
                     .multilineTextAlignment(.center)
-//                randomToggleSection
-                Spacer(minLength: 0)
+
+                // Spacer(minLength: 0)
                 targetTypeSelectionView
                 RoundedRectangle(cornerRadius: 2)
                      .fill(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
-    //                .stroke(Color.white, lineWidth: 8)
                     .frame(width: 240)
                     .frame(height: 4)
                 Spacer(minLength: 0)
-//                saveButton
+                
+                if let onStartDrill = onStartDrill {
+                    Button(action: onStartDrill) {
+                        Text(NSLocalizedString("start_drill", comment: "Start drill button"))
+                            .foregroundColor(.white)
+                            .fontWeight(.semibold)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 56)
+                            .background(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+                            .cornerRadius(12)
+                    }
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 24)
+                }
             }
-            .padding(.horizontal, 24)
-            .padding(.top, 16)
-            .padding(.bottom, 8)
         }
         .navigationBarBackButtonHidden(true)
         .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button(action: {
-                    onDone()
-                    dismiss()
-                }) {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 17, weight: .semibold))
-                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
-                }
-            }
             ToolbarItem(placement: .principal) {
                 Text(currentTargetName)
                     .font(.headline)
                     .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                     .lineLimit(1)
+            }
+            
+            ToolbarItem(placement: .navigationBarTrailing) {
+                if let onSettings = onSettings {
+                    Button(action: onSettings) {
+                        Image(systemName: "gear")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+                    }
+                }
             }
         }
         .onAppear {
@@ -882,7 +893,6 @@ struct TargetConfigListViewV2: View {
             ZStack(alignment: .topTrailing) {
                 RoundedRectangle(cornerRadius: 0)
                      .stroke(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433), lineWidth: 8)
-    //                .stroke(Color.white, lineWidth: 8)
                     .frame(width: 180)
                     .frame(height: 320)
                     .overlay(targetRectContent)
@@ -955,7 +965,11 @@ struct TargetConfigListViewV2: View {
     }
 
     private var targetTypeSelectionView: some View {
-        let typesToShow = availableTargetTypesFiltered.isEmpty ? [defaultTargetType] : availableTargetTypesFiltered
+        // In single device mode, show all available types (including already selected ones)
+        // In multi-device mode, show only unselected types
+        let typesToShow = singleDeviceMode ? 
+            availableTargetTypes :
+            (availableTargetTypesFiltered.isEmpty ? [defaultTargetType] : availableTargetTypesFiltered)
         return ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 18) {
                 ForEach(typesToShow, id: \.self) { type in
@@ -1092,18 +1106,12 @@ struct TargetConfigListViewV2: View {
         provider.loadObject(ofClass: NSString.self) { object, _ in
             guard let targetType = object as? String else { return }
             DispatchQueue.main.async {
-                if singleDeviceMode {
-                    // In single device mode, replace the current type
-                    updateSelectedTargetTypes([targetType])
-                    currentTypeIndex = 0
-                } else {
-                    // In multi-device mode, append to the list
-                    var updated = selectedTargetTypes
-                    if !updated.contains(targetType) {
-                        updated.append(targetType)
-                        updateSelectedTargetTypes(updated)
-                        currentTypeIndex = max(0, updated.count - 1)
-                    }
+                // For both single and multi-device modes, append to the list
+                var updated = selectedTargetTypes
+                if !updated.contains(targetType) {
+                    updated.append(targetType)
+                    updateSelectedTargetTypes(updated)
+                    currentTypeIndex = max(0, updated.count - 1)
                 }
             }
         }

@@ -1,5 +1,4 @@
 import SwiftUI
-import UIKit
 import CoreData
 import AVFoundation
 import Combine
@@ -26,6 +25,7 @@ enum DrillFormMode {
 struct DrillFormView: View {
     @ObservedObject var bleManager: BLEManager
     let mode: DrillFormMode
+    var isFromNewDrill: Bool = false
     
     @State private var drillName: String = ""
     @State private var description: String = ""
@@ -52,6 +52,7 @@ struct DrillFormView: View {
     @State private var savedDrillSetup: DrillSetup? = nil
     @State private var hasCreatedDrillinAddMode: Bool = false
     @State private var navigateToGamingController: Bool = false
+    @State private var showDrillDetailsEdit: Bool = false
     
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.managedObjectContext) private var environmentContext
@@ -86,9 +87,10 @@ struct DrillFormView: View {
         return hasResults || hasCompetitions
     }
     
-    init(bleManager: BLEManager, mode: DrillFormMode) {
+    init(bleManager: BLEManager, mode: DrillFormMode, isFromNewDrill: Bool = false) {
         self.bleManager = bleManager
         self.mode = mode
+        self.isFromNewDrill = isFromNewDrill
         
         // Pre-populate fields if editing
         if case .edit(let drillSetup) = mode {
@@ -131,36 +133,39 @@ struct DrillFormView: View {
                                 .padding(.top, 8)
                             }
                             
-                            // Grouped Section: Drill Name, Description
-                            VStack(spacing: 20) {
-                                DrillNameSectionView(drillName: $drillName, disabled: isEditingDisabled)
+                            // Only show form fields if not from new drill OR if user is editing drill details
+                            if !isFromNewDrill || showDrillDetailsEdit {
+                                // Grouped Section: Drill Name, Description
+                                VStack(spacing: 20) {
+                                    DrillNameSectionView(drillName: $drillName, disabled: isEditingDisabled)
+                                    
+                                    DescriptionSectionView(
+                                        description: $description,
+                                        disabled: isEditingDisabled
+                                    )
+                                }
+                                .padding()
+                                .background(Color.gray.opacity(0.2))
+                                .cornerRadius(20)
+                                .padding(.horizontal)
                                 
-                                DescriptionSectionView(
-                                    description: $description,
-                                    disabled: isEditingDisabled
+                                // Delay of Set Starting
+                                RepeatsConfigView(
+                                    repeatsValue: $repeatsValue,
+                                    disabled: false
                                 )
+                                .padding(.horizontal)
+                                
+                                // Pause Time Between Repeats
+                                DrillRepeatsPauseConfView(
+                                    drillDuration: Binding(
+                                        get: { Double(pauseValue) },
+                                        set: { pauseValue = Int($0) }
+                                    ),
+                                    disabled: false
+                                )
+                                .padding(.horizontal)
                             }
-                            .padding()
-                            .background(Color.gray.opacity(0.2))
-                            .cornerRadius(20)
-                            .padding(.horizontal)
-                            
-                            // Delay of Set Starting
-                            RepeatsConfigView(
-                                repeatsValue: $repeatsValue,
-                                disabled: false
-                            )
-                            .padding(.horizontal)
-                            
-                            // Pause Time Between Repeats
-                            DrillRepeatsPauseConfView(
-                                drillDuration: Binding(
-                                    get: { Double(pauseValue) },
-                                    set: { pauseValue = Int($0) }
-                                ),
-                                disabled: false
-                            )
-                            .padding(.horizontal)
                             
                             // Drill Setup Field
                             TargetsSectionView(
@@ -170,7 +175,9 @@ struct DrillFormView: View {
                                 onTargetConfigDone: { targets = targetConfigs },
                                 disabled: isEditingDisabled,
                                 onDisabledTap: { showTargetConfigAlert = true },
-                                drillMode: $drillMode
+                                drillMode: $drillMode,
+                                onSettings: { showDrillDetailsEdit.toggle() },
+                                onStartDrill: { saveAndStartDrill() }
                             )
                             .padding(.horizontal)
                             
@@ -260,12 +267,14 @@ struct DrillFormView: View {
         }
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
-                Button(action: { attemptToGoBack() }) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 16, weight: .semibold))
+                if !isFromNewDrill {
+                    Button(action: { attemptToGoBack() }) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 16, weight: .semibold))
+                        }
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                     }
-                    .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                 }
             }
             
@@ -273,6 +282,16 @@ struct DrillFormView: View {
                 Text(NSLocalizedString("drill_setup", comment: "Drill setup view title"))
                     .font(.headline)
                     .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+            }
+            
+            ToolbarItem(placement: .navigationBarTrailing) {
+                if isFromNewDrill {
+                    Button(action: { showDrillDetailsEdit.toggle() }) {
+                        Image(systemName: "gear")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+                    }
+                }
             }
         }
         .alert(NSLocalizedString("drill_in_progress", comment: "Drill in progress"), isPresented: $showBackConfirmationAlert) {
@@ -301,31 +320,48 @@ struct DrillFormView: View {
     
     @ViewBuilder
     private var actionButtons: some View {
-        HStack {
-            Button(action: saveDrill) {
-                Text(mode.saveButtonText)
-                    .foregroundColor(.white)
-                    .fontWeight(.semibold)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background((bleManager.isConnected && !isEditingDisabled && !isSaving) ? Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433) : Color.gray)
-                    .cornerRadius(8)
-            }
-            .disabled(!bleManager.isConnected || isEditingDisabled || drillName.isEmpty || isSaving)
-            
+        if isFromNewDrill && !showDrillDetailsEdit {
+            // For new drills, show Start Drill button directly
             Button(action: saveAndStartDrill) {
                 Text(NSLocalizedString("start_drill", comment: "Start drill button"))
                     .foregroundColor(.white)
                     .fontWeight(.semibold)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(isStartDrillButtonEnabled ? Color.green : Color.gray)
+                    .background(bleManager.isConnected && !isSaving && targetConfigs.count > 0 ? Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433) : Color.gray)
                     .cornerRadius(8)
             }
-            .disabled(!isStartDrillButtonEnabled)
+            .disabled(!bleManager.isConnected || isSaving || targetConfigs.count == 0)
+            .padding(.horizontal)
+            .padding(.bottom, 20)
+        } else {
+            // For editing or regular mode, show both Save and Start buttons
+            HStack {
+                Button(action: saveDrill) {
+                    Text(mode.saveButtonText)
+                        .foregroundColor(.white)
+                        .fontWeight(.semibold)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background((bleManager.isConnected && !isEditingDisabled && !isSaving) ? Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433) : Color.gray)
+                        .cornerRadius(8)
+                }
+                .disabled(!bleManager.isConnected || isEditingDisabled || drillName.isEmpty || isSaving)
+                
+                Button(action: saveAndStartDrill) {
+                    Text(NSLocalizedString("start_drill", comment: "Start drill button"))
+                        .foregroundColor(.white)
+                        .fontWeight(.semibold)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(isStartDrillButtonEnabled ? Color.green : Color.gray)
+                        .cornerRadius(8)
+                }
+                .disabled(!isStartDrillButtonEnabled)
+            }
+            .padding(.horizontal)
+            .padding(.bottom, 20)
         }
-        .padding(.horizontal)
-        .padding(.bottom, 20)
     }
     
     private var isStartDrillButtonEnabled: Bool {

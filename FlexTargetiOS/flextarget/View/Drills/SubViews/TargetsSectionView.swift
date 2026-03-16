@@ -11,6 +11,8 @@ struct TargetsSectionView: View {
     var disabled: Bool = false
     var onDisabledTap: (() -> Void)? = nil
     @Binding var drillMode: String
+    var onSettings: (() -> Void)? = nil
+    var onStartDrill: (() -> Void)? = nil
 
     var body: some View {
         Group {
@@ -49,13 +51,13 @@ struct TargetsSectionView: View {
             } else {
                 // Conditional navigation: TargetLinkView for multiple devices, TargetConfigListViewV2 for single device
                 if bleManager.networkDevices.count > 1 {
-                    NavigationLink(destination: TargetLinkView(bleManager: bleManager, targetConfigs: $targetConfigs, onDone: onTargetConfigDone, drillMode: $drillMode)) {
+                    NavigationLink(destination: TargetLinkView(bleManager: bleManager, targetConfigs: $targetConfigs, onDone: onTargetConfigDone, drillMode: $drillMode, onSettings: onSettings, onStartDrill: onStartDrill)) {
                         targetButtonContent
                     }
                     .navigationTitle(NSLocalizedString("drill_setup", comment: "Navigation title for Drill Setup"))
                     .disabled(!isTargetListReceived)
                 } else {
-                    NavigationLink(destination: TargetConfigListViewV2(deviceList: bleManager.networkDevices, targetConfigs: $targetConfigs, onDone: onTargetConfigDone, drillMode: $drillMode, singleDeviceMode: true, isFromTargetLink: false)) {
+                    NavigationLink(destination: TargetConfigListViewV2(deviceList: bleManager.networkDevices, targetConfigs: $targetConfigs, onDone: onTargetConfigDone, drillMode: $drillMode, singleDeviceMode: true, isFromTargetLink: false, onSettings: onSettings, onStartDrill: onStartDrill)) {
                         targetButtonContent
                     }
                     .navigationTitle(NSLocalizedString("drill_setup", comment: "Navigation title for Drill Setup"))

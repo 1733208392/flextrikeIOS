@@ -102,6 +102,24 @@ func _ready() -> void:
 	if remote_control:
 		remote_control.back_pressed.connect(_on_back_pressed)
 	
+	# Connect WebSocket Listener for bullet hits
+	var websocket_listener = get_node_or_null("/root/WebSocketListener")
+	if websocket_listener:
+		websocket_listener.bullet_hit.connect(_on_bullet_hit)
+		print("[RhythmGame] Connected to WebSocketListener for bullet_hit signals")
+	else:
+		print("[RhythmGame] WARNING: WebSocketListener not found at /root/WebSocketListener")
+	
+	# Start game via HTTP service
+	var http_service = get_node_or_null("/root/HttpService")
+	if http_service and http_service.has_method("start_game"):
+		http_service.start_game(func(result, response_code, headers, body):
+			print("[RhythmGame] Game started via HTTP. Response code: ", response_code)
+		)
+		print("[RhythmGame] HTTP Game start request sent")
+	else:
+		print("[RhythmGame] WARNING: HttpService not found or missing start_game method")
+	
 	# Initialize Grid
 	_setup_grid()
 	
@@ -195,6 +213,36 @@ func _on_tile_hit(note: String) -> void:
 	
 	if collected_notes.size() >= MAX_NOTES:
 		_play_melody_sequence()
+
+func _on_bullet_hit(pos: Vector2, a: int, t: int) -> void:
+	"""
+	Handle bullet hit signals from WebSocket.
+	Parameters:
+	- pos: Vector2 - The transformed hit position (game coordinates)
+	- a: int - Shot identifier or frame number
+	- t: int - Timestamp
+	"""
+	if not game_running or active_tile_index == -1:
+		return
+	
+	# Get the currently active tile
+	if active_tile_index >= 0 and active_tile_index < tiles.size():
+		var active_tile = tiles[active_tile_index]
+		var active_note = active_tile.note_name
+		
+		# Get the active tile's global rect for boundary checking
+		var tile_rect = active_tile.get_global_rect()
+		
+		# Check if hit position is within the active tile's bounds
+		if tile_rect.has_point(pos):
+			# Hit is within tile bounds - trigger the hit
+			_on_tile_hit(active_note)
+			print("[RhythmGame] Bullet hit DETECTED on tile: ", active_note, " at position ", pos, " (a=", a, ", t=", t, ")")
+		else:
+			# Hit is outside tile bounds - miss
+			print("[RhythmGame] Bullet hit MISSED! Hit at ", pos, " but active tile is at ", tile_rect, " (a=", a, ", t=", t, ")")
+	else:
+		print("[RhythmGame] Bullet hit received but no active tile to check")
 
 func _handle_miss() -> void:
 	if active_tile_index != -1:

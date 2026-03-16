@@ -6,6 +6,8 @@ struct TargetLinkView: View {
     @Binding var targetConfigs: [DrillTargetsConfigData]
     let onDone: () -> Void
     @Binding var drillMode: String
+    var onSettings: (() -> Void)? = nil
+    var onStartDrill: (() -> Void)? = nil
     
     @Environment(\.dismiss) private var dismiss
     @State private var selectedConfigIndex: Int? = nil
@@ -71,6 +73,20 @@ struct TargetLinkView: View {
                     gridContent
                 }
                 .frame(maxHeight: .infinity)
+                
+                if let onStartDrill = onStartDrill {
+                    Button(action: onStartDrill) {
+                        Text(NSLocalizedString("start_drill", comment: "Start drill button"))
+                            .foregroundColor(.white)
+                            .fontWeight(.semibold)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 56)
+                            .background(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+                            .cornerRadius(12)
+                    }
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 24)
+                }
             }
         }
         .navigationBarBackButtonHidden(true)
@@ -81,14 +97,14 @@ struct TargetLinkView: View {
                     .fontWeight(.semibold)
                     .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
             }
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button(action: {
-                    onDone()
-                    dismiss()
-                }) {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 17, weight: .semibold))
-                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+            
+            ToolbarItem(placement: .navigationBarTrailing) {
+                if let onSettings = onSettings {
+                    Button(action: onSettings) {
+                        Image(systemName: "gear")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+                    }
                 }
             }
         }
@@ -121,7 +137,9 @@ struct TargetLinkView: View {
                             drillMode: $drillMode,
                             singleDeviceMode: true,
                             deviceNameFilter: device.name,
-                            isFromTargetLink: true
+                            isFromTargetLink: true,
+                            onSettings: onSettings,
+                            onStartDrill: onStartDrill
                         )) {
                             let config = targetConfigs.first { $0.targetName == device.name }
                             TargetRectangleView(
