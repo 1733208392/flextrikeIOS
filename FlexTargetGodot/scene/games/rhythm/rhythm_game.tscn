@@ -22,6 +22,22 @@ func _draw():
 		var y = (i + 1) * line_spacing
 		draw_line(Vector2(0, y), Vector2(w, y), color, 2.0)
 
+	# Draw Treble Clef (G-clef)
+	var clef_x = 40
+	var mid_y = 3.5 * line_spacing
+	
+	# Draw stylized G-clef (Treble Clef)
+	# Vertical trunk
+	draw_line(Vector2(clef_x, mid_y - line_spacing*2.5), Vector2(clef_x, mid_y + line_spacing*1.8), color, 3.0)
+	# Bottom curve
+	draw_arc(Vector2(clef_x - 5, mid_y + line_spacing*1.8), 8, 0, PI, 16, color, 3.0)
+	# Large bottom loop (G-loop) crossing the G line
+	draw_arc(Vector2(clef_x + 5, mid_y + line_spacing*0.5), line_spacing*1.2, -PI*0.8, PI*1.2, 32, color, 2.5)
+	# Upper loop
+	draw_arc(Vector2(clef_x + 2, mid_y - line_spacing*1.2), line_spacing*0.8, PI, PI*2.5, 32, color, 2.5)
+	# Small top flourish
+	draw_arc(Vector2(clef_x + 8, mid_y - line_spacing*2.5), 4, PI, TAU, 16, color, 2.0)
+
 	var main_game = get_node_or_null(\"../..\")
 	if not main_game or not \"collected_notes\" in main_game:
 		return

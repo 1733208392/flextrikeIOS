@@ -28,6 +28,20 @@ const CHORD_MAPPING = {
 	"B": [0, -9, -5]    # G Major first inversion
 }
 
+# Popular Melody Library
+const MELODY_LIBRARY = {
+	"Twinkle Twinkle": ["C3", "C3", "G3", "G3", "A3", "A3", "G3", "F3"],
+	"Mary Had A Little Lamb": ["E4", "D4", "C4", "D4", "E4", "E4", "E4", "E4"],
+	"Hot Cross Buns": ["E4", "D4", "C4", "E4", "D4", "C4", "C4", "C4"],
+	"London Bridge": ["G4", "F4", "G4", "F4", "E4", "F4", "G4", "D4"],
+	"Ode to Joy": ["E4", "E4", "F4", "G4", "G4", "F4", "E4", "D4"],
+	"Jingle Bells": ["E4", "E4", "E4", "E4", "E4", "E4", "E4", "G4"],
+	"Brother John": ["C4", "D4", "E4", "C4", "C4", "D4", "E4", "C4"],
+	"Old MacDonald": ["G4", "G4", "G4", "D4", "E4", "E4", "D4", "B3"],
+	"Itsy Bitsy Spider": ["G3", "C4", "C4", "C4", "D4", "E4", "E4", "E4"],
+	"Yankee Doodle": ["C4", "C4", "D4", "E4", "C4", "E4", "D4", "G3"]
+}
+
 # Game state
 var bpm: float = 60.0
 var score: int = 0
@@ -36,6 +50,9 @@ var current_beat: int = 0
 var collected_notes: Array = []
 var active_tile_index: int = -1
 var game_running: bool = false
+var current_melody_name: String = ""
+var current_melody_notes: Array = []
+var current_melody_index: int = -1
 
 # Audio synthesis variables
 var playback: AudioStreamGeneratorPlayback
@@ -48,6 +65,7 @@ var decay_rate: float = 0.1
 
 # Metronome/Beat variables
 var beat_hz_low: Array = [130.81, 164.81, 196.00] # C3 Major triad (C-E-G)
+var beat_hz_mid: Array = [196.00, 246.94, 293.66] # G3 Major triad (G-B-D)
 var beat_hz_high: Array = [261.63, 329.63, 392.00] # C4 Major triad (C-E-G)
 var current_chord_hz: Array = []
 var phases: Array = [0.0, 0.0, 0.0] # Individual phases for chord notes
@@ -120,14 +138,24 @@ func _on_beat_timer_timeout() -> void:
 	
 	current_beat = (current_beat + 1) % 4
 	
+	# Variation: 
+	# Beat 0: Downbeat (Strong Low)
+	# Beat 1: Upbeat (Weak Mid)
+	# Beat 2: Middle Beat (Mid)
+	# Beat 3: Accent/Spawn (Sharp High)
+	
 	if current_beat < 3:
 		# Beat 0, 1, 2: Pulse all tiles
 		for tile in tiles:
-			tile.pulse(1.2)
-		_play_beat_sound(false)
+			tile.pulse(1.2 if current_beat == 0 else 1.1)
+		
+		match current_beat:
+			0: _play_beat_sound(0) # Downbeat
+			1: _play_beat_sound(1) # Upbeat
+			2: _play_beat_sound(2) # Middle
 	else:
 		# Beat 3: Spawn active tile
-		_play_beat_sound(true)
+		_play_beat_sound(3) # Accent Spawn
 		_handle_beat_3()
 
 func _handle_beat_3() -> void:
@@ -135,8 +163,18 @@ func _handle_beat_3() -> void:
 	if active_tile_index != -1:
 		_handle_miss()
 	
-	# Pick new random tile
-	active_tile_index = randi() % 12
+	# Following the melody sequence instead of random
+	if collected_notes.size() < current_melody_notes.size():
+		var target_note = current_melody_notes[collected_notes.size()]
+		active_tile_index = NOTES.find(target_note)
+		
+		# Fallback if note isn't in current grid
+		if active_tile_index == -1:
+			active_tile_index = randi() % 12
+	else:
+		# Fallback to random if sequence is somehow finished
+		active_tile_index = randi() % 12
+		
 	tiles[active_tile_index].set_active(true)
 
 func _on_tile_hit(note: String) -> void:
@@ -206,11 +244,26 @@ func _fill_audio_buffer() -> void:
 			
 		playback.push_frame(Vector2(v, v))
 
-func _play_beat_sound(is_accent: bool) -> void:
-	current_chord_hz = beat_hz_high if is_accent else beat_hz_low
-	pulse_hz = 0.0 # Force chord mode
-	amplitude = 0.25 if is_accent else 0.15 
-	decay_rate = 0.15 # Fast decay for percussive chord click
+func _play_beat_sound(beat_type: int) -> void:
+	match beat_type:
+		0: # Downbeat (Beat 1 of measure) - Strong Low
+			current_chord_hz = beat_hz_low
+			amplitude = 0.25
+			decay_rate = 0.12
+		1: # Upbeat (Beat 2) - Soft Mid
+			current_chord_hz = beat_hz_mid
+			amplitude = 0.12
+			decay_rate = 0.2
+		2: # Middle (Beat 3) - Normal Mid
+			current_chord_hz = beat_hz_mid
+			amplitude = 0.18
+			decay_rate = 0.15
+		3: # Accent (Beat 4) - Sharp High
+			current_chord_hz = beat_hz_high
+			amplitude = 0.35
+			decay_rate = 0.1
+	
+	pulse_hz = 0.0 # Force chord mode synthesis from chord_hz array
 
 func _play_note_sound(note: String) -> void:
 	var midi = NOTES_TO_MIDI.get(note, 60)
@@ -286,6 +339,13 @@ func _reset_round() -> void:
 	current_beat = -1 # Start fresh on next beat
 	active_tile_index = -1
 	staff_display.queue_redraw()
+	
+	# Round-robin selection from melody library
+	var keys = MELODY_LIBRARY.keys()
+	current_melody_index = (current_melody_index + 1) % keys.size()
+	current_melody_name = keys[current_melody_index]
+	current_melody_notes = MELODY_LIBRARY[current_melody_name]
+	print("[RhythmGame] New Round Melody (Round-Robin): ", current_melody_name)
 
 func _on_back_pressed() -> void:
 	get_tree().change_scene_to_file("res://scene/games/menu/menu.tscn")

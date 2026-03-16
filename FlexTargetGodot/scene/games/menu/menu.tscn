@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=3 uid="uid://cgosfq33rfilf"]
+[gd_scene format=3 uid="uid://cgosfq33rfilf"]
 
 [ext_resource type="Script" uid="uid://csw1htde5tl1j" path="res://script/games/menu.gd" id="1_8nwqc"]
 [ext_resource type="Texture2D" uid="uid://dd7g7gcxb7pif" path="res://asset/games/game_menu/fruit-ninja-selected.png" id="2_lira2"]
@@ -18,14 +18,16 @@
 [ext_resource type="Texture2D" uid="uid://bq7d8pfa8a277" path="res://asset/games/game_menu/quick-reaction-selected.png" id="16_a45au"]
 [ext_resource type="Texture2D" uid="uid://tk18ofnhbmrx" path="res://asset/games/game_menu/clay-pigeon.png" id="17_1y5gc"]
 [ext_resource type="Texture2D" uid="uid://ckyq4gfdnv6nq" path="res://asset/games/game_menu/clay-pigeon-selected.png" id="18_os4tv"]
+[ext_resource type="Texture2D" uid="uid://8sf0p3xbkl84" path="res://asset/games/game_menu/rhythm-master.png" id="19_rlr5c"]
+[ext_resource type="Texture2D" uid="uid://bkycj3rt60rv8" path="res://asset/games/game_menu/rhythm-master-selected.png" id="20_ty1ro"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_68t83"]
 bg_color = Color(0.03137255, 0.03137255, 0.03137255, 1)
 
-[node name="Menu" type="Node2D"]
+[node name="Menu" type="Node2D" unique_id=817340997]
 script = ExtResource("1_8nwqc")
 
-[node name="Panel" type="Panel" parent="."]
+[node name="Panel" type="Panel" parent="." unique_id=1800555509]
 custom_minimum_size = Vector2(720, 1280)
 anchors_preset = 8
 anchor_left = 0.5
@@ -38,156 +40,173 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_68t83")
 
-[node name="ScrollContainer" type="ScrollContainer" parent="Panel"]
+[node name="ScrollContainer" type="ScrollContainer" parent="Panel" unique_id=513874374]
 layout_mode = 0
 offset_left = 4.0
 offset_top = 198.0
 offset_right = 715.0
 offset_bottom = 1155.0
 
-[node name="GridContainer" type="GridContainer" parent="Panel/ScrollContainer"]
+[node name="GridContainer" type="GridContainer" parent="Panel/ScrollContainer" unique_id=1860830043]
 layout_mode = 2
 theme_override_constants/h_separation = 32
 theme_override_constants/v_separation = 32
 columns = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Panel/ScrollContainer/GridContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel/ScrollContainer/GridContainer" unique_id=1712720299]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="1Player" type="TextureButton" parent="Panel/ScrollContainer/GridContainer/VBoxContainer"]
+[node name="1Player" type="TextureButton" parent="Panel/ScrollContainer/GridContainer/VBoxContainer" unique_id=1238134759]
 layout_mode = 2
 texture_normal = ExtResource("4_68t83")
 texture_pressed = ExtResource("2_lira2")
 texture_hover = ExtResource("2_lira2")
 texture_focused = ExtResource("2_lira2")
 
-[node name="Label" type="Button" parent="Panel/ScrollContainer/GridContainer/VBoxContainer"]
+[node name="Label" type="Button" parent="Panel/ScrollContainer/GridContainer/VBoxContainer" unique_id=1432072238]
 layout_mode = 2
 theme = ExtResource("4_2klep")
 toggle_mode = true
 text = "FRUIT NINJA"
 
-[node name="VBoxContainer2" type="VBoxContainer" parent="Panel/ScrollContainer/GridContainer"]
+[node name="VBoxContainer2" type="VBoxContainer" parent="Panel/ScrollContainer/GridContainer" unique_id=1349751078]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="2Players" type="TextureButton" parent="Panel/ScrollContainer/GridContainer/VBoxContainer2"]
+[node name="2Players" type="TextureButton" parent="Panel/ScrollContainer/GridContainer/VBoxContainer2" unique_id=826591104]
 layout_mode = 2
 texture_normal = ExtResource("4_lira2")
 texture_pressed = ExtResource("5_2klep")
 texture_hover = ExtResource("5_2klep")
 texture_focused = ExtResource("5_2klep")
 
-[node name="Label" type="Button" parent="Panel/ScrollContainer/GridContainer/VBoxContainer2"]
+[node name="Label" type="Button" parent="Panel/ScrollContainer/GridContainer/VBoxContainer2" unique_id=769049891]
 layout_mode = 2
 theme = ExtResource("4_2klep")
 toggle_mode = true
 text = "MONKEY DUEL"
 
-[node name="VBoxContainer3" type="VBoxContainer" parent="Panel/ScrollContainer/GridContainer"]
+[node name="VBoxContainer3" type="VBoxContainer" parent="Panel/ScrollContainer/GridContainer" unique_id=1762674203]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="wackamole" type="TextureButton" parent="Panel/ScrollContainer/GridContainer/VBoxContainer3"]
+[node name="wackamole" type="TextureButton" parent="Panel/ScrollContainer/GridContainer/VBoxContainer3" unique_id=314880414]
 layout_mode = 2
 texture_normal = ExtResource("6_lira2")
 texture_pressed = ExtResource("7_2klep")
 texture_hover = ExtResource("7_2klep")
 texture_focused = ExtResource("7_2klep")
 
-[node name="Label" type="Button" parent="Panel/ScrollContainer/GridContainer/VBoxContainer3"]
+[node name="Label" type="Button" parent="Panel/ScrollContainer/GridContainer/VBoxContainer3" unique_id=1655960761]
 layout_mode = 2
 theme = ExtResource("4_2klep")
 toggle_mode = true
 text = "MOLE ATTACK"
 
-[node name="HBoxContainer4" type="VBoxContainer" parent="Panel/ScrollContainer/GridContainer"]
+[node name="HBoxContainer4" type="VBoxContainer" parent="Panel/ScrollContainer/GridContainer" unique_id=785313989]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="tictactoe" type="TextureButton" parent="Panel/ScrollContainer/GridContainer/HBoxContainer4"]
+[node name="tictactoe" type="TextureButton" parent="Panel/ScrollContainer/GridContainer/HBoxContainer4" unique_id=577001508]
 layout_mode = 2
 texture_normal = ExtResource("8_lira2")
 texture_pressed = ExtResource("9_2klep")
 texture_hover = ExtResource("9_2klep")
 texture_focused = ExtResource("9_2klep")
 
-[node name="Label" type="Button" parent="Panel/ScrollContainer/GridContainer/HBoxContainer4"]
+[node name="Label" type="Button" parent="Panel/ScrollContainer/GridContainer/HBoxContainer4" unique_id=406566920]
 layout_mode = 2
 theme = ExtResource("4_2klep")
 toggle_mode = true
 text = "TICTACTOE"
 
-[node name="HBoxContainer5" type="VBoxContainer" parent="Panel/ScrollContainer/GridContainer"]
+[node name="HBoxContainer5" type="VBoxContainer" parent="Panel/ScrollContainer/GridContainer" unique_id=1147195497]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="painter" type="TextureButton" parent="Panel/ScrollContainer/GridContainer/HBoxContainer5"]
+[node name="painter" type="TextureButton" parent="Panel/ScrollContainer/GridContainer/HBoxContainer5" unique_id=1784263407]
 layout_mode = 2
 texture_normal = ExtResource("10_lpr6s")
 texture_pressed = ExtResource("11_lira2")
 texture_hover = ExtResource("11_lira2")
 texture_focused = ExtResource("11_lira2")
 
-[node name="Label" type="Button" parent="Panel/ScrollContainer/GridContainer/HBoxContainer5"]
+[node name="Label" type="Button" parent="Panel/ScrollContainer/GridContainer/HBoxContainer5" unique_id=868452509]
 layout_mode = 2
 theme = ExtResource("4_2klep")
 toggle_mode = true
 text = "SHOOT PAINTER"
 
-[node name="HBoxContainer6" type="VBoxContainer" parent="Panel/ScrollContainer/GridContainer"]
+[node name="HBoxContainer6" type="VBoxContainer" parent="Panel/ScrollContainer/GridContainer" unique_id=11752313]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="chimptest" type="TextureButton" parent="Panel/ScrollContainer/GridContainer/HBoxContainer6"]
+[node name="chimptest" type="TextureButton" parent="Panel/ScrollContainer/GridContainer/HBoxContainer6" unique_id=1874453487]
 layout_mode = 2
 texture_normal = ExtResource("13_68t83")
 texture_pressed = ExtResource("14_mb7bb")
 texture_hover = ExtResource("14_mb7bb")
 texture_focused = ExtResource("14_mb7bb")
 
-[node name="Label" type="Button" parent="Panel/ScrollContainer/GridContainer/HBoxContainer6"]
+[node name="Label" type="Button" parent="Panel/ScrollContainer/GridContainer/HBoxContainer6" unique_id=818707014]
 layout_mode = 2
 theme = ExtResource("4_2klep")
 toggle_mode = true
 text = "CHIMP TEST"
 
-[node name="HBoxContainer7" type="VBoxContainer" parent="Panel/ScrollContainer/GridContainer"]
+[node name="HBoxContainer7" type="VBoxContainer" parent="Panel/ScrollContainer/GridContainer" unique_id=759349712]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="quickreact" type="TextureButton" parent="Panel/ScrollContainer/GridContainer/HBoxContainer7"]
+[node name="quickreact" type="TextureButton" parent="Panel/ScrollContainer/GridContainer/HBoxContainer7" unique_id=1927535949]
 layout_mode = 2
 texture_normal = ExtResource("15_utt30")
 texture_pressed = ExtResource("16_a45au")
 texture_hover = ExtResource("16_a45au")
 texture_focused = ExtResource("16_a45au")
 
-[node name="Label" type="Button" parent="Panel/ScrollContainer/GridContainer/HBoxContainer7"]
+[node name="Label" type="Button" parent="Panel/ScrollContainer/GridContainer/HBoxContainer7" unique_id=1882434100]
 layout_mode = 2
 theme = ExtResource("4_2klep")
 toggle_mode = true
 text = "REACTION TEST"
 
-[node name="HBoxContainer8" type="VBoxContainer" parent="Panel/ScrollContainer/GridContainer"]
+[node name="HBoxContainer8" type="VBoxContainer" parent="Panel/ScrollContainer/GridContainer" unique_id=118261688]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="claypigeon" type="TextureButton" parent="Panel/ScrollContainer/GridContainer/HBoxContainer8"]
+[node name="claypigeon" type="TextureButton" parent="Panel/ScrollContainer/GridContainer/HBoxContainer8" unique_id=200920358]
 layout_mode = 2
 texture_normal = ExtResource("17_1y5gc")
 texture_pressed = ExtResource("18_os4tv")
 texture_hover = ExtResource("18_os4tv")
 texture_focused = ExtResource("18_os4tv")
 
-[node name="Label" type="Button" parent="Panel/ScrollContainer/GridContainer/HBoxContainer8"]
+[node name="Label" type="Button" parent="Panel/ScrollContainer/GridContainer/HBoxContainer8" unique_id=1052430926]
 layout_mode = 2
 theme = ExtResource("4_2klep")
 toggle_mode = true
 text = "CLAY PIGEON"
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Panel"]
+[node name="HBoxContainer9" type="VBoxContainer" parent="Panel/ScrollContainer/GridContainer" unique_id=719196583]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="rhythm" type="TextureButton" parent="Panel/ScrollContainer/GridContainer/HBoxContainer9" unique_id=346652144]
+layout_mode = 2
+texture_normal = ExtResource("19_rlr5c")
+texture_pressed = ExtResource("20_ty1ro")
+texture_hover = ExtResource("20_ty1ro")
+texture_focused = ExtResource("20_ty1ro")
+
+[node name="Label" type="Button" parent="Panel/ScrollContainer/GridContainer/HBoxContainer9" unique_id=1535559541]
+layout_mode = 2
+theme = ExtResource("4_2klep")
+toggle_mode = true
+text = "CLAY PIGEON"
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel" unique_id=310361957]
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
@@ -201,13 +220,13 @@ grow_horizontal = 2
 grow_vertical = 0
 theme_override_constants/separation = 24
 
-[node name="Label" type="Label" parent="Panel/VBoxContainer"]
+[node name="Label" type="Label" parent="Panel/VBoxContainer" unique_id=1375426108]
 layout_mode = 2
 theme = ExtResource("4_2klep")
 text = "Copyright 2025-2026 @ grwolf.com"
 horizontal_alignment = 1
 
-[node name="Title" type="Label" parent="."]
+[node name="Title" type="Label" parent="." unique_id=2101415786]
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
