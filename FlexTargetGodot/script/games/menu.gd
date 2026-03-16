@@ -199,6 +199,8 @@ func _on_remote_enter():
 		_on_quickreact_pressed()
 	elif selected_option == 7:
 		_on_clay_pigeon_pressed()
+	elif selected_option == 8:
+		_on_rhythm_pressed()
 
 func _on_remote_back_pressed():
 	"""Handle back press from remote control to return to main menu"""
@@ -225,6 +227,8 @@ func _update_selection():
 		chimptest_label.button_pressed = (selected_option == 5)
 		quickreact_label.button_pressed = (selected_option == 6)
 		claypigeon_label.button_pressed = (selected_option == 7)
+		if rhythm_label:
+			rhythm_label.button_pressed = (selected_option == 8)
 		
 		# Auto-scroll based on selected row
 		var row = selected_option / COLS
