@@ -688,13 +688,9 @@ struct TargetConfigListViewV2: View {
     var body: some View {
         ZStack {
             // Use #191919 as background color
-//            Color(red: 0.098, green: 0.098, blue: 0.098).ignoresSafeArea()
             Color.black.ignoresSafeArea()
 
             VStack(spacing: 20) {
-//                if singleDeviceMode {
-//                    print("TargetConfigListViewV2: singleDeviceMode=true, deviceNameFilter=\(deviceNameFilter ?? "nil")")
-//                }
                 Spacer(minLength: 10)
                 // Drill Mode Segment Control
                 if !isFromTargetLink {
@@ -799,6 +795,16 @@ struct TargetConfigListViewV2: View {
         }
         .navigationBarBackButtonHidden(true)
         .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button(action: {
+                    dismiss()
+                }) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+                }
+            }
+
             ToolbarItem(placement: .principal) {
                 Text(currentTargetName)
                     .font(.headline)
@@ -965,11 +971,9 @@ struct TargetConfigListViewV2: View {
     }
 
     private var targetTypeSelectionView: some View {
-        // In single device mode, show all available types (including already selected ones)
         // In multi-device mode, show only unselected types
-        let typesToShow = singleDeviceMode ? 
-            availableTargetTypes :
-            (availableTargetTypesFiltered.isEmpty ? [defaultTargetType] : availableTargetTypesFiltered)
+        let typesToShow = availableTargetTypesFiltered.isEmpty ? [defaultTargetType] : availableTargetTypesFiltered
+
         return ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 18) {
                 ForEach(typesToShow, id: \.self) { type in

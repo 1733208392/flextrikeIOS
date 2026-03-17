@@ -12,7 +12,7 @@ struct EditDrillView: View {
     @Environment(\.managedObjectContext) private var viewContext
     
     var body: some View {
-        DrillFormView(bleManager: bleManager, mode: .edit(drillSetup))
+        DrillFormView(bleManager: bleManager, mode: .edit(drillSetup), isFromNewDrill: false, showDetailsByDefault: true)
             .environment(\.managedObjectContext, viewContext)
     }
 }

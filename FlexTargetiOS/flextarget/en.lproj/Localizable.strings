@@ -4,6 +4,7 @@
 "target_connected" = "Target Connected";
 "target_disconnected" = "Target Disconnected";
 "drills" = "Drills";
+"syncing_devices" = "Syncing devices...";
 "athletes" = "Athletes";
 "ipsc_questionaries" = "IPSC Questionaries";
 "idpa_questionaries" = "IDPA Questionaries";

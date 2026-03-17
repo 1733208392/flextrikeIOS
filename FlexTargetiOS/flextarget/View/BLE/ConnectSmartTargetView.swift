@@ -542,7 +542,7 @@ struct DeviceSelectionButtonView: View {
         Button(action: action) {
             HStack(spacing: 16) {
                 // Device Icon
-                Image(systemName: "smartphone.badge.checkmark")
+                Image(systemName: "iphone.badge.play")
                     .font(.system(size: 24))
                     .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                 

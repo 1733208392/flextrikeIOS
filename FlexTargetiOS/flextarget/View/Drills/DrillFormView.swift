@@ -87,10 +87,11 @@ struct DrillFormView: View {
         return hasResults || hasCompetitions
     }
     
-    init(bleManager: BLEManager, mode: DrillFormMode, isFromNewDrill: Bool = false) {
+    init(bleManager: BLEManager, mode: DrillFormMode, isFromNewDrill: Bool = false, showDetailsByDefault: Bool = false) {
         self.bleManager = bleManager
         self.mode = mode
         self.isFromNewDrill = isFromNewDrill
+        _showDrillDetailsEdit = State(initialValue: showDetailsByDefault)
         
         // Pre-populate fields if editing
         if case .edit(let drillSetup) = mode {
@@ -168,18 +169,20 @@ struct DrillFormView: View {
                             }
                             
                             // Drill Setup Field
-                            TargetsSectionView(
-                                isTargetListReceived: $isTargetListReceived,
-                                bleManager: bleManager,
-                                targetConfigs: $targetConfigs,
-                                onTargetConfigDone: { targets = targetConfigs },
-                                disabled: isEditingDisabled,
-                                onDisabledTap: { showTargetConfigAlert = true },
-                                drillMode: $drillMode,
-                                onSettings: { showDrillDetailsEdit.toggle() },
-                                onStartDrill: { saveAndStartDrill() }
-                            )
-                            .padding(.horizontal)
+                            if !isFromNewDrill || !showDrillDetailsEdit {
+                                TargetsSectionView(
+                                    isTargetListReceived: $isTargetListReceived,
+                                    bleManager: bleManager,
+                                    targetConfigs: $targetConfigs,
+                                    onTargetConfigDone: { targets = targetConfigs },
+                                    disabled: isEditingDisabled,
+                                    onDisabledTap: { showTargetConfigAlert = true },
+                                    drillMode: $drillMode,
+                                    onSettings: { showDrillDetailsEdit.toggle() },
+                                    onStartDrill: { saveAndStartDrill() }
+                                )
+                                .padding(.horizontal)
+                            }
                             
                         }
                         .onAppear {
@@ -286,8 +289,8 @@ struct DrillFormView: View {
             
             ToolbarItem(placement: .navigationBarTrailing) {
                 if isFromNewDrill {
-                    Button(action: { showDrillDetailsEdit.toggle() }) {
-                        Image(systemName: "gear")
+                    Button(action: { presentationMode.wrappedValue.dismiss() }) {
+                        Image(systemName: "xmark")
                             .font(.system(size: 16, weight: .semibold))
                             .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                     }
@@ -858,12 +861,12 @@ struct DrillFormView_Previews: PreviewProvider {
         let context = PersistenceController.preview.container.viewContext
         
         Group {
-            DrillFormView(bleManager: BLEManager.shared, mode: .add)
+            DrillFormView(bleManager: BLEManager.shared, mode: .add, isFromNewDrill: false, showDetailsByDefault: true)
                 .environment(\.managedObjectContext, context)
                 .environmentObject(BLEManager.shared)
                 .previewDisplayName("Add Mode")
             
-            DrillFormView(bleManager: BLEManager.shared, mode: .edit(mockDrillSetup(context: context)))
+            DrillFormView(bleManager: BLEManager.shared, mode: .edit(mockDrillSetup(context: context)), isFromNewDrill: false, showDetailsByDefault: true)
                 .environment(\.managedObjectContext, context)
                 .environmentObject(BLEManager.shared)
                 .previewDisplayName("Edit Mode")

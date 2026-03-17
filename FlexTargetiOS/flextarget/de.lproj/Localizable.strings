@@ -4,6 +4,7 @@
 "target_connected" = "Ziel verbunden";
 "target_disconnected" = "Ziel nicht verbunden";
 "drills" = "Übungen";
+"syncing_devices" = "Geräte werden synchronisiert...";
 "athletes" = "Athleten";
 "ipsc_questionaries" = "IPSC Fragebögen";
 "idpa_questionaries" = "IDPA Fragebögen";

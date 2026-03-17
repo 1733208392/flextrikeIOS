@@ -4,6 +4,7 @@
 "target_connected" = "目標已連接";
 "target_disconnected" = "目標未連接";
 "drills" = "訓練";
+"syncing_devices" = "正在同步裝置...";
 "athletes" = "運動員";
 "ipsc_questionaries" = "IPSC 問題集";
 "idpa_questionaries" = "IDPA 問題集";

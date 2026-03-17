@@ -88,9 +88,6 @@ struct DrillListView: View {
     private func drillRow(for drill: DrillSetup) -> some View {
         drillRowContent(for: drill)
             .listRowBackground(Color.clear)
-            .onTapGesture {
-                onDrillSelected?(drill)
-            }
             .swipeActions(edge: .trailing) {
                 Button(role: .destructive, action: {
                     drillToDelete = drill
@@ -129,6 +126,9 @@ struct DrillListView: View {
         .padding(.vertical, 8)
         .frame(maxWidth: .infinity, alignment: .leading)
         .contentShape(Rectangle())
+        .onTapGesture {
+            onDrillSelected?(drill)
+        }
     }
     
     @ViewBuilder

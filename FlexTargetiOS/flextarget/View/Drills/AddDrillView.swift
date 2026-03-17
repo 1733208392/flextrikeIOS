@@ -17,10 +17,10 @@ struct AddDrillView: View {
                     createAndNavigateToDefaultDrill()
                 }
         } else if let drill = defaultDrill {
-            DrillFormView(bleManager: bleManager, mode: .edit(drill), isFromNewDrill: true)
+            DrillFormView(bleManager: bleManager, mode: .edit(drill), isFromNewDrill: true, showDetailsByDefault: false)
                 .environment(\.managedObjectContext, viewContext)
         } else {
-            DrillFormView(bleManager: bleManager, mode: .add)
+            DrillFormView(bleManager: bleManager, mode: .add, isFromNewDrill: false, showDetailsByDefault: false)
                 .environment(\.managedObjectContext, viewContext)
         }
     }

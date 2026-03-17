@@ -21,12 +21,29 @@ struct DrillsTabView: View {
     @State private var showQuickDrillDetailsEditor = false
     @State private var isWaitingForQuickDrillSync = false
     
-    // Track if the current quick drill was ever used to record data
+    // For navigation to results
+    @State private var drillRepeatSummaries: [DrillRepeatSummary] = []
+    @State private var navigateToDrillSummary = false
+    
+    // Track if the current quick drill was ever used to record data or has been customized
     private var isQuickDrillDataEmpty: Bool {
         guard let drill = quickDrillSetup else { return true }
+        
         // Check if there are any recorded results for this drill
         let resultsCount = (drill.results as? Set<NSManagedObject>)?.count ?? 0
-        return resultsCount == 0
+        if resultsCount > 0 { return false }
+        
+        // Check if the user has modified the name from default "QUICK DRILL"
+        if let name = drill.name, name != "QUICK DRILL" { return false }
+        
+        // Check if the user has added a description
+        if let desc = drill.desc, !desc.isEmpty { return false }
+        
+        // Check if the user has modified default configuration (e.g., repeats > 1 or pause != 5)
+        if drill.repeats > 1 { return false }
+        if drill.pause != 5 { return false }
+        
+        return true
     }
     
     let persistenceController = PersistenceController.shared
@@ -36,7 +53,7 @@ struct DrillsTabView: View {
             Color.black.ignoresSafeArea()
             
             DrillListView(bleManager: bleManager, showDrillList: .constant(true), onDrillSelected: { drill in
-                selectedDrillSetup = drill
+                startEditFlow(for: drill)
             })
             .environment(\.managedObjectContext, persistenceController.container.viewContext)
             .navigationTitle(NSLocalizedString("drills", comment: "Drills tab title"))
@@ -76,25 +93,6 @@ struct DrillsTabView: View {
                 }
             }
             
-            // Navigation Link for drill editing
-            NavigationLink(isActive: Binding<Bool>(
-                get: { selectedDrillSetup != nil },
-                set: { newValue in
-                    if !newValue {
-                        selectedDrillSetup = nil
-                    }
-                }
-            )) {
-                if let drill = selectedDrillSetup {
-                    EditDrillView(drillSetup: drill, bleManager: bleManager, onCreateNewDrillSetup: { /* handle if needed */ })
-                        .environment(\.managedObjectContext, persistenceController.container.viewContext)
-                } else {
-                    EmptyView()
-                }
-            } label: {
-                EmptyView()
-            }
-            
             // Quick Drill Navigation - Direct to Target Config
             NavigationLink(isActive: $showQuickDrillConfig) {
                 if let drill = quickDrillSetup {
@@ -107,21 +105,6 @@ struct DrillsTabView: View {
                             onSettings: { showQuickDrillDetailsEditor = true },
                             onStartDrill: { saveAndStartQuickDrill() }
                         )
-                        .navigationBarBackButtonHidden(true)
-                        .toolbar {
-                            ToolbarItem(placement: .navigationBarLeading) {
-                                Button(action: {
-                                    cancelQuickDrill()
-                                }) {
-                                    HStack(spacing: 4) {
-                                        Image(systemName: "chevron.left")
-                                            .font(.system(size: 16, weight: .semibold))
-                                        Text(NSLocalizedString("drills", comment: "Back button label"))
-                                    }
-                                    .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
-                                }
-                            }
-                        }
                     } else {
                         TargetConfigListViewV2(
                             deviceList: bleManager.networkDevices,
@@ -134,21 +117,6 @@ struct DrillsTabView: View {
                             onSettings: { showQuickDrillDetailsEditor = true },
                             onStartDrill: { saveAndStartQuickDrill() }
                         )
-                        .navigationBarBackButtonHidden(true)
-                        .toolbar {
-                            ToolbarItem(placement: .navigationBarLeading) {
-                                Button(action: {
-                                    cancelQuickDrill()
-                                }) {
-                                    HStack(spacing: 4) {
-                                        Image(systemName: "chevron.left")
-                                            .font(.system(size: 16, weight: .semibold))
-                                        Text(NSLocalizedString("drills", comment: "Back button label"))
-                                    }
-                                    .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
-                                }
-                            }
-                        }
                     }
                 } else {
                     EmptyView()
@@ -163,8 +131,57 @@ struct DrillsTabView: View {
                     TimerSessionView(
                         drillSetup: drill,
                         bleManager: bleManager,
-                        onDrillComplete: { _ in
-                            navigateToTimerSession = false
+                        onDrillComplete: { summaries in
+                            print("[DrillsTabView] Drill completed with \(summaries.count) summaries")
+                            
+                            // Save results to Core Data
+                            let viewContext = persistenceController.container.viewContext
+                            let sessionId = UUID()
+                            
+                            for (index, summary) in summaries.enumerated() {
+                                let result = DrillResult(context: viewContext)
+                                result.id = summary.drillResultId ?? UUID()
+                                result.sessionId = sessionId
+                                result.drillId = drill.id
+                                result.date = Date()
+                                result.totalTime = NSNumber(value: summary.totalTime)
+                                
+                                // DrillSetup relationship
+                                result.drillSetup = drill
+                                
+                                // Add shots
+                                var cumulativeTime: Double = 0
+                                for shotData in summary.shots {
+                                    cumulativeTime += shotData.content.timeDiff
+                                    let shot = Shot(context: viewContext)
+                                    shot.timestamp = Int64(cumulativeTime * 1000)
+                                    shot.drillResult = result
+                                    
+                                    if let jsonData = try? JSONEncoder().encode(shotData),
+                                       let jsonString = String(data: jsonData, encoding: .utf8) {
+                                        shot.data = jsonString
+                                    }
+                                }
+                            }
+                            
+                            do {
+                                try viewContext.save()
+                                print("[DrillsTabView] Saved \(summaries.count) drill results to Core Data")
+                                // Notify other views about the data change
+                                NotificationCenter.default.post(name: .drillRepositoryDidChange, object: nil)
+                            } catch {
+                                print("[DrillsTabView] Failed to save drill results: \(error)")
+                            }
+                            
+                            drillRepeatSummaries = summaries
+                            
+                            // 1. First trigger navigation to summary
+                            navigateToDrillSummary = true
+                            
+                            // 2. Then dismiss the timer in the next run loop
+                            DispatchQueue.main.async {
+                                navigateToTimerSession = false
+                            }
                         },
                         onDrillFailed: {
                             navigateToTimerSession = false
@@ -176,6 +193,18 @@ struct DrillsTabView: View {
             } label: {
                 EmptyView()
             }
+
+            NavigationLink(isActive: $navigateToDrillSummary) {
+                if let drill = drillSetupForTimer {
+                    DrillSummaryView(drillSetup: drill, summaries: drillRepeatSummaries)
+                } else {
+                    EmptyView()
+                }
+            } label: {
+                EmptyView()
+            }
+            .isDetailLink(false)
+
             if isWaitingForQuickDrillSync {
                 Color.black.opacity(0.4).ignoresSafeArea()
                 VStack(spacing: 16) {
@@ -197,7 +226,8 @@ struct DrillsTabView: View {
                     DrillFormView(
                         bleManager: bleManager,
                         mode: .edit(drill),
-                        isFromNewDrill: true
+                        isFromNewDrill: true,
+                        showDetailsByDefault: true
                     )
                     .environment(\.managedObjectContext, managedObjectContext)
                 }
@@ -232,8 +262,8 @@ struct DrillsTabView: View {
             }
         }
         .onChange(of: showQuickDrillConfig) { isActive in
-            if !isActive {
-                // When navigating away from the quick drill view, cleanup if needed
+            if !isActive && !navigateToTimerSession && !navigateToDrillSummary {
+                // Only cleanup if we're not navigating to the timer session or summary
                 cancelQuickDrill()
             }
         }
@@ -242,6 +272,12 @@ struct DrillsTabView: View {
     private func cancelQuickDrill() {
         guard let drill = quickDrillSetup else {
             showQuickDrillConfig = false
+            return
+        }
+        
+        // Skip deletion if we are actively showing results for this drill
+        if navigateToDrillSummary {
+            print("[DrillsTabView] Skipping cancelQuickDrill: navigateToDrillSummary is true")
             return
         }
         
@@ -308,7 +344,7 @@ struct DrillsTabView: View {
                     id: UUID(),
                     seqNo: index + 1,
                     targetName: device.name,
-                    targetType: "ipsc",
+                    targetType: DrillTargetsConfigData.encodeTargetTypes(["ipsc"]),
                     timeout: 30.0,
                     countedShots: 2,
                     action: "none",
@@ -326,6 +362,17 @@ struct DrillsTabView: View {
         } catch {
             print("[DrillsTabView] Failed to create quick drill: \(error)")
         }
+    }
+    
+    private func startEditFlow(for drill: DrillSetup) {
+        // 1. Prepare Target Configs from the existing drill
+        let coreDataTargets = (drill.targets as? Set<DrillTargetsConfig>) ?? []
+        self.quickDrillTargetConfigs = coreDataTargets.sorted(by: { $0.seqNo < $1.seqNo }).map { $0.toStruct() }
+        self.quickDrillMode = drill.mode ?? "ipsc"
+        
+        // 2. Set as the active quick drill to reuse the same flow
+        self.quickDrillSetup = drill
+        self.showQuickDrillConfig = true
     }
     
     private func saveAndStartQuickDrill() {

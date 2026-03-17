@@ -4,6 +4,7 @@
 "target_connected" = "ターゲット接続済み";
 "target_disconnected" = "ターゲット未接続";
 "drills" = "ドリル";
+"syncing_devices" = "デバイスを同期中...";
 "athletes" = "選手";
 "ipsc_questionaries" = "IPSC質問票";
 "idpa_questionaries" = "IDPA質問票";

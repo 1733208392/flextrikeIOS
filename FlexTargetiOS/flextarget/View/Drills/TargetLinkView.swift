@@ -91,6 +91,16 @@ struct TargetLinkView: View {
         }
         .navigationBarBackButtonHidden(true)
         .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button(action: {
+                    dismiss()
+                }) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+                }
+            }
+            
             ToolbarItem(placement: .principal) {
                 Text(NSLocalizedString("target_link", comment: "Target Link title"))
                     .font(.title2)

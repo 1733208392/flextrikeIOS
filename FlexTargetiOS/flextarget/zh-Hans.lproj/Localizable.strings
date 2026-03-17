@@ -4,6 +4,7 @@
 "target_connected" = "标靶已连接";
 "target_disconnected" = "标靶未连接";
 "drills" = "训练";
+"syncing_devices" = "正在同步设备...";
 "athletes" = "运动员";
 "ipsc_questionaries" = "IPSC 问卷";
 "idpa_questionaries" = "IDPA 问卷";

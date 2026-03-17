@@ -54,13 +54,11 @@ struct TargetsSectionView: View {
                     NavigationLink(destination: TargetLinkView(bleManager: bleManager, targetConfigs: $targetConfigs, onDone: onTargetConfigDone, drillMode: $drillMode, onSettings: onSettings, onStartDrill: onStartDrill)) {
                         targetButtonContent
                     }
-                    .navigationTitle(NSLocalizedString("drill_setup", comment: "Navigation title for Drill Setup"))
                     .disabled(!isTargetListReceived)
                 } else {
                     NavigationLink(destination: TargetConfigListViewV2(deviceList: bleManager.networkDevices, targetConfigs: $targetConfigs, onDone: onTargetConfigDone, drillMode: $drillMode, singleDeviceMode: true, isFromTargetLink: false, onSettings: onSettings, onStartDrill: onStartDrill)) {
                         targetButtonContent
                     }
-                    .navigationTitle(NSLocalizedString("drill_setup", comment: "Navigation title for Drill Setup"))
                     .disabled(!isTargetListReceived)
                 }
             }
