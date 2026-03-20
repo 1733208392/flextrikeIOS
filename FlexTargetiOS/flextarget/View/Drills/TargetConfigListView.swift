@@ -10,6 +10,12 @@ struct TargetConfigListView: View {
     
     @Environment(\.dismiss) private var dismiss
     @State private var showDisabledMessage = false
+    @State private var showDisconnectAlert = false
+    @ObservedObject private var bleManager = BLEManager.shared
+    
+    private var isDeviceAvailable: Bool {
+        !bleManager.networkDevices.isEmpty
+    }
 
     var body: some View {
         ZStack {
@@ -48,6 +54,28 @@ struct TargetConfigListView: View {
 
     private var listView: some View {
         List {
+            // Warning banner when no device connected
+            if !isDeviceAvailable {
+                HStack(spacing: 12) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundColor(Color(red: 1.0, green: 0.6, blue: 0.0))
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("No Device Connected")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(.white)
+                        Text("Connect a device to edit targets and start drill")
+                            .font(.system(size: 12))
+                            .foregroundColor(.gray)
+                    }
+                    Spacer()
+                }
+                .padding(12)
+                .background(Color(red: 0.3, green: 0.2, blue: 0.0))
+                .cornerRadius(8)
+                .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+            }
+            
             ForEach(targetConfigs.indices, id: \.self) { index in
                 TargetRowView(
                     config: $targetConfigs[index],
@@ -59,17 +87,32 @@ struct TargetConfigListView: View {
                 )
             }
             .onMove { indices, newOffset in
-                targetConfigs.move(fromOffsets: indices, toOffset: newOffset)
-                updateSeqNos()
+                if isDeviceAvailable {
+                    targetConfigs.move(fromOffsets: indices, toOffset: newOffset)
+                    updateSeqNos()
+                } else {
+                    showDisconnectAlert = true
+                }
             }
             .onDelete { indices in
-                targetConfigs.remove(atOffsets: indices)
-                updateSeqNos()
+                if isDeviceAvailable {
+                    targetConfigs.remove(atOffsets: indices)
+                    updateSeqNos()
+                } else {
+                    showDisconnectAlert = true
+                }
             }
         }
         .listStyle(.plain)
         .background(Color.black)
         .scrollContentBackgroundHidden()
+        .opacity(isDeviceAvailable ? 1.0 : 0.5)
+        .disabled(!isDeviceAvailable)
+        .alert("Cannot Edit Targets", isPresented: $showDisconnectAlert) {
+            Button("OK") { }
+        } message: {
+            Text("Please connect a device first.")
+        }
     }
 
     private var AddButton: some View {
@@ -87,6 +130,7 @@ struct TargetConfigListView: View {
                     .background(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                     .cornerRadius(8)
             }
+            .opacity(isDeviceAvailable ? 1.0 : 0.6)
         }
         .padding(.horizontal, 24)
         .padding(.bottom, 24)
@@ -684,6 +728,12 @@ struct TargetConfigListViewV2: View {
     @State private var randomEnabled: Bool = true
     @State private var draggingTypeFromRect: String? = nil
     @State private var isDraggingOverSelection: Bool = false
+    @State private var showDisconnectAlert = false
+    @ObservedObject private var bleManager = BLEManager.shared
+    
+    private var isDeviceAvailable: Bool {
+        !bleManager.networkDevices.isEmpty
+    }
 
     var body: some View {
         ZStack {
@@ -779,7 +829,13 @@ struct TargetConfigListViewV2: View {
                 Spacer(minLength: 0)
                 
                 if let onStartDrill = onStartDrill {
-                    Button(action: onStartDrill) {
+                    Button(action: {
+                        if isDeviceAvailable {
+                            onStartDrill()
+                        } else {
+                            showDisconnectAlert = true
+                        }
+                    }) {
                         Text(NSLocalizedString("start_drill", comment: "Start drill button"))
                             .foregroundColor(.white)
                             .fontWeight(.semibold)
@@ -788,9 +844,16 @@ struct TargetConfigListViewV2: View {
                             .background(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                             .cornerRadius(12)
                     }
+                    .opacity(isDeviceAvailable ? 1.0 : 0.5)
+                    .disabled(!isDeviceAvailable)
                     .padding(.horizontal, 24)
                     .padding(.bottom, 24)
                 }
+            }
+            .alert("Cannot Start Drill", isPresented: $showDisconnectAlert) {
+                Button("OK") { }
+            } message: {
+                Text("Please connect a device first.")
             }
         }
         .navigationBarBackButtonHidden(true)
@@ -903,8 +966,12 @@ struct TargetConfigListViewV2: View {
                     .frame(height: 320)
                     .overlay(targetRectContent)
                     .onDrop(of: [UTType.plainText], isTargeted: nil) { providers in
-                        handleDropToRect(providers: providers)
+                        if isDeviceAvailable {
+                            return handleDropToRect(providers: providers)
+                        }
+                        return false
                     }
+                    .opacity(isDeviceAvailable ? 1.0 : 0.5)
             }
             
         }
@@ -999,17 +1066,19 @@ struct TargetConfigListViewV2: View {
                         .onDrag {
                             // Only allow drag if it's not the default placeholder
                             if !(availableTargetTypesFiltered.isEmpty && type == defaultTargetType) {
-                                NSItemProvider(object: type as NSString)
+                                return NSItemProvider(object: type as NSString)
                             } else {
-                                NSItemProvider() // Empty provider to prevent drag
+                                return NSItemProvider() // Empty provider to prevent drag
                             }
                         }
+                        .opacity(isDeviceAvailable ? 1.0 : 0.5)
                 }
             }
             .padding(.horizontal, 2)
             .padding(.vertical, 2)
         }
         .frame(height: 160)
+        .disabled(!isDeviceAvailable)
         .onDrop(of: [UTType.plainText], isTargeted: $isDraggingOverSelection) { providers in
             return handleDropToSelection(providers: providers)
         }

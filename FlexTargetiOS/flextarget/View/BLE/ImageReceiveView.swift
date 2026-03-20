@@ -209,9 +209,11 @@ struct ImageReceiveView: View {
             )
         }
         .alert(isPresented: $bleManager.showErrorAlert) {
-            Alert(
+            let displayMessage = (bleManager.errorMessage ?? "Unknown error occurred")
+                .replacingOccurrences(of: "netlink", with: "TargetLink")
+            return Alert(
                 title: Text("Error"),
-                message: Text(bleManager.errorMessage ?? "Unknown error occurred"),
+                message: Text(displayMessage),
                 dismissButton: .default(Text("OK"))
             )
         }

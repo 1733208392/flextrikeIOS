@@ -84,7 +84,9 @@ struct TabNavigationView: View {
                 Alert(title: Text(NSLocalizedString("ble_error", comment: "BLE Error alert title")), message: Text(errorMessage), dismissButton: .default(Text(NSLocalizedString("ok", comment: "OK button"))))
             }
             .alert(isPresented: $bleManager.showErrorAlert) {
-                Alert(title: Text("Error"), message: Text(bleManager.errorMessage ?? "Unknown error occurred"), dismissButton: .default(Text("OK")))
+                let displayMessage = (bleManager.errorMessage ?? "Unknown error occurred")
+                    .replacingOccurrences(of: "netlink", with: "TargetLink")
+                return Alert(title: Text("Error"), message: Text(displayMessage), dismissButton: .default(Text("OK")))
             }
         }
         .background(Color.black.ignoresSafeArea())

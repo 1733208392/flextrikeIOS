@@ -311,7 +311,9 @@ struct DrillFormView: View {
             Text("Changing the Target Config is not allowed. Please create new Drill")
         }
         .alert(isPresented: $bleManager.showErrorAlert) {
-            Alert(title: Text("Error"), message: Text(bleManager.errorMessage ?? "Unknown error occurred"), dismissButton: .default(Text("OK")))
+            let displayMessage = (bleManager.errorMessage ?? "Unknown error occurred")
+                .replacingOccurrences(of: "netlink", with: "TargetLink")
+            return Alert(title: Text("Error"), message: Text(displayMessage), dismissButton: .default(Text("OK")))
         }
         .alert("Drill Saved", isPresented: $showDrillSavedAlert) {
             Button("OK") { }

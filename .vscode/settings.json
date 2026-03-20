@@ -19,6 +19,7 @@
     "swiftc": true,
     "comm": true,
     "git add": true,
-    "strings": true
+    "strings": true,
+    "awk": true
   }
 }
