@@ -27,6 +27,7 @@
 "drill_setup" = "Übung-Setup";
 "drill_mode" = "Übungsmodus";
 "target_link" = "Zielverbindung";
+"upload_target_image_subtitle" = "Laden Sie ein benutzerdefiniertes Zielbild auf das Gerät";
 
 /* DrillListView */
 "my_drills" = "Meine Übungen";
@@ -318,7 +319,7 @@
 "start_competition_drill" = "Wettbewerbsübung starten";
 "unknown_athlete" = "Unbekannter Athlet";
 "competition_mode" = "WETTBEWERBSMODUS";
-"drill_editing_disabled_hint" = "Die Bearbeitung ist deaktiviert, da diese Übung Ergebnisse hat oder mit einem Wettbewerb verknüpft ist.";
+"drill_editing_disabled_hint" = "Die Zielkonfiguration ist gesperrt, da diese Übung Ergebnisse hat. Du kannst weiterhin Name, Beschreibung, Pausenzeit und Wiederholungsanzahl bearbeiten.";
 
 /* AdminTabView - Admin Menü */
 "device_management" = "Geräteverwaltung";
@@ -353,6 +354,7 @@
 "password" = "Passwort";
 "login" = "Anmelden";
 "login_title" = "Anmelden";
+"login_register_button" = "Konto registrieren";
 "forgot_password" = "Passwort vergessen";
 "manage_profile" = "Benutzerprofil verwalten";
 
@@ -454,6 +456,10 @@
 "ota_msg_auth_failed" = "Abrufen von Authentifizierungsdaten für OTA fehlgeschlagen.";
 "ota_msg_no_version_selected" = "Keine OTA-Version ausgewählt.";
 
+"ota_stop_confirmation_title" = "Aktualisierung stoppen?";
+"ota_stop_confirmation_message" = "Sind Sie sicher, dass Sie die Firmware-Aktualisierung stoppen möchten?";
+"ota_stop_button" = "Stoppen";
+
 /* OTA Error Alerts */
 "ota_failed_to_start_title" = "OTA konnte nicht gestartet werden";
 "ota_game_disk_not_found" = "Spieldatenträger auf dem Gerät nicht gefunden. Bitte überprüfen Sie das Gerät und versuchen Sie es erneut.";
@@ -502,3 +508,7 @@
 "ota_failed_to_start_title" = "Aktualisierung konnte nicht gestartet werden";
 "ota_game_disk_not_found" = "Spielfestplatte auf Gerät nicht gefunden";
 "connect_device_prompt" = "Verbinden Sie Ihr Gerät";
+/* Server selection */
+"server_label" = "Server: ";
+"server_international" = "International";
+"server_china" = "China";

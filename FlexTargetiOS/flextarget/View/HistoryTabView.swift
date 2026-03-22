@@ -18,6 +18,8 @@ struct HistoryTabView: View {
     
     @State private var selectedDrillType: String? = nil
     @State private var selectedDrillName: String? = nil
+    @State private var showingTrends = false
+    @State private var selectedDrillId: UUID? = nil
     @State private var selectedDateRange: DateRange = .all
     @State private var expandedDrillSetups: Set<UUID> = []
     @State private var selectedResult: DrillResult? = nil
@@ -222,6 +224,7 @@ struct HistoryTabView: View {
                         ForEach(uniqueDrillNames, id: \.self) { name in
                             Button(name) {
                                 selectedDrillName = name
+                                print("Selected Drill Name updated to: \(name)")
                             }
                         }
                     } label: {
@@ -243,6 +246,43 @@ struct HistoryTabView: View {
                 Divider()
                     .background(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433).opacity(0.3))
                 
+                // Debug values for trend button
+                let _ = print("Selected Drill Name: \(selectedDrillName ?? "nil")")
+                
+                // Trends Button
+                if let drillName = selectedDrillName {
+                    Button(action: {
+                        // Find the setup ID for the selected name
+                        if let setups = try? DrillRepository.shared.fetchAllDrillSetupsAsCoreData() {
+                            print("Found \(setups.count) total setups")
+                            if let setup = setups.first(where: { $0.name == drillName }) {
+                                print("Found matching setup for \(drillName) with ID \(setup.id)")
+                                // Set ID first so the NavigationLink destination is ready before activation
+                                selectedDrillId = setup.id
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                                    showingTrends = true
+                                }
+                            } else {
+                                print("Could not find setup with name: \(drillName)")
+                            }
+                        }
+                    }) {
+                        HStack {
+                            Image(systemName: "chart.line.uptrend.xyaxis")
+                            Text("VIEW PERFORMANCE TRENDS")
+                                .fontWeight(.bold)
+                        }
+                        .font(.caption)
+                        .foregroundColor(.white)
+                        .padding(.vertical, 8)
+                        .frame(maxWidth: .infinity)
+                        .background(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+                        .cornerRadius(8)
+                        .padding(.horizontal, 12)
+                        .padding(.top, 8)
+                    }
+                }
+
                 // Results List
                 if groupedResults.isEmpty {
                     VStack {
@@ -338,6 +378,16 @@ struct HistoryTabView: View {
             }
             .navigationTitle(NSLocalizedString("history", comment: "History tab title"))
             .navigationBarTitleDisplayMode(.inline)
+            .background(
+                Group {
+                    if let drillId = selectedDrillId {
+                        NavigationLink(
+                            destination: PerformanceTrackingView(viewModel: PerformanceTrackingViewModel(drillId: drillId)),
+                            isActive: $showingTrends
+                        ) { EmptyView() }
+                    }
+                }
+            )
         }
     }
     

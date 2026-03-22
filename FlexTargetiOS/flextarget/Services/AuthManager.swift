@@ -15,6 +15,7 @@ class AuthManager: ObservableObject {
     
     private init() {
         print("[AuthManager] Initializing AuthManager")
+        serverConfig.initializeServer()
         loadUser()
         if currentUser != nil {
             print("[AuthManager] User loaded successfully, starting token refresh timer")

@@ -6,6 +6,7 @@ struct OTAUpdateView: View {
     @Environment(\.dismiss) var dismiss
     
     @State private var showingConfirmation = false
+    @State private var showingStopConfirmation = false
     @State private var selectedVersion: OTAVersion?
     
     var body: some View {
@@ -62,6 +63,14 @@ struct OTAUpdateView: View {
             }
         } message: {
             Text(otaManager.otaFailureReason.isEmpty ? NSLocalizedString("ota_game_disk_not_found", comment: "Game disk not found on device") : otaManager.otaFailureReason)
+        }
+        .alert(NSLocalizedString("ota_stop_confirmation_title", comment: "Stop Update?"), isPresented: $showingStopConfirmation) {
+            Button(NSLocalizedString("ota_cancel_button", comment: "Cancel"), role: .cancel) { }
+            Button(NSLocalizedString("ota_stop_button", comment: "Stop"), role: .destructive) {
+                otaManager.stopOTA()
+            }
+        } message: {
+            Text(NSLocalizedString("ota_stop_confirmation_message", comment: "Are you sure?"))
         }
     }
     
@@ -403,6 +412,8 @@ struct OTAUpdateView: View {
             return true
         case .failed:
             return true
+        case .downloading:
+            return true
         default:
             return false
         }
@@ -462,6 +473,8 @@ struct OTAUpdateView: View {
             dismiss()
         case .failed:
             otaManager.retryVerification()
+        case .downloading:
+            showingStopConfirmation = true
         default:
             break
         }

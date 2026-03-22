@@ -102,6 +102,7 @@ struct DrillsTabView: View {
                             targetConfigs: $quickDrillTargetConfigs,
                             onDone: { cancelQuickDrill() },
                             drillMode: $quickDrillMode,
+                            hasResults: (drill.results as? Set<NSManagedObject>)?.count ?? 0 > 0,
                             onSettings: { showQuickDrillDetailsEditor = true },
                             onStartDrill: { saveAndStartQuickDrill() }
                         )
@@ -114,6 +115,7 @@ struct DrillsTabView: View {
                             singleDeviceMode: true,
                             deviceNameFilter: bleManager.networkDevices.first?.name,
                             isFromTargetLink: false,
+                            hasResults: (drill.results as? Set<NSManagedObject>)?.count ?? 0 > 0,
                             onSettings: { showQuickDrillDetailsEditor = true },
                             onStartDrill: { saveAndStartQuickDrill() }
                         )

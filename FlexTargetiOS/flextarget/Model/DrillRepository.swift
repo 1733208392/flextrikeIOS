@@ -15,10 +15,11 @@ protocol DrillRepositoryProtocol {
     func saveDrillResult(_ result: DrillResult) throws
     func fetchRecentResults(limit: Int) throws -> [DrillResult]
     func fetchResults(for setupId: UUID) throws -> [DrillResult]
-    
-    // Summary operations
     func fetchRecentSummaries(limit: Int) throws -> [DrillSummary]
     func fetchRecentDrills(limit: Int) throws -> [(DrillSummary, DrillResult)]
+    /// Fetches raw DrillResult objects for a given drill. Must be called on the main thread (viewContext).
+    func fetchDrillResults(for setupId: UUID, limit: Int?) throws -> [DrillResult]
+    func fetchResultsHistory(for setupId: UUID, limit: Int?) throws -> [PerformanceDataPoint]
 }
 
 /// Repository for drill data operations using CoreData
@@ -172,6 +173,23 @@ class DrillRepository: ObservableObject, DrillRepositoryProtocol {
         fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \DrillResult.date, ascending: false)]
         
         return try context.fetch(fetchRequest)
+    }
+
+    /// Fetches raw DrillResult objects. Must be called on main thread (viewContext is main-thread-only).
+    func fetchDrillResults(for setupId: UUID, limit: Int? = nil) throws -> [DrillResult] {
+        let fetchRequest: NSFetchRequest<DrillResult> = DrillResult.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "drillId == %@", setupId as CVarArg)
+        fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \DrillResult.date, ascending: false)]
+        if let limit = limit {
+            fetchRequest.fetchLimit = limit
+        }
+        let results = try context.fetch(fetchRequest)
+        return results.sorted { ($0.date ?? Date()) < ($1.date ?? Date()) }
+    }
+
+    func fetchResultsHistory(for setupId: UUID, limit: Int? = nil) throws -> [PerformanceDataPoint] {
+        let results = try fetchDrillResults(for: setupId, limit: limit)
+        return PerformanceCalculator.calculateTrends(from: results)
     }
     
     // MARK: - Summary Operations

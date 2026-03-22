@@ -248,7 +248,7 @@ struct AdminContentView: View {
                                 Text(NSLocalizedString("upload_target_image", comment: "Upload Target Image"))
                                     .font(.headline)
                                     .foregroundColor(.white)
-                                Text("Upload a custom target image to the device")
+                                Text(NSLocalizedString("upload_target_image_subtitle", comment: "Upload a custom target image to the device"))
                                     .font(.caption)
                                     .foregroundColor(.gray)
                             }

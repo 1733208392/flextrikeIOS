@@ -6,12 +6,14 @@ extension DrillResult {
     
     /// Decode all shots from the drill result, sorted by timestamp to preserve order
     var decodedShots: [ShotData] {
+        if let cached = _cachedShots { return cached }
+        
         guard let shotsSet = shots as? Set<Shot> else { return [] }
         
         // Sort shots by timestamp (which stores the absolute time_diff in ms) to ensure correct order
         let sortedShots = shotsSet.sorted { $0.timestamp < $1.timestamp }
         
-        return sortedShots.compactMap { shot in
+        let decoded: [ShotData] = sortedShots.compactMap { shot in
             guard let data = shot.data,
                   let jsonData = data.data(using: .utf8) else { return nil }
             
@@ -22,6 +24,9 @@ extension DrillResult {
                 return nil
             }
         }
+        
+        _cachedShots = decoded
+        return decoded
     }
     
     /// Calculate the fastest shot time in seconds

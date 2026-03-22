@@ -27,6 +27,7 @@
 "drill_setup" = "训练设置";
 "drill_mode" = "训练模式";
 "target_link" = "标靶链接";
+"upload_target_image_subtitle" = "将自定义目标图像上传到设备";
 
 /* DrillListView */
 "my_drills" = "训练设置";
@@ -326,7 +327,7 @@
 "start_competition_drill" = "开始竞赛训练";
 "unknown_athlete" = "未知运动员";
 "competition_mode" = "竞赛模式";
-"drill_editing_disabled_hint" = "由于此练习已有结果或已关联竞赛，编辑功能已禁用。";
+"drill_editing_disabled_hint" = "由于此练习已有结果，目标配置已锁定。您仍可以编辑名称、描述、暂停时间和重复次数。";
 /* AdminTabView - 管理菜单 */
 "device_management" = "设备管理";
 "device_connected" = "设备已连接";
@@ -356,6 +357,7 @@
 "password" = "密码";
 "login" = "登录";
 "login_title" = "登录";
+"login_register_button" = "注册账户";
 "forgot_password" = "忘记密码";
 "manage_profile" = "管理用户资料";
 
@@ -450,6 +452,7 @@
 "ota_msg_success" = "更新成功！";
 "ota_msg_prep_timeout" = "设备准备超时（10分钟）。请检查您的设备并重试。";
 "ota_msg_ready_timeout" = "设备未进入OTA模式。请重试。";
+"ota_msg_download_timeout" = "下载超时。目标设备可能已关机或断开连接。";
 "ota_msg_verification_timeout" = "验证超时。更新可能失败。";
 "ota_msg_no_upgrade_info" = "升级信息不可用。";
 "ota_msg_retrying_verification" = "正在重试验证...";
@@ -458,6 +461,10 @@
 "ota_msg_fetch_metadata_failed" = "获取升级元数据失败。";
 "ota_msg_auth_failed" = "获取OTA认证数据失败。";
 "ota_msg_no_version_selected" = "未选择OTA版本。";
+
+"ota_stop_confirmation_title" = "停止更新？";
+"ota_stop_confirmation_message" = "您确定要停止固件更新吗？";
+"ota_stop_button" = "停止";
 
 /* Remote Control */
 "remote_control" = "远程控制";
@@ -513,3 +520,8 @@
 "ota_failed_to_start_title" = "更新启动失败";
 "ota_game_disk_not_found" = "设备上未找到游戏磁盘";
 "connect_device_prompt" = "请连接到您的设备";
+
+/* Server selection */
+"server_label" = "服务器: ";
+"server_international" = "国际";
+"server_china" = "中国";

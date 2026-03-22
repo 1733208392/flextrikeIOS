@@ -951,9 +951,17 @@ public class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, C
                         // Check if this is a failure message that should be alerted
                         if let state = json["state"] as? String, state == "failure",
                            let message = json["message"] as? String {
-                            DispatchQueue.main.async {
-                                self.errorMessage = message
-                                self.showErrorAlert = true
+                            // Suppress firmware "unknown game mode" noise for bootcamp — expected when
+                            // navigating to Targets via remote control while the device is in bootcamp mode.
+                            let isUnknownBootcampMode = message.lowercased().contains("unknown game mode") &&
+                                                        message.lowercased().contains("bootcamp")
+                            if isUnknownBootcampMode {
+                                print("Suppressing expected firmware noise: \(message)")
+                            } else {
+                                DispatchQueue.main.async {
+                                    self.errorMessage = message
+                                    self.showErrorAlert = true
+                                }
                             }
                         }
                         

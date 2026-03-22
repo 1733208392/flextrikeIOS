@@ -147,6 +147,10 @@ class OTAManager: ObservableObject {
     private var readyToDownloadStartTime: Date?
     private let readyToDownloadTimeout: TimeInterval = 30.0
     
+    private var downloadTimer: Timer?
+    private var downloadStartTime: Date?
+    private let downloadTimeout: TimeInterval = 300.0 // 5 minutes
+    
     private var prepareGameDiskOTACompleted: Bool = false
     private var prepareGameDiskOTATimer: Timer?
     private var prepareGameDiskOTAStartTime: Date?
@@ -195,6 +199,12 @@ class OTAManager: ObservableObject {
                 self.startReadyToDownloadTimeout()
             } else {
                 self.stopReadyToDownloadTimeout()
+            }
+            
+            if state == .downloading {
+                self.startDownloadTimeout()
+            } else {
+                self.stopDownloadTimeout()
             }
             
             if state == .verifying {
@@ -508,6 +518,38 @@ class OTAManager: ObservableObject {
         verificationTimer = nil
     }
     
+    // MARK: - Download Timeout
+    
+    private func startDownloadTimeout() {
+        print("OTAManager: Starting download guard timer (\(downloadTimeout)s)")
+        downloadStartTime = Date()
+        downloadTimer?.invalidate()
+        downloadTimer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { [weak self] _ in
+            self?.checkDownloadTimeout()
+        }
+    }
+    
+    private func stopDownloadTimeout() {
+        if downloadTimer != nil {
+            print("OTAManager: Stopping download guard timer")
+        }
+        downloadTimer?.invalidate()
+        downloadTimer = nil
+        downloadStartTime = nil
+    }
+    
+    private func checkDownloadTimeout() {
+        guard let startTime = downloadStartTime else { return }
+        
+        if Date().timeIntervalSince(startTime) > downloadTimeout {
+            stopDownloadTimeout()
+            print("OTAManager: Download timed out after \(downloadTimeout)s")
+            let errorMsg = localizedMessage("ota_msg_download_timeout")
+            self.errorMessage = errorMsg
+            transition(to: .failed, message: errorMsg)
+        }
+    }
+    
     private func pollVersion() {
         guard let startTime = verificationStartTime else { return }
         
@@ -521,6 +563,19 @@ class OTAManager: ObservableObject {
         
         print("OTAManager: Polling version...")
         BLEManager.shared.queryVersion()
+    }
+    
+    func stopOTA() {
+        print("OTAManager: User requested to stop OTA update")
+        
+        // Invalidate all timers
+        stopPrepareGameDiskOTATimeout()
+        stopReadyToDownloadTimeout()
+        stopDownloadTimeout()
+        stopVerificationLoop()
+        
+        // Reset state
+        reset()
     }
     
     func reset() {

@@ -138,11 +138,11 @@ struct DrillFormView: View {
                             if !isFromNewDrill || showDrillDetailsEdit {
                                 // Grouped Section: Drill Name, Description
                                 VStack(spacing: 20) {
-                                    DrillNameSectionView(drillName: $drillName, disabled: isEditingDisabled)
+                                    DrillNameSectionView(drillName: $drillName, disabled: false)
                                     
                                     DescriptionSectionView(
                                         description: $description,
-                                        disabled: isEditingDisabled
+                                        disabled: false
                                     )
                                 }
                                 .padding()
@@ -175,9 +175,10 @@ struct DrillFormView: View {
                                     bleManager: bleManager,
                                     targetConfigs: $targetConfigs,
                                     onTargetConfigDone: { targets = targetConfigs },
-                                    disabled: isEditingDisabled,
+                                    disabled: false,
                                     onDisabledTap: { showTargetConfigAlert = true },
                                     drillMode: $drillMode,
+                                    hasResults: isEditingDisabled,
                                     onSettings: { showDrillDetailsEdit.toggle() },
                                     onStartDrill: { saveAndStartDrill() }
                                 )
@@ -348,10 +349,10 @@ struct DrillFormView: View {
                         .fontWeight(.semibold)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background((bleManager.isConnected && !isEditingDisabled && !isSaving) ? Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433) : Color.gray)
+                        .background((bleManager.isConnected && !isSaving) ? Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433) : Color.gray)
                         .cornerRadius(8)
                 }
-                .disabled(!bleManager.isConnected || isEditingDisabled || drillName.isEmpty || isSaving)
+                .disabled(!bleManager.isConnected || drillName.isEmpty || isSaving)
                 
                 Button(action: saveAndStartDrill) {
                     Text(NSLocalizedString("start_drill", comment: "Start drill button"))
@@ -684,6 +685,9 @@ struct DrillFormView: View {
         drillSetup.pause = Int32(pauseValue)
         drillSetup.drillDuration = drillDuration
         drillSetup.mode = drillMode
+        
+        // Skip target updates when the drill has results — target config is locked
+        guard !isEditingDisabled else { return }
         
         // Update targets: reuse existing ones by ID, create only new ones
         let existingTargets = (drillSetup.targets as? Set<DrillTargetsConfig>) ?? []

@@ -313,14 +313,13 @@ struct PasswordDialogView: View {
                         .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                     Spacer()
                     Button("Connect", action: onConnect)
-                        .foregroundColor(.blue)
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                         .disabled(password.isEmpty)
                 }
                 .padding(.horizontal)
             }
             .padding()
             .navigationBarTitle("WiFi Password", displayMode: .inline)
-            .navigationBarItems(trailing: Button("Cancel", action: onCancel))
         }
     }
 }
@@ -343,7 +342,7 @@ struct NameDialogView: View {
                         .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                     Spacer()
                     Button("OK", action: onConfirm)
-                        .foregroundColor(.blue)
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                         .disabled(name.isEmpty)
                 }
                 .padding(.horizontal)

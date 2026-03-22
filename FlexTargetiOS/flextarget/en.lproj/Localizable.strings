@@ -22,6 +22,7 @@
 "drill_setup" = "Drill Setup";
 "drill_mode" = "Drill Mode";
 "target_link" = "TARGETLINK";
+"upload_target_image_subtitle" = "Upload a custom target image to the device";
 
 /* DrillListView */
 "my_drills" = "My Drills";
@@ -330,7 +331,7 @@
 "start_competition_drill" = "Start Competition Drill";
 "unknown_athlete" = "Unknown Athlete";
 "competition_mode" = "COMPETITION MODE";
-"drill_editing_disabled_hint" = "Editing is disabled because this drill has results or is linked to a competition.";
+"drill_editing_disabled_hint" = "Target configuration is locked because this drill has results. You can still edit the name, description, pause time, and number of repeats.";
 /* AdminTabView - Admin Menu */
 "device_management" = "Device Management";
 "device_connected" = "Device is connected";
@@ -456,6 +457,7 @@
 "ota_msg_success" = "Update successful!";
 "ota_msg_prep_timeout" = "Device preparation timeout (10 minutes). Please check your device and try again.";
 "ota_msg_ready_timeout" = "Device did not enter OTA mode. Please try again.";
+"ota_msg_download_timeout" = "Download timed out. Target device may have been shut down or disconnected.";
 "ota_msg_verification_timeout" = "Verification timed out. Update might have failed.";
 "ota_msg_no_upgrade_info" = "Upgrade information not available.";
 "ota_msg_retrying_verification" = "Retrying verification...";
@@ -464,6 +466,10 @@
 "ota_msg_fetch_metadata_failed" = "Failed to retrieve upgrade metadata.";
 "ota_msg_auth_failed" = "Failed to obtain auth data for OTA.";
 "ota_msg_no_version_selected" = "No OTA version selected.";
+
+"ota_stop_confirmation_title" = "Stop Update?";
+"ota_stop_confirmation_message" = "Are you sure you want to stop the firmware update?";
+"ota_stop_button" = "Stop";
 
 /* OTA Error Alerts */
 "ota_failed_to_start_title" = "OTA Failed to Start";

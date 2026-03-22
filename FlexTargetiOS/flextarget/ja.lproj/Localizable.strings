@@ -27,6 +27,7 @@
 "drill_setup" = "ドリル設定";
 "drill_mode" = "ドリルモード";
 "target_link" = "ターゲットリンク";
+"upload_target_image_subtitle" = "カスタムターゲット画像をデバイスにアップロード";
 
 /* DrillListView */
 "my_drills" = "マイドリル";
@@ -319,7 +320,7 @@
 "start_competition_drill" = "大会ドリルを開始";
 "unknown_athlete" = "不明な選手";
 "competition_mode" = "大会モード";
-"drill_editing_disabled_hint" = "このドリルには結果があるか、大会に関連付けられているため、編集は無効になっています。";
+"drill_editing_disabled_hint" = "このドリルには結果があるため、ターゲット設定はロックされています。名前、説明、一時停止時間、繰り返し回数は引き続き編集できます。";
 /* AdminTabView - 管理メニュー */
 "device_management" = "デバイス管理";
 "device_connected" = "デバイス接続済み";
@@ -352,6 +353,7 @@
 "password" = "パスワード";
 "login" = "ログイン";
 "login_title" = "ログイン";
+"login_register_button" = "アカウント登録";
 "forgot_password" = "パスワードを忘れた";
 "manage_profile" = "ユーザープロフィールを管理";
 
@@ -452,7 +454,9 @@
 "ota_msg_fetch_metadata_failed" = "アップグレードメタデータの取得に失敗しました。";
 "ota_msg_auth_failed" = "OTAの認証データ取得に失敗しました。";
 "ota_msg_no_version_selected" = "OTAバージョンが選択されていません。";
-
+"ota_stop_confirmation_title" = "更新を停止しますか？";
+"ota_stop_confirmation_message" = "ファームウェアの更新を停止してもよろしいですか？";
+"ota_stop_button" = "停止";
 /* OTA Error Alerts */
 "ota_failed_to_start_title" = "OTA開始失敗";
 "ota_game_disk_not_found" = "デバイス上にゲームディスクが見つかりません。デバイスを確認してもう一度お試しください。";
@@ -501,3 +505,7 @@
 "ota_failed_to_start_title" = "更新の開始に失敗しました";
 "ota_game_disk_not_found" = "デバイスでゲームディスクが見つかりません";
 "connect_device_prompt" = "デバイスに接続してください";
+/* Server selection */
+"server_label" = "サーバー: ";
+"server_international" = "インターナショナル";
+"server_china" = "中国";

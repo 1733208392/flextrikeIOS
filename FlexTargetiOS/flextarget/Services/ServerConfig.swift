@@ -16,6 +16,17 @@ class ServerConfig {
 
     }
 
+    func initializeServer() {
+        if userDefaults.string(forKey: serverUrlKey) == nil {
+            let identifier = Locale.current.region?.identifier ?? ""
+            if identifier == "CN" {
+                setServerUrl(ServerConfig.china)
+            } else {
+                setServerUrl(ServerConfig.international)
+            }
+        }
+    }
+
     func setServerUrl(_ url: String) {
 
         userDefaults.set(url, forKey: serverUrlKey)

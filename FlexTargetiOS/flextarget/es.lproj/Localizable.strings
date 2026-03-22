@@ -27,6 +27,7 @@
 "drill_setup" = "Configuración de Ejercicio";
 "drill_mode" = "Modo de Ejercicio";
 "target_link" = "Enlace de Objetivo";
+"upload_target_image_subtitle" = "Carga una imagen de objetivo personalizada en el dispositivo";
 
 /* DrillListView */
 "my_drills" = "Mis Ejercicios";
@@ -318,7 +319,7 @@
 "start_competition_drill" = "Iniciar ejercicio de competición";
 "unknown_athlete" = "Atleta desconocido";
 "competition_mode" = "MODO COMPETICIÓN";
-"drill_editing_disabled_hint" = "La edición está desactivada porque este ejercicio tiene resultados o está vinculado a una competición.";
+"drill_editing_disabled_hint" = "La configuración de objetivos está bloqueada porque este ejercicio tiene resultados. Aún puedes editar el nombre, la descripción, el tiempo de pausa y el número de repeticiones.";
 
 /* AdminTabView - Menú Admin */
 "device_management" = "Gestión de dispositivos";
@@ -353,6 +354,7 @@
 "password" = "Contraseña";
 "login" = "Iniciar sesión";
 "login_title" = "Iniciar sesión";
+"login_register_button" = "Registrar cuenta";
 "forgot_password" = "Olvidé mi contraseña";
 "manage_profile" = "Gestionar perfil de usuario";
 
@@ -452,6 +454,10 @@
 "ota_msg_auth_failed" = "Error al obtener datos de autenticación para OTA.";
 "ota_msg_no_version_selected" = "Ninguna versión OTA seleccionada.";
 
+"ota_stop_confirmation_title" = "¿Detener actualización?";
+"ota_stop_confirmation_message" = "¿Estás seguro de que quieres detener la actualización de firmware?";
+"ota_stop_button" = "Detener";
+
 /* OTA Error Alerts */
 "ota_failed_to_start_title" = "Error al Iniciar OTA";
 "ota_game_disk_not_found" = "Disco de juego no encontrado en el dispositivo. Por favor verifique el dispositivo e intente de nuevo.";
@@ -500,3 +506,7 @@
 "ota_failed_to_start_title" = "Error al iniciar actualización";
 "ota_game_disk_not_found" = "Disco de juego no encontrado en dispositivo";
 "connect_device_prompt" = "Conecte su dispositivo";
+/* Server selection */
+"server_label" = "Servidor: ";
+"server_international" = "Internacional";
+"server_china" = "China";

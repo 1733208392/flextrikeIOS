@@ -27,6 +27,7 @@
 "drill_setup" = "訓練設定";
 "drill_mode" = "訓練模式";
 "target_link" = "目標連結";
+"upload_target_image_subtitle" = "將自訂目標影像上傳到裝置";
 
 /* DrillListView */
 "my_drills" = "我的訓練";
@@ -319,7 +320,7 @@
 "start_competition_drill" = "開始競賽訓練";
 "unknown_athlete" = "未知運動員";
 "competition_mode" = "競賽模式";
-"drill_editing_disabled_hint" = "由於此練習已有結果或已關聯競賽，編輯功能已禁用。";
+"drill_editing_disabled_hint" = "由於此練習已有結果，目標配置已鎖定。您仍可以編輯名稱、描述、暫停時間和重複次數。";
 /* AdminTabView - 管理菜單 */
 "device_management" = "設備管理";
 "device_connected" = "設備已連接";
@@ -352,6 +353,7 @@
 "password" = "密碼";
 "login" = "登錄";
 "login_title" = "登錄";
+"login_register_button" = "註冊帳戶";
 "forgot_password" = "忘記密碼";
 "manage_profile" = "管理用戶資料";
 
@@ -455,6 +457,10 @@
 "ota_msg_auth_failed" = "獲取OTA認證數據失敗。";
 "ota_msg_no_version_selected" = "未選擇OTA版本。";
 
+"ota_stop_confirmation_title" = "停止更新？";
+"ota_stop_confirmation_message" = "您確定要停止韌體更新嗎？";
+"ota_stop_button" = "停止";
+
 /* OTA Error Alerts */
 "ota_failed_to_start_title" = "OTA啟動失敗";
 "ota_game_disk_not_found" = "設備上找不到遊戲磁碟。請檢查設備並重試。";
@@ -516,3 +522,7 @@
 "ota_failed_to_start_title" = "更新啟動失敗";
 "ota_game_disk_not_found" = "裝置上未找到遊戲磁碟";
 "connect_device_prompt" = "請連接到您的裝置";
+/* Server selection */
+"server_label" = "伺服器: ";
+"server_international" = "國際";
+"server_china" = "中國";

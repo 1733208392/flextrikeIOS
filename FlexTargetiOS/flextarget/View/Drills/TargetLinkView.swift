@@ -6,6 +6,7 @@ struct TargetLinkView: View {
     @Binding var targetConfigs: [DrillTargetsConfigData]
     let onDone: () -> Void
     @Binding var drillMode: String
+    var hasResults: Bool = false
     var onSettings: (() -> Void)? = nil
     var onStartDrill: (() -> Void)? = nil
     
@@ -26,7 +27,9 @@ struct TargetLinkView: View {
                 HStack(spacing: 0) {
                     // IPSC Button
                     Button(action: {
-                        drillMode = "ipsc"
+                        if !hasResults {
+                            drillMode = "ipsc"
+                        }
                     }) {
                         HStack(spacing: 6) {
                             if drillMode == "ipsc" {
@@ -41,10 +44,13 @@ struct TargetLinkView: View {
                         .foregroundColor(drillMode == "ipsc" ? .white : .gray)
                         .background(drillMode == "ipsc" ? Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433) : Color.gray.opacity(0.2))
                     }
+                    .disabled(hasResults)
                     
                     // CQB Button
                     Button(action: {
-                        drillMode = "cqb"
+                        if !hasResults {
+                            drillMode = "cqb"
+                        }
                     }) {
                         HStack(spacing: 6) {
                             if drillMode == "cqb" {
@@ -59,6 +65,7 @@ struct TargetLinkView: View {
                         .foregroundColor(drillMode == "cqb" ? .white : .gray)
                         .background(drillMode == "cqb" ? Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433) : Color.gray.opacity(0.2))
                     }
+                    .disabled(hasResults)
                 }
                 .frame(maxWidth: 200)
                 .background(Color.gray.opacity(0.2))
@@ -122,6 +129,44 @@ struct TargetLinkView: View {
             print("TargetLinkView: onAppear called with deviceList.count = \(bleManager.networkDevices.count)")
             initializeTargetConfigs()
         }
+        .onReceive(bleManager.$networkDevices) { devices in
+            updateTargetNamesForConnectedDevices(devices)
+        }
+    }
+    
+    private func updateTargetNamesForConnectedDevices(_ devices: [NetworkDevice]) {
+        guard !devices.isEmpty else { return }
+        
+        var updated = targetConfigs
+        var modified = false
+        
+        for (index, device) in devices.enumerated() {
+            if index < updated.count {
+                if updated[index].targetName != device.name {
+                    print("TargetLinkView: Updating target name from \(updated[index].targetName) to \(device.name) at index \(index)")
+                    updated[index].targetName = device.name
+                    modified = true
+                }
+            } else {
+                // Add new config if we have more devices than configs
+                let zigzagOrder = [0, 1, 2, 5, 4, 3, 6, 7, 8, 11, 10, 9]
+                let seqNo = index < zigzagOrder.count ? zigzagOrder[index] + 1 : index + 1
+                let newConfig = DrillTargetsConfigData(
+                    seqNo: seqNo,
+                    targetName: device.name,
+                    targetType: defaultTargetType(),
+                    timeout: 30.0,
+                    countedShots: 5
+                )
+                updated.append(newConfig)
+                modified = true
+                print("TargetLinkView: Added config for new device \(device.name) at index \(index)")
+            }
+        }
+        
+        if modified {
+            targetConfigs = updated
+        }
     }
     
     @ViewBuilder
@@ -148,6 +193,7 @@ struct TargetLinkView: View {
                             singleDeviceMode: true,
                             deviceNameFilter: device.name,
                             isFromTargetLink: true,
+                            hasResults: hasResults,
                             onSettings: onSettings,
                             onStartDrill: onStartDrill
                         )) {
