@@ -224,30 +224,24 @@ struct RemoteControlView: View {
                 showNameDialog = true
             }
         }
-        .sheet(isPresented: $showPasswordDialog) {
-            PasswordDialogView(
-                ssid: currentSsid,
-                password: $passwordInput,
-                onConnect: {
-                    sendWifiCommand(ssid: currentSsid, password: passwordInput)
-                    showPasswordDialog = false
-                },
-                onCancel: {
-                    showPasswordDialog = false
-                }
-            )
+        .alert("WiFi Password", isPresented: $showPasswordDialog) {
+            SecureField("Password", text: $passwordInput)
+            Button("Connect") {
+                sendWifiCommand(ssid: currentSsid, password: passwordInput)
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("Enter password for WiFi: \(currentSsid)")
         }
-        .sheet(isPresented: $showNameDialog) {
-            NameDialogView(
-                name: $nameInput,
-                onConfirm: {
-                    sendNameCommand(name: nameInput)
-                    showNameDialog = false
-                },
-                onCancel: {
-                    showNameDialog = false
-                }
-            )
+        .alert("Target Name", isPresented: $showNameDialog) {
+            TextField("Name", text: $nameInput)
+            Button("OK") {
+                sendNameCommand(name: nameInput)
+            }
+            .disabled(nameInput.isEmpty)
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("Enter a name for the target:")
         }
         .onReceive(NotificationCenter.default.publisher(for: .deviceDidShake)) { _ in
             sendCommand("shake")
@@ -294,62 +288,4 @@ struct RemoteControlView: View {
     }
 }
 
-struct PasswordDialogView: View {
-    let ssid: String
-    @Binding var password: String
-    let onConnect: () -> Void
-    let onCancel: () -> Void
-    
-    var body: some View {
-        NavigationView {
-            VStack(spacing: 20) {
-                Text("Enter password for WiFi: \(ssid)")
-                    .multilineTextAlignment(.center)
-                SecureField("Password", text: $password)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .padding(.horizontal)
-                HStack {
-                    Button("Cancel", action: onCancel)
-                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
-                    Spacer()
-                    Button("Connect", action: onConnect)
-                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
-                        .disabled(password.isEmpty)
-                }
-                .padding(.horizontal)
-            }
-            .padding()
-            .navigationBarTitle("WiFi Password", displayMode: .inline)
-        }
-    }
-}
 
-struct NameDialogView: View {
-    @Binding var name: String
-    let onConfirm: () -> Void
-    let onCancel: () -> Void
-    
-    var body: some View {
-        NavigationView {
-            VStack(spacing: 20) {
-                Text("Enter a name for the target:")
-                    .multilineTextAlignment(.center)
-                TextField("Name", text: $name)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .padding(.horizontal)
-                HStack {
-                    Button("Cancel", action: onCancel)
-                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
-                    Spacer()
-                    Button("OK", action: onConfirm)
-                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
-                        .disabled(name.isEmpty)
-                }
-                .padding(.horizontal)
-            }
-            .padding()
-            .navigationBarTitle("Target Name", displayMode: .inline)
-            .navigationBarItems(trailing: Button("Cancel", action: onCancel))
-        }
-    }
-}
