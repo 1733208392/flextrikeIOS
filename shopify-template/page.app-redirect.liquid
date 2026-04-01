@@ -10,9 +10,7 @@
     <p>Redirecting to the app store...</p>
     <script>
         var userAgent = navigator.userAgent.toLowerCase();
-        if (userAgent.indexOf("iphone") !== -1 || userAgent.indexOf("ipad") !== -1) {
-            window.location.href = "https://apps.apple.com/us/app/%E6%99%BA%E8%83%BD%E9%9D%B6/id6755102346";
-        } else if (userAgent.indexOf("android") !== -1) {
+        if (userAgent.indexOf("android") !== -1) {
             // Check for Chinese brand devices that likely don't have Google Play Store
             var chinaBrands = ['huawei', 'xiaomi', 'oppo', 'vivo', 'honor', 'realme', 'oneplus', 'meizu', 'lenovo', 'zte', 'coolpad'];
             var isChineseBrand = false;
@@ -45,6 +43,8 @@
                 // Regular Android device or Chinese brand with Google Play - redirect to Play Store
                 window.location.href = "https://play.google.com/store/apps/details?id=com.flextarget.android";
             }
+        } else if (userAgent.indexOf("iphone") !== -1 || userAgent.indexOf("ipad") !== -1) {
+            window.location.href = "https://apps.apple.com/us/app/%E6%99%BA%E8%83%BD%E9%9D%B6/id6755102346";
         } else {
             // For other devices, perhaps stay on page or redirect to a default page
             document.body.innerHTML = "<p>This app is available for iOS and Android devices.</p>";
