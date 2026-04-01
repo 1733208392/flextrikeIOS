@@ -3,14 +3,12 @@ package com.flextarget.android.data.ble
 import android.Manifest
 import android.bluetooth.*
 import android.bluetooth.le.ScanCallback
-import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Handler
 import android.os.Looper
-import android.os.ParcelUuid
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -31,7 +29,10 @@ import org.json.JSONArray
 class AndroidBLEManager(private val context: Context) {
 
     private val bluetoothAdapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
-    private val bluetoothLeScanner = bluetoothAdapter?.bluetoothLeScanner
+    // Use a property getter so bluetoothLeScanner is fetched fresh on every access.
+    // Caching it at construction time returns null when BLUETOOTH_SCAN permission
+    // hasn't been granted yet, permanently breaking all subsequent scans.
+    private val bluetoothLeScanner get() = bluetoothAdapter?.bluetoothLeScanner
     private val handler = Handler(Looper.getMainLooper())
 
     // BLE service and characteristic UUIDs (matching iOS)
@@ -86,17 +87,28 @@ class AndroidBLEManager(private val context: Context) {
     private var discoveryTimeoutHandler: Handler? = null
     private var discoveryTimeoutRunnable: Runnable? = null
     private val discoveryTimeout: Long = 3000L // 3 seconds
+    private val serviceDiscoveryDelayMs = 600L
+    private val connectRetryDelayMs = 1200L
+    private var hasRetriedConnection = false
 
     // Scan callback
     private val scanCallback = object : ScanCallback() {
         override fun onScanResult(callbackType: Int, result: ScanResult) {
             val device = result.device
-            val deviceName = device.name ?: "Unknown"
-
             val scanRecord = result.scanRecord
+            // On Android 12+, BluetoothDevice.name requires BLUETOOTH_CONNECT and returns
+            // null for unpaired devices. The advertisement "Complete/Shortened Local Name"
+            // field is the correct source for the device name during scanning.
+            val deviceName = scanRecord?.deviceName ?: device.name ?: "Unknown"
+
             val serviceUuids = scanRecord?.serviceUuids
             val hasTargetService = serviceUuids?.any { it.uuid == advServiceUUID } == true
-            val shouldProcess = hasTargetService || BLEManager.shared.autoConnectTargetName != null
+            // Only process devices that advertise the target service UUID, or that
+            // explicitly match the auto-connect target name.  Accepting every device
+            // when autoConnectTargetName is set floods discoveredPeripherals with
+            // unrelated devices.
+            val shouldProcess = hasTargetService ||
+                (BLEManager.shared.autoConnectTargetName?.let { matchesName(deviceName, it) } ?: false)
 
             if (!shouldProcess) {
                 return
@@ -148,6 +160,14 @@ class AndroidBLEManager(private val context: Context) {
             BLEManager.shared.discoveredPeripherals.isEmpty() -> {
                 println("[AndroidBLEManager] No devices discovered within timeout")
                 stopScan()
+                // On Samsung devices, if BLE scan starts (MESSAGE_SCAN_START in logcat) but
+                // delivers zero results and onScanFailed never fires, the root cause is the
+                // "Bluetooth scanning" toggle in Settings → Location → Location services being off.
+                if (android.os.Build.MANUFACTURER.equals("samsung", ignoreCase = true)) {
+                    android.util.Log.w("AndroidBLEManager",
+                        "Samsung + 0 scan results + no onScanFailed: 'Bluetooth scanning' location toggle is likely OFF")
+                    BLEManager.shared.error = BLEError.SamsungBluetoothScanningDisabled
+                }
             }
             BLEManager.shared.discoveredPeripherals.size == 1 -> {
                 // Single device found - auto-connect if in auto-detect mode
@@ -183,13 +203,17 @@ class AndroidBLEManager(private val context: Context) {
                 BluetoothProfile.STATE_CONNECTED -> {
                     println("[AndroidBLEManager] Connected to device")
                     BLEManager.shared.error = null
+                    hasRetriedConnection = false
                     synchronized(this@AndroidBLEManager) {
                         bluetoothGatt = gatt
                     }
-                    // Discover services
-                    if (ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
-                        gatt.discoverServices()
-                    }
+                    // Samsung devices can be flaky if service discovery starts immediately.
+                    // Delay briefly after connect to avoid transient 129/133 failures.
+                    handler.postDelayed({
+                        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
+                            gatt.discoverServices()
+                        }
+                    }, serviceDiscoveryDelayMs)
                     // Stop auto-detection when connected
                     BLEManager.shared.stopAutoDetection()
                 }
@@ -212,6 +236,17 @@ class AndroidBLEManager(private val context: Context) {
 
                     if (status != BluetoothGatt.GATT_SUCCESS) {
                         this@AndroidBLEManager.error = "Disconnected with status: $status"
+                        if (!hasRetriedConnection && shouldRetryConnection(status)) {
+                            hasRetriedConnection = true
+                            val retryPeripheral = pendingPeripheral
+                            if (retryPeripheral != null) {
+                                println("[AndroidBLEManager] Retrying connection after transient GATT status: $status")
+                                handler.postDelayed({
+                                    connectToSelectedPeripheral(retryPeripheral)
+                                }, connectRetryDelayMs)
+                                return
+                            }
+                        }
                     }
                     // Start auto-detection when disconnected
                     BLEManager.shared.startAutoDetection()
@@ -616,14 +651,12 @@ class AndroidBLEManager(private val context: Context) {
             .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
             .build()
 
-        val scanFilter = ScanFilter.Builder()
-            .setServiceUuid(ParcelUuid(advServiceUUID))
-            .build()
-        val filters = listOf(scanFilter)
-
+        // No service UUID filter: let onScanResult do app-level filtering so devices
+        // that don't include the service UUID in their advertisement packets are not
+        // silently dropped by the OS hardware filter.
         // Stop any existing scan first
         bluetoothLeScanner?.stopScan(scanCallback)
-        bluetoothLeScanner?.startScan(filters, scanSettings, scanCallback)
+        bluetoothLeScanner?.startScan(null, scanSettings, scanCallback)
 
         // Stop scan after 60 seconds
         handler.postDelayed({
@@ -653,7 +686,11 @@ class AndroidBLEManager(private val context: Context) {
         BLEManager.shared.autoConnectTargetName = discoveredPeripheral.name
 
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
-            bluetoothGatt = discoveredPeripheral.device.connectGatt(context, false, gattCallback)
+            bluetoothGatt = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                discoveredPeripheral.device.connectGatt(context, false, gattCallback, BluetoothDevice.TRANSPORT_LE)
+            } else {
+                discoveredPeripheral.device.connectGatt(context, false, gattCallback)
+            }
         }
     }
 
@@ -780,6 +817,11 @@ class AndroidBLEManager(private val context: Context) {
                    ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
                    ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
         }
+    }
+
+    private fun shouldRetryConnection(status: Int): Boolean {
+        // Common transient Android BLE failures observed in the field.
+        return status == 8 || status == 19 || status == 22 || status == 62 || status == 129 || status == 133
     }
 
     // OTA Methods

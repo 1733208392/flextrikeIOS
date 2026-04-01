@@ -237,6 +237,13 @@ class MainActivity : ComponentActivity() {
     private fun hasBackgroundLocationPermission(): Boolean {
         return ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        if (isFinishing) {
+            BLEManager.shared.release()
+        }
+    }
 }
 
 @Composable

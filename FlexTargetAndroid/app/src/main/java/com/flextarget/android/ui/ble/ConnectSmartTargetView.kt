@@ -27,6 +27,9 @@ import com.flextarget.android.data.ble.BLEError
 import com.flextarget.android.ui.imagecrop.ImageCropViewV2
 import com.flextarget.android.ui.theme.md_theme_dark_onPrimary
 import com.flextarget.android.ui.theme.md_theme_dark_primary
+import android.content.Intent
+import android.provider.Settings
+import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.delay
 import com.google.gson.Gson
 
@@ -43,6 +46,7 @@ fun ConnectSmartTargetView(
     var statusTextKey by remember { mutableStateOf("connecting") }
     var showReconnect by remember { mutableStateOf(false) }
     var showProgress by remember { mutableStateOf(false) }
+    var showSamsungSettingsButton by remember { mutableStateOf(false) }
     var selectedPeripheral by remember { mutableStateOf<DiscoveredPeripheral?>(null) }
     var activeTargetName by remember { mutableStateOf<String?>(null) }
     var showImageCrop by remember { mutableStateOf(false) }
@@ -63,6 +67,7 @@ fun ConnectSmartTargetView(
             "connected" -> stringResource(R.string.device_connected)
             "target_not_found" -> stringResource(R.string.target_not_found)
             "no_targets_found" -> stringResource(R.string.no_targets_found)
+            "samsung_ble_scanning_disabled" -> "Bluetooth Scanning Disabled"
             "multiple_found" -> "Multiple devices found, select one"
             "bluetooth_service_not_found" -> stringResource(R.string.bluetooth_service_not_found)
             "bluetooth_off" -> "Bluetooth turned off"
@@ -164,6 +169,14 @@ fun ConnectSmartTargetView(
             showReconnect = false
             selectedPeripheral = null
             bleManager.stopScan()
+        } else if (bleManager.error is BLEError.SamsungBluetoothScanningDisabled) {
+            // Samsung-specific: "Bluetooth scanning" location toggle is off
+            statusTextKey = "samsung_ble_scanning_disabled"
+            showProgress = false
+            showReconnect = false
+            showSamsungSettingsButton = true
+            selectedPeripheral = null
+            bleManager.stopScan()
         } else if (!bleManager.isConnected && hasHandledInitialConnection && !showReconnect) {
             // Unexpected disconnection
             showProgress = false
@@ -174,7 +187,7 @@ fun ConnectSmartTargetView(
     // Handle scanning logic
     LaunchedEffect(bleManager.isScanning, activeTargetName, bleManager.discoveredPeripherals.size) {
         if (bleManager.isScanning && !isAlreadyConnected) {
-            delay(2000) // 2 second delay to allow BLE to power on
+            delay(10000) // 10 second window for BLE discovery
             if (bleManager.isScanning) {
                 if (activeTargetName != null) {
                     val target = activeTargetName
@@ -186,8 +199,14 @@ fun ConnectSmartTargetView(
                         } else {
                             // Target not found
                             bleManager.stopScan()
-                            statusTextKey = "target_not_found"
-                            showReconnect = true
+                            if (android.os.Build.MANUFACTURER.equals("samsung", ignoreCase = true)) {
+                                statusTextKey = "samsung_ble_scanning_disabled"
+                                showSamsungSettingsButton = true
+                                showReconnect = false
+                            } else {
+                                statusTextKey = "target_not_found"
+                                showReconnect = true
+                            }
                             showProgress = false
                         }
                     }
@@ -204,8 +223,14 @@ fun ConnectSmartTargetView(
                     } else {
                         // No targets found
                         bleManager.stopScan()
-                        statusTextKey = "no_targets_found"
-                        showReconnect = true
+                        if (android.os.Build.MANUFACTURER.equals("samsung", ignoreCase = true)) {
+                            statusTextKey = "samsung_ble_scanning_disabled"
+                            showSamsungSettingsButton = true
+                            showReconnect = false
+                        } else {
+                            statusTextKey = "no_targets_found"
+                            showReconnect = true
+                        }
                         showProgress = false
                     }
                 }
@@ -324,6 +349,48 @@ fun ConnectSmartTargetView(
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Medium
                         )
+                    }
+                }
+
+                // Samsung "Bluetooth scanning" location toggle is off
+                if (showSamsungSettingsButton) {
+                    val context = LocalContext.current
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = "Enable \"Bluetooth scanning\" in Settings \u2192 Location \u2192 Location services",
+                            color = Color.Gray,
+                            fontSize = 13.sp,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+                        Button(
+                            onClick = {
+                                context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth(0.75f)
+                                .height(44.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = md_theme_dark_onPrimary),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text(
+                                text = "Open Location Settings",
+                                color = md_theme_dark_primary,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                        TextButton(onClick = {
+                            showSamsungSettingsButton = false
+                            bleManager.error = null
+                            handleReconnect()
+                        }) {
+                            Text("Retry Scan", color = Color.Gray)
+                        }
                     }
                 }
 

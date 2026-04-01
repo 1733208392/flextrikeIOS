@@ -96,6 +96,22 @@ class BLEManager private constructor() {
     // Bluetooth state change receiver
     private var bluetoothStateReceiver: android.content.BroadcastReceiver? = null
     private var appContext: Context? = null
+    private var lifecycleObserverRegistered = false
+    private val appLifecycleObserver = object : DefaultLifecycleObserver {
+        override fun onStart(owner: LifecycleOwner) {
+            // App came to foreground
+            isAppInForeground = true
+            if (autoDetectMode && !isConnected) {
+                startAutoDetection()
+            }
+        }
+
+        override fun onStop(owner: LifecycleOwner) {
+            // App went to background
+            isAppInForeground = false
+            stopAutoDetection()
+        }
+    }
 
     init {
         // Initialize provision status handler at singleton level
@@ -119,11 +135,17 @@ class BLEManager private constructor() {
     }
 
     fun initialize(context: Context) {
-        // Don't reinitialize if already connected
-        if (androidBLEManager != null && isConnected) {
+        val applicationContext = context.applicationContext
+
+        // Keep initialization idempotent across Activity recreations.
+        if (androidBLEManager != null) {
+            appContext = applicationContext
+            if (bluetoothStateReceiver == null) {
+                registerBluetoothStateReceiver(applicationContext)
+            }
             return
         }
-        androidBLEManager = AndroidBLEManager(context).apply {
+        androidBLEManager = AndroidBLEManager(applicationContext).apply {
             onShotReceived = { shotData ->
                 this@BLEManager.onShotReceived?.invoke(shotData)
             }
@@ -176,22 +198,10 @@ class BLEManager private constructor() {
             }
         }
 
-        // Add lifecycle observer for app foreground/background
-        ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {
-            override fun onStart(owner: LifecycleOwner) {
-                // App came to foreground
-                isAppInForeground = true
-                if (autoDetectMode && !isConnected) {
-                    startAutoDetection()
-                }
-            }
-
-            override fun onStop(owner: LifecycleOwner) {
-                // App went to background
-                isAppInForeground = false
-                stopAutoDetection()
-            }
-        })
+        if (!lifecycleObserverRegistered) {
+            ProcessLifecycleOwner.get().lifecycle.addObserver(appLifecycleObserver)
+            lifecycleObserverRegistered = true
+        }
 
         // Start auto-detection if app is already in foreground
         if (autoDetectMode && !isConnected) {
@@ -199,8 +209,8 @@ class BLEManager private constructor() {
         }
         
         // Store context and register Bluetooth state change receiver
-        appContext = context
-        registerBluetoothStateReceiver(context)
+        appContext = applicationContext
+        registerBluetoothStateReceiver(applicationContext)
     }
     
     private fun registerBluetoothStateReceiver(context: Context) {
@@ -269,6 +279,16 @@ class BLEManager private constructor() {
             }
         }
         bluetoothStateReceiver = null
+    }
+
+    fun release() {
+        stopAutoDetection()
+        stopScan()
+        unregisterBluetoothStateReceiver()
+        if (lifecycleObserverRegistered) {
+            ProcessLifecycleOwner.get().lifecycle.removeObserver(appLifecycleObserver)
+            lifecycleObserverRegistered = false
+        }
     }
 
     private fun startProvisionVerification() {
@@ -450,6 +470,9 @@ sealed class BLEError(val message: String) {
     class ConnectionFailed(msg: String) : BLEError("Connection failed: $msg")
     class Disconnected(msg: String) : BLEError("Disconnected: $msg")
     class Unknown(msg: String) : BLEError("Unknown error: $msg")
+    object SamsungBluetoothScanningDisabled : BLEError(
+        "Bluetooth Scanning is disabled. Go to Settings \u2192 Location \u2192 Location services and enable 'Bluetooth scanning'."
+    )
 }
 
 // Protocol interface
