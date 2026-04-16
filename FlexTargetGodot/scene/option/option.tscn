@@ -359,27 +359,31 @@ theme_override_constants/margin_right = 50
 theme_override_constants/margin_bottom = 50
 metadata/_tab_index = 3
 
-[node name="Left" type="HBoxContainer" parent="VBoxContainer/MarginContainer/tab_container/About"]
+[node name="AboutContent" type="VBoxContainer" parent="VBoxContainer/MarginContainer/tab_container/About"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Left" type="HBoxContainer" parent="VBoxContainer/MarginContainer/tab_container/About/AboutContent"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 20
 
-[node name="QRContainer" type="PanelContainer" parent="VBoxContainer/MarginContainer/tab_container/About/Left"]
+[node name="QRContainer" type="PanelContainer" parent="VBoxContainer/MarginContainer/tab_container/About/AboutContent/Left"]
 custom_minimum_size = Vector2(300, 300)
 layout_mode = 2
 
-[node name="QRTextureRect" type="TextureRect" parent="VBoxContainer/MarginContainer/tab_container/About/Left/QRContainer"]
+[node name="QRTextureRect" type="TextureRect" parent="VBoxContainer/MarginContainer/tab_container/About/AboutContent/Left/QRContainer"]
 layout_mode = 2
 size_flags_stretch_ratio = 0.0
 expand_mode = 1
 stretch_mode = 4
 
-[node name="GreetingContainer" type="PanelContainer" parent="VBoxContainer/MarginContainer/tab_container/About/Left"]
+[node name="GreetingContainer" type="PanelContainer" parent="VBoxContainer/MarginContainer/tab_container/About/AboutContent/Left"]
 custom_minimum_size = Vector2(400, 0)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxEmpty_pm2y3")
 
-[node name="GreetingLabel" type="RichTextLabel" parent="VBoxContainer/MarginContainer/tab_container/About/Left/GreetingContainer"]
+[node name="GreetingLabel" type="RichTextLabel" parent="VBoxContainer/MarginContainer/tab_container/About/AboutContent/Left/GreetingContainer"]
 layout_mode = 2
 theme = ExtResource("6_a5ubv")
 bbcode_enabled = true
@@ -387,6 +391,20 @@ text = "\"HELLO, MY NAME IS [color=orange]...[/color],PLEASE SCAN THE QR CODE TO
 fit_content = true
 visible_characters = 0
 visible_ratio = 0.0
+
+[node name="BottomSpacer" type="Control" parent="VBoxContainer/MarginContainer/tab_container/About/AboutContent"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="BottomRow" type="HBoxContainer" parent="VBoxContainer/MarginContainer/tab_container/About/AboutContent"]
+layout_mode = 2
+alignment = 1
+
+[node name="ResetProvisionButton" type="Button" parent="VBoxContainer/MarginContainer/tab_container/About/AboutContent/BottomRow"]
+custom_minimum_size = Vector2(360, 48)
+layout_mode = 2
+theme = ExtResource("6_a5ubv")
+text = "RESET PROVISIONING"
 
 [node name="CopyrightLabel" type="Label" parent="."]
 layout_mode = 1

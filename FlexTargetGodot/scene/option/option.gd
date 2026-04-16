@@ -46,8 +46,9 @@ signal sfx_volume_changed(volume: int)
 
 # References to labels that need translation
 @onready var tab_container = $"VBoxContainer/MarginContainer/tab_container"
-@onready var about_greeting_label = $"VBoxContainer/MarginContainer/tab_container/About/Left/GreetingContainer/GreetingLabel"
-@onready var about_qr_texture_rect = $"VBoxContainer/MarginContainer/tab_container/About/Left/QRContainer/QRTextureRect"
+@onready var about_greeting_label = $"VBoxContainer/MarginContainer/tab_container/About/AboutContent/Left/GreetingContainer/GreetingLabel"
+@onready var about_qr_texture_rect = $"VBoxContainer/MarginContainer/tab_container/About/AboutContent/Left/QRContainer/QRTextureRect"
+@onready var reset_provision_button = $"VBoxContainer/MarginContainer/tab_container/About/AboutContent/BottomRow/ResetProvisionButton"
 @onready var copyright_label = $"CopyrightLabel"
 
 # References to drill button (single CheckButton)
@@ -121,6 +122,8 @@ func _ready():
 		pause_5s_check.toggled.connect(_on_pause_time_changed.bind(5))
 	if pause_10s_check:
 		pause_10s_check.toggled.connect(_on_pause_time_changed.bind(10))
+	if reset_provision_button:
+		reset_provision_button.pressed.connect(_on_reset_provision_button_pressed)
 	
 	# Initialize language buttons array
 	# Order: Traditional Chinese (0), Chinese (1), Japanese (2), English (3)
@@ -404,6 +407,11 @@ func set_focus_based_on_tab():
 				ending_target_check.grab_focus()
 			else:
 				tab_container.grab_focus()
+		3:
+			if reset_provision_button:
+				reset_provision_button.grab_focus()
+			else:
+				tab_container.grab_focus()
 		_:
 			tab_container.grab_focus()
 
@@ -643,6 +651,10 @@ func _on_menu_control(directive: String):
 						if not GlobalDebug.DEBUG_DISABLED:
 							print("[Option] Navigation: ", directive, " on Drills tab")
 						navigate_drill_buttons(directive)
+					3:
+						if not GlobalDebug.DEBUG_DISABLED:
+							print("[Option] Navigation: ", directive, " on About tab")
+						navigate_about_buttons(directive)
 					_:
 						if not GlobalDebug.DEBUG_DISABLED:
 							print("[Option] Navigation: ", directive, " ignored - current tab has no navigation")
@@ -806,6 +818,12 @@ func navigate_drill_buttons(direction: String):
 	if not GlobalDebug.DEBUG_DISABLED:
 		print("[Option] No other valid drill buttons found for navigation")
 
+func navigate_about_buttons(_direction: String):
+	if reset_provision_button and not reset_provision_button.has_focus():
+		reset_provision_button.grab_focus()
+		if not GlobalDebug.DEBUG_DISABLED:
+			print("[Option] Focus moved to reset provision button")
+
 func press_focused_button():
 	# Networking tab
 	if tab_container and tab_container.current_tab == 0:
@@ -864,6 +882,29 @@ func press_focused_button():
 		if not GlobalDebug.DEBUG_DISABLED:
 			print("[Option] Selected pause time: 10s")
 		_on_pause_time_changed(10)
+
+	if reset_provision_button and reset_provision_button.has_focus():
+		_on_reset_provision_button_pressed()
+
+func _on_reset_provision_button_pressed():
+	var global_data = get_node_or_null("/root/GlobalData")
+	if not global_data:
+		if not GlobalDebug.DEBUG_DISABLED:
+			print("[Option] GlobalData not found, cannot reset first_run_complete")
+		return
+
+	global_data.reset_provision_complete()
+	_show_reset_provision_alert()
+	if not GlobalDebug.DEBUG_DISABLED:
+		print("[Option] Reset provisioning requested from About tab")
+
+func _show_reset_provision_alert():
+	if has_visible_power_off_dialog():
+		return
+	var dialog_scene = preload("res://scene/power_off_dialog.tscn")
+	var dialog = dialog_scene.instantiate()
+	dialog.set_alert_text("Provisioning flag reset successfully.")
+	add_child(dialog)
 
 func volume_up():
 	var http_service = get_node("/root/HttpService")
@@ -924,6 +965,11 @@ func switch_tab(direction: String):
 		2:
 			if random_sequence_check:
 				random_sequence_check.grab_focus()
+			else:
+				tab_container.grab_focus()
+		3:
+			if reset_provision_button:
+				reset_provision_button.grab_focus()
 			else:
 				tab_container.grab_focus()
 		_:
