@@ -125,6 +125,15 @@ fun TargetConfigListViewV2(
                         fontSize = 18.sp
                     )
                 },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            imageVector = Icons.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            tint = accentRed
+                        )
+                    }
+                },
                 actions = {
                     IconButton(onClick = onDone) {
                         Icon(

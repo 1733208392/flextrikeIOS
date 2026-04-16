@@ -532,6 +532,45 @@ fun DrillFormView(
                         },
                         onBack = {
                             currentScreen = DrillFormScreen.FORM
+                        },
+                        onStartDrill = {
+                            if (drillName.isBlank()) {
+                                drillName = "QUICK DRILL"
+                            }
+                            val sessionDrill = DrillSetupEntity(
+                                id = UUID.randomUUID(),
+                                name = drillName,
+                                desc = description,
+                                mode = drillMode,
+                                repeats = repeats,
+                                pause = pause
+                            )
+                            val sessionTargets = targets.map { config ->
+                                DrillTargetsConfigEntity(
+                                    id = UUID.randomUUID(),
+                                    seqNo = config.seqNo,
+                                    targetName = config.targetName,
+                                    targetType = config.targetType,
+                                    timeout = config.timeout,
+                                    countedShots = config.countedShots,
+                                    action = config.action,
+                                    duration = config.duration,
+                                    drillSetupId = sessionDrill.id
+                                )
+                            }
+                            coroutineScope.launch {
+                                try {
+                                    viewModel.saveNewDrillWithTargets(sessionDrill, targets)
+                                    println("[DrillFormView] Quick drill auto-saved successfully")
+                                } catch (e: Exception) {
+                                    println("[DrillFormView] Quick drill auto-save FAILED: ${e.message}")
+                                    e.printStackTrace()
+                                }
+                            }
+                            timerSessionDrill = sessionDrill
+                            timerSessionTargets = sessionTargets
+                            drillSessionScreen = if (drillMode == "gaming") DrillSessionScreen.GAMING else DrillSessionScreen.TIMER
+                            showTimerSession = true
                         }
                     )
                 }
@@ -582,7 +621,7 @@ fun DrillFormView(
                         onDrillModeChange = { newMode ->
                             drillMode = newMode
                         },
-                        onStartDrill = {
+                        onStartDrill = if (bleManager.networkDevices.size > 1) null else ({
                             // Ensure form a basic name if it's empty for quick start
                             if (drillName.isBlank()) {
                                 drillName = "QUICK DRILL"
@@ -630,7 +669,7 @@ fun DrillFormView(
                                 drillSessionScreen = DrillSessionScreen.TIMER
                             }
                             showTimerSession = true
-                        },
+                        }),
                         isReadOnlyMode = bleManager.networkDevices.size > 1,
                         fromScreen = if (bleManager.networkDevices.size > 1) DrillFormScreen.TARGET_LINK else DrillFormScreen.FORM
                     )

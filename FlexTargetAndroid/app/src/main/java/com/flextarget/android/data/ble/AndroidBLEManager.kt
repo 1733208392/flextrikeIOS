@@ -75,7 +75,15 @@ class AndroidBLEManager(private val context: Context) {
     private var writeCharacteristic: BluetoothGattCharacteristic? = null
     private var notifyCharacteristic: BluetoothGattCharacteristic? = null
 
-    internal var writeCompletion: ((Boolean) -> Unit)? = null
+    @Volatile internal var writeCompletion: ((Boolean) -> Unit)? = null
+
+    // Message-level send queue — serialises concurrent writeJSON() calls so that all chunks of one
+    // JSON message are delivered before the next message begins. The low-level write() / writeChunks()
+    // are unchanged and remain "one chunk at a time via callback" as before.
+    private val messageQueue: ArrayDeque<String> = ArrayDeque()
+    private var isSendingMessage: Boolean = false
+    private val messageSendLock = Any()
+
     private val messageBuffer = mutableListOf<Byte>()
     private val messageBufferLock = Any() // Thread-safe synchronization for buffer operations
     private val MAX_BUFFER_SIZE = 1024 * 10 // 10KB max buffer size
@@ -713,6 +721,12 @@ class AndroidBLEManager(private val context: Context) {
                 messageBuffer.clear()
             }
 
+            // Drain the message queue so a future reconnect starts clean.
+            synchronized(messageSendLock) {
+                messageQueue.clear()
+                isSendingMessage = false
+            }
+
             // Reset shared state immediately
             BLEManager.shared.isConnected = false
             BLEManager.shared.isReady = false
@@ -747,29 +761,59 @@ class AndroidBLEManager(private val context: Context) {
 
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
             writeCharacteristic?.value = data
-            bluetoothGatt?.writeCharacteristic(writeCharacteristic)
+            val initiated = bluetoothGatt?.writeCharacteristic(writeCharacteristic) ?: false
+            if (!initiated) {
+                // writeCharacteristic() returned false — callback will never fire; drain the queue now.
+                println("[AndroidBLEManager] writeCharacteristic() returned false, calling completion immediately")
+                writeCompletion = null
+                completion(false)
+            }
+            // else: wait for onCharacteristicWrite callback
         } else {
             println("[AndroidBLEManager] Missing BLUETOOTH_CONNECT permission")
+            writeCompletion = null
             completion(false)
         }
     }
 
     fun writeJSON(jsonString: String) {
+        // Serialise at the message level: enqueue if a send is already in-progress so that
+        // all byte-chunks of the current message finish before the next one starts.
+        synchronized(messageSendLock) {
+            if (isSendingMessage) {
+                messageQueue.addLast(jsonString)
+                return
+            }
+            isSendingMessage = true
+        }
+        dispatchMessage(jsonString)
+    }
+
+    private fun dispatchMessage(jsonString: String) {
         val commandStr = "$jsonString\r\n"
         val data = commandStr.toByteArray(Charsets.UTF_8)
 
         if (data.size <= 100) {
             write(data) { success ->
-                if (!success) {
-                    println("Failed to write JSON: $jsonString")
-                } else {
-                    println("Successfully wrote JSON: $jsonString")
-                }
+                if (!success) println("[AndroidBLEManager] Failed to write JSON: $jsonString")
+                else println("[AndroidBLEManager] Successfully wrote JSON: $jsonString")
+                onMessageSent()
             }
         } else {
-            // Split into chunks and send sequentially
-            writeChunks(data, 0)
+            writeChunks(data, 0) { onMessageSent() }
         }
+    }
+
+    private fun onMessageSent() {
+        val next: String?
+        synchronized(messageSendLock) {
+            next = if (messageQueue.isEmpty()) null else messageQueue.removeFirst()
+            if (next == null) {
+                isSendingMessage = false
+                return
+            }
+        }
+        next?.let { handler.post { dispatchMessage(it) } }
     }
 
     /**
@@ -779,18 +823,22 @@ class AndroidBLEManager(private val context: Context) {
         writeJSON(message)
     }
 
-    private fun writeChunks(data: ByteArray, startIndex: Int) {
-        if (startIndex >= data.size) return
+    private fun writeChunks(data: ByteArray, startIndex: Int, onComplete: () -> Unit = {}) {
+        if (startIndex >= data.size) {
+            onComplete()
+            return
+        }
 
         val endIndex = minOf(startIndex + 100, data.size)
         val chunk = data.copyOfRange(startIndex, endIndex)
         write(chunk) { success ->
             if (!success) {
-                println("Failed to write chunk starting at $startIndex")
+                println("[AndroidBLEManager] Failed to write chunk starting at $startIndex")
+                onComplete() // unblock the queue even on chunk failure
             } else {
-                // Add delay before sending next chunk (similar to iOS 0.1s)
+                // Delay before sending next chunk (mirrors iOS 0.1 s pacing)
                 handler.postDelayed({
-                    writeChunks(data, endIndex)
+                    writeChunks(data, endIndex, onComplete)
                 }, 100)
             }
         }

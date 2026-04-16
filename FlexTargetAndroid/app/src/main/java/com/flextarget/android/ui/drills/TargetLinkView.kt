@@ -52,7 +52,8 @@ fun TargetLinkView(
     onUpdateTargetConfigs: (List<DrillTargetsConfigData>) -> Unit,
     onNavigateToConfig: (String) -> Unit,
     onDrillModeChange: (String) -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onStartDrill: (() -> Unit)? = null
 ) {
     val accentRed = Color(red = 0.87f, green = 0.22f, blue = 0.14f)
     val deviceList = bleManager.networkDevices
@@ -221,7 +222,7 @@ fun TargetLinkView(
 
             // Target grid with connection canvas (LazyVerticalGrid handles scrolling)
             Box(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.weight(1f),
                 contentAlignment = Alignment.TopCenter
             ) {
                 TargetGridContent(
@@ -234,6 +235,27 @@ fun TargetLinkView(
                         onNavigateToConfig(deviceName)
                     }
                 )
+            }
+
+            // START DRILL button — visible only when a start callback is provided
+            if (onStartDrill != null) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(
+                    onClick = onStartDrill,
+                    modifier = Modifier
+                        .fillMaxWidth(0.85f)
+                        .height(56.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = accentRed),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(
+                        "START DRILL",
+                        color = Color.White,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Black
+                    )
+                }
+                Spacer(modifier = Modifier.height(24.dp))
             }
         }
     }
