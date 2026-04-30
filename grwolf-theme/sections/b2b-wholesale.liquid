@@ -11,8 +11,9 @@ Features:
   <style>
     /* Wholesale page styles adapted from provided layout */
     *{box-sizing:border-box}
-    .b2b-wholesale { background:#0a0a0a; color:#fff; padding:0 }
-    .wholesale-page { max-width:720px; margin:0 auto; padding:80px 24px 100px; text-align:center }
+    /* Use the site's theme background and foreground color so this section matches other pages */
+    .b2b-wholesale { background: rgb(var(--color-background)); color: rgba(var(--color-foreground), 0.75); padding:0 }
+    .wholesale-page { max-width:720px; margin:0 auto; padding:60px 24px 24px; text-align:center }
     .main-title { font-size:48px; font-weight:700; letter-spacing:6px; text-transform:uppercase; margin-bottom:32px; background:linear-gradient(135deg,#ffffff 0%,#888 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent }
     .section { margin-bottom:48px }
     .section-subtitle { font-size:22px; font-weight:600; color:#e0e0e0; margin-bottom:12px; letter-spacing:1px }
@@ -21,6 +22,9 @@ Features:
     .divider { width:60px; height:2px; background:linear-gradient(90deg,transparent,#444,transparent); margin:48px auto }
     .btn-inquiry { display:inline-block; padding:18px 64px; font-size:16px; font-weight:600; letter-spacing:3px; text-transform:uppercase; color:#de3823 !important; background:linear-gradient(135deg,#1a1a2e,#16213e); border:1px solid #333; border-radius:4px; cursor:pointer }
     .btn-inquiry:hover { background:linear-gradient(135deg,#16213e,#0f3460) }
+    /* Hide inquiry toggle button when requested (scoped to this section instance) */
+    #shopify-section-{{ section.id }} .btn-inquiry,
+    #shopify-section-{{ section.id }} #b2b-inquiry-toggle { display: none !important; }
     .form-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.75);z-index:999;justify-content:center;align-items:center;padding:24px}
     .form-overlay.active{display:flex}
     .form-container{background:#141414;border:1px solid #2a2a2a;border-radius:8px;padding:48px 40px;max-width:520px;width:100%;position:relative}
@@ -34,7 +38,7 @@ Features:
     .btn-submit{width:100%;padding:14px;font-size:15px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#de3823 !important;background:linear-gradient(135deg,#1a1a2e,#16213e);border:1px solid #333;border-radius:4px;cursor:pointer}
     .btn-submit:hover{background:linear-gradient(135deg,#16213e,#0f3460);border-color:#555}
     .form-note{margin-top:16px;font-size:12px;color:#555}
-    @media (max-width:600px){.main-title{font-size:32px;letter-spacing:4px}.wholesale-page{padding:60px 20px 80px}.form-container{padding:36px 24px}.form-row{grid-template-columns:1fr}.btn-inquiry{padding:16px 48px;font-size:14px}}
+    @media (max-width:600px){.main-title{font-size:32px;letter-spacing:4px}.wholesale-page{padding:60px 20px 24px}.form-container{padding:36px 24px}.form-row{grid-template-columns:1fr}.btn-inquiry{padding:16px 48px;font-size:14px}}
   </style>
 
   <div class="wholesale-page">

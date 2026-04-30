@@ -1,139 +1,100 @@
 {{ 'section-contact-form.css' | asset_url | stylesheet_tag }}
 
-{%- style -%}
-  .section-{{ section.id }}-padding {
-    padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
-    padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
-  }
+    <style>
+      /* Hide any section heading for this section instance only */
+      #shopify-section-{{ section.id }} .section-header,
+      #shopify-section-{{ section.id }} .section-title,
+      #shopify-section-{{ section.id }} .section-heading,
+      #shopify-section-{{ section.id }} .section__heading { display: none !important; }
 
-  @media screen and (min-width: 750px) {
-    .section-{{ section.id }}-padding {
-      padding-top: {{ section.settings.padding_top }}px;
-      padding-bottom: {{ section.settings.padding_bottom }}px;
-    }
-  }
-{%- endstyle -%}
+      /* Center the inline wholesale form */
+      #shopify-section-{{ section.id }} .wholesale-style { display: flex; justify-content: center; }
+      #shopify-section-{{ section.id }} .wholesale-style .form-container-inline { margin: 0 auto; }
+    </style>
 
-<div class="color-{{ section.settings.color_scheme }} gradient">
-  <div class="contact page-width page-width--narrow section-{{ section.id }}-padding">
-    {%- if section.settings.heading != blank -%}
-      <h2 class="title title-wrapper--no-top-margin inline-richtext {{ section.settings.heading_size }}{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--slide-in{% endif %}">
-        {{ section.settings.heading }}
-      </h2>
-    {%- else -%}
-      <h2 class="visually-hidden">{{ 'templates.contact.form.title' | t }}</h2>
-    {%- endif -%}
     {%- liquid
       assign contact_form_class = 'isolate'
       if settings.animations_reveal_on_scroll
         assign contact_form_class = 'isolate scroll-trigger animate--slide-in'
       endif
     -%}
-    {%- form 'contact', id: 'ContactForm', class: contact_form_class -%}
-      {%- if form.posted_successfully? -%}
-        <h2 class="form-status form-status-list form__message" tabindex="-1" autofocus>
-          {% render 'icon-success' %}
-          {{ 'templates.contact.form.post_success' | t }}
-        </h2>
-      {%- elsif form.errors -%}
-        <div class="form__message">
-          <h2 class="form-status caption-large text-body" role="alert" tabindex="-1" autofocus>
-            {% render 'icon-error' %}
-            {{ 'templates.contact.form.error_heading' | t }}
-          </h2>
-        </div>
-        <ul class="form-status-list caption-large" role="list">
-          <li>
-            <a href="#ContactForm-email" class="link">
-              {{ form.errors.translated_fields.email | capitalize }}
-              {{ form.errors.messages.email }}
-            </a>
-          </li>
-        </ul>
-      {%- endif -%}
-      <div class="contact__fields">
-        <div class="field">
-          <input
-            class="field__input"
-            autocomplete="name"
-            type="text"
-            id="ContactForm-name"
-            name="contact[{{ 'templates.contact.form.name' | t }}]"
-            value="{% if form.name %}{{ form.name }}{% elsif customer %}{{ customer.name }}{% endif %}"
-            placeholder="{{ 'templates.contact.form.name' | t }}"
-          >
-          <label class="field__label" for="ContactForm-name">{{ 'templates.contact.form.name' | t }}</label>
-        </div>
-        <div class="field field--with-error">
-          <input
-            autocomplete="email"
-            type="email"
-            id="ContactForm-email"
-            class="field__input"
-            name="contact[email]"
-            spellcheck="false"
-            autocapitalize="off"
-            value="{% if form.email %}{{ form.email }}{% elsif customer %}{{ customer.email }}{% endif %}"
-            aria-required="true"
-            {% if form.errors contains 'email' %}
-              aria-invalid="true"
-              aria-describedby="ContactForm-email-error"
-            {% endif %}
-            placeholder="{{ 'templates.contact.form.email' | t }}"
-          >
-          <label class="field__label" for="ContactForm-email">
-            {{- 'templates.contact.form.email' | t }}
-            <span aria-hidden="true">*</span></label
-          >
-          {%- if form.errors contains 'email' -%}
-            <small class="contact__field-error" id="ContactForm-email-error">
-              <span class="visually-hidden">{{ 'accessibility.error' | t }}</span>
-              <span class="form__message">
-                {%- render 'icon-error' -%}
-                {{- form.errors.translated_fields.email | capitalize }}
-                {{ form.errors.messages.email -}}
-              </span>
-            </small>
-          {%- endif -%}
-        </div>
-      </div>
-      <div class="field">
-        <input
-          type="tel"
-          id="ContactForm-phone"
-          class="field__input"
-          autocomplete="tel"
-          name="contact[{{ 'templates.contact.form.phone' | t }}]"
-          pattern="[0-9\-]*"
-          value="{% if form.phone %}{{ form.phone }}{% elsif customer %}{{ customer.phone }}{% endif %}"
-          placeholder="{{ 'templates.contact.form.phone' | t }}"
-        >
-        <label class="field__label" for="ContactForm-phone">{{ 'templates.contact.form.phone' | t }}</label>
-      </div>
-      <div class="field">
-        <textarea
-          rows="10"
-          id="ContactForm-body"
-          class="text-area field__input"
-          name="contact[{{ 'templates.contact.form.comment' | t }}]"
-          placeholder="{{ 'templates.contact.form.comment' | t }}"
-        >
-          {{- form.body -}}
-        </textarea>
-        <label class="form__label field__label" for="ContactForm-body">
-          {{- 'templates.contact.form.comment' | t -}}
-        </label>
-      </div>
-      <div class="contact__button">
-        <button type="submit" class="button">
-          {{ 'templates.contact.form.send' | t }}
-        </button>
-      </div>
-    {%- endform -%}
-  </div>
-</div>
 
-{% schema %}
+    <!-- Render an inline wholesale-style inquiry form (no modal) -->
+    <div class="wholesale-style">
+      <style>
+        /* Inline form styles derived from b2b-wholesale but rendered inline */
+        .wholesale-style .form-container-inline{background:#141414;border:1px solid #2a2a2a;border-radius:8px;padding:36px 28px;max-width:720px;width:100%;position:relative;margin-top:12px}
+        .wholesale-style .form-title{font-size:24px;font-weight:600;margin-bottom:24px}
+        .wholesale-style .form-group{margin-bottom:16px;text-align:left}
+        .wholesale-style .form-group label{display:block;font-size:13px;color:#888;margin-bottom:8px;letter-spacing:0.5px;text-transform:uppercase}
+        .wholesale-style .form-group input,.wholesale-style .form-group textarea,.wholesale-style .form-group select{width:100%;padding:12px 16px;font-size:15px;color:#fff;background:#1a1a1a;border:1px solid #333;border-radius:4px}
+        .wholesale-style .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+        .wholesale-style .btn-submit{width:100%;padding:14px;font-size:15px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#de3823 !important;background:linear-gradient(135deg,#1a1a2e,#16213e);border:1px solid #333;border-radius:4px;cursor:pointer}
+        .wholesale-style .btn-submit:hover{background:linear-gradient(135deg,#16213e,#0f3460);border-color:#555}
+        .wholesale-style .form-note{margin-top:12px;font-size:12px;color:#555}
+        @media (max-width:600px){.wholesale-style .form-container-inline{padding:24px}.wholesale-style .form-row{grid-template-columns:1fr}}
+      </style>
+
+      <div class="form-container-inline" aria-hidden="false">
+
+        <form id="contact-form" class="contact-form" action="/contact" method="post" accept-charset="UTF-8">
+          <input type="hidden" name="form_type" value="contact">
+          <input type="hidden" name="utf8" value="✓">
+          {%- if section.settings.default_tags and section.settings.default_tags != blank -%}
+            <input type="hidden" name="contact[tags]" value="{{ section.settings.default_tags }}">
+          {%- else -%}
+            <input type="hidden" name="contact[tags]" value="b2b-inquiry">
+          {%- endif -%}
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="name">Name *</label>
+              <input id="name" name="contact[name]" type="text" required placeholder="Your name">
+            </div>
+            <div class="form-group">
+              <label for="company">Company</label>
+              <input id="company" name="contact[company]" type="text" placeholder="Company name">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="email">Email *</label>
+              <input id="email" name="contact[email]" type="email" required placeholder="you@example.com">
+            </div>
+            <div class="form-group">
+              <label for="phone">Phone</label>
+              <input id="phone" name="contact[phone]" type="tel" placeholder="+1 (555) 000-0000">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="type">Inquiry Type</label>
+            <select id="type" name="contact[body][inquiry_type]">
+              <option value="wholesale">Wholesale Order (10+ units)</option>
+              <option value="oem">OEM / Customization (50+ units)</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="qty">Estimated Quantity</label>
+            <input id="qty" name="contact[body][quantity]" type="text" placeholder="e.g. 50 units">
+          </div>
+
+          <div class="form-group">
+            <label for="message">Message *</label>
+            <textarea id="message" name="contact[body]" required placeholder="Tell us about your requirements..."></textarea>
+          </div>
+
+          <button type="submit" class="btn-submit accent-red">Submit Inquiry</button>
+          <p class="form-note">We'll respond within 24 business hours.</p>
+        </form>
+      </div>
+
+    </div>
+
+      {% schema %}
 {
   "name": "t:sections.contact-form.name",
   "tag": "section",
@@ -181,6 +142,12 @@
       "id": "color_scheme",
       "label": "t:sections.all.colors.label",
       "default": "scheme-1"
+    },
+    {
+      "type": "text",
+      "id": "default_tags",
+      "label": "Default contact tags",
+      "default": "b2b-inquiry"
     },
     {
       "type": "header",
