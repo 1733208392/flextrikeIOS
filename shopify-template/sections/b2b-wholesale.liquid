@@ -1,0 +1,149 @@
+{% comment %}
+B2B / Wholesale section for Shopify theme
+Features:
+- Shows teaser when customer is not tagged 'b2b' or 'wholesale'
+- Shows price table + PDF download to authorized customers
+- Displays discount tiers and OEM information
+- Includes a B2B inquiry contact form
+{% endcomment %}
+
+<section class="section b2b-wholesale">
+  <style>
+    .b2b-wholesale{background:#191919;color:#ffffff;padding:32px 0;font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans';}
+    .b2b-wholesale a{color:#DE3823}
+    .b2b-wholesale .container{max-width:1100px;margin:0 auto;padding:0 20px}
+    .b2b-wholesale h1,h2,h3{color:#ffffff;margin:0 0 12px}
+    .b2b-wholesale .lead{color:#cccccc;margin-bottom:20px}
+    .b2b-wholesale .price-table{background:#111;padding:16px;border-radius:8px;margin-bottom:20px}
+    .b2b-wholesale table{width:100%;border-collapse:collapse;color:#fff}
+    .b2b-wholesale th, .b2b-wholesale td{padding:8px;border-bottom:1px solid #2a2a2a;text-align:left}
+    .b2b-wholesale .btn{display:inline-block;padding:10px 16px;border-radius:6px;background:transparent;border:1px solid #444;color:#fff;text-decoration:none}
+    .b2b-wholesale .btn.primary{background:#DE3823;color:#fff;border:none}
+    .b2b-wholesale .discount-list{list-style:none;padding:0;margin:0 0 20px}
+    .b2b-wholesale .discount-list li{padding:6px 0;color:#e6e6e6}
+    .b2b-wholesale .b2b-oem img{max-width:100%;height:auto;border-radius:6px;margin-top:8px}
+    .b2b-wholesale .contact-form{display:block;background:#0f0f0f;padding:16px;border-radius:8px}
+    .b2b-wholesale label{display:block;color:#ddd;margin-bottom:8px;font-size:14px}
+    .b2b-wholesale input[type="text"], .b2b-wholesale input[type="email"], .b2b-wholesale input[type="tel"], .b2b-wholesale textarea, .b2b-wholesale select{width:100%;padding:10px;border-radius:6px;border:1px solid #333;background:#0b0b0b;color:#fff;margin-top:6px}
+    .b2b-wholesale textarea{min-height:100px}
+    @media (min-width:800px){.b2b-wholesale .b2b-content{display:grid;grid-template-columns:1fr 380px;gap:24px}.b2b-wholesale .b2b-discounts,.b2b-wholesale .b2b-oem{margin-bottom:0}}
+  </style>
+  <div class="container">
+    <header class="b2b-header">
+      <h1>{{ section.settings.heading | default: 'GRWOLF B2B / Wholesale' }}</h1>
+      <p class="lead">{{ section.settings.subheading | default: 'Unlock the Wholesale Price' }}</p>
+    </header>
+
+    {% assign is_b2b = false %}
+    {% if customer %}
+      {% if customer.tags contains 'b2b' or customer.tags contains 'wholesale' %}
+        {% assign is_b2b = true %}
+      {% endif %}
+    {% endif %}
+
+    <div class="b2b-content">
+
+      <!-- Price table or locked CTA -->
+      <div class="b2b-price-table">
+        <h2>产品批发价目表</h2>
+        {% if is_b2b %}
+          <p>以下为为授权 B2B 客户可见的批发价目表。若需导出请下载规格书或联系您的客户经理。</p>
+          <!-- Example price table: replace with real price data in theme editor or by editing this section -->
+          <table class="price-table">
+            <thead>
+              <tr><th>SKU / 型号</th><th>最低订购量</th><th>批发价</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>GRW-100</td><td>1</td><td>$299</td></tr>
+              <tr><td>GRW-100</td><td>10-49</td><td>$209 (30% off)</td></tr>
+              <tr><td>GRW-100</td><td>50-99</td><td>$179 (40% off)</td></tr>
+              <tr><td>GRW-100</td><td>100+</td><td>$149 (50% off)</td></tr>
+            </tbody>
+          </table>
+
+          {% if section.settings.spec_pdf != blank %}
+            <a class="btn" href="{{ section.settings.spec_pdf }}" target="_blank">下载完整规格书 (PDF)</a>
+          {% endif %}
+
+        {% else %}
+          <p class="locked">完整批发价目表仅对已授权的 B2B 客户可见。</p>
+          <div class="b2b-cta">
+            <a class="btn primary" href="/account/register">注册 B2B 账号</a>
+            <a class="btn" href="#b2b-inquiry">提交 B2B 询价</a>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Discount tiers -->
+      <div class="b2b-discounts">
+        <h3>批量采购折扣阶梯</h3>
+        <ul class="discount-list">
+          {% for block in section.blocks %}
+            {% if block.type == 'tier' %}
+              <li><strong>{{ block.settings.qty }} 台</strong> — {{ block.settings.discount }}%</li>
+            {% endif %}
+          {% endfor %}
+          {% if section.blocks_count == 0 %}
+            <li>10-49 台 — 30%</li>
+            <li>50-99 台 — 40%</li>
+            <li>100+ 台 — 50%</li>
+          {% endif %}
+        </ul>
+      </div>
+
+      <!-- OEM / Customization -->
+      <div class="b2b-oem">
+        <h3>OEM / 定制选项</h3>
+        <p>支持场馆 Logo、整机颜色定制与品牌 Logo 打印，起订量：{{ section.settings.oem_min_qty | default: 50 }} 台。</p>
+        {% if section.settings.oem_image != blank %}
+          <img src="{{ section.settings.oem_image }}" alt="OEM 示例" />
+        {% endif %}
+      </div>
+
+      <!-- Inquiry form -->
+      <div id="b2b-inquiry" class="b2b-inquiry">
+        <h3>B2B 询价表单</h3>
+        <form method="post" action="/contact#b2b-inquiry" accept-charset="UTF-8" class="contact-form">
+          <input type="hidden" name="form_type" value="contact" />
+          <input type="hidden" name="utf8" value="✓" />
+          <input type="hidden" name="contact[tags]" value="b2b-inquiry" />
+
+          <label>Full Name <input type="text" name="contact[name]" required></label>
+          <label>Company <input type="text" name="contact[company]" required></label>
+          <label>Email <input type="email" name="contact[email]" required></label>
+          <label>Phone <input type="tel" name="contact[phone]"></label>
+          <label>Country <input type="text" name="contact[body][country]"></label>
+          <label>Quantity Range <input type="text" name="contact[body][quantity_range]"></label>
+          <label>Intended Use <input type="text" name="contact[body][intended_use]"></label>
+          <label>Target Market <input type="text" name="contact[body][target_market]"></label>
+          <label>Notes <textarea name="contact[body][notes]"></textarea></label>
+
+          <button type="submit" class="btn primary">提交询价</button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+
+  {% schema %}
+  {
+    "name": "B2B / Wholesale",
+    "settings": [
+      {"type":"text","id":"heading","label":"Heading","default":"GRWOLF B2B / Wholesale"},
+      {"type":"textarea","id":"subheading","label":"Subheading","default":"Unlock the Wholesale Price"},
+      {"type":"url","id":"spec_pdf","label":"规格书 PDF 链接"},
+      {"type":"number","id":"oem_min_qty","label":"OEM 起订量","default":50},
+      {"type":"image_picker","id":"oem_image","label":"OEM 示例图片"}
+    ],
+    "blocks": [
+      {"type":"tier","name":"折扣阶梯","settings":[
+        {"type":"number","id":"qty","label":"最低采购量","default":10},
+        {"type":"number","id":"discount","label":"折扣 (%)","default":10}
+      ]}
+    ],
+    "max_blocks": 10,
+    "presets": [{"name":"B2B / Wholesale","category":"B2B"}]
+  }
+  {% endschema %}
+
+</section>

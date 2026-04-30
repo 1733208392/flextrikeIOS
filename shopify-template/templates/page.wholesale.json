@@ -1,0 +1,20 @@
+{
+  "sections": {
+    "main": {
+      "type": "b2b-wholesale",
+      "settings": {
+        "heading": "GRWOLF Wholesale",
+        "subheading": "批发与团购入口 — 注册后可查看批发价目表",
+        "spec_pdf": "",
+        "oem_min_qty": 50
+      },
+      "blocks": {
+        "tier-1": {"type":"tier","settings":{"qty":10,"discount":30}},
+        "tier-2": {"type":"tier","settings":{"qty":50,"discount":40}},
+        "tier-3": {"type":"tier","settings":{"qty":100,"discount":50}}
+      },
+      "block_order": ["tier-1","tier-2","tier-3"]
+    }
+  },
+  "order": ["main"]
+}

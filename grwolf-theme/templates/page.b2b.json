@@ -1,0 +1,54 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "main": {
+      "type": "b2b-wholesale",
+      "blocks": {
+        "tier-1": {
+          "type": "tier",
+          "settings": {
+            "qty": 10,
+            "discount": 30
+          }
+        },
+        "tier-2": {
+          "type": "tier",
+          "settings": {
+            "qty": 50,
+            "discount": 40
+          }
+        },
+        "tier-3": {
+          "type": "tier",
+          "settings": {
+            "qty": 100,
+            "discount": 50
+          }
+        }
+      },
+      "block_order": [
+        "tier-1",
+        "tier-2",
+        "tier-3"
+      ],
+      "settings": {
+        "heading": "GRWOLF Wholesale",
+        "subheading": "Unlock Wholesale Price",
+        "lead_text": "10+ units entitle wholesale price, up to 50% discount. Ideal for distributors, retailers, and training facilities looking for premium equipment at competitive rates.",
+        "spec_pdf": "",
+        "oem_min_qty": 50
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

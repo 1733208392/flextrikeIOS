@@ -1,0 +1,722 @@
+{% doc %}
+  @prompt
+    Create a comparison table section with the following content and styling:
+    
+    Table title: Training Method Comparison
+    
+    Columns: Feature | Live Fire Training | Dry Fire (No Feedback) | GRWOLF FlexTarget System
+    
+    Rows:
+    - Cost Per 1,000 Rounds | ~$400 (9mm) / ~$550 (5.56) | $0.00 | <$5.00 (High-Grade BBs)
+    - Location | Dedicated Range Only | Anywhere | Your Garage, Basement, or Yard
+    - Data Tracking | Manual / Shot Timer Only | None | Instant App-Based Analytics
+    - Projectile Feedback | Yes | No | Yes (Active Target Reaction)
+    - Reaction Drills | Limited by Range Rules | No | Dynamic "Stress" Modes
+    - Total 1-Year Cost* | $4,800+ | $0 | $399 (One-time) + $50 (Ammo)
+    
+    Footer note: *Based on a modest 1,000 rounds per month training schedule.
+    
+    The GRWOLF FlexTarget System column should be visually highlighted to stand out (e.g., different background color or bold header). The table should be responsive and look clean and professional, fitting a tactical/training brand aesthetic.
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-comparison-table-{{ ai_gen_id }} {
+    width: {{ block.settings.desktop_width_percent }}%;
+    max-width: 100%;
+    display: block;
+    padding: {{ block.settings.section_padding }}px 20px;
+    background-color: {{ block.settings.background_color }};
+  }
+
+  .ai-comparison-table__title-{{ ai_gen_id }} {
+    text-align: {{ block.settings.title_alignment }};
+    font-size: {{ block.settings.title_size }}px;
+    color: {{ block.settings.title_color }};
+    margin: 0 0 {{ block.settings.title_spacing }}px;
+    font-weight: 700;
+  }
+
+  .ai-comparison-table__subtitle-{{ ai_gen_id }} {
+    text-align: {{ block.settings.title_alignment }};
+    font-size: {{ block.settings.title_size | times: 0.7 }}px;
+    color: {{ block.settings.title_color }};
+    margin: 0 0 {{ block.settings.title_spacing | times: 0.3 }}px;
+    font-weight: 400;
+  }
+
+  .ai-comparison-table__wrapper-{{ ai_gen_id }} {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .ai-comparison-table__table-{{ ai_gen_id }} {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: {{ block.settings.table_background }};
+    border-radius: {{ block.settings.table_border_radius }}px;
+    overflow: hidden;
+  }
+
+  .ai-comparison-table__table-{{ ai_gen_id }} th,
+  .ai-comparison-table__table-{{ ai_gen_id }} td {
+    padding: {{ block.settings.cell_padding }}px;
+    text-align: left;
+    border-bottom: {{ block.settings.border_thickness }}px solid {{ block.settings.border_color }};
+  }
+
+  .ai-comparison-table__table-{{ ai_gen_id }} thead th {
+    background-color: {{ block.settings.header_background }};
+    color: {{ block.settings.header_text_color }};
+    font-weight: 700;
+    font-size: {{ block.settings.header_font_size }}px;
+    text-align: center;
+    vertical-align: middle;
+  }
+
+  .ai-comparison-table__table-{{ ai_gen_id }} thead th:first-child {
+    text-align: left;
+  }
+
+  .ai-comparison-table__table-{{ ai_gen_id }} tbody th {
+    background-color: {{ block.settings.row_header_background }};
+    color: {{ block.settings.row_header_text_color }};
+    font-weight: 600;
+    font-size: {{ block.settings.body_font_size }}px;
+  }
+
+  .ai-comparison-table__table-{{ ai_gen_id }} tbody td {
+    background-color: {{ block.settings.cell_background }};
+    color: {{ block.settings.cell_text_color }};
+    font-size: {{ block.settings.body_font_size }}px;
+    text-align: center;
+    vertical-align: middle;
+  }
+
+  .ai-comparison-table__highlighted-{{ ai_gen_id }} {
+    background-color: {{ block.settings.highlight_background }} !important;
+    color: {{ block.settings.highlight_text_color }} !important;
+    font-weight: 700;
+    position: relative;
+  }
+
+  .ai-comparison-table__highlighted-{{ ai_gen_id }}::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background-color: {{ block.settings.highlight_accent_color }};
+  }
+
+  .ai-comparison-table__footer-{{ ai_gen_id }} {
+    margin-top: {{ block.settings.footer_spacing }}px;
+    padding: {{ block.settings.footer_padding }}px;
+    background-color: {{ block.settings.footer_background }};
+    border-radius: {{ block.settings.footer_border_radius }}px;
+    color: {{ block.settings.footer_text_color }};
+    font-size: {{ block.settings.footer_font_size }}px;
+    font-style: italic;
+  }
+
+  @media screen and (max-width: 749px) {
+    .ai-comparison-table__table-{{ ai_gen_id }} th,
+    .ai-comparison-table__table-{{ ai_gen_id }} td {
+      padding: {{ block.settings.cell_padding | times: 0.7 }}px;
+      font-size: {{ block.settings.body_font_size | times: 0.9 }}px;
+    }
+
+    .ai-comparison-table__table-{{ ai_gen_id }} thead th {
+      font-size: {{ block.settings.header_font_size | times: 0.9 }}px;
+    }
+
+    .ai-comparison-table__title-{{ ai_gen_id }} {
+      font-size: {{ block.settings.title_size | times: 0.8 }}px;
+    }
+
+    .ai-comparison-table__subtitle-{{ ai_gen_id }} {
+      font-size: {{ block.settings.title_size | times: 0.7 | times: 0.8 }}px;
+    }
+  }
+{% endstyle %}
+
+<comparison-table-{{ ai_gen_id }}
+  class="ai-comparison-table-{{ ai_gen_id }}"
+  {{ block.shopify_attributes }}
+>
+  {% if block.settings.table_title != blank %}
+    <h2 class="ai-comparison-table__title-{{ ai_gen_id }}">{{ block.settings.table_title }}</h2>
+    <p class="ai-comparison-table__subtitle-{{ ai_gen_id }}">The FlexTarget pays for itself in less than two range trips.</p>
+  {% endif %}
+
+  <div class="ai-comparison-table__wrapper-{{ ai_gen_id }}">
+    <table class="ai-comparison-table__table-{{ ai_gen_id }}">
+      <thead>
+        <tr>
+          <th>{{ block.settings.column_1_header }}</th>
+          <th>{{ block.settings.column_2_header }}</th>
+          <th>{{ block.settings.column_3_header }}</th>
+          <th class="ai-comparison-table__highlighted-{{ ai_gen_id }}">{{ block.settings.column_4_header }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th>{{ block.settings.row_1_label }}</th>
+          <td>{{ block.settings.row_1_col_2 }}</td>
+          <td>{{ block.settings.row_1_col_3 }}</td>
+          <td class="ai-comparison-table__highlighted-{{ ai_gen_id }}">{{ block.settings.row_1_col_4 }}</td>
+        </tr>
+        <tr>
+          <th>{{ block.settings.row_2_label }}</th>
+          <td>{{ block.settings.row_2_col_2 }}</td>
+          <td>{{ block.settings.row_2_col_3 }}</td>
+          <td class="ai-comparison-table__highlighted-{{ ai_gen_id }}">{{ block.settings.row_2_col_4 }}</td>
+        </tr>
+        <tr>
+          <th>{{ block.settings.row_3_label }}</th>
+          <td>{{ block.settings.row_3_col_2 }}</td>
+          <td>{{ block.settings.row_3_col_3 }}</td>
+          <td class="ai-comparison-table__highlighted-{{ ai_gen_id }}">{{ block.settings.row_3_col_4 }}</td>
+        </tr>
+        <tr>
+          <th>{{ block.settings.row_4_label }}</th>
+          <td>{{ block.settings.row_4_col_2 }}</td>
+          <td>{{ block.settings.row_4_col_3 }}</td>
+          <td class="ai-comparison-table__highlighted-{{ ai_gen_id }}">{{ block.settings.row_4_col_4 }}</td>
+        </tr>
+        <tr>
+          <th>{{ block.settings.row_5_label }}</th>
+          <td>{{ block.settings.row_5_col_2 }}</td>
+          <td>{{ block.settings.row_5_col_3 }}</td>
+          <td class="ai-comparison-table__highlighted-{{ ai_gen_id }}">{{ block.settings.row_5_col_4 }}</td>
+        </tr>
+        <tr>
+          <th>{{ block.settings.row_6_label }}</th>
+          <td>{{ block.settings.row_6_col_2 }}</td>
+          <td>{{ block.settings.row_6_col_3 }}</td>
+          <td class="ai-comparison-table__highlighted-{{ ai_gen_id }}">{{ block.settings.row_6_col_4 }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  {% if block.settings.footer_note != blank %}
+    <div class="ai-comparison-table__footer-{{ ai_gen_id }}">
+      {{ block.settings.footer_note }}
+    </div>
+  {% endif %}
+</comparison-table-{{ ai_gen_id }}>
+
+<script>
+  (function() {
+    class ComparisonTable{{ ai_gen_id }} extends HTMLElement {
+      constructor() {
+        super();
+      }
+
+      connectedCallback() {
+        this.setupAccessibility();
+      }
+
+      setupAccessibility() {
+        const table = this.querySelector('.ai-comparison-table__table-{{ ai_gen_id }}');
+        if (table) {
+          table.setAttribute('role', 'table');
+          table.setAttribute('aria-label', 'Training method comparison table');
+        }
+      }
+    }
+
+    customElements.define('comparison-table-{{ ai_gen_id }}', ComparisonTable{{ ai_gen_id }});
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Training comparison table",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Table title"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "table_title",
+      "label": "Title",
+      "default": "Training Method Comparison"
+    },
+    {
+      "type": "select",
+      "id": "title_alignment",
+      "label": "Title alignment",
+      "options": [
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "right",
+          "label": "Right"
+        }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "range",
+      "id": "title_size",
+      "label": "Title size",
+      "min": 16,
+      "max": 48,
+      "step": 2,
+      "unit": "px",
+      "default": 32
+    },
+    {
+      "type": "range",
+      "id": "title_spacing",
+      "label": "Title spacing",
+      "min": 10,
+      "max": 60,
+      "step": 5,
+      "unit": "px",
+      "default": 30
+    },
+    {
+      "type": "header",
+      "content": "Column headers"
+    },
+    {
+      "type": "text",
+      "id": "column_1_header",
+      "label": "Column 1 header",
+      "default": "Feature"
+    },
+    {
+      "type": "text",
+      "id": "column_2_header",
+      "label": "Column 2 header",
+      "default": "Live Fire Training"
+    },
+    {
+      "type": "text",
+      "id": "column_3_header",
+      "label": "Column 3 header",
+      "default": "Dry Fire (No Feedback)"
+    },
+    {
+      "type": "text",
+      "id": "column_4_header",
+      "label": "Column 4 header (highlighted)",
+      "default": "GRWOLF FlexTarget System"
+    },
+    {
+      "type": "header",
+      "content": "Row 1"
+    },
+    {
+      "type": "text",
+      "id": "row_1_label",
+      "label": "Label",
+      "default": "Cost Per 1,000 Rounds"
+    },
+    {
+      "type": "text",
+      "id": "row_1_col_2",
+      "label": "Column 2",
+      "default": "~$400 (9mm) / ~$550 (5.56)"
+    },
+    {
+      "type": "text",
+      "id": "row_1_col_3",
+      "label": "Column 3",
+      "default": "$0.00"
+    },
+    {
+      "type": "text",
+      "id": "row_1_col_4",
+      "label": "Column 4 (highlighted)",
+      "default": "<$5.00 (High-Grade BBs)"
+    },
+    {
+      "type": "header",
+      "content": "Row 2"
+    },
+    {
+      "type": "text",
+      "id": "row_2_label",
+      "label": "Label",
+      "default": "Location"
+    },
+    {
+      "type": "text",
+      "id": "row_2_col_2",
+      "label": "Column 2",
+      "default": "Dedicated Range Only"
+    },
+    {
+      "type": "text",
+      "id": "row_2_col_3",
+      "label": "Column 3",
+      "default": "Anywhere"
+    },
+    {
+      "type": "text",
+      "id": "row_2_col_4",
+      "label": "Column 4 (highlighted)",
+      "default": "Your Garage, Basement, or Yard"
+    },
+    {
+      "type": "header",
+      "content": "Row 3"
+    },
+    {
+      "type": "text",
+      "id": "row_3_label",
+      "label": "Label",
+      "default": "Data Tracking"
+    },
+    {
+      "type": "text",
+      "id": "row_3_col_2",
+      "label": "Column 2",
+      "default": "Manual / Shot Timer Only"
+    },
+    {
+      "type": "text",
+      "id": "row_3_col_3",
+      "label": "Column 3",
+      "default": "None"
+    },
+    {
+      "type": "text",
+      "id": "row_3_col_4",
+      "label": "Column 4 (highlighted)",
+      "default": "Instant App-Based Analytics"
+    },
+    {
+      "type": "header",
+      "content": "Row 4"
+    },
+    {
+      "type": "text",
+      "id": "row_4_label",
+      "label": "Label",
+      "default": "Projectile Feedback"
+    },
+    {
+      "type": "text",
+      "id": "row_4_col_2",
+      "label": "Column 2",
+      "default": "Yes"
+    },
+    {
+      "type": "text",
+      "id": "row_4_col_3",
+      "label": "Column 3",
+      "default": "No"
+    },
+    {
+      "type": "text",
+      "id": "row_4_col_4",
+      "label": "Column 4 (highlighted)",
+      "default": "Yes (Active Target Reaction)"
+    },
+    {
+      "type": "header",
+      "content": "Row 5"
+    },
+    {
+      "type": "text",
+      "id": "row_5_label",
+      "label": "Label",
+      "default": "Reaction Drills"
+    },
+    {
+      "type": "text",
+      "id": "row_5_col_2",
+      "label": "Column 2",
+      "default": "Limited by Range Rules"
+    },
+    {
+      "type": "text",
+      "id": "row_5_col_3",
+      "label": "Column 3",
+      "default": "No"
+    },
+    {
+      "type": "text",
+      "id": "row_5_col_4",
+      "label": "Column 4 (highlighted)",
+      "default": "Dynamic \"Stress\" Modes"
+    },
+    {
+      "type": "header",
+      "content": "Row 6"
+    },
+    {
+      "type": "text",
+      "id": "row_6_label",
+      "label": "Label",
+      "default": "Total 1-Year Cost*"
+    },
+    {
+      "type": "text",
+      "id": "row_6_col_2",
+      "label": "Column 2",
+      "default": "$4,800+"
+    },
+    {
+      "type": "text",
+      "id": "row_6_col_3",
+      "label": "Column 3",
+      "default": "$0"
+    },
+    {
+      "type": "text",
+      "id": "row_6_col_4",
+      "label": "Column 4 (highlighted)",
+      "default": "$399 (One-time) + $50 (Ammo)"
+    },
+    {
+      "type": "header",
+      "content": "Footer"
+    },
+    {
+      "type": "text",
+      "id": "footer_note",
+      "label": "Footer note",
+      "default": "*Based on a modest 1,000 rounds per month training schedule."
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "range",
+      "id": "desktop_width_percent",
+      "label": "Desktop width",
+      "min": 50,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 100
+    },
+    {
+      "type": "range",
+      "id": "section_padding",
+      "label": "Section padding",
+      "min": 0,
+      "max": 80,
+      "step": 5,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "cell_padding",
+      "label": "Cell padding",
+      "min": 8,
+      "max": 32,
+      "step": 2,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "table_border_radius",
+      "label": "Table border radius",
+      "min": 0,
+      "max": 20,
+      "step": 2,
+      "unit": "px",
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "footer_border_radius",
+      "label": "Footer border radius",
+      "min": 0,
+      "max": 20,
+      "step": 2,
+      "unit": "px",
+      "default": 6
+    },
+    {
+      "type": "header",
+      "content": "Typography"
+    },
+    {
+      "type": "range",
+      "id": "header_font_size",
+      "label": "Header font size",
+      "min": 12,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "body_font_size",
+      "label": "Body font size",
+      "min": 12,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "footer_font_size",
+      "label": "Footer font size",
+      "min": 10,
+      "max": 16,
+      "step": 1,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "footer_spacing",
+      "label": "Footer spacing",
+      "min": 10,
+      "max": 40,
+      "step": 5,
+      "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "footer_padding",
+      "label": "Footer padding",
+      "min": 8,
+      "max": 32,
+      "step": 2,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background",
+      "default": "#121212"
+    },
+    {
+      "type": "color",
+      "id": "title_color",
+      "label": "Title",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "table_background",
+      "label": "Table background",
+      "default": "#1a1a1a"
+    },
+    {
+      "type": "color",
+      "id": "header_background",
+      "label": "Header background",
+      "default": "#0a0a0a"
+    },
+    {
+      "type": "color",
+      "id": "header_text_color",
+      "label": "Header text",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "row_header_background",
+      "label": "Row header background",
+      "default": "#1a1a1a"
+    },
+    {
+      "type": "color",
+      "id": "row_header_text_color",
+      "label": "Row header text",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "cell_background",
+      "label": "Cell background",
+      "default": "#1a1a1a"
+    },
+    {
+      "type": "color",
+      "id": "cell_text_color",
+      "label": "Cell text",
+      "default": "#cccccc"
+    },
+    {
+      "type": "color",
+      "id": "border_color",
+      "label": "Border",
+      "default": "#333333"
+    },
+    {
+      "type": "range",
+      "id": "border_thickness",
+      "label": "Border thickness",
+      "min": 0,
+      "max": 4,
+      "step": 1,
+      "unit": "px",
+      "default": 1
+    },
+    {
+      "type": "header",
+      "content": "Highlight column"
+    },
+    {
+      "type": "color",
+      "id": "highlight_background",
+      "label": "Background",
+      "default": "#2a4a2a"
+    },
+    {
+      "type": "color",
+      "id": "highlight_text_color",
+      "label": "Text",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "highlight_accent_color",
+      "label": "Accent color",
+      "default": "#4CAF50"
+    },
+    {
+      "type": "header",
+      "content": "Footer"
+    },
+    {
+      "type": "color",
+      "id": "footer_background",
+      "label": "Background",
+      "default": "#0f0f0f"
+    },
+    {
+      "type": "color",
+      "id": "footer_text_color",
+      "label": "Text",
+      "default": "#999999"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Training comparison table"
+    }
+  ]
+}
+{% endschema %}

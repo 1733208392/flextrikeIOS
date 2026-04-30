@@ -1,0 +1,417 @@
+{{ 'section-main-page.css' | asset_url | stylesheet_tag }}
+
+{% assign section_id = section.id | replace: '_', '' | downcase %}
+
+{% style %}
+  html, body {
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  .fullpage-container-{{ section_id }} {
+    position: relative;
+    width: 100%;
+    height: calc(100vh * {{ section.blocks.size }});
+    overflow: hidden;
+    transition: transform 0.5s ease;
+  }
+
+  @media screen and (max-width: 749px) {
+    .fullpage-container-{{ section_id }} {
+      height: auto;
+      overflow: visible;
+      scroll-behavior: auto;
+    }
+  }
+
+  .fullpage-section-{{ section_id }} {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    display: block;
+    overflow: hidden;
+    background: #1a1a1a;
+  }
+
+  @media screen and (max-height: 600px) {
+    .fullpage-section-{{ section_id }} {
+      height: 100vh;
+      min-height: 500px;
+    }
+  }
+
+  @media screen and (max-width: 749px) {
+    .fullpage-section-{{ section_id }} {
+      height: auto;
+      overflow: visible;
+      min-height: 100vh;
+    }
+  }
+
+  .fullpage-nav-{{ section_id }} {
+    position: fixed;
+    top: 50%;
+    right: 20px;
+    transform: translateY(-50%);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .nav-btn-{{ section_id }} {
+    width: 50px;
+    height: 50px;
+    background-color: rgba(0, 0, 0, 0.5);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s ease;
+  }
+
+  .nav-btn-{{ section_id }}:hover {
+    background-color: rgba(0, 0, 0, 0.8);
+  }
+
+  .dots-{{ section_id }} {
+    position: fixed;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 1000;
+  }
+
+  .dot-{{ section_id }} {
+    width: 12px;
+    height: 12px;
+    background-color: rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  .dot-{{ section_id }}.active {
+    background-color: rgba(255, 255, 255, 1);
+  }
+
+  /* Ensure blocks fill their containers */
+  .fullpage-section-{{ section_id }} [class*="ai-video-section"] {
+    width: 100% !important;
+    height: 100% !important;
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .fullpage-section-{{ section_id }} [class*="image-sequence-player"] {
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+  }
+
+  /* Target custom elements */
+  .fullpage-section-{{ section_id }} [class*="ai-video"] {
+    width: 100% !important;
+    height: 100% !important;
+    display: block !important;
+  }
+
+  .fullpage-section-{{ section_id }} image-sequence-player-* {
+    width: 100% !important;
+    height: 100% !important;
+    display: block !important;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
+  @media screen and (max-width: 1024px) {
+    .nav-btn-{{ section_id }} {
+      width: 45px;
+      height: 45px;
+      font-size: 18px;
+    }
+
+    .dots-{{ section_id }} {
+      right: 15px;
+    }
+  }
+
+  @media screen and (max-width: 749px) {
+    .fullpage-nav-{{ section_id }} {
+      display: none;
+    }
+
+    .nav-btn-{{ section_id }} {
+      width: 40px;
+      height: 40px;
+      font-size: 16px;
+    }
+
+    .dots-{{ section_id }} {
+      display: none;
+    }
+  }
+{% endstyle %}
+
+<div class="fullpage-container-{{ section_id }}" id="fullpage-container-{{ section_id }}">
+  {% if section.blocks.size == 0 %}
+    <div class="fullpage-section-{{ section_id }}" style="display: flex; align-items: center; justify-content: center; color: white;">
+      <p>No blocks added. Click "Add block" to get started.</p>
+    </div>
+  {% else %}
+    {% for block in section.blocks %}
+      <div class="fullpage-section-{{ section_id }}" data-block-index="{{ forloop.index0 }}">
+        {% case block.type %}
+          {% when 'image-sequence-player' %}
+            {% render 'block-image-sequence-player', block: block %}
+          {% when 'ai_gen_block_c8b37dd' %}
+            {% render 'block-ai-gen-video', block: block %}
+          {% else %}
+            <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #444; color: white;">
+              <p>Block type "{{ block.type }}" not supported</p>
+            </div>
+        {% endcase %}
+      </div>
+    {% endfor %}
+  {% endif %}
+</div>
+
+<div class="fullpage-nav-{{ section_id }}">
+  <button class="nav-btn-{{ section_id }} prev-btn" aria-label="Previous">↑</button>
+  <button class="nav-btn-{{ section_id }} next-btn" aria-label="Next">↓</button>
+</div>
+
+<div class="dots-{{ section_id }}">
+  {% for block in section.blocks %}
+    <div class="dot-{{ section_id }}" data-index="{{ forloop.index0 }}"></div>
+  {% endfor %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const sectionId = '{{ section_id }}';
+    let currentIndex = 0;
+    const container = document.getElementById('fullpage-container-' + sectionId);
+    const sections = container.querySelectorAll('.fullpage-section-' + sectionId);
+    const prevBtn = document.querySelector('.prev-btn');
+    const nextBtn = document.querySelector('.next-btn');
+    const dots = document.querySelectorAll('.dot-' + sectionId);
+    const totalSections = sections.length;
+    const isMobile = window.innerWidth <= 749;
+
+    // Function to update the container position and handle media
+    function updatePosition() {
+        // Only apply transform on desktop
+        if (!isMobile) {
+            container.style.transform = `translateY(-${currentIndex * 100}vh)`;
+        }
+        // Update dots
+        dots.forEach((dot, index) => {
+            dot.classList.toggle('active', index === currentIndex);
+        });
+        // Pause/play videos in sections
+        sections.forEach((section, index) => {
+            const videos = section.querySelectorAll('video');
+            videos.forEach(video => {
+                if (index === currentIndex) {
+                    video.play().catch(() => {}); // Ignore play promise rejection
+                } else {
+                    video.pause();
+                }
+            });
+            // Handle YouTube/Vimeo if needed
+            const iframes = section.querySelectorAll('iframe');
+            iframes.forEach(iframe => {
+                if (index === currentIndex) {
+                    // Resume if possible
+                } else {
+                    // Pause if possible
+                }
+            });
+        });
+    }
+
+    // Navigation functions
+    function goToPrev() {
+        if (currentIndex > 0) {
+            currentIndex--;
+            updatePosition();
+        }
+    }
+
+    function goToNext() {
+        if (currentIndex < totalSections - 1) {
+            currentIndex++;
+            updatePosition();
+        }
+    }
+
+    function goToSection(index) {
+        currentIndex = index;
+        updatePosition();
+    }
+
+    // Click event handlers for navigation buttons and dots
+    if (prevBtn) prevBtn.addEventListener('click', goToPrev);
+    if (nextBtn) nextBtn.addEventListener('click', goToNext);
+    dots.forEach((dot, index) => {
+        dot.addEventListener('click', () => goToSection(index));
+    });
+
+    // Touch event handlers for swipe gestures - only on desktop
+    let startY = 0;
+    let endY = 0;
+    
+    if (!isMobile) {
+        container.addEventListener('touchstart', (e) => {
+            startY = e.touches[0].clientY;
+        });
+        container.addEventListener('touchmove', (e) => {
+            // Prevent default scroll behavior
+            e.preventDefault();
+        });
+        container.addEventListener('touchend', (e) => {
+            endY = e.changedTouches[0].clientY;
+            const diff = startY - endY;
+            if (Math.abs(diff) > 50) { // Swipe threshold
+                if (diff > 0) {
+                    goToNext();
+                } else {
+                    goToPrev();
+                }
+            }
+        });
+
+        // Prevent default scroll behavior on wheel events
+        window.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            if (e.deltaY > 0) {
+                goToNext();
+            } else {
+                goToPrev();
+            }
+        }, { passive: false });
+    }
+
+    // Initialize position
+    updatePosition();
+});
+</script>
+
+{% schema %}
+{
+  "name": "Fullpage Blocks",
+  "tag": "section",
+  "blocks": [
+    {
+      "type": "image-sequence-player",
+      "name": "Image Sequence Player",
+      "settings": [
+        {
+          "type": "color_scheme",
+          "id": "color_scheme",
+          "label": "Color scheme",
+          "default": "scheme-1"
+        },
+        {
+          "type": "number",
+          "id": "total_frames",
+          "label": "Total Frames",
+          "default": 96
+        },
+        {
+          "type": "text",
+          "id": "chapter_frames",
+          "label": "Chapter Frames (comma-separated)",
+          "default": "1,31,81"
+        }
+      ]
+    },
+    {
+      "type": "ai_gen_block_c8b37dd",
+      "name": "AI Generated Video Block",
+      "settings": [
+        {
+          "type": "header",
+          "content": "Video source"
+        },
+        {
+          "type": "select",
+          "id": "video_source",
+          "label": "Video source",
+          "options": [
+            {
+              "value": "shopify",
+              "label": "Shopify hosted"
+            },
+            {
+              "value": "youtube",
+              "label": "YouTube"
+            },
+            {
+              "value": "vimeo",
+              "label": "Vimeo"
+            }
+          ],
+          "default": "shopify"
+        },
+        {
+          "type": "video",
+          "id": "video_shopify",
+          "label": "Shopify hosted video"
+        },
+        {
+          "type": "url",
+          "id": "video_url",
+          "label": "Video URL"
+        },
+        {
+          "type": "image_picker",
+          "id": "cover_image",
+          "label": "Cover image"
+        },
+        {
+          "type": "header",
+          "content": "Video settings"
+        },
+        {
+          "type": "checkbox",
+          "id": "enable_loop",
+          "label": "Loop video",
+          "default": true
+        },
+        {
+          "type": "color_scheme",
+          "id": "color_scheme",
+          "label": "Color scheme",
+          "default": "scheme-1"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Fullpage Blocks",
+      "blocks": [
+        {
+          "type": "image-sequence-player"
+        },
+        {
+          "type": "ai_gen_block_c8b37dd"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

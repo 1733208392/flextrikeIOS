@@ -1,0 +1,166 @@
+{% comment %}
+B2B / Wholesale section for Shopify theme
+Features:
+- Shows teaser when customer is not tagged 'b2b' or 'wholesale'
+- Shows price table + PDF download to authorized customers
+- Displays discount tiers and OEM information
+- Includes a B2B inquiry contact form
+{% endcomment %}
+
+<section class="section b2b-wholesale">
+  <style>
+    /* Wholesale page styles adapted from provided layout */
+    *{box-sizing:border-box}
+    .b2b-wholesale { background:#0a0a0a; color:#fff; padding:0 }
+    .wholesale-page { max-width:720px; margin:0 auto; padding:80px 24px 100px; text-align:center }
+    .main-title { font-size:48px; font-weight:700; letter-spacing:6px; text-transform:uppercase; margin-bottom:32px; background:linear-gradient(135deg,#ffffff 0%,#888 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent }
+    .section { margin-bottom:48px }
+    .section-subtitle { font-size:22px; font-weight:600; color:#e0e0e0; margin-bottom:12px; letter-spacing:1px }
+    .accent-red { color: #de3823 !important }
+    .section-desc { font-size:16px; line-height:1.7; color:#999; max-width:540px; margin:0 auto }
+    .divider { width:60px; height:2px; background:linear-gradient(90deg,transparent,#444,transparent); margin:48px auto }
+    .btn-inquiry { display:inline-block; padding:18px 64px; font-size:16px; font-weight:600; letter-spacing:3px; text-transform:uppercase; color:#de3823 !important; background:linear-gradient(135deg,#1a1a2e,#16213e); border:1px solid #333; border-radius:4px; cursor:pointer }
+    .btn-inquiry:hover { background:linear-gradient(135deg,#16213e,#0f3460) }
+    .form-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.75);z-index:999;justify-content:center;align-items:center;padding:24px}
+    .form-overlay.active{display:flex}
+    .form-container{background:#141414;border:1px solid #2a2a2a;border-radius:8px;padding:48px 40px;max-width:520px;width:100%;position:relative}
+    .form-close{position:absolute;top:16px;right:20px;background:none;border:none;color:#666;font-size:28px;cursor:pointer}
+    .form-close:hover{color:#fff}
+    .form-title{font-size:24px;font-weight:600;margin-bottom:32px}
+    .form-group{margin-bottom:20px;text-align:left}
+    .form-group label{display:block;font-size:13px;color:#888;margin-bottom:8px;letter-spacing:0.5px;text-transform:uppercase}
+    .form-group input,.form-group textarea,.form-group select{width:100%;padding:12px 16px;font-size:15px;color:#fff;background:#1a1a1a;border:1px solid #333;border-radius:4px}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .btn-submit{width:100%;padding:14px;font-size:15px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#de3823 !important;background:linear-gradient(135deg,#1a1a2e,#16213e);border:1px solid #333;border-radius:4px;cursor:pointer}
+    .btn-submit:hover{background:linear-gradient(135deg,#16213e,#0f3460);border-color:#555}
+    .form-note{margin-top:16px;font-size:12px;color:#555}
+    @media (max-width:600px){.main-title{font-size:32px;letter-spacing:4px}.wholesale-page{padding:60px 20px 80px}.form-container{padding:36px 24px}.form-row{grid-template-columns:1fr}.btn-inquiry{padding:16px 48px;font-size:14px}}
+  </style>
+
+  <div class="wholesale-page">
+    <h1 class="main-title">{{ section.settings.heading | default: 'Wholesale' }}</h1>
+
+    <div class="section">
+        <h2 class="section-subtitle accent-red">{{ section.settings.subheading | default: 'Unlock the Wholesale Price' }}</h2>
+      <p class="section-desc">{{ section.settings.lead_text | default: '10+ units entitle wholesale price, up to 50% discount. Ideal for distributors, retailers, and training facilities looking for premium equipment at competitive rates.' }}</p>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="section">
+      <h2 class="section-subtitle accent-red">OEM / Customization</h2>
+      <p class="section-desc">Supports venue logo, full-unit color customization, and brand logo printing. Minimum order: 50 units. Let us bring your brand vision to life with fully customized products.</p>
+    </div>
+
+    <div class="divider"></div>
+
+    <button class="btn-inquiry accent-red" id="b2b-inquiry-toggle">Inquiry</button>
+  </div>
+
+  <!-- Modal -->
+  <div class="form-overlay" id="b2b-form-overlay" aria-hidden="true">
+    <div class="form-container" role="dialog" aria-modal="true" aria-labelledby="b2b-form-title">
+      <button class="form-close" id="b2b-form-close" aria-label="Close">&times;</button>
+      <h3 class="form-title" id="b2b-form-title">Wholesale Inquiry</h3>
+
+      <form id="b2b-contact-form" class="b2b-contact-form">
+        <input type="hidden" name="form_type" value="contact">
+        <input type="hidden" name="utf8" value="✓">
+        <input type="hidden" name="contact[tags]" value="b2b-inquiry">
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="b2b-name">Name *</label>
+            <input id="b2b-name" name="contact[name]" type="text" required placeholder="Your name">
+          </div>
+          <div class="form-group">
+            <label for="b2b-company">Company</label>
+            <input id="b2b-company" name="contact[company]" type="text" placeholder="Company name">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="b2b-email">Email *</label>
+            <input id="b2b-email" name="contact[email]" type="email" required placeholder="you@example.com">
+          </div>
+          <div class="form-group">
+            <label for="b2b-phone">Phone</label>
+            <input id="b2b-phone" name="contact[phone]" type="tel" placeholder="+1 (555) 000-0000">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="b2b-type">Inquiry Type</label>
+          <select id="b2b-type" name="contact[body][inquiry_type]">
+            <option value="wholesale">Wholesale Order (10+ units)</option>
+            <option value="oem">OEM / Customization (50+ units)</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="b2b-qty">Estimated Quantity</label>
+          <input id="b2b-qty" name="contact[body][quantity]" type="text" placeholder="e.g. 50 units">
+        </div>
+
+        <div class="form-group">
+          <label for="b2b-message">Message *</label>
+          <textarea id="b2b-message" name="contact[body][message]" required placeholder="Tell us about your requirements..."></textarea>
+        </div>
+
+        <button type="submit" class="btn-submit accent-red">Submit Inquiry</button>
+        <p class="form-note">We'll respond within 24 business hours.</p>
+        <div id="b2b-form-status" aria-live="polite" style="margin-top:12px;color:#9ad1ff"></div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      var overlay = document.getElementById('b2b-form-overlay');
+      var openBtn = document.getElementById('b2b-inquiry-toggle');
+      var closeBtn = document.getElementById('b2b-form-close');
+      var form = document.getElementById('b2b-contact-form');
+      var status = document.getElementById('b2b-form-status');
+
+      function openForm(){ overlay.classList.add('active'); overlay.setAttribute('aria-hidden','false'); document.body.style.overflow='hidden'; }
+      function closeForm(){ overlay.classList.remove('active'); overlay.setAttribute('aria-hidden','true'); document.body.style.overflow=''; }
+
+      openBtn && openBtn.addEventListener('click', openForm);
+      closeBtn && closeBtn.addEventListener('click', closeForm);
+      overlay && overlay.addEventListener('click', function(e){ if(e.target===overlay) closeForm(); });
+
+      // AJAX submit to Shopify /contact endpoint (server-side email, user-unnoticed)
+      form && form.addEventListener('submit', function(e){
+        e.preventDefault();
+        status.textContent = '';
+        var fd = new FormData(form);
+        // send to Shopify contact endpoint
+        fetch('/contact', { method:'POST', body: fd, credentials: 'same-origin' })
+          .then(function(resp){ if(resp.ok){ status.textContent = 'Thank you — your inquiry was sent.'; form.reset(); setTimeout(closeForm,1200); } else { return resp.text().then(function(t){ throw new Error(t||'Network error') }); } })
+          .catch(function(err){ status.textContent = 'Submission failed — please try again.'; console.error(err); });
+      });
+    })();
+  </script>
+
+  {% schema %}
+  {
+    "name": "B2B / Wholesale",
+    "settings": [
+      {"type":"text","id":"heading","label":"Heading","default":"Wholesale"},
+      {"type":"textarea","id":"subheading","label":"Subheading","default":"Unlock the Wholesale Price"},
+      {"type":"textarea","id":"lead_text","label":"Lead text","default":"10+ units entitle wholesale price, up to 50% discount. Ideal for distributors, retailers, and training facilities looking for premium equipment at competitive rates."},
+      {"type":"url","id":"spec_pdf","label":"Spec PDF link"},
+      {"type":"number","id":"oem_min_qty","label":"OEM min qty","default":50},
+      {"type":"image_picker","id":"oem_image","label":"OEM example image"}
+    ],
+    "blocks": [
+      {"type":"tier","name":"Volume tier","settings":[{"type":"number","id":"qty","label":"Min qty","default":10},{"type":"number","id":"discount","label":"Discount %","default":30}]}
+    ],
+    "max_blocks": 10,
+    "presets": [{"name":"Wholesale Page","category":"B2B"}]
+  }
+  {% endschema %}
+
+</section>

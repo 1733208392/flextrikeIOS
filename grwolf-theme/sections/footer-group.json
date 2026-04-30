@@ -1,0 +1,63 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "name": "t:sections.footer.name",
+  "type": "footer",
+  "sections": {
+    "footer": {
+      "type": "footer",
+      "blocks": {
+        "text_XHcBaX": {
+          "type": "text",
+          "settings": {
+            "heading": "<strong>Secure Training</strong>",
+            "subtext": "<p>Your data belongs to you. The FlexTarget App stores all performance metrics locally on your device—no cloud, no tracking, no internet required for training.</p>"
+          }
+        },
+        "link_list_F4xfE7": {
+          "type": "link_list",
+          "settings": {
+            "heading": "<strong>Policies</strong>",
+            "menu": "policies"
+          }
+        },
+        "text_fy4PzX": {
+          "type": "text",
+          "settings": {
+            "heading": "<strong>Contact</strong>",
+            "subtext": "<p>PETLIVAT INC DBA GRWOLF, 100 N HOWARD ST STE R, SPOKANE, WA, 99201-0508, UNITED STATES</p><p>Email: biz@grwolftactical.com</p>"
+          }
+        }
+      },
+      "block_order": [
+        "text_XHcBaX",
+        "link_list_F4xfE7",
+        "text_fy4PzX"
+      ],
+      "settings": {
+        "color_scheme": "scheme-1",
+        "newsletter_enable": true,
+        "newsletter_heading": "Subscribe to our emails",
+        "enable_follow_on_shop": false,
+        "show_social": true,
+        "enable_country_selector": true,
+        "enable_language_selector": false,
+        "payment_enable": true,
+        "show_policy": true,
+        "margin_top": 0,
+        "padding_top": 36,
+        "padding_bottom": 36
+      }
+    }
+  },
+  "order": [
+    "footer"
+  ]
+}

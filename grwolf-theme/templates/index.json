@@ -1,0 +1,291 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "blocks_epDaxT": {
+      "type": "_blocks",
+      "blocks": {
+        "ai_gen_block_c8b37dd_RT3RfV": {
+          "type": "ai_gen_block_c8b37dd",
+          "settings": {
+            "video_source": "shopify",
+            "video_shopify": "shopify://files/videos/CinematicCommercialVideoGrwolfFlexTarget.mp4",
+            "video_url": "",
+            "button_image": "shopify://shop_images/target-front.png",
+            "button_video_source": "shopify",
+            "button_video_shopify": "shopify://files/videos/Video.mp4",
+            "button_video_url": "",
+            "right_overlay_line1": "100,000+",
+            "right_overlay_line2": "Shots Impact Proof",
+            "right_overlay_line3": "Replaceable",
+            "right_overlay_line4": "Screen",
+            "third_overlay_line1": "1MM ACCURACY",
+            "third_overlay_line2": "AI-Powered",
+            "third_overlay_line3": "Patent Algorithm",
+            "third_overlay_line4": "Precision Sensors",
+            "enable_loop": false,
+            "full_width": false,
+            "color_scheme": "",
+            "desktop_width_percent": 100
+          },
+          "blocks": {}
+        }
+      },
+      "block_order": [
+        "ai_gen_block_c8b37dd_RT3RfV"
+      ],
+      "name": "Video",
+      "settings": {}
+    },
+    "multirow_pEe4Vt": {
+      "type": "multirow",
+      "blocks": {
+        "row_aDKVHP": {
+          "type": "row",
+          "settings": {
+            "image": "shopify://shop_images/qrcode.png",
+            "caption": "",
+            "heading": "FlexTarget App",
+            "text": "<p>Ready to elevate your training? Scan the QR code to download the FlexTarget App and activate TargetLink - Design your drills, dive into detailed analytics, and watch your skills improve session after session.</p>",
+            "button_label": "",
+            "button_link": "https://apps.apple.com/us/app/%E6%99%BA%E8%83%BD%E9%9D%B6/id6755102346"
+          }
+        },
+        "row_qPQJfC": {
+          "type": "row",
+          "settings": {
+            "image": "shopify://shop_images/smart.jpg",
+            "caption": "Design",
+            "heading": "Your Drill",
+            "text": "<ul><li>Capture Your Data. Visualize Your Progress. </li><li>The world’s first configurable data-driven smart target—right at your fingertips.</li><li>Save on ammo costs without losing proficiency. Get 10,000+ reps for the price of one box of 9mm.</li></ul>",
+            "button_label": "[Save $100 – Shop FlexTarget]",
+            "button_link": "shopify://products/airsoft-smart-target-personal-home-trainer"
+          }
+        },
+        "row_8GXhNK": {
+          "type": "row",
+          "settings": {
+            "image": "shopify://shop_images/ffec8ee66078a2c3d58be615ef2e8e3a.png",
+            "caption": "Train",
+            "heading": "Smart",
+            "text": "<ul><li>The FlexTarget tracks hit rates, reaction times, and split times in your own home</li><li>Unlimited Drills with Software Upgradeable</li></ul>",
+            "button_label": "Setup Your Home Range Today",
+            "button_link": "shopify://products/airsoft-smart-target-personal-home-trainer"
+          }
+        },
+        "row_a6XhRD": {
+          "type": "row",
+          "settings": {
+            "image": "shopify://shop_images/306d5b98f977976f6adf7671652ef7b3.png",
+            "caption": "non-leathal",
+            "heading": "Safe",
+            "text": "<p>It not only offers a more affordable alternative to live-fire exercises with real firearms, more importantly its non lethal nature is ideal for promoting firearm safety practices and awareness of proper handling techniques.</p>",
+            "button_label": "Learn More",
+            "button_link": ""
+          }
+        }
+      },
+      "block_order": [
+        "row_aDKVHP",
+        "row_qPQJfC",
+        "row_8GXhNK",
+        "row_a6XhRD"
+      ],
+      "settings": {
+        "image_height": "medium",
+        "desktop_image_width": "medium",
+        "heading_size": "h1",
+        "text_style": "body",
+        "button_style": "secondary",
+        "desktop_content_position": "middle",
+        "desktop_content_alignment": "left",
+        "image_layout": "alternate-left",
+        "section_color_scheme": "",
+        "row_color_scheme": "",
+        "mobile_content_alignment": "left",
+        "padding_top": 36,
+        "padding_bottom": 36
+      }
+    },
+    "video_VNJqdf": {
+      "type": "video",
+      "name": "t:sections.video.presets.name",
+      "settings": {
+        "heading": "Home Defense Drill - What Matters Most",
+        "heading_size": "h0",
+        "enable_video_looping": true,
+        "video": "shopify://files/videos/homedefense.mp4",
+        "video_url": "https://www.youtube.com/watch?v=_9VUPq3SxOc",
+        "description": "",
+        "full_width": false,
+        "color_scheme": "",
+        "padding_top": 36,
+        "padding_bottom": 36
+      }
+    },
+    "17738892271e9ce14e": {
+      "type": "_blocks",
+      "blocks": {
+        "ai_gen_block_927fa6b_XbacD6": {
+          "type": "ai_gen_block_927fa6b",
+          "settings": {
+            "table_title": "COST-OF-TRAINING COMPARISON",
+            "title_alignment": "center",
+            "title_size": 32,
+            "title_spacing": 10,
+            "column_1_header": "Feature",
+            "column_2_header": "Live Fire Training",
+            "column_3_header": "Dry Fire (No Feedback)",
+            "column_4_header": "GRWOLF FlexTarget System",
+            "row_1_label": "Cost Per 1,000 Rounds",
+            "row_1_col_2": "~$400 (9mm) / ~$550 (5.56)",
+            "row_1_col_3": "$0.00",
+            "row_1_col_4": "<$5.00 (High-Grade BBs)",
+            "row_2_label": "Location",
+            "row_2_col_2": "Dedicated Range Only",
+            "row_2_col_3": "Anywhere",
+            "row_2_col_4": "Your Garage, Basement, or Yard",
+            "row_3_label": "Data Tracking",
+            "row_3_col_2": "Manual / Shot Timer Only",
+            "row_3_col_3": "None",
+            "row_3_col_4": "Instant App-Based Analytics",
+            "row_4_label": "Projectile Feedback",
+            "row_4_col_2": "Yes",
+            "row_4_col_3": "No",
+            "row_4_col_4": "Yes (Active Target Reaction)",
+            "row_5_label": "Reaction Drills",
+            "row_5_col_2": "Limited by Range Rules",
+            "row_5_col_3": "No",
+            "row_5_col_4": "Dynamic \"Stress\" Modes",
+            "row_6_label": "Total 1-Year Cost*",
+            "row_6_col_2": "$4,800+",
+            "row_6_col_3": "$0",
+            "row_6_col_4": "$399 (One-time) + $50 (Ammo)",
+            "footer_note": "*Based on a modest 1,000 rounds per month training schedule.",
+            "desktop_width_percent": 100,
+            "section_padding": 40,
+            "cell_padding": 16,
+            "table_border_radius": 8,
+            "footer_border_radius": 6,
+            "header_font_size": 16,
+            "body_font_size": 14,
+            "footer_font_size": 12,
+            "footer_spacing": 20,
+            "footer_padding": 16,
+            "background_color": "#121212",
+            "title_color": "#ffffff",
+            "table_background": "#1a1a1a",
+            "header_background": "#0a0a0a",
+            "header_text_color": "#ffffff",
+            "row_header_background": "#1a1a1a",
+            "row_header_text_color": "#ffffff",
+            "cell_background": "#1a1a1a",
+            "cell_text_color": "#cccccc",
+            "border_color": "#333333",
+            "border_thickness": 1,
+            "highlight_background": "#de3823",
+            "highlight_text_color": "#191919",
+            "highlight_accent_color": "#de3823",
+            "footer_background": "#0f0f0f",
+            "footer_text_color": "#999999"
+          },
+          "blocks": {}
+        }
+      },
+      "block_order": [
+        "ai_gen_block_927fa6b_XbacD6"
+      ],
+      "name": "CostCompare",
+      "settings": {}
+    },
+    "17727643127c332446": {
+      "type": "_blocks",
+      "blocks": {
+        "ai_gen_block_22891ec_gcJHDj": {
+          "type": "ai_gen_block_22891ec",
+          "settings": {
+            "heading": "<strong>DYNAMIC STRESS DRILLS</strong>",
+            "description": "",
+            "heading_size": 32,
+            "description_size": 16,
+            "heading_color": "#de3823",
+            "description_color": "#ffffff",
+            "text_alignment": "center",
+            "desktop_width_percent": 100,
+            "item_width": 280,
+            "item_width_mobile": 200,
+            "item_gap": 16,
+            "image_border_radius": 0,
+            "title_size": 18,
+            "subtitle_size": 14,
+            "title_color": "#de3823",
+            "subtitle_color": "#cccccc",
+            "scrollbar_color": "#666666",
+            "image_1": "shopify://shop_images/games.jpg",
+            "title_1": "GAME MENU",
+            "subtitle_1": "With OTA updates, the experience keeps evolving—demanding accuracy, speed, and intelligence.",
+            "link_1": "",
+            "image_2": "shopify://shop_images/fruit.jpg",
+            "title_2": "FRUIT NINJA",
+            "subtitle_2": "A classic fruit-falling shooting game that tests your reaction speed and shooting accuracy. With constantly moving targets, mastering the skill of leading your shots is key.",
+            "link_2": "",
+            "image_3": "shopify://shop_images/mole.jpg",
+            "title_3": "MOLE ATTACK",
+            "subtitle_3": "A hilarious random target shooting game. Endless cheeky moles keep popping up—smash them all!",
+            "link_3": "",
+            "image_4": "shopify://shop_images/monkey.jpg",
+            "title_4": "MONKEY DUEL",
+            "subtitle_4": "A two-player game mode. Shoot the monkey, and it will jump off the vine — miss it, and the sword will fall on you. See who is quicker and more precise.",
+            "link_4": "",
+            "image_5": "shopify://shop_images/chimp.jpg",
+            "title_5": "GHIMP TEST",
+            "subtitle_5": "Think you have a better memory than a chimp? Remember the sequence and shoot it in the correct order.",
+            "link_5": "",
+            "image_6": "shopify://shop_images/tictactoe.jpg",
+            "title_6": "TIC-TAC-TOE",
+            "subtitle_6": "Remember who you played with as a kid? This classic game brings back childhood memories.",
+            "link_6": "",
+            "image_7": "shopify://shop_images/quick.jpg",
+            "title_7": "Quick Reaction",
+            "subtitle_7": "Simple yet intense. Test how fast you can draw and shoot when every millisecond counts. 🎯",
+            "link_7": "",
+            "image_8": "shopify://shop_images/balloon.jpg",
+            "title_8": "SHOOTER PAINTER",
+            "subtitle_8": "Blast the balloons and watch vibrant colors burst across the screen. A fun and satisfying shooting game.",
+            "link_8": ""
+          },
+          "blocks": {}
+        }
+      },
+      "block_order": [
+        "ai_gen_block_22891ec_gcJHDj"
+      ],
+      "settings": {}
+    },
+    "page_WNE8wQ": {
+      "type": "page",
+      "settings": {
+        "page": "about-us",
+        "heading_size": "h1",
+        "color_scheme": "",
+        "padding_top": 24,
+        "padding_bottom": 24
+      }
+    }
+  },
+  "order": [
+    "blocks_epDaxT",
+    "multirow_pEe4Vt",
+    "video_VNJqdf",
+    "17738892271e9ce14e",
+    "17727643127c332446",
+    "page_WNE8wQ"
+  ]
+}

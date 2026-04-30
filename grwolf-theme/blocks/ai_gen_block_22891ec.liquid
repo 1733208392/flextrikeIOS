@@ -1,0 +1,643 @@
+{% doc %}
+  @prompt
+    I'd like build a horizontal scrollable list of images with title and subtitle, please change the image aspact ratio to 9x16
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-scroll-list-{{ ai_gen_id }} {
+    display: block;
+    width: 100%;
+    overflow: hidden;
+    padding: 40px 0;
+  }
+
+  .ai-scroll-list-container-{{ ai_gen_id }} {
+    width: {{ block.settings.desktop_width_percent }}%;
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
+  .ai-scroll-list-header-{{ ai_gen_id }} {
+    text-align: {{ block.settings.text_alignment }};
+    margin-bottom: 30px;
+  }
+
+  .ai-scroll-list-heading-{{ ai_gen_id }} {
+    font-size: {{ block.settings.heading_size }}px;
+    color: {{ block.settings.heading_color }};
+    margin: 0 0 10px;
+    font-weight: 600;
+  }
+
+  .ai-scroll-list-description-{{ ai_gen_id }} {
+    font-size: {{ block.settings.description_size }}px;
+    color: {{ block.settings.description_color }};
+    margin: 0;
+  }
+
+  .ai-scroll-list-wrapper-{{ ai_gen_id }} {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: {{ block.settings.scrollbar_color }} transparent;
+  }
+
+  .ai-scroll-list-wrapper-{{ ai_gen_id }}::-webkit-scrollbar {
+    height: 8px;
+  }
+
+  .ai-scroll-list-wrapper-{{ ai_gen_id }}::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .ai-scroll-list-wrapper-{{ ai_gen_id }}::-webkit-scrollbar-thumb {
+    background-color: {{ block.settings.scrollbar_color }};
+    border-radius: 4px;
+  }
+
+  .ai-scroll-list-items-{{ ai_gen_id }} {
+    display: flex;
+    gap: {{ block.settings.item_gap }}px;
+    padding-bottom: 10px;
+  }
+
+  .ai-scroll-list-item-{{ ai_gen_id }} {
+    flex: 0 0 {{ block.settings.item_width }}px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .ai-scroll-list-image-wrapper-{{ ai_gen_id }} {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 9 / 16;
+    overflow: hidden;
+    border-radius: {{ block.settings.image_border_radius }}px;
+    background-color: #f4f4f4;
+    margin-bottom: 12px;
+  }
+
+  .ai-scroll-list-image-wrapper-{{ ai_gen_id }} img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .ai-scroll-list-image-placeholder-{{ ai_gen_id }} {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ai-scroll-list-image-placeholder-{{ ai_gen_id }} svg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .ai-scroll-list-content-{{ ai_gen_id }} {
+    text-align: {{ block.settings.text_alignment }};
+  }
+
+  .ai-scroll-list-title-{{ ai_gen_id }} {
+    font-size: {{ block.settings.title_size }}px;
+    color: {{ block.settings.title_color }};
+    margin: 0 0 6px;
+    font-weight: 600;
+  }
+
+  .ai-scroll-list-subtitle-{{ ai_gen_id }} {
+    font-size: {{ block.settings.subtitle_size }}px;
+    color: {{ block.settings.subtitle_color }};
+    margin: 0;
+  }
+
+  @media screen and (max-width: 749px) {
+    .ai-scroll-list-item-{{ ai_gen_id }} {
+      flex: 0 0 {{ block.settings.item_width_mobile }}px;
+    }
+
+    .ai-scroll-list-heading-{{ ai_gen_id }} {
+      font-size: calc({{ block.settings.heading_size }}px * 0.8);
+    }
+
+    .ai-scroll-list-description-{{ ai_gen_id }} {
+      font-size: calc({{ block.settings.description_size }}px * 0.9);
+    }
+  }
+{% endstyle %}
+
+<horizontal-scroll-list-{{ ai_gen_id }} class="ai-scroll-list-{{ ai_gen_id }}" {{ block.shopify_attributes }}>
+  <div class="ai-scroll-list-container-{{ ai_gen_id }}">
+    {% if block.settings.heading != blank or block.settings.description != blank %}
+      <div class="ai-scroll-list-header-{{ ai_gen_id }}">
+        {% if block.settings.heading != blank %}
+          <h2 class="ai-scroll-list-heading-{{ ai_gen_id }}">{{ block.settings.heading }}</h2>
+        {% endif %}
+        {% if block.settings.description != blank %}
+          <div class="ai-scroll-list-description-{{ ai_gen_id }}">{{ block.settings.description }}</div>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    <div class="ai-scroll-list-wrapper-{{ ai_gen_id }}">
+      <div class="ai-scroll-list-items-{{ ai_gen_id }}">
+        {% for i in (1..8) %}
+          {% liquid
+            assign image_key = 'image_' | append: i
+            assign title_key = 'title_' | append: i
+            assign subtitle_key = 'subtitle_' | append: i
+            assign link_key = 'link_' | append: i
+
+            assign item_image = block.settings[image_key]
+            assign item_title = block.settings[title_key]
+            assign item_subtitle = block.settings[subtitle_key]
+            assign item_link = block.settings[link_key]
+          %}
+
+          {% if item_image != blank or item_title != blank or item_subtitle != blank %}
+            <div class="ai-scroll-list-item-{{ ai_gen_id }}">
+              {% if item_link != blank %}
+                <a href="{{ item_link }}" class="ai-scroll-list-image-wrapper-{{ ai_gen_id }}">
+              {% else %}
+                <div class="ai-scroll-list-image-wrapper-{{ ai_gen_id }}">
+              {% endif %}
+                {% if item_image %}
+                  <img
+                    src="{{ item_image | image_url: width: 600 }}"
+                    alt="{{ item_image.alt | escape }}"
+                    loading="lazy"
+                    width="600"
+                    height="1067"
+                  >
+                {% else %}
+                  <div class="ai-scroll-list-image-placeholder-{{ ai_gen_id }}">
+                    {{ 'image' | placeholder_svg_tag }}
+                  </div>
+                {% endif %}
+              {% if item_link != blank %}
+                </a>
+              {% else %}
+                </div>
+              {% endif %}
+
+              <div class="ai-scroll-list-content-{{ ai_gen_id }}">
+                {% if item_title != blank %}
+                  {% if item_link != blank %}
+                    <a href="{{ item_link }}" style="text-decoration: none;">
+                      <h3 class="ai-scroll-list-title-{{ ai_gen_id }}">{{ item_title }}</h3>
+                    </a>
+                  {% else %}
+                    <h3 class="ai-scroll-list-title-{{ ai_gen_id }}">{{ item_title }}</h3>
+                  {% endif %}
+                {% endif %}
+
+                {% if item_subtitle != blank %}
+                  <p class="ai-scroll-list-subtitle-{{ ai_gen_id }}">{{ item_subtitle }}</p>
+                {% endif %}
+              </div>
+            </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</horizontal-scroll-list-{{ ai_gen_id }}>
+
+<script>
+  (function() {
+    class HorizontalScrollList{{ ai_gen_id }} extends HTMLElement {
+      constructor() {
+        super();
+      }
+
+      connectedCallback() {
+        this.wrapper = this.querySelector('.ai-scroll-list-wrapper-{{ ai_gen_id }}');
+        if (this.wrapper) {
+          this.setupDragScroll();
+        }
+      }
+
+      setupDragScroll() {
+        let isDown = false;
+        let startX;
+        let scrollLeft;
+
+        this.wrapper.addEventListener('mousedown', (e) => {
+          isDown = true;
+          this.wrapper.style.cursor = 'grabbing';
+          startX = e.pageX - this.wrapper.offsetLeft;
+          scrollLeft = this.wrapper.scrollLeft;
+        });
+
+        this.wrapper.addEventListener('mouseleave', () => {
+          isDown = false;
+          this.wrapper.style.cursor = 'grab';
+        });
+
+        this.wrapper.addEventListener('mouseup', () => {
+          isDown = false;
+          this.wrapper.style.cursor = 'grab';
+        });
+
+        this.wrapper.addEventListener('mousemove', (e) => {
+          if (!isDown) return;
+          e.preventDefault();
+          const x = e.pageX - this.wrapper.offsetLeft;
+          const walk = (x - startX) * 2;
+          this.wrapper.scrollLeft = scrollLeft - walk;
+        });
+
+        this.wrapper.style.cursor = 'grab';
+      }
+    }
+
+    customElements.define('horizontal-scroll-list-{{ ai_gen_id }}', HorizontalScrollList{{ ai_gen_id }});
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Horizontal scroll list",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Section header"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Featured collection"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "description",
+      "label": "Description",
+      "default": "Scroll to explore our curated selection"
+    },
+    {
+      "type": "range",
+      "id": "heading_size",
+      "min": 16,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "Heading size",
+      "default": 32
+    },
+    {
+      "type": "range",
+      "id": "description_size",
+      "min": 12,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "label": "Description size",
+      "default": 16
+    },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "Heading color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "description_color",
+      "label": "Description color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "select",
+      "id": "text_alignment",
+      "label": "Text alignment",
+      "options": [
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "right",
+          "label": "Right"
+        }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "range",
+      "id": "desktop_width_percent",
+      "label": "Desktop width",
+      "min": 50,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 100
+    },
+    {
+      "type": "header",
+      "content": "Item style"
+    },
+    {
+      "type": "range",
+      "id": "item_width",
+      "min": 150,
+      "max": 400,
+      "step": 10,
+      "unit": "px",
+      "label": "Item width (desktop)",
+      "default": 280
+    },
+    {
+      "type": "range",
+      "id": "item_width_mobile",
+      "min": 120,
+      "max": 300,
+      "step": 10,
+      "unit": "px",
+      "label": "Item width (mobile)",
+      "default": 200
+    },
+    {
+      "type": "range",
+      "id": "item_gap",
+      "min": 8,
+      "max": 40,
+      "step": 4,
+      "unit": "px",
+      "label": "Gap between items",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "image_border_radius",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "label": "Image border radius",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "title_size",
+      "min": 12,
+      "max": 28,
+      "step": 1,
+      "unit": "px",
+      "label": "Title size",
+      "default": 18
+    },
+    {
+      "type": "range",
+      "id": "subtitle_size",
+      "min": 10,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Subtitle size",
+      "default": 14
+    },
+    {
+      "type": "color",
+      "id": "title_color",
+      "label": "Title color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "subtitle_color",
+      "label": "Subtitle color",
+      "default": "#cccccc"
+    },
+    {
+      "type": "color",
+      "id": "scrollbar_color",
+      "label": "Scrollbar color",
+      "default": "#666666"
+    },
+    {
+      "type": "header",
+      "content": "Item 1"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_1",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "title_1",
+      "label": "Title",
+      "default": "Item title"
+    },
+    {
+      "type": "text",
+      "id": "subtitle_1",
+      "label": "Subtitle",
+      "default": "Item description"
+    },
+    {
+      "type": "url",
+      "id": "link_1",
+      "label": "Link"
+    },
+    {
+      "type": "header",
+      "content": "Item 2"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_2",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "title_2",
+      "label": "Title",
+      "default": "Item title"
+    },
+    {
+      "type": "text",
+      "id": "subtitle_2",
+      "label": "Subtitle",
+      "default": "Item description"
+    },
+    {
+      "type": "url",
+      "id": "link_2",
+      "label": "Link"
+    },
+    {
+      "type": "header",
+      "content": "Item 3"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_3",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "title_3",
+      "label": "Title",
+      "default": "Item title"
+    },
+    {
+      "type": "text",
+      "id": "subtitle_3",
+      "label": "Subtitle",
+      "default": "Item description"
+    },
+    {
+      "type": "url",
+      "id": "link_3",
+      "label": "Link"
+    },
+    {
+      "type": "header",
+      "content": "Item 4"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_4",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "title_4",
+      "label": "Title",
+      "default": "Item title"
+    },
+    {
+      "type": "text",
+      "id": "subtitle_4",
+      "label": "Subtitle",
+      "default": "Item description"
+    },
+    {
+      "type": "url",
+      "id": "link_4",
+      "label": "Link"
+    },
+    {
+      "type": "header",
+      "content": "Item 5"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_5",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "title_5",
+      "label": "Title",
+      "default": "Item title"
+    },
+    {
+      "type": "text",
+      "id": "subtitle_5",
+      "label": "Subtitle",
+      "default": "Item description"
+    },
+    {
+      "type": "url",
+      "id": "link_5",
+      "label": "Link"
+    },
+    {
+      "type": "header",
+      "content": "Item 6"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_6",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "title_6",
+      "label": "Title",
+      "default": "Item title"
+    },
+    {
+      "type": "text",
+      "id": "subtitle_6",
+      "label": "Subtitle",
+      "default": "Item description"
+    },
+    {
+      "type": "url",
+      "id": "link_6",
+      "label": "Link"
+    },
+    {
+      "type": "header",
+      "content": "Item 7"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_7",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "title_7",
+      "label": "Title",
+      "default": "Item title"
+    },
+    {
+      "type": "text",
+      "id": "subtitle_7",
+      "label": "Subtitle",
+      "default": "Item description"
+    },
+    {
+      "type": "url",
+      "id": "link_7",
+      "label": "Link"
+    },
+    {
+      "type": "header",
+      "content": "Item 8"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_8",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "title_8",
+      "label": "Title",
+      "default": "Item title"
+    },
+    {
+      "type": "text",
+      "id": "subtitle_8",
+      "label": "Subtitle",
+      "default": "Item description"
+    },
+    {
+      "type": "url",
+      "id": "link_8",
+      "label": "Link"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Horizontal scroll list"
+    }
+  ]
+}
+{% endschema %}

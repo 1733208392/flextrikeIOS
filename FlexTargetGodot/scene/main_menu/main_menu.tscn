@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://cjkeemu421bdp"]
+[gd_scene format=3 uid="uid://cjkeemu421bdp"]
 
 [ext_resource type="Script" uid="uid://dthf7l17t1uuo" path="res://scene/main_menu/main_menu.gd" id="1_vny3a"]
 [ext_resource type="Theme" uid="uid://cdynjfvdtavlt" path="res://scene/main_menu/main_menu_button_theme.tres" id="2_kvq8n"]
@@ -10,7 +10,7 @@
 [ext_resource type="PackedScene" uid="uid://bgnvqj8xi6u7e" path="res://scene/volumn.tscn" id="8_kvq8n"]
 [ext_resource type="AudioStream" uid="uid://ci4xowhem06dc" path="res://audio/radar-beeping.mp3" id="12_bj3ug"]
 
-[node name="main_menu" type="Control"]
+[node name="main_menu" type="Control" unique_id=359099803]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -19,13 +19,13 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_vny3a")
 
-[node name="background" type="ColorRect" parent="."]
+[node name="background" type="ColorRect" parent="." unique_id=854210818]
 layout_mode = 0
 offset_right = 720.0
 offset_bottom = 1280.0
 color = Color(0.03137255, 0.03137255, 0.03137255, 1)
 
-[node name="Title" type="Label" parent="background"]
+[node name="Title" type="Label" parent="background" unique_id=198457447]
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
@@ -42,7 +42,7 @@ text = "FLEX TARGET"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="SubTitle" type="Label" parent="background"]
+[node name="SubTitle" type="Label" parent="background" unique_id=583650983]
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
@@ -59,7 +59,7 @@ text = "EB0423"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="CenterContainer" type="CenterContainer" parent="."]
+[node name="CenterContainer" type="CenterContainer" parent="." unique_id=153313138]
 custom_minimum_size = Vector2(600, 600)
 layout_mode = 1
 anchors_preset = 8
@@ -74,13 +74,13 @@ offset_bottom = 300.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="GridContainer" type="GridContainer" parent="CenterContainer"]
+[node name="GridContainer" type="GridContainer" parent="CenterContainer" unique_id=1900474216]
 layout_mode = 2
 theme_override_constants/h_separation = 32
 theme_override_constants/v_separation = 32
 columns = 2
 
-[node name="TargetsButton" type="Button" parent="CenterContainer/GridContainer"]
+[node name="TargetsButton" type="Button" parent="CenterContainer/GridContainer" unique_id=2118328526]
 custom_minimum_size = Vector2(300, 300)
 layout_mode = 2
 theme = ExtResource("2_kvq8n")
@@ -91,7 +91,7 @@ text = "
 icon = ExtResource("3_kvq8n")
 icon_alignment = 1
 
-[node name="Label" type="Label" parent="CenterContainer/GridContainer/TargetsButton"]
+[node name="Label" type="Label" parent="CenterContainer/GridContainer/TargetsButton" unique_id=1944940230]
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
@@ -107,7 +107,7 @@ grow_vertical = 0
 theme = ExtResource("2_kvq8n")
 text = "TARGETS"
 
-[node name="StagesButton" type="Button" parent="CenterContainer/GridContainer"]
+[node name="StagesButton" type="Button" parent="CenterContainer/GridContainer" unique_id=1695152943]
 custom_minimum_size = Vector2(300, 300)
 layout_mode = 2
 theme = ExtResource("2_kvq8n")
@@ -116,7 +116,7 @@ button_group = ExtResource("3_lt21p")
 icon = ExtResource("5_wbtty")
 icon_alignment = 1
 
-[node name="Label" type="Label" parent="CenterContainer/GridContainer/StagesButton"]
+[node name="Label" type="Label" parent="CenterContainer/GridContainer/StagesButton" unique_id=660310302]
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
@@ -132,7 +132,7 @@ grow_vertical = 0
 theme = ExtResource("2_kvq8n")
 text = "STAGES"
 
-[node name="GamesButton" type="Button" parent="CenterContainer/GridContainer"]
+[node name="GamesButton" type="Button" parent="CenterContainer/GridContainer" unique_id=1573443637]
 custom_minimum_size = Vector2(300, 300)
 layout_mode = 2
 theme = ExtResource("2_kvq8n")
@@ -141,7 +141,7 @@ button_group = ExtResource("3_lt21p")
 icon = ExtResource("6_cta3x")
 icon_alignment = 1
 
-[node name="Label" type="Label" parent="CenterContainer/GridContainer/GamesButton"]
+[node name="Label" type="Label" parent="CenterContainer/GridContainer/GamesButton" unique_id=230059525]
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
@@ -157,7 +157,7 @@ grow_vertical = 0
 theme = ExtResource("2_kvq8n")
 text = "GAMES"
 
-[node name="OptionsButton" type="Button" parent="CenterContainer/GridContainer"]
+[node name="OptionsButton" type="Button" parent="CenterContainer/GridContainer" unique_id=2035117441]
 custom_minimum_size = Vector2(300, 300)
 layout_mode = 2
 theme = ExtResource("2_kvq8n")
@@ -166,7 +166,7 @@ button_group = ExtResource("3_lt21p")
 icon = ExtResource("7_tm7m5")
 icon_alignment = 1
 
-[node name="Label" type="Label" parent="CenterContainer/GridContainer/OptionsButton"]
+[node name="Label" type="Label" parent="CenterContainer/GridContainer/OptionsButton" unique_id=1729290944]
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
@@ -182,7 +182,7 @@ grow_vertical = 0
 theme = ExtResource("2_kvq8n")
 text = "OPTIONS"
 
-[node name="Label" type="Label" parent="."]
+[node name="Label" type="Label" parent="." unique_id=527764537]
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
@@ -200,7 +200,7 @@ theme = ExtResource("2_kvq8n")
 horizontal_alignment = 1
 vertical_alignment = 2
 
-[node name="VolumeControl" parent="." instance=ExtResource("8_kvq8n")]
+[node name="VolumeControl" parent="." unique_id=1010216042 instance=ExtResource("8_kvq8n")]
 visible = false
 layout_mode = 1
 anchors_preset = 3
@@ -215,6 +215,6 @@ offset_bottom = -20.0
 grow_horizontal = 0
 grow_vertical = 0
 
-[node name="BackgroundMusic" type="AudioStreamPlayer" parent="."]
+[node name="BackgroundMusic" type="AudioStreamPlayer" parent="." unique_id=689880768]
 stream = ExtResource("12_bj3ug")
 autoplay = true
