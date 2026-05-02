@@ -46,9 +46,22 @@
         "spec_pdf": "",
         "oem_min_qty": 50
       }
+    },
+    "contact_form_TD8gWF": {
+      "type": "contact-form",
+      "name": "t:sections.contact-form.presets.name",
+      "settings": {
+        "heading": "Contact form",
+        "heading_size": "h1",
+        "color_scheme": "",
+        "default_tags": "b2b-inquiry",
+        "padding_top": 36,
+        "padding_bottom": 36
+      }
     }
   },
   "order": [
-    "main"
+    "main",
+    "contact_form_TD8gWF"
   ]
 }

@@ -22,6 +22,7 @@
         "heading": "",
         "heading_size": "h1",
         "color_scheme": "scheme-1",
+        "default_tags": "b2b-inquiry",
         "padding_top": 36,
         "padding_bottom": 36
       }
