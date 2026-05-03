@@ -337,6 +337,11 @@
     "video": {
       "load_video": "Video laden: {{ description }}"
     },
+    "video_faq": {
+      "no_videos": "Fügen Sie Videokarten aus den Abschnittseinstellungen hinzu.",
+      "views": "Aufrufe",
+      "view_video": "Video ansehen"
+    },
     "slideshow": {
       "load_slide": "Folie laden",
       "previous_slideshow": "Vorherige Folie",

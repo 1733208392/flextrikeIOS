@@ -345,6 +345,11 @@
     "video": {
       "load_video": "Load video: {{ description }}"
     },
+    "video_faq": {
+      "no_videos": "Add video cards from the section settings.",
+      "views": "views",
+      "view_video": "View video"
+    },
     "slideshow": {
       "load_slide": "Load slide",
       "previous_slideshow": "Previous slide",

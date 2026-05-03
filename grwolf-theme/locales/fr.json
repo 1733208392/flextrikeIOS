@@ -346,8 +346,11 @@
     },
     "video": {
       "load_video": "Charger la vidéo : {{ description }}"
-    },
-    "slideshow": {
+    },    "video_faq": {
+      "no_videos": "Ajoutez des cartes vidéo à partir des paramètres de la section.",
+      "views": "vues",
+      "view_video": "Voir la vidéo"
+    },    "slideshow": {
       "load_slide": "Charger la diapositive",
       "previous_slideshow": "Diapositive précédente",
       "next_slideshow": "Diapositive suivante",

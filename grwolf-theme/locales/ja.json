@@ -337,6 +337,11 @@
     "video": {
       "load_video": "動画を読み込む: {{ description }}"
     },
+    "video_faq": {
+      "no_videos": "セクション設定から動画カードを追加します。",
+      "views": "回視聴",
+      "view_video": "動画を視聴する"
+    },
     "slideshow": {
       "load_slide": "スライドを読み込む",
       "previous_slideshow": "前のスライド",

@@ -2529,6 +2529,61 @@
         "name": "Video"
       }
     },
+    "video_faq": {
+      "name": "Video FAQ",
+      "settings": {
+        "heading": {
+          "label": "Heading",
+          "default": "Video Tutorials"
+        },
+        "subheading": {
+          "label": "Subheading"
+        },
+        "heading_size": {
+          "label": "Heading size",
+          "options__1": {"label": "Small"},
+          "options__2": {"label": "Medium"},
+          "options__3": {"label": "Large"}
+        },
+        "columns_desktop": {"label": "Number of columns on desktop"},
+        "color_scheme": {
+          "label": "Color scheme",
+          "options__1": {"label": "Accent 1"},
+          "options__2": {"label": "Accent 2"},
+          "options__3": {"label": "Background 1"},
+          "options__4": {"label": "Background 2"},
+          "options__5": {"label": "Inverse"}
+        },
+        "header__1": {"content": "Mobile Layout"},
+        "columns_mobile": {
+          "label": "Number of columns on mobile",
+          "options__1": {"label": "1 column"},
+          "options__2": {"label": "2 columns"}
+        },
+        "swipe_on_mobile": {"label": "Enable swipe on mobile"},
+        "header__2": {"content": "Section Padding"},
+        "padding_top": {"label": "Top padding"},
+        "padding_bottom": {"label": "Bottom padding"}
+      },
+      "blocks": {
+        "video_card": {
+          "name": "Video Card",
+          "settings": {
+            "thumbnail": {"label": "Video Thumbnail"},
+            "title": {"label": "Video Title", "default": "Video Title"},
+            "video_url": {"label": "Video URL", "info": "Link to YouTube, Vimeo, or other video platform"},
+            "duration": {"label": "Video Duration", "default": "0:00", "info": "Example: 1:44 or 2:47"},
+            "show_duration": {"label": "Show duration badge"},
+            "views": {"label": "View Count", "default": "0", "info": "Example: 17 or 1.2K"},
+            "show_views": {"label": "Show view count"},
+            "date": {"label": "Date", "default": "5 days ago", "info": "Example: 5 days ago or Jan 15, 2024"},
+            "show_date": {"label": "Show date"},
+            "show_playlist_indicator": {"label": "Show playlist indicator icon"}
+          }
+        }
+      },
+      "presets": {"name": "Video FAQ"}
+    },
     "featured-product": {
       "name": "Vorgestelltes Produkt",
       "blocks": {

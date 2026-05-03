@@ -1,0 +1,264 @@
+/* Video FAQ Section Styles */
+
+.video-faq-section {
+  margin-top: 0;
+}
+
+.video-faq__title {
+  margin-bottom: 1rem;
+}
+
+.video-faq__subheading {
+  margin-top: 1rem;
+  margin-bottom: 2rem;
+  font-size: 1.4rem;
+  color: rgba(var(--color-foreground), 0.75);
+}
+
+.video-faq-grid {
+  /* Inherits display: flex from theme's .grid class */
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.video-faq-card {
+  list-style: none;
+  position: relative;
+}
+
+.video-faq-card__link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.2s ease-in-out;
+  cursor: pointer;
+}
+
+.video-faq-card__link:hover {
+  transform: translateY(-4px);
+}
+
+.video-faq-card__wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: transparent;
+}
+
+/* Thumbnail Styles */
+.video-faq-card__thumbnail {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 12px;
+  background-color: rgba(var(--color-foreground), 0.04);
+  aspect-ratio: 16 / 9;
+}
+
+.video-faq-card__thumbnail--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(var(--color-foreground), 0.08);
+}
+
+.video-faq-card__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s ease-in-out;
+}
+
+.video-faq-card__link:hover .video-faq-card__image {
+  transform: scale(1.05);
+}
+
+/* Duration Badge */
+.video-faq-card__duration {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background-color: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  z-index: 2;
+}
+
+/* Playlist Indicator */
+.video-faq-card__playlist-indicator {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background-color: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  padding: 4px 6px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.video-faq-card__playlist-indicator svg {
+  display: block;
+}
+
+/* Content Area */
+.video-faq-card__content {
+  padding-top: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  flex-grow: 1;
+}
+
+.video-faq-card__title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  line-height: 1.4;
+  margin: 0;
+  color: rgb(var(--color-foreground));
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+}
+
+@media screen and (min-width: 750px) {
+  .video-faq-card__title {
+    font-size: 1.5rem;
+  }
+}
+
+.video-faq-card__link:hover .video-faq-card__title {
+  color: rgb(var(--color-link));
+}
+
+/* Meta Information */
+.video-faq-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  font-size: 1.2rem;
+  color: rgba(var(--color-foreground), 0.65);
+  line-height: 1.5;
+}
+
+@media screen and (min-width: 750px) {
+  .video-faq-card__meta {
+    font-size: 1.3rem;
+  }
+}
+
+.video-faq-card__views,
+.video-faq-card__date {
+  display: inline-block;
+}
+
+.video-faq-card__views + .video-faq-card__date:before {
+  content: '•';
+  margin-right: 0.4rem;
+}
+
+/* Empty State */
+.video-faq-empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: rgba(var(--color-foreground), 0.55);
+  font-size: 1.4rem;
+}
+
+/* Slider Controls for Mobile */
+@media screen and (max-width: 749px) {
+  .video-faq-grid.slider {
+    scroll-padding-left: 1.5rem;
+  }
+  
+  .video-faq-grid.slider--tablet {
+    scroll-padding-left: 1.5rem;
+  }
+}
+
+/* Animation Effects */
+@media (prefers-reduced-motion: no-preference) {
+  .video-faq-card {
+    animation: fadeInUp 0.6s ease-out forwards;
+    opacity: 0;
+  }
+  
+  .video-faq-card:nth-child(1) { animation-delay: 0.1s; }
+  .video-faq-card:nth-child(2) { animation-delay: 0.2s; }
+  .video-faq-card:nth-child(3) { animation-delay: 0.3s; }
+  .video-faq-card:nth-child(4) { animation-delay: 0.4s; }
+  .video-faq-card:nth-child(5) { animation-delay: 0.5s; }
+  .video-faq-card:nth-child(6) { animation-delay: 0.6s; }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Focus States for Accessibility */
+.video-faq-card__link:focus {
+  outline: 2px solid rgba(var(--color-foreground), 0.5);
+  outline-offset: 4px;
+  border-radius: 12px;
+}
+
+.video-faq-card__link:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Placeholder SVG Styling */
+.video-faq-card__thumbnail--placeholder .placeholder-svg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.4;
+}
+
+/* Dark Mode Support (if theme supports it) */
+@media (prefers-color-scheme: dark) {
+  .video-faq-card__thumbnail {
+    background-color: rgba(255, 255, 255, 0.08);
+  }
+  
+  .video-faq-card__thumbnail--placeholder {
+    background-color: rgba(255, 255, 255, 0.12);
+  }
+}
+
+/* Responsive Grid Gap Adjustments */
+@media screen and (max-width: 749px) {
+  .video-faq-grid {
+    gap: 1.5rem;
+  }
+  
+  .video-faq-card__content {
+    padding-top: 1rem;
+  }
+}
+
+/* High DPI Screens */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .video-faq-card__duration,
+  .video-faq-card__playlist-indicator {
+    font-weight: 500;
+  }
+}

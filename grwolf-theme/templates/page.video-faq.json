@@ -1,0 +1,39 @@
+{
+  "sections": {
+    "video_faq_main": {
+      "type": "video-faq",
+      "settings": {
+        "heading": "Video Tutorials",
+        "subheading": "",
+        "heading_size": "h1",
+        "columns_desktop": 3,
+        "columns_mobile": "1",
+        "swipe_on_mobile": true,
+        "padding_top": 36,
+        "padding_bottom": 36
+      },
+      "blocks": {
+        "video_1": {
+          "type": "video_card",
+          "settings": {
+            "video_title": "Your Video Title Here",
+            "video_url": "",
+            "duration": "0:00",
+            "show_duration": true,
+            "view_count": "",
+            "show_views": false,
+            "date": "",
+            "show_date": false,
+            "show_playlist": false
+          }
+        }
+      },
+      "block_order": [
+        "video_1"
+      ]
+    }
+  },
+  "order": [
+    "video_faq_main"
+  ]
+}
