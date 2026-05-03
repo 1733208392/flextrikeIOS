@@ -1,0 +1,284 @@
+{{ 'section-review-cards.css' | asset_url | stylesheet_tag }}
+
+{%- style -%}
+  .section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
+    padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
+  }
+
+  #shopify-section-{{ section.id }} .review-cards .title,
+  #shopify-section-{{ section.id }} .review-card__name,
+  #shopify-section-{{ section.id }} .review-card__title,
+  #shopify-section-{{ section.id }} .review-card__text,
+  #shopify-section-{{ section.id }} .review-card__date {
+    color: #fff !important;
+    opacity: 1 !important;
+  }
+
+  #shopify-section-{{ section.id }} .review-card,
+  #shopify-section-{{ section.id }} .review-card__inner,
+  #shopify-section-{{ section.id }} .review-card.scroll-trigger.animate--slide-in,
+  #shopify-section-{{ section.id }} .title-wrapper.scroll-trigger.animate--slide-in {
+    opacity: 1 !important;
+  }
+
+  #shopify-section-{{ section.id }} .title-wrapper {
+    text-align: center;
+    justify-content: center;
+  }
+
+  #shopify-section-{{ section.id }} .title {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  #shopify-section-{{ section.id }} .review-cards__grid {
+    display: grid !important;
+    grid-template-columns: 1fr;
+  }
+
+  @media screen and (min-width: 990px) {
+    #shopify-section-{{ section.id }} .review-cards__grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+  }
+
+  @media screen and (min-width: 750px) {
+    .section-{{ section.id }}-padding {
+      padding-top: {{ section.settings.padding_top }}px;
+      padding-bottom: {{ section.settings.padding_bottom }}px;
+    }
+  }
+{%- endstyle -%}
+
+<div class="review-cards isolate color-{{ section.settings.color_scheme }} gradient">
+  <div class="page-width section-{{ section.id }}-padding">
+    {%- unless section.settings.title == blank -%}
+      <div class="title-wrapper title-wrapper--no-top-margin{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--slide-in{% endif %}">
+        <h2 class="title inline-richtext {{ section.settings.heading_size }}">
+          {{ section.settings.title }}
+        </h2>
+      </div>
+    {%- endunless -%}
+
+    <div class="review-cards__container">
+      <div class="review-cards__grid grid grid--{{ section.settings.columns_mobile }}-col-tablet-down grid--{{ section.settings.columns_desktop }}-col-desktop">
+        {%- for block in section.blocks -%}
+          <div
+            class="review-card{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--slide-in{% endif %}"
+            {{ block.shopify_attributes }}
+            {% if settings.animations_reveal_on_scroll %}
+              data-cascade
+              style="--animation-order: {{ forloop.index }};"
+            {% endif %}
+          >
+            <div class="review-card__inner">
+              {%- if block.settings.image != blank or block.settings.reviewer_name != blank -%}
+                <div class="review-card__header">
+                  {%- if block.settings.image != blank -%}
+                    <div class="review-card__avatar">
+                      {{
+                        block.settings.image
+                        | image_url: width: 120
+                        | image_tag: loading: 'lazy', width: block.settings.image.width, height: block.settings.image.height, alt: block.settings.reviewer_name
+                      }}
+                    </div>
+                  {%- endif -%}
+                  <div class="review-card__reviewer-info">
+                    {%- if block.settings.reviewer_name != blank -%}
+                      <h3 class="review-card__name">{{ block.settings.reviewer_name }}</h3>
+                    {%- endif -%}
+                    {%- if block.settings.reviewer_title != blank -%}
+                      <p class="review-card__title">{{ block.settings.reviewer_title }}</p>
+                    {%- endif -%}
+                  </div>
+                </div>
+              {%- endif -%}
+
+              {%- if block.settings.review_text != blank -%}
+                <div class="review-card__content">
+                  <p class="review-card__text">{{ block.settings.review_text | strip | truncatewords: 300, '...' }}</p>
+                </div>
+              {%- endif -%}
+
+              <div class="review-card__footer">
+                <div class="review-card__stars">
+                  {%- for i in (1..5) -%}
+                    <svg class="review-card__star" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                    </svg>
+                  {%- endfor -%}
+                </div>
+                {%- if block.settings.review_date != blank -%}
+                  <p class="review-card__date">Reviewed on {{ block.settings.review_date }}</p>
+                {%- endif -%}
+              </div>
+            </div>
+          </div>
+        {%- endfor -%}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Review Cards",
+  "tag": "section",
+  "class": "section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "inline_richtext",
+      "id": "title",
+      "default": "Customer Reviews",
+      "label": "Heading"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "options": [
+        {
+          "value": "h2",
+          "label": "Small"
+        },
+        {
+          "value": "h1",
+          "label": "Medium"
+        },
+        {
+          "value": "h0",
+          "label": "Large"
+        },
+        {
+          "value": "hxl",
+          "label": "Extra large"
+        }
+      ],
+      "default": "h1",
+      "label": "Heading size"
+    },
+    {
+      "type": "select",
+      "id": "columns_desktop",
+      "options": [
+        {
+          "value": "1",
+          "label": "1 column"
+        },
+        {
+          "value": "2",
+          "label": "2 columns"
+        },
+        {
+          "value": "3",
+          "label": "3 columns"
+        },
+        {
+          "value": "4",
+          "label": "4 columns"
+        }
+      ],
+      "default": "3",
+      "label": "Number of columns on desktop"
+    },
+    {
+      "type": "select",
+      "id": "columns_mobile",
+      "options": [
+        {
+          "value": "1",
+          "label": "1 column"
+        },
+        {
+          "value": "2",
+          "label": "2 columns"
+        }
+      ],
+      "default": "1",
+      "label": "Number of columns on mobile"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Top padding",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Bottom padding",
+      "default": 36
+    }
+  ],
+  "blocks": [
+    {
+      "type": "review",
+      "name": "Review",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Reviewer photo"
+        },
+        {
+          "type": "text",
+          "id": "reviewer_name",
+          "default": "John Doe",
+          "label": "Reviewer name"
+        },
+        {
+          "type": "text",
+          "id": "reviewer_title",
+          "default": "Marketing Manager",
+          "label": "Reviewer title"
+        },
+        {
+          "type": "textarea",
+          "id": "review_text",
+          "default": "Lorem ipsum dolor sit amet consectetur adipisicing elit. Quo dolor eveniet deleniti repellendus! Minima, dolorum.",
+          "label": "Review text"
+        },
+        {
+          "type": "text",
+          "id": "review_date",
+          "default": "01/01/2023",
+          "label": "Review date"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Review Cards",
+      "blocks": [
+        {
+          "type": "review"
+        },
+        {
+          "type": "review"
+        },
+        {
+          "type": "review"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
