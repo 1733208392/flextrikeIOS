@@ -1,20 +1,321 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "sections": {
-    "main": {
-      "type": "b2b-wholesale",
+    "hero": {
+      "type": "wholesale-hero",
       "settings": {
-        "heading": "GRWOLF Wholesale",
-        "subheading": "",
-        "spec_pdf": "",
-        "oem_min_qty": 50
-      },
+        "section_id": "wholesale-hero",
+        "overlay_opacity": 55,
+        "heading": "GRWOLF WHOLESALE",
+        "subtitle": "Premium Fitness Equipment - Factory-Direct Pricing",
+        "value_hook": "Up to 50% Off on 10+ Units",
+        "primary_cta_label": "Request Quote",
+        "primary_cta_link": "#wholesale-inquiry-form",
+        "padding_top": 104,
+        "padding_bottom": 104
+      }
+    },
+    "why": {
+      "type": "wholesale-why",
       "blocks": {
-        "tier-1": {"type":"tier","settings":{"qty":10,"discount":30}},
-        "tier-2": {"type":"tier","settings":{"qty":50,"discount":40}},
-        "tier-3": {"type":"tier","settings":{"qty":100,"discount":50}}
+        "why_1": {
+          "type": "benefit",
+          "settings": {
+            "icon_image": "shopify://shop_images/factory.png",
+            "title": "Factory-Direct",
+            "description": "No middlemen. Transparent prices and better margin control for your business."
+          }
+        },
+        "why_2": {
+          "type": "benefit",
+          "settings": {
+            "icon_image": "shopify://shop_images/shipping.png",
+            "title": "Fast Shipping",
+            "description": "Stock-ready items ship in as fast as 7 days with proactive logistics updates."
+          }
+        },
+        "why_3": {
+          "type": "benefit",
+          "settings": {
+            "icon_image": "shopify://shop_images/oem.png",
+            "title": "OEM Ready",
+            "description": "Build your branded lineup with logo and packaging customization from 50 units."
+          }
+        }
       },
-      "block_order": ["tier-1","tier-2","tier-3"]
+      "block_order": [
+        "why_1",
+        "why_2",
+        "why_3"
+      ],
+      "settings": {
+        "section_id": "wholesale-why",
+        "heading": "Why GRWOLF",
+        "subheading": "Three reasons wholesale buyers work with us long term.",
+        "padding_top": 92,
+        "padding_bottom": 92
+      }
+    },
+    "process": {
+      "type": "wholesale-process",
+      "blocks": {
+        "step_1": {
+          "type": "step",
+          "settings": {
+            "step_number": "1",
+            "icon_image": "shopify://shop_images/question.png",
+            "title": "Send Inquiry",
+            "description": "Fill the form and share product type, quantity, and target market."
+          }
+        },
+        "step_2": {
+          "type": "step",
+          "settings": {
+            "step_number": "2",
+            "icon_image": "shopify://shop_images/dollor.png",
+            "title": "Get Quote",
+            "description": "Receive a dedicated quote with shipping estimates within 24 business hours."
+          }
+        },
+        "step_3": {
+          "type": "step",
+          "settings": {
+            "step_number": "3",
+            "icon_image": "shopify://shop_images/handshake.png",
+            "title": "Confirm & Pay",
+            "description": "Approve specs and settle the order with flexible payment options."
+          }
+        },
+        "step_4": {
+          "type": "step",
+          "settings": {
+            "step_number": "4",
+            "icon_image": "shopify://shop_images/shipping.png",
+            "title": "Ship",
+            "description": "Production and dispatch begin with full logistics tracking support."
+          }
+        }
+      },
+      "block_order": [
+        "step_1",
+        "step_2",
+        "step_3",
+        "step_4"
+      ],
+      "settings": {
+        "section_id": "wholesale-process",
+        "heading": "How It Works",
+        "subheading": "A streamlined 4-step flow from inquiry to delivery.",
+        "padding_top": 92,
+        "padding_bottom": 92
+      }
+    },
+    "trust": {
+      "type": "wholesale-trust",
+      "blocks": {
+        "logo_bHRaEe": {
+          "type": "logo",
+          "settings": {
+            "logo_image": "shopify://shop_images/cyt-logo.jpg",
+            "logo_alt": "Partner logo"
+          }
+        },
+        "logo_38qmEp": {
+          "type": "logo",
+          "settings": {
+            "logo_image": "shopify://shop_images/hzj-logo.jpg",
+            "logo_alt": "Partner logo"
+          }
+        },
+        "logo_1": {
+          "type": "logo",
+          "settings": {
+            "logo_image": "shopify://shop_images/ipsc-logo.jpg",
+            "logo_alt": "Distributor A"
+          }
+        },
+        "logo_2": {
+          "type": "logo",
+          "settings": {
+            "logo_image": "shopify://shop_images/cspf-logo.jpg",
+            "logo_alt": "Distributor B"
+          }
+        },
+        "logo_3": {
+          "type": "logo",
+          "settings": {
+            "logo_image": "shopify://shop_images/stg-logo.jpg",
+            "logo_alt": "Retail Partner C"
+          }
+        },
+        "photo_1": {
+          "type": "photo",
+          "settings": {
+            "photo_image": "shopify://shop_images/StockCake-Industrial_Precision_Work-417367-medium.webp",
+            "photo_caption": "Factory production line"
+          }
+        },
+        "photo_2": {
+          "type": "photo",
+          "settings": {
+            "photo_image": "shopify://shop_images/inspection.jpg",
+            "photo_caption": "Final quality inspection"
+          }
+        },
+        "photo_3": {
+          "type": "photo",
+          "settings": {
+            "photo_image": "shopify://shop_images/transloading.jpg",
+            "photo_caption": "Container loading and shipment"
+          }
+        },
+        "badge_1": {
+          "type": "badge",
+          "settings": {
+            "badge_text": "CE Certified"
+          }
+        },
+        "badge_2": {
+          "type": "badge",
+          "settings": {
+            "badge_text": "ISO Compliant"
+          }
+        },
+        "badge_3": {
+          "type": "badge",
+          "settings": {
+            "badge_text": "SGS Inspected"
+          }
+        }
+      },
+      "block_order": [
+        "logo_bHRaEe",
+        "logo_38qmEp",
+        "logo_1",
+        "logo_2",
+        "logo_3",
+        "photo_1",
+        "photo_2",
+        "photo_3",
+        "badge_1",
+        "badge_2",
+        "badge_3"
+      ],
+      "settings": {
+        "section_id": "wholesale-trust",
+        "heading": "Trusted Worldwide",
+        "subheading": "",
+        "primary_stat": "Ship to 20+ Countries",
+        "secondary_stat": "Trusted by 50+ distributors worldwide",
+        "padding_top": 40,
+        "padding_bottom": 40
+      }
+    },
+    "faq": {
+      "type": "collapsible-content",
+      "blocks": {
+        "faq_1": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "What's the minimum order quantity?",
+            "icon": "question_mark",
+            "row_content": "<p>Wholesale pricing starts at 10 units.</p>",
+            "page": ""
+          }
+        },
+        "faq_2": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "How much is shipping?",
+            "icon": "truck",
+            "row_content": "<p>Shipping is calculated by destination, package dimensions, and weight. We provide an exact quote after inquiry.</p>",
+            "page": ""
+          }
+        },
+        "faq_3": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "How long does delivery take?",
+            "icon": "stopwatch",
+            "row_content": "<p>In-stock products can ship in around 7 days. OEM/custom orders usually take 15-25 days.</p>",
+            "page": ""
+          }
+        },
+        "faq_4": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "Can I customize with my brand logo?",
+            "icon": "star",
+            "row_content": "<p>Yes. OEM branding is available with a minimum quantity of 50 units.</p>",
+            "page": ""
+          }
+        },
+        "faq_5": {
+          "type": "collapsible_row",
+          "settings": {
+            "heading": "What payment methods do you accept?",
+            "icon": "check_mark",
+            "row_content": "<p>We support T/T, PayPal, L/C, and other methods depending on order size and region.</p>",
+            "page": ""
+          }
+        }
+      },
+      "block_order": [
+        "faq_1",
+        "faq_2",
+        "faq_3",
+        "faq_4",
+        "faq_5"
+      ],
+      "settings": {
+        "caption": "",
+        "heading": "Wholesale FAQ",
+        "heading_size": "h1",
+        "heading_alignment": "center",
+        "layout": "row",
+        "color_scheme": "scheme-1",
+        "container_color_scheme": "scheme-2",
+        "open_first_collapsible_row": true,
+        "image_ratio": "adapt",
+        "desktop_layout": "image_second",
+        "padding_top": 92,
+        "padding_bottom": 92
+      }
+    },
+    "inquiry_form": {
+      "type": "contact-form",
+      "settings": {
+        "heading": "Wholesale Inquiry",
+        "heading_size": "h1",
+        "color_scheme": "scheme-1",
+        "default_tags": "b2b-inquiry",
+        "form_anchor_id": "wholesale-inquiry-form",
+        "cta_heading": "Ready to Grow Your Business?",
+        "cta_subheading": "Wholesale Inquiry",
+        "response_note": "We respond within 24 business hours",
+        "show_quick_contact": true,
+        "quick_email": "biz@grwolftactical.com",
+        "quick_whatsapp": "+1 (949)279-6698",
+        "quick_whatsapp_label": "+1 (949)279-6698",
+        "padding_top": 92,
+        "padding_bottom": 92
+      }
     }
   },
-  "order": ["main"]
+  "order": [
+    "hero",
+    "why",
+    "process",
+    "trust",
+    "faq",
+    "inquiry_form"
+  ]
 }

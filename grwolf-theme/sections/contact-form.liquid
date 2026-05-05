@@ -20,22 +20,38 @@
     -%}
 
     <!-- Render an inline wholesale-style inquiry form (no modal) -->
-    <div class="wholesale-style">
+    {%- liquid
+      assign whatsapp_digits = section.settings.quick_whatsapp | replace: ' ', '' | replace: '(', '' | replace: ')', '' | replace: '-', ''
+      assign whatsapp_href = 'https://wa.me/' | append: whatsapp_digits
+    -%}
+
+    <div id="{{ section.settings.form_anchor_id | default: 'wholesale-inquiry-form' }}" class="wholesale-style">
       <style>
         /* Inline form styles derived from b2b-wholesale but rendered inline */
-        .wholesale-style .form-container-inline{background:#141414;border:1px solid #2a2a2a;border-radius:8px;padding:36px 28px;max-width:720px;width:100%;position:relative;margin-top:12px}
+        .wholesale-style .form-container-inline{background:#141414;border:1px solid #2a2a2a;border-radius:8px;padding:36px 28px;max-width:820px;width:100%;position:relative;margin-top:12px}
         .wholesale-style .form-title{font-size:24px;font-weight:600;margin-bottom:24px}
+        .wholesale-style .form-kicker{margin:0 0 10px;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:#de3823;font-weight:700}
+        .wholesale-style .form-cta{margin:0 0 8px;font-size:clamp(1.55rem,3.2vw,2.25rem);line-height:1.2;color:#fff;text-transform:uppercase;letter-spacing:0.04em}
+        .wholesale-style .form-subcopy{margin:0 0 24px;color:#b8b8b8;line-height:1.6}
         .wholesale-style .form-group{margin-bottom:16px;text-align:left}
         .wholesale-style .form-group label{display:block;font-size:13px;color:#888;margin-bottom:8px;letter-spacing:0.5px;text-transform:uppercase}
         .wholesale-style .form-group input,.wholesale-style .form-group textarea,.wholesale-style .form-group select{width:100%;padding:12px 16px;font-size:15px;color:#fff;background:#1a1a1a;border:1px solid #333;border-radius:4px}
         .wholesale-style .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
         .wholesale-style .btn-submit{width:100%;padding:14px;font-size:15px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#de3823 !important;background:linear-gradient(135deg,#1a1a2e,#16213e);border:1px solid #333;border-radius:4px;cursor:pointer}
         .wholesale-style .btn-submit:hover{background:linear-gradient(135deg,#16213e,#0f3460);border-color:#555}
-        .wholesale-style .form-note{margin-top:12px;font-size:12px;color:#555}
-        @media (max-width:600px){.wholesale-style .form-container-inline{padding:24px}.wholesale-style .form-row{grid-template-columns:1fr}}
+        .wholesale-style .form-note{margin-top:12px;font-size:12px;color:#9f9f9f}
+        .wholesale-style .quick-contact{margin-top:14px;display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+        .wholesale-style .quick-contact__link{display:inline-flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,0.2);border-radius:999px;padding:8px 14px;font-size:13px;color:#fff;text-decoration:none;transition:border-color .2s ease,color .2s ease}
+        .wholesale-style .quick-contact__link:hover{border-color:#de3823;color:#de3823}
+        @media (max-width:600px){.wholesale-style .form-container-inline{padding:24px}.wholesale-style .form-row{grid-template-columns:1fr}.wholesale-style .quick-contact__link{width:100%}}
       </style>
 
       <div class="form-container-inline" aria-hidden="false">
+        <p class="form-kicker">Wholesale</p>
+        <h2 class="form-cta">{{ section.settings.cta_heading | default: 'Ready to Grow Your Business?' }}</h2>
+        {%- if section.settings.cta_subheading != blank -%}
+          <p class="form-subcopy">{{ section.settings.cta_subheading }}</p>
+        {%- endif -%}
 
         <form id="contact-form" class="contact-form" action="/contact" method="post" accept-charset="UTF-8">
           <input type="hidden" name="form_type" value="contact">
@@ -88,7 +104,18 @@
           </div>
 
           <button type="submit" class="btn-submit accent-red">Submit Inquiry</button>
-          <p class="form-note">We'll respond within 24 business hours.</p>
+          <p class="form-note">{{ section.settings.response_note | default: 'We respond within 24 business hours' }}</p>
+
+          {%- if section.settings.show_quick_contact -%}
+            <div class="quick-contact">
+              {%- if section.settings.quick_email != blank -%}
+                <a class="quick-contact__link" href="mailto:{{ section.settings.quick_email }}">Email: {{ section.settings.quick_email }}</a>
+              {%- endif -%}
+              {%- if section.settings.quick_whatsapp != blank -%}
+                <a class="quick-contact__link" href="{{ whatsapp_href }}" target="_blank" rel="noopener noreferrer">WhatsApp: {{ section.settings.quick_whatsapp_label | default: section.settings.quick_whatsapp }}</a>
+              {%- endif -%}
+            </div>
+          {%- endif -%}
         </form>
       </div>
 
@@ -148,6 +175,54 @@
       "id": "default_tags",
       "label": "Default contact tags",
       "default": "b2b-inquiry"
+    },
+    {
+      "type": "text",
+      "id": "form_anchor_id",
+      "label": "Form anchor ID",
+      "default": "wholesale-inquiry-form"
+    },
+    {
+      "type": "text",
+      "id": "cta_heading",
+      "label": "CTA heading",
+      "default": "Ready to Grow Your Business?"
+    },
+    {
+      "type": "text",
+      "id": "cta_subheading",
+      "label": "CTA subheading",
+      "default": "Wholesale Inquiry"
+    },
+    {
+      "type": "text",
+      "id": "response_note",
+      "label": "Response note",
+      "default": "We respond within 24 business hours"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_quick_contact",
+      "label": "Show quick contact links",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "quick_email",
+      "label": "Quick contact email",
+      "default": "biz@grwolftactical.com"
+    },
+    {
+      "type": "text",
+      "id": "quick_whatsapp",
+      "label": "Quick contact WhatsApp number",
+      "default": "+1 (949)279-6698"
+    },
+    {
+      "type": "text",
+      "id": "quick_whatsapp_label",
+      "label": "Quick contact WhatsApp label",
+      "default": "+1 (949)279-6698"
     },
     {
       "type": "header",

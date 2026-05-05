@@ -1,0 +1,383 @@
+{%- style -%}
+  .wholesale-trust-{{ section.id }} {
+    background: #141414;
+    color: #ffffff;
+  }
+
+  .wholesale-trust-{{ section.id }} .wholesale-trust__inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: {{ section.settings.padding_top }}px 24px {{ section.settings.padding_bottom }}px;
+    font-family: var(--font-body-family);
+  }
+
+  .wholesale-trust-{{ section.id }} .wholesale-trust__heading {
+    margin: 0;
+    font-size: clamp(1.75rem, 3.4vw, 2.75rem);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    text-align: center;
+    line-height: 1.2;
+  }
+
+  .wholesale-trust-{{ section.id }} .wholesale-trust__lead {
+    margin: 14px auto 0;
+    max-width: 780px;
+    text-align: center;
+    color: #bbbbbb;
+    line-height: 1.7;
+  }
+
+  .wholesale-trust-{{ section.id }} .wholesale-trust__stats {
+    margin: 30px auto 0;
+    max-width: 880px;
+    padding: 16px 20px;
+    text-align: center;
+    color: #f5f5f5;
+  }
+
+  .wholesale-trust-{{ section.id }} .wholesale-trust__stats strong {
+    color: #de3823;
+  }
+
+  .wholesale-trust-{{ section.id }} .wholesale-trust__group-title {
+    margin: 34px 0 14px;
+    font-size: 1rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #de3823;
+  }
+
+  .wholesale-trust-{{ section.id }} .wholesale-trust__logo-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .wholesale-trust-{{ section.id }} .wholesale-trust__logo-card {
+    min-height: 84px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    color: #8f8f8f;
+    font-size: 0.9rem;
+  }
+
+  .wholesale-trust-{{ section.id }} .wholesale-trust__logo-card img {
+    max-width: 100%;
+    max-height: 42px;
+    object-fit: contain;
+  }
+
+  .wholesale-trust-{{ section.id }} .wholesale-trust__photo-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .wholesale-trust-{{ section.id }} .wholesale-trust__photo-card {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .wholesale-trust-{{ section.id }} .wholesale-trust__photo {
+    aspect-ratio: 4 / 3;
+    background: linear-gradient(135deg, #242424, #181818);
+  }
+
+  .wholesale-trust-{{ section.id }} .wholesale-trust__photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .wholesale-trust-{{ section.id }} .wholesale-trust__caption {
+    margin: 0;
+    padding: 10px 12px;
+    color: #b8b8b8;
+    font-size: 0.92rem;
+  }
+
+  .wholesale-trust-{{ section.id }} .wholesale-trust__badge-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .wholesale-trust-{{ section.id }} .wholesale-trust__badge {
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 999px;
+    padding: 8px 14px;
+    color: #ececec;
+    font-size: 0.88rem;
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  @media screen and (max-width: 989px) {
+    .wholesale-trust-{{ section.id }} .wholesale-trust__logo-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .wholesale-trust-{{ section.id }} .wholesale-trust__photo-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media screen and (max-width: 749px) {
+    .wholesale-trust-{{ section.id }} .wholesale-trust__inner {
+      padding: {{ section.settings.padding_top | times: 0.65 | round: 0 }}px 20px {{ section.settings.padding_bottom | times: 0.65 | round: 0 }}px;
+    }
+
+    .wholesale-trust-{{ section.id }} .wholesale-trust__logo-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .wholesale-trust-{{ section.id }} .wholesale-trust__photo-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+{%- endstyle -%}
+
+<section id="{{ section.settings.section_id | default: 'wholesale-trust' }}" class="wholesale-trust-{{ section.id }}">
+  <div class="wholesale-trust__inner">
+    <h2 class="wholesale-trust__heading">{{ section.settings.heading }}</h2>
+    <p class="wholesale-trust__lead">{{ section.settings.subheading }}</p>
+
+    <p class="wholesale-trust__stats">
+      <strong>{{ section.settings.primary_stat }}</strong>
+      <br>
+      {{ section.settings.secondary_stat }}
+    </p>
+
+    <div class="wholesale-trust__logo-grid">
+      {%- assign has_logo = false -%}
+      {%- for block in section.blocks -%}
+        {%- if block.type == 'logo' -%}
+          {%- assign has_logo = true -%}
+          <div class="wholesale-trust__logo-card" {{ block.shopify_attributes }}>
+            {%- if block.settings.logo_image != blank -%}
+              {{ block.settings.logo_image | image_url: width: 400 | image_tag: loading: 'lazy', alt: block.settings.logo_alt }}
+            {%- else -%}
+              {{ block.settings.logo_alt | default: 'Logo Placeholder' }}
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+      {%- endfor -%}
+      {%- unless has_logo -%}
+        <div class="wholesale-trust__logo-card">Distributor A</div>
+        <div class="wholesale-trust__logo-card">Distributor B</div>
+        <div class="wholesale-trust__logo-card">Retailer C</div>
+        <div class="wholesale-trust__logo-card">Partner D</div>
+        <div class="wholesale-trust__logo-card">Gym Chain E</div>
+      {%- endunless -%}
+    </div>
+
+    <div class="wholesale-trust__photo-grid">
+      {%- assign has_photo = false -%}
+      {%- for block in section.blocks -%}
+        {%- if block.type == 'photo' -%}
+          {%- assign has_photo = true -%}
+          <figure class="wholesale-trust__photo-card" {{ block.shopify_attributes }}>
+            <div class="wholesale-trust__photo">
+              {%- if block.settings.photo_image != blank -%}
+                {{ block.settings.photo_image | image_url: width: 900 | image_tag: loading: 'lazy', alt: block.settings.photo_caption }}
+              {%- endif -%}
+            </div>
+            <figcaption class="wholesale-trust__caption">{{ block.settings.photo_caption }}</figcaption>
+          </figure>
+        {%- endif -%}
+      {%- endfor -%}
+      {%- unless has_photo -%}
+        <figure class="wholesale-trust__photo-card">
+          <div class="wholesale-trust__photo"></div>
+          <figcaption class="wholesale-trust__caption">Factory production line</figcaption>
+        </figure>
+        <figure class="wholesale-trust__photo-card">
+          <div class="wholesale-trust__photo"></div>
+          <figcaption class="wholesale-trust__caption">Packaging and quality check</figcaption>
+        </figure>
+        <figure class="wholesale-trust__photo-card">
+          <div class="wholesale-trust__photo"></div>
+          <figcaption class="wholesale-trust__caption">Bulk shipment departure</figcaption>
+        </figure>
+      {%- endunless -%}
+    </div>
+
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Wholesale Trust",
+  "tag": "section",
+  "class": "section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "text",
+      "id": "section_id",
+      "label": "Section anchor ID",
+      "default": "wholesale-trust"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Trusted Worldwide"
+    },
+    {
+      "type": "textarea",
+      "id": "subheading",
+      "label": "Subheading",
+      "default": "Social proof and verified operations help wholesale buyers move with confidence."
+    },
+    {
+      "type": "text",
+      "id": "primary_stat",
+      "label": "Primary trust stat",
+      "default": "Ship to 20+ Countries"
+    },
+    {
+      "type": "text",
+      "id": "secondary_stat",
+      "label": "Secondary trust line",
+      "default": "Trusted by 50+ distributors worldwide"
+    },
+    {
+      "type": "header",
+      "content": "Section spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 40,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding top",
+      "default": 96
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 40,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding bottom",
+      "default": 96
+    }
+  ],
+  "blocks": [
+    {
+      "type": "logo",
+      "name": "Logo",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "logo_image",
+          "label": "Logo image"
+        },
+        {
+          "type": "text",
+          "id": "logo_alt",
+          "label": "Logo label",
+          "default": "Partner logo"
+        }
+      ]
+    },
+    {
+      "type": "photo",
+      "name": "Photo",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "photo_image",
+          "label": "Photo image"
+        },
+        {
+          "type": "text",
+          "id": "photo_caption",
+          "label": "Caption",
+          "default": "Factory snapshot"
+        }
+      ]
+    },
+    {
+      "type": "badge",
+      "name": "Certification badge",
+      "settings": [
+        {
+          "type": "text",
+          "id": "badge_text",
+          "label": "Badge text",
+          "default": "CE Certified"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Wholesale Trust",
+      "blocks": [
+        {
+          "type": "logo",
+          "settings": {
+            "logo_alt": "Distributor A"
+          }
+        },
+        {
+          "type": "logo",
+          "settings": {
+            "logo_alt": "Distributor B"
+          }
+        },
+        {
+          "type": "logo",
+          "settings": {
+            "logo_alt": "Retailer C"
+          }
+        },
+        {
+          "type": "photo",
+          "settings": {
+            "photo_caption": "Factory production line"
+          }
+        },
+        {
+          "type": "photo",
+          "settings": {
+            "photo_caption": "Bulk shipment staging"
+          }
+        },
+        {
+          "type": "badge",
+          "settings": {
+            "badge_text": "CE Certified"
+          }
+        },
+        {
+          "type": "badge",
+          "settings": {
+            "badge_text": "ISO Compliant"
+          }
+        },
+        {
+          "type": "badge",
+          "settings": {
+            "badge_text": "SGS Inspected"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
