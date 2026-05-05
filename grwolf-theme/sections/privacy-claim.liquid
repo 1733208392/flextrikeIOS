@@ -1,0 +1,146 @@
+{%- style -%}
+  .privacy-claim-{{ section.id }} {
+    background: {{ section.settings.background_color }};
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .privacy-claim-{{ section.id }} .privacy-claim__inner {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: {{ section.settings.padding_top }}px 24px {{ section.settings.padding_bottom }}px;
+    font-family: var(--font-body-family);
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+  }
+
+  .privacy-claim-{{ section.id }} .privacy-claim__icon {
+    font-size: 4.2rem;
+    line-height: 1;
+    flex-shrink: 0;
+    margin-top: 4px;
+  }
+
+  .privacy-claim-{{ section.id }} .privacy-claim__body {
+    flex: 1;
+  }
+
+  .privacy-claim-{{ section.id }} .privacy-claim__heading {
+    margin: 0 0 10px;
+    font-size: clamp(1.875rem, 3.3vw, 2.475rem);
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
+  .privacy-claim-{{ section.id }} .privacy-claim__heading span {
+    color: #de3823;
+  }
+
+  .privacy-claim-{{ section.id }} .privacy-claim__text {
+    margin: 0;
+    font-size: clamp(1.425rem, 2.1vw, 1.575rem);
+    color: #b8b8b8;
+    line-height: 1.75;
+  }
+
+  @media screen and (max-width: 749px) {
+    .privacy-claim-{{ section.id }} .privacy-claim__inner {
+      padding: {{ section.settings.padding_top | times: 0.7 | round: 0 }}px 20px {{ section.settings.padding_bottom | times: 0.7 | round: 0 }}px;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .privacy-claim-{{ section.id }} .privacy-claim__icon {
+      font-size: 3.3rem;
+    }
+  }
+{%- endstyle -%}
+
+<div class="privacy-claim-{{ section.id }}">
+  <div class="privacy-claim__inner">
+    <div class="privacy-claim__icon" aria-hidden="true">{{ section.settings.icon }}</div>
+    <div class="privacy-claim__body">
+      <h2 class="privacy-claim__heading">
+        {%- if section.settings.heading_accent != blank -%}
+          <span>{{ section.settings.heading_accent }}</span>&nbsp;
+        {%- endif -%}
+        {{ section.settings.heading }}
+      </h2>
+      <p class="privacy-claim__text">{{ section.settings.body_text }}</p>
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Privacy Claim",
+  "tag": "section",
+  "class": "section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background color",
+      "default": "#0d0d0d"
+    },
+    {
+      "type": "text",
+      "id": "icon",
+      "label": "Icon (emoji)",
+      "default": "🔒"
+    },
+    {
+      "type": "text",
+      "id": "heading_accent",
+      "label": "Heading accent (shown in red)",
+      "default": "Secure"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Training"
+    },
+    {
+      "type": "textarea",
+      "id": "body_text",
+      "label": "Body text",
+      "default": "Your data belongs to you. The FlexTarget App stores all performance metrics locally on your device—no cloud, no tracking, no internet required for training."
+    },
+    {
+      "type": "header",
+      "content": "Section spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 20,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding top",
+      "default": 56
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 20,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding bottom",
+      "default": 56
+    }
+  ],
+  "presets": [
+    {
+      "name": "Privacy Claim"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,31 @@
+/* ── GRWOLF Custom Overrides ─────────────────────────────────────────────── */
+
+/* Multirow CTA buttons on homepage — orange/red with bold text + hover lift */
+.multirow .button {
+  background-color: #de3823 !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  border: none !important;
+  outline: none !important;
+  border-radius: 8px !important;
+  padding: 18px 36px !important;
+  font-size: 2rem !important;
+  letter-spacing: 0.03em !important;
+  transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease !important;
+  box-shadow: 0 4px 16px rgba(222, 56, 35, 0.35) !important;
+}
+
+.multirow .button::after,
+.multirow .button::before {
+  display: none !important;
+}
+
+.multirow .button:hover {
+  background-color: #c42f1a !important;
+  transform: translateY(-3px) !important;
+  box-shadow: 0 8px 24px rgba(222, 56, 35, 0.5) !important;
+}
+
+.multirow .button:active {
+  transform: translateY(-1px) !important;
+}

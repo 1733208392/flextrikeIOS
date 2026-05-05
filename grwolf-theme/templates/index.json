@@ -44,6 +44,50 @@
       "name": "Video",
       "settings": {}
     },
+    "trust_badges": {
+      "type": "trust-badges",
+      "blocks": {
+        "badge_1": {
+          "type": "badge",
+          "settings": {
+            "icon": "🛡️",
+            "label": "30-Day Money-Back Guarantee"
+          }
+        },
+        "badge_2": {
+          "type": "badge",
+          "settings": {
+            "icon": "🚚",
+            "label": "Free Shipping in the US"
+          }
+        },
+        "badge_3": {
+          "type": "badge",
+          "settings": {
+            "icon": "⭐",
+            "label": "4.8/5 Stars from 200+ Reviews"
+          }
+        },
+        "badge_4": {
+          "type": "badge",
+          "settings": {
+            "icon": "🔒",
+            "label": "Secure Checkout"
+          }
+        }
+      },
+      "block_order": [
+        "badge_1",
+        "badge_2",
+        "badge_3",
+        "badge_4"
+      ],
+      "settings": {
+        "background_color": "#111111",
+        "padding_top": 20,
+        "padding_bottom": 20
+      }
+    },
     "multirow_pEe4Vt": {
       "type": "multirow",
       "blocks": {
@@ -219,8 +263,8 @@
             "description_color": "#ffffff",
             "text_alignment": "center",
             "desktop_width_percent": 100,
-            "item_width": 280,
-            "item_width_mobile": 200,
+            "item_width": 190,
+            "item_width_mobile": 130,
             "item_gap": 16,
             "image_border_radius": 0,
             "title_size": 18,
@@ -269,23 +313,26 @@
       ],
       "settings": {}
     },
-    "page_WNE8wQ": {
-      "type": "page",
+    "privacy_claim": {
+      "type": "privacy-claim",
       "settings": {
-        "page": "about-us",
-        "heading_size": "h1",
-        "color_scheme": "",
-        "padding_top": 24,
-        "padding_bottom": 24
+        "background_color": "#0d0d0d",
+        "icon": "🔒",
+        "heading_accent": "Secure",
+        "heading": "Training",
+        "body_text": "Your data belongs to you. The FlexTarget App stores all performance metrics locally on your device—no cloud, no tracking, no internet required for training.",
+        "padding_top": 56,
+        "padding_bottom": 56
       }
     }
   },
   "order": [
     "blocks_epDaxT",
+    "trust_badges",
     "multirow_pEe4Vt",
     "video_VNJqdf",
     "17738892271e9ce14e",
     "17727643127c332446",
-    "page_WNE8wQ"
+    "privacy_claim"
   ]
 }

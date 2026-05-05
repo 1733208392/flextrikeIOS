@@ -184,6 +184,48 @@
     letter-spacing: 0.5px;
   }
 
+  .ai-video-text-overlay-{{ ai_gen_id }} .overlay-subtitle {
+    font-size: 24px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.92);
+    line-height: 1.4;
+    margin-top: 10px;
+    letter-spacing: 0;
+    text-shadow: 1px 1px 6px rgba(0,0,0,0.6);
+  }
+
+  .ai-video-text-overlay-{{ ai_gen_id }} .overlay-tagline {
+    font-size: 17px;
+    font-weight: 400;
+    color: rgba(255,255,255,0.75);
+    margin-top: 8px;
+    letter-spacing: 0.01em;
+    text-shadow: 1px 1px 4px rgba(0,0,0,0.6);
+  }
+
+  .ai-video-text-overlay-{{ ai_gen_id }} .overlay-price {
+    color: #FFA724;
+    font-weight: 700;
+  }
+
+  .ai-video-text-overlay-{{ ai_gen_id }} .overlay-promo {
+    font-size: 20px;
+    font-weight: 700;
+    color: #FFA724;
+    margin-top: 14px;
+    letter-spacing: 0.01em;
+    text-shadow: 1px 1px 4px rgba(0,0,0,0.7);
+  }
+
+  .ai-video-text-overlay-{{ ai_gen_id }} .overlay-urgency {
+    font-size: 15px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.7);
+    margin-top: 4px;
+    letter-spacing: 0.02em;
+    text-shadow: 1px 1px 4px rgba(0,0,0,0.6);
+  }
+
   @media screen and (max-width: 1024px) {
     .ai-video-text-overlay-{{ ai_gen_id }} {
       font-size: 36px;
@@ -192,6 +234,22 @@
 
     .ai-video-text-overlay-{{ ai_gen_id }} > div:first-child {
       font-size: 42px;
+    }
+
+    .ai-video-text-overlay-{{ ai_gen_id }} .overlay-subtitle {
+      font-size: 18px;
+    }
+
+    .ai-video-text-overlay-{{ ai_gen_id }} .overlay-tagline {
+      font-size: 14px;
+    }
+
+    .ai-video-text-overlay-{{ ai_gen_id }} .overlay-promo {
+      font-size: 16px;
+    }
+
+    .ai-video-text-overlay-{{ ai_gen_id }} .overlay-urgency {
+      font-size: 12px;
     }
   }
 
@@ -330,6 +388,25 @@
       font-size: 24px;
     }
 
+    .ai-video-text-overlay-{{ ai_gen_id }} .overlay-subtitle {
+      font-size: 13px;
+      margin-top: 6px;
+    }
+
+    .ai-video-text-overlay-{{ ai_gen_id }} .overlay-tagline {
+      font-size: 11px;
+      margin-top: 4px;
+    }
+
+    .ai-video-text-overlay-{{ ai_gen_id }} .overlay-promo {
+      font-size: 12px;
+      margin-top: 8px;
+    }
+
+    .ai-video-text-overlay-{{ ai_gen_id }} .overlay-urgency {
+      font-size: 10px;
+    }
+
     .ai-video-image-button-{{ ai_gen_id }} {
       width: 40vw;
       height: 40vw;
@@ -420,6 +497,10 @@
       <div>Train Smarter</div>
       <div>Shoot Sharper</div>
       <div>Dominate Faster</div>
+      <div class="overlay-subtitle">The Smart Target That Replaces the Range</div>
+      <div class="overlay-tagline">Starting at <span class="overlay-price">$399</span> | Free Shipping | 30-Day Returns</div>
+      <div class="overlay-promo">🔥 Limited Time: Save $100 on FlexTarget</div>
+      <div class="overlay-urgency">⏰ Offer Ends May 31</div>
     </div>
     <div class="ai-video-text-overlay-right-{{ ai_gen_id }} hidden">
       <div>{{ block.settings.right_overlay_line1 }}</div>

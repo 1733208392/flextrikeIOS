@@ -1,0 +1,150 @@
+{%- style -%}
+  .trust-badges-{{ section.id }} {
+    background: {{ section.settings.background_color }};
+    border-top: 1px solid rgba(255,255,255,0.07);
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+  }
+
+  .trust-badges-{{ section.id }} .trust-badges__inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: {{ section.settings.padding_top }}px 24px {{ section.settings.padding_bottom }}px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px 24px;
+    font-family: var(--font-body-family);
+  }
+
+  .trust-badges-{{ section.id }} .trust-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: #f0f0f0;
+    font-size: 1.1rem;
+    font-weight: 500;
+    text-align: center;
+  }
+
+  .trust-badges-{{ section.id }} .trust-badge__icon {
+    font-size: 1.5rem;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  @media screen and (max-width: 749px) {
+    .trust-badges-{{ section.id }} .trust-badges__inner {
+      padding: {{ section.settings.padding_top | times: 0.7 | round: 0 }}px 20px {{ section.settings.padding_bottom | times: 0.7 | round: 0 }}px;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .trust-badges-{{ section.id }} .trust-badge {
+      font-size: 1rem;
+      justify-content: flex-start;
+    }
+  }
+{%- endstyle -%}
+
+<div class="trust-badges-{{ section.id }}">
+  <div class="trust-badges__inner">
+    {%- for block in section.blocks -%}
+      <div class="trust-badge" {{ block.shopify_attributes }}>
+        <span class="trust-badge__icon" aria-hidden="true">{{ block.settings.icon }}</span>
+        <span>{{ block.settings.label }}</span>
+      </div>
+    {%- endfor -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Trust Badges",
+  "tag": "section",
+  "class": "section",
+  "max_blocks": 8,
+  "settings": [
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background color",
+      "default": "#111111"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 8,
+      "max": 60,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding top",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 8,
+      "max": 60,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding bottom",
+      "default": 20
+    }
+  ],
+  "blocks": [
+    {
+      "type": "badge",
+      "name": "Badge",
+      "settings": [
+        {
+          "type": "text",
+          "id": "icon",
+          "label": "Icon (emoji)",
+          "default": "🛡️"
+        },
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Label",
+          "default": "30-Day Money-Back Guarantee"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Trust Badges",
+      "blocks": [
+        {
+          "type": "badge",
+          "settings": {
+            "icon": "🛡️",
+            "label": "30-Day Money-Back Guarantee"
+          }
+        },
+        {
+          "type": "badge",
+          "settings": {
+            "icon": "🚚",
+            "label": "Free Shipping in the US"
+          }
+        },
+        {
+          "type": "badge",
+          "settings": {
+            "icon": "⭐",
+            "label": "4.8/5 Stars from 200+ Reviews"
+          }
+        },
+        {
+          "type": "badge",
+          "settings": {
+            "icon": "🔒",
+            "label": "Secure Checkout"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
