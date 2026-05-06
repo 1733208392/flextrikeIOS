@@ -112,6 +112,93 @@
     color: #de3823;
   }
 
+  /* ===== CTA wrapper + badge ===== */
+  .wholesale-hero-{{ section.id }} .wholesale-hero__cta-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin-top: 28px;
+  }
+
+  .wholesale-hero-{{ section.id }} .cta-badge-container {
+    position: relative;
+    display: inline-block;
+  }
+
+  .wholesale-hero-{{ section.id }} .cta-main {
+    display: inline-block;
+    padding: 16px 42px;
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    border-radius: 6px;
+    transition: transform 0.2s ease;
+  }
+
+  .wholesale-hero-{{ section.id }} .cta-main:hover {
+    transform: translateY(-2px);
+  }
+
+  .wholesale-hero-{{ section.id }} .cta-badge {
+    position: absolute;
+    top: -14px;
+    right: -28px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: linear-gradient(135deg, #f97316, #ef4444);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.3;
+    padding: 6px 12px 6px 10px;
+    border-radius: 8px;
+    box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
+    transform: rotate(5deg);
+    animation: badgeBounce 2s ease-in-out infinite;
+    white-space: nowrap;
+    cursor: default;
+    z-index: 2;
+  }
+
+  .wholesale-hero-{{ section.id }} .cta-badge::after {
+    content: "";
+    position: absolute;
+    bottom: -6px;
+    left: 14px;
+    width: 0;
+    height: 0;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-top: 7px solid #ef4444;
+  }
+
+  .wholesale-hero-{{ section.id }} .cta-badge__icon {
+    font-size: 18px;
+    line-height: 1;
+    animation: badgeShake 0.5s ease-in-out infinite;
+    animation-delay: 1.5s;
+  }
+
+  .wholesale-hero-{{ section.id }} .wholesale-hero__hook-note {
+    font-size: 12px;
+    color: #6b7280;
+    text-align: center;
+    margin: 0;
+  }
+
+  @keyframes badgeBounce {
+    0%, 100% { transform: rotate(5deg) translateY(0); }
+    50%       { transform: rotate(5deg) translateY(-3px); }
+  }
+
+  @keyframes badgeShake {
+    0%, 100% { transform: rotate(0); }
+    25%      { transform: rotate(-10deg); }
+    75%      { transform: rotate(10deg); }
+  }
+
   @media screen and (max-width: 749px) {
     .wholesale-hero-{{ section.id }} {
       min-height: 76vh;
@@ -127,6 +214,22 @@
 
     .wholesale-hero-{{ section.id }} .wholesale-hero__btn {
       width: 100%;
+    }
+
+    .wholesale-hero-{{ section.id }} .cta-badge {
+      top: -10px;
+      right: -16px;
+      font-size: 11px;
+      padding: 4px 10px 4px 8px;
+    }
+
+    .wholesale-hero-{{ section.id }} .cta-badge__icon {
+      font-size: 15px;
+    }
+
+    .wholesale-hero-{{ section.id }} .cta-main {
+      padding: 14px 32px;
+      font-size: 15px;
     }
   }
 {%- endstyle -%}
@@ -155,9 +258,18 @@
       <p class="wholesale-hero__hook">{{ section.settings.value_hook }}</p>
 
       <div class="wholesale-hero__actions">
-        <a class="wholesale-hero__btn wholesale-hero__btn--primary" href="{{ section.settings.primary_cta_link | default: '#wholesale-inquiry-form' }}">
-          {{ section.settings.primary_cta_label }}
-        </a>
+        <div class="wholesale-hero__cta-wrapper">
+          <div class="cta-badge-container">
+            <a class="wholesale-hero__btn wholesale-hero__btn--primary cta-main" href="{{ section.settings.primary_cta_link | default: '#wholesale-inquiry-form' }}">
+              {{ section.settings.primary_cta_label }}
+            </a>
+            <div class="cta-badge" aria-label="Win a Free Demo">
+              <span class="cta-badge__icon">🎁</span>
+              <span>Win a<br>Free Demo</span>
+            </div>
+          </div>
+          <p class="wholesale-hero__hook-note">No purchase required. One winner every month.</p>
+        </div>
       </div>
     </div>
   </div>
