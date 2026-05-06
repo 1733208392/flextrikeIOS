@@ -1,0 +1,251 @@
+{{ 'component-accordion.css' | asset_url | stylesheet_tag }}
+{{ 'collapsible-content.css' | asset_url | stylesheet_tag }}
+
+{%- style -%}
+  .section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
+    padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
+  }
+
+  @media screen and (min-width: 750px) {
+    .section-{{ section.id }}-padding {
+      padding-top: {{ section.settings.padding_top }}px;
+      padding-bottom: {{ section.settings.padding_bottom }}px;
+    }
+  }
+{%- endstyle -%}
+
+<div class="color-{{ section.settings.color_scheme }} gradient">
+  <div class="collapsible-content collapsible-row-layout isolate page-width">
+    <div class="collapsible-content__wrapper section-{{ section.id }}-padding">
+      <div class="collapsible-content-wrapper-narrow">
+
+        <div class="collapsible-content__header" style="text-align: {{ section.settings.heading_alignment }};">
+          {%- if section.settings.heading != blank -%}
+            <h2 class="collapsible-content__heading inline-richtext {{ section.settings.heading_size }}">
+              {{ section.settings.heading }}
+            </h2>
+          {%- endif -%}
+        </div>
+
+        <div class="grid grid--1-col collapsible-content__grid">
+          <div class="grid__item">
+            {%- for block in section.blocks -%}
+              <div
+                class="accordion content-container color-{{ section.settings.container_color_scheme }} gradient"
+                {{ block.shopify_attributes }}
+              >
+                <details
+                  id="Details-{{ block.id }}-{{ section.id }}"
+                  {% if section.settings.open_first_collapsible_row and forloop.first %}open{% endif %}
+                >
+                  <summary id="Summary-{{ block.id }}-{{ section.id }}">
+                    {% render 'icon-accordion', icon: 'question_mark' %}
+                    <h3 class="accordion__title inline-richtext h4">
+                      {{ block.settings.heading | escape }}
+                    </h3>
+                    {% render 'icon-caret' %}
+                  </summary>
+                  <div
+                    class="accordion__content rte"
+                    id="CollapsibleAccordion-{{ block.id }}-{{ section.id }}"
+                    role="region"
+                    aria-labelledby="Summary-{{ block.id }}-{{ section.id }}"
+                  >
+                    {{ block.settings.answer }}
+                  </div>
+                </details>
+              </div>
+            {%- endfor -%}
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "FAQ – FlexTarget",
+  "tag": "section",
+  "class": "section",
+  "settings": [
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Frequently Asked Questions"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "label": "Heading Size",
+      "options": [
+        { "value": "h2", "label": "Small" },
+        { "value": "h1", "label": "Medium" },
+        { "value": "h0", "label": "Large" }
+      ],
+      "default": "h1"
+    },
+    {
+      "type": "select",
+      "id": "heading_alignment",
+      "label": "Heading Alignment",
+      "options": [
+        { "value": "left",   "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right",  "label": "Right" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "checkbox",
+      "id": "open_first_collapsible_row",
+      "label": "Open first item by default",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "Section Background",
+      "options": [
+        { "value": "scheme-1", "label": "Scheme 1" },
+        { "value": "scheme-2", "label": "Scheme 2" },
+        { "value": "scheme-3", "label": "Scheme 3" },
+        { "value": "scheme-4", "label": "Scheme 4" }
+      ],
+      "default": "scheme-1"
+    },
+    {
+      "type": "select",
+      "id": "container_color_scheme",
+      "label": "Item Background",
+      "options": [
+        { "value": "scheme-1", "label": "Scheme 1" },
+        { "value": "scheme-2", "label": "Scheme 2" },
+        { "value": "scheme-3", "label": "Scheme 3" },
+        { "value": "scheme-4", "label": "Scheme 4" }
+      ],
+      "default": "scheme-2"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding Top",
+      "default": 92
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding Bottom",
+      "default": 92
+    }
+  ],
+  "blocks": [
+    {
+      "type": "faq_item",
+      "name": "FAQ Item",
+      "settings": [
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "Question",
+          "default": "Enter your question here"
+        },
+        {
+          "type": "richtext",
+          "id": "answer",
+          "label": "Answer",
+          "default": "<p>Enter your answer here.</p>"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "FAQ – FlexTarget",
+      "blocks": [
+        {
+          "type": "faq_item",
+          "settings": {
+            "heading": "Do I need a real firearm to use FlexTarget?",
+            "answer": "<p>No. FlexTarget works with airsoft BBs. It's designed for both airsoft replicas and dry fire practice. No real ammunition needed.</p>"
+          }
+        },
+        {
+          "type": "faq_item",
+          "settings": {
+            "heading": "Is it loud? Can I use it in an apartment?",
+            "answer": "<p>Yes! FlexTarget uses airsoft BBs (under 400 FPS with 0.2g BBs), which are much quieter than live fire. You can safely use it in your garage, basement, or even a spare room.</p>"
+          }
+        },
+        {
+          "type": "faq_item",
+          "settings": {
+            "heading": "What's included in the box?",
+            "answer": "<p>Everything you need to start training: the FlexTarget electronic screen system, mounting hardware, power supply, and free access to the FlexTarget App. Airsoft replica not included.</p>"
+          }
+        },
+        {
+          "type": "faq_item",
+          "settings": {
+            "heading": "Does the App require a subscription?",
+            "answer": "<p>No. The FlexTarget App is free to download and includes 1 year of data storage. No monthly fees, no hidden costs.</p>"
+          }
+        },
+        {
+          "type": "faq_item",
+          "settings": {
+            "heading": "How does the tracking technology work?",
+            "answer": "<p>FlexTarget uses smart sensor technology to detect BB impacts with millisecond precision. It tracks hit rates, split times, reaction speed, and more — all synced wirelessly to the App.</p>"
+          }
+        },
+        {
+          "type": "faq_item",
+          "settings": {
+            "heading": "What training drills are available?",
+            "answer": "<p>Unlimited! Including Free Shooting on 10+ target types, Custom Drills, Dynamic Stress Drills, and TargetLink Stages. You can also design your own drills in the App.</p>"
+          }
+        },
+        {
+          "type": "faq_item",
+          "settings": {
+            "heading": "What's the shooting distance?",
+            "answer": "<p>The optimal shooting distance is 4m to 10m (13–32 feet). The system supports split times as fast as 0.05 seconds.</p>"
+          }
+        },
+        {
+          "type": "faq_item",
+          "settings": {
+            "heading": "How much will I save compared to live fire?",
+            "answer": "<p>A lot. Live fire training costs approximately $4,800+ per year (ammo + range fees). FlexTarget is a one-time purchase of $299–439 + about $50/year in BBs. It pays for itself in less than 2 range trips.</p>"
+          }
+        },
+        {
+          "type": "faq_item",
+          "settings": {
+            "heading": "What's your return policy?",
+            "answer": "<p>We offer a 30-day money-back guarantee. If you're not satisfied with your FlexTarget, return it within 30 days for a full refund. Free shipping on all US orders.</p>"
+          }
+        },
+        {
+          "type": "faq_item",
+          "settings": {
+            "heading": "Do you ship internationally?",
+            "answer": "<p>Yes, we ship worldwide. Free shipping on all US orders. International shipping rates and delivery times vary by destination.</p>"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

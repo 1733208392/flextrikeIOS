@@ -1,0 +1,486 @@
+{%- style -%}
+  .contact-section-{{ section.id }} {
+    background: {{ section.settings.background_color }};
+    border-top: 1px solid rgba(255,255,255,0.07);
+    font-family: var(--font-body-family);
+    color: {{ section.settings.text_color }};
+  }
+
+  .contact-section-{{ section.id }} .cs-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: {{ section.settings.padding_top }}px 40px {{ section.settings.padding_bottom }}px;
+  }
+
+  /* ── Top row ── */
+  .contact-section-{{ section.id }} .cs-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 40px;
+  }
+
+  /* Left column */
+  .contact-section-{{ section.id }} .cs-left {
+    flex: 1 1 auto;
+  }
+
+  .contact-section-{{ section.id }} .cs-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin: 0 0 16px;
+    color: {{ section.settings.text_color }};
+  }
+
+  .contact-section-{{ section.id }} .cs-address {
+    font-size: 0.95rem;
+    line-height: 1.65;
+    color: {{ section.settings.address_color }};
+    margin: 0 0 20px;
+  }
+
+  .contact-section-{{ section.id }} .cs-logo {
+    display: block;
+    width: {{ section.settings.logo_width }}px;
+    height: auto;
+    margin-top: 8px;
+  }
+
+  /* Right column – icon buttons */
+  .contact-section-{{ section.id }} .cs-right {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-top: 4px;
+  }
+
+  .contact-section-{{ section.id }} .cs-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border: 2px solid {{ section.settings.icon_border_color }};
+    border-radius: 50%;
+    color: {{ section.settings.icon_color }};
+    background: transparent;
+    text-decoration: none;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  }
+
+  .contact-section-{{ section.id }} .cs-icon-btn:hover {
+    background: {{ section.settings.icon_hover_bg }};
+    border-color: {{ section.settings.icon_hover_bg }};
+    color: {{ section.settings.icon_hover_color }};
+  }
+
+  .contact-section-{{ section.id }} .cs-icon-btn svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+    display: block;
+  }
+
+  /* ── Divider ── */
+  .contact-section-{{ section.id }} .cs-divider {
+    border: none;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    margin: 28px 0 0;
+  }
+
+  /* ── Bottom row – sub-links ── */
+  .contact-section-{{ section.id }} .cs-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px 0;
+    padding: 16px 0 0;
+  }
+
+  .contact-section-{{ section.id }} .cs-bottom-link {
+    font-size: 0.85rem;
+    color: {{ section.settings.sublink_color }};
+    text-decoration: none;
+    padding: 4px 20px;
+    position: relative;
+    transition: color 0.15s ease;
+  }
+
+  .contact-section-{{ section.id }} .cs-bottom-link:hover {
+    color: {{ section.settings.sublink_hover_color }};
+    text-decoration: underline;
+  }
+
+  .contact-section-{{ section.id }} .cs-bottom-link + .cs-bottom-link::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1px;
+    height: 12px;
+    background: rgba(255,255,255,0.2);
+  }
+
+  @media screen and (max-width: 749px) {
+    .contact-section-{{ section.id }} .cs-inner {
+      padding: {{ section.settings.padding_top | times: 0.7 | round: 0 }}px 20px {{ section.settings.padding_bottom | times: 0.7 | round: 0 }}px;
+    }
+
+    .contact-section-{{ section.id }} .cs-top {
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .contact-section-{{ section.id }} .cs-right {
+      flex-wrap: wrap;
+    }
+
+    .contact-section-{{ section.id }} .cs-bottom {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+    }
+
+    .contact-section-{{ section.id }} .cs-bottom-link + .cs-bottom-link::before {
+      display: none;
+    }
+  }
+{%- endstyle -%}
+
+<section class="contact-section-{{ section.id }}">
+  <div class="cs-inner">
+
+    {%- comment -%} ── TOP ROW ── {%- endcomment -%}
+    <div class="cs-top">
+
+      {%- comment -%} LEFT: title + address + optional logo {%- endcomment -%}
+      <div class="cs-left">
+        {%- if section.settings.title != blank -%}
+          <h2 class="cs-title">{{ section.settings.title }}</h2>
+        {%- endif -%}
+
+        {%- if section.settings.address != blank -%}
+          <p class="cs-address">{{ section.settings.address }}</p>
+        {%- endif -%}
+
+        {%- if section.settings.logo != blank -%}
+          {{
+            section.settings.logo
+            | image_url: width: section.settings.logo_width
+            | image_tag:
+              class: 'cs-logo',
+              alt: section.settings.logo.alt | default: shop.name,
+              loading: 'lazy'
+          }}
+        {%- endif -%}
+      </div>
+
+      {%- comment -%} RIGHT: social/contact icon buttons {%- endcomment -%}
+      <div class="cs-right">
+
+        {%- if section.settings.email != blank -%}
+          <a
+            href="mailto:{{ section.settings.email }}"
+            class="cs-icon-btn"
+            aria-label="Email"
+          >
+            {%- comment -%} @ / Email icon {%- endcomment -%}
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 13.5l-8-5V17a1 1 0 001 1h14a1 1 0 001-1V8.5l-8 5zm8-9H4a1 1 0 00-1 1v.5l9 5.625L21 6v-.5a1 1 0 00-1-1z"/>
+            </svg>
+          </a>
+        {%- endif -%}
+
+        {%- if section.settings.whatsapp != blank -%}
+          <a
+            href="https://wa.me/{{ section.settings.whatsapp | remove: '+' | remove: ' ' | remove: '-' | remove: '(' | remove: ')' }}"
+            class="cs-icon-btn"
+            aria-label="WhatsApp"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {%- comment -%} WhatsApp icon {%- endcomment -%}
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.521.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+            </svg>
+          </a>
+        {%- endif -%}
+
+        {%- if section.settings.facebook != blank -%}
+          <a
+            href="{{ section.settings.facebook }}"
+            class="cs-icon-btn"
+            aria-label="Facebook"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {%- comment -%} Facebook icon {%- endcomment -%}
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.235 2.686.235v2.97h-1.513c-1.491 0-1.956.93-1.956 1.874v2.25h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/>
+            </svg>
+          </a>
+        {%- endif -%}
+
+        {%- if section.settings.instagram != blank -%}
+          <a
+            href="{{ section.settings.instagram }}"
+            class="cs-icon-btn"
+            aria-label="Instagram"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {%- comment -%} Instagram icon {%- endcomment -%}
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+            </svg>
+          </a>
+        {%- endif -%}
+
+        {%- if section.settings.youtube != blank -%}
+          <a
+            href="{{ section.settings.youtube }}"
+            class="cs-icon-btn"
+            aria-label="YouTube"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {%- comment -%} YouTube icon {%- endcomment -%}
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+            </svg>
+          </a>
+        {%- endif -%}
+
+      </div>
+    </div>
+
+    {%- comment -%} ── DIVIDER ── {%- endcomment -%}
+    <hr class="cs-divider">
+
+    {%- comment -%} ── BOTTOM: sub-links ── {%- endcomment -%}
+    <div class="cs-bottom">
+      {%- for i in (1..4) -%}
+        {%- assign link_label = 'link_' | append: i | append: '_label' -%}
+        {%- assign link_url   = 'link_' | append: i | append: '_url' -%}
+        {%- if section.settings[link_label] != blank -%}
+          <a
+            href="{{ section.settings[link_url] | default: '#' }}"
+            class="cs-bottom-link"
+          >{{ section.settings[link_label] }}</a>
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Contact Section",
+  "tag": "section",
+  "class": "contact-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Title",
+      "default": "Contact"
+    },
+    {
+      "type": "textarea",
+      "id": "address",
+      "label": "Address / Description",
+      "default": "PETLIVAT INC DBA GRWOLF, 100 N HOWARD ST STE R, SPOKANE, WA, 99201-0508, UNITED STATES"
+    },
+    {
+      "type": "image_picker",
+      "id": "logo",
+      "label": "Logo Image (optional)"
+    },
+    {
+      "type": "range",
+      "id": "logo_width",
+      "min": 80,
+      "max": 400,
+      "step": 10,
+      "unit": "px",
+      "label": "Logo Width",
+      "default": 300
+    },
+    {
+      "type": "header",
+      "content": "Social & Contact Links"
+    },
+    {
+      "type": "text",
+      "id": "email",
+      "label": "Email Address",
+      "default": "biz@grwolftactical.com"
+    },
+    {
+      "type": "text",
+      "id": "whatsapp",
+      "label": "WhatsApp Number (with country code)",
+      "default": "+19492796698",
+      "info": "Include country code, e.g. +19492796698"
+    },
+    {
+      "type": "url",
+      "id": "facebook",
+      "label": "Facebook URL"
+    },
+    {
+      "type": "url",
+      "id": "instagram",
+      "label": "Instagram URL"
+    },
+    {
+      "type": "url",
+      "id": "youtube",
+      "label": "YouTube URL"
+    },
+    {
+      "type": "header",
+      "content": "Bottom Links"
+    },
+    {
+      "type": "text",
+      "id": "link_1_label",
+      "label": "Link 1 Label",
+      "default": "App Privacy Policy"
+    },
+    {
+      "type": "url",
+      "id": "link_1_url",
+      "label": "Link 1 URL"
+    },
+    {
+      "type": "text",
+      "id": "link_2_label",
+      "label": "Link 2 Label",
+      "default": "Shop Privacy Policy"
+    },
+    {
+      "type": "url",
+      "id": "link_2_url",
+      "label": "Link 2 URL"
+    },
+    {
+      "type": "text",
+      "id": "link_3_label",
+      "label": "Link 3 Label",
+      "default": "Shop Refund Policy"
+    },
+    {
+      "type": "url",
+      "id": "link_3_url",
+      "label": "Link 3 URL"
+    },
+    {
+      "type": "text",
+      "id": "link_4_label",
+      "label": "Link 4 Label",
+      "default": "Terms of Service"
+    },
+    {
+      "type": "url",
+      "id": "link_4_url",
+      "label": "Link 4 URL"
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background",
+      "default": "#111111"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Title / Body Text",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "address_color",
+      "label": "Address Text",
+      "default": "#cccccc"
+    },
+    {
+      "type": "color",
+      "id": "icon_color",
+      "label": "Icon Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "icon_border_color",
+      "label": "Icon Border Color",
+      "default": "#555555"
+    },
+    {
+      "type": "color",
+      "id": "icon_hover_bg",
+      "label": "Icon Hover Background",
+      "default": "#de3823"
+    },
+    {
+      "type": "color",
+      "id": "icon_hover_color",
+      "label": "Icon Hover Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "sublink_color",
+      "label": "Bottom Link Color",
+      "default": "#aaaaaa"
+    },
+    {
+      "type": "color",
+      "id": "sublink_hover_color",
+      "label": "Bottom Link Hover Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 16,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding Top",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 16,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding Bottom",
+      "default": 32
+    }
+  ],
+  "presets": [
+    {
+      "name": "Contact Section"
+    }
+  ]
+}
+{% endschema %}
