@@ -183,20 +183,9 @@
 
   .wholesale-hero-{{ section.id }} .wholesale-hero__hook-note {
     font-size: 12px;
-    color: #6b7280;
+    color: #ffffff;
     text-align: center;
     margin: 0;
-  }
-
-  @keyframes badgeBounce {
-    0%, 100% { transform: rotate(5deg) translateY(0); }
-    50%       { transform: rotate(5deg) translateY(-3px); }
-  }
-
-  @keyframes badgeShake {
-    0%, 100% { transform: rotate(0); }
-    25%      { transform: rotate(-10deg); }
-    75%      { transform: rotate(10deg); }
   }
 
   @media screen and (max-width: 749px) {
@@ -233,6 +222,18 @@
     }
   }
 {%- endstyle -%}
+
+<style>
+  @keyframes badgeBounce {
+    0%, 100% { transform: rotate(5deg) translateY(0); }
+    50%       { transform: rotate(5deg) translateY(-3px); }
+  }
+  @keyframes badgeShake {
+    0%, 100% { transform: rotate(0); }
+    25%      { transform: rotate(-10deg); }
+    75%      { transform: rotate(10deg); }
+  }
+</style>
 
 <section id="{{ section.settings.section_id | default: 'wholesale-hero' }}" class="wholesale-hero-{{ section.id }}">
   <div class="wholesale-hero__bg" aria-hidden="true">

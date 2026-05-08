@@ -10,39 +10,21 @@
 {
   "sections": {
     "blocks_epDaxT": {
-      "type": "_blocks",
-      "blocks": {
-        "ai_gen_block_c8b37dd_RT3RfV": {
-          "type": "ai_gen_block_c8b37dd",
-          "settings": {
-            "video_source": "shopify",
-            "video_shopify": "shopify://files/videos/CinematicCommercialVideoGrwolfFlexTarget.mp4",
-            "video_url": "",
-            "button_image": "shopify://shop_images/target-front.png",
-            "button_video_source": "shopify",
-            "button_video_shopify": "shopify://files/videos/Video.mp4",
-            "button_video_url": "",
-            "right_overlay_line1": "100,000+",
-            "right_overlay_line2": "Shots Impact Proof",
-            "right_overlay_line3": "Replaceable",
-            "right_overlay_line4": "Screen",
-            "third_overlay_line1": "1MM ACCURACY",
-            "third_overlay_line2": "AI-Powered",
-            "third_overlay_line3": "Patent Algorithm",
-            "third_overlay_line4": "Precision Sensors",
-            "enable_loop": false,
-            "full_width": false,
-            "color_scheme": "",
-            "desktop_width_percent": 100
-          },
-          "blocks": {}
-        }
-      },
-      "block_order": [
-        "ai_gen_block_c8b37dd_RT3RfV"
-      ],
-      "name": "Video",
-      "settings": {}
+      "type": "hero-video",
+      "settings": {
+        "video_source": "shopify",
+        "video_shopify": "shopify://files/videos/CinematicCommercialVideoGrwolfFlexTarget.mp4",
+        "video_url": "",
+        "enable_loop": false,
+        "overlay_heading": "GRWOLF FLEXTARGET",
+        "overlay_line_2": "Train Smarter",
+        "overlay_line_3": "Shoot Sharper",
+        "overlay_line_4": "Dominate Faster",
+        "overlay_subtitle": "The Smart Target That Replaces the Range",
+        "overlay_tagline": "Starting at $399 | Free Shipping | 30-Day Returns",
+        "overlay_promo": "\ud83d\udd25 Limited Time: Save $100 on FlexTarget",
+        "overlay_urgency": "\u23f0 Offer Ends May 31"
+      }
     },
     "trust_badges": {
       "type": "trust-badges",

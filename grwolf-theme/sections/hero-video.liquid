@@ -1,0 +1,427 @@
+{%- assign sec_id = section.id -%}
+
+{%- style -%}
+  .hero-video-{{ sec_id }} {
+    display: block;
+    position: relative;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  .hero-video-wrapper-{{ sec_id }} {
+    position: relative;
+    width: 100%;
+    overflow: visible;
+    background-color: #000000;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  @media screen and (max-width: 749px) {
+    .hero-video-wrapper-{{ sec_id }} {
+      height: auto;
+      aspect-ratio: 16 / 9;
+      min-height: 300px;
+    }
+  }
+
+  @media screen and (max-width: 500px) {
+    .hero-video-wrapper-{{ sec_id }} {
+      aspect-ratio: 16 / 9;
+      min-height: 225px;
+    }
+  }
+
+  .hero-video-container-{{ sec_id }} {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  @media screen and (max-width: 749px) {
+    .hero-video-container-{{ sec_id }} {
+      aspect-ratio: 16 / 9;
+    }
+  }
+
+  .hero-video-container-{{ sec_id }} video,
+  .hero-video-container-{{ sec_id }} iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .hero-video-cover-{{ sec_id }} {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+    transition: opacity 0.3s ease;
+  }
+
+  .hero-video-cover-{{ sec_id }}.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .hero-video-play-btn-{{ sec_id }} {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    width: 80px;
+    height: 80px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+  }
+
+  .hero-video-play-btn-{{ sec_id }}:hover {
+    background-color: rgba(255, 255, 255, 1);
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+
+  .hero-video-play-btn-{{ sec_id }}.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .hero-video-play-btn-{{ sec_id }} svg {
+    width: 32px;
+    height: 32px;
+    margin-left: 4px;
+  }
+
+  .hero-video-overlay-{{ sec_id }} {
+    position: absolute;
+    left: 40px;
+    right: 40px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 4;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 48px;
+    line-height: 1.2;
+    max-width: 50%;
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7);
+    font-family: 'TT Norms', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    letter-spacing: -0.5px;
+  }
+
+  .hero-video-overlay-{{ sec_id }} .overlay-heading {
+    color: #DE3823;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .hero-video-overlay-{{ sec_id }} .overlay-subtitle {
+    font-size: 0.75em;
+    font-weight: 600;
+    margin-top: 4px;
+  }
+
+  .hero-video-overlay-{{ sec_id }} .overlay-tagline {
+    font-size: 0.5em;
+    font-weight: 500;
+    color: #d4d4d4;
+    margin-top: 8px;
+  }
+
+  .hero-video-overlay-{{ sec_id }} .overlay-promo {
+    font-size: 0.45em;
+    font-weight: 700;
+    color: #f97316;
+    margin-top: 6px;
+  }
+
+  .hero-video-overlay-{{ sec_id }} .overlay-urgency {
+    font-size: 0.4em;
+    font-weight: 600;
+    color: #facc15;
+    margin-top: 4px;
+  }
+
+  @media screen and (max-width: 1024px) {
+    .hero-video-overlay-{{ sec_id }} {
+      font-size: 36px;
+      left: 30px;
+      right: 30px;
+    }
+  }
+
+  @media screen and (max-width: 749px) {
+    .hero-video-play-btn-{{ sec_id }} {
+      width: 60px;
+      height: 60px;
+    }
+
+    .hero-video-play-btn-{{ sec_id }} svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    .hero-video-overlay-{{ sec_id }} {
+      font-size: 18px;
+      left: 15px;
+      right: 15px;
+      max-width: 100%;
+    }
+  }
+
+  @media screen and (max-width: 500px) {
+    .hero-video-overlay-{{ sec_id }} {
+      font-size: 16px;
+      left: 12px;
+      right: 12px;
+    }
+  }
+{%- endstyle -%}
+
+<div class="hero-video-{{ sec_id }}" data-video-type="{{ section.settings.video_source }}" data-autoplay="true" data-loop="{{ section.settings.enable_loop }}">
+  <div class="hero-video-wrapper-{{ sec_id }}">
+
+    {%- if section.settings.overlay_heading != blank or section.settings.overlay_line_2 != blank -%}
+      <div class="hero-video-overlay-{{ sec_id }}">
+        {%- if section.settings.overlay_heading != blank -%}
+          <div class="overlay-heading">{{ section.settings.overlay_heading }}</div>
+        {%- endif -%}
+        {%- if section.settings.overlay_line_2 != blank -%}
+          <div>{{ section.settings.overlay_line_2 }}</div>
+        {%- endif -%}
+        {%- if section.settings.overlay_line_3 != blank -%}
+          <div>{{ section.settings.overlay_line_3 }}</div>
+        {%- endif -%}
+        {%- if section.settings.overlay_line_4 != blank -%}
+          <div>{{ section.settings.overlay_line_4 }}</div>
+        {%- endif -%}
+        {%- if section.settings.overlay_subtitle != blank -%}
+          <div class="overlay-subtitle">{{ section.settings.overlay_subtitle }}</div>
+        {%- endif -%}
+        {%- if section.settings.overlay_tagline != blank -%}
+          <div class="overlay-tagline">{{ section.settings.overlay_tagline }}</div>
+        {%- endif -%}
+        {%- if section.settings.overlay_promo != blank -%}
+          <div class="overlay-promo">{{ section.settings.overlay_promo }}</div>
+        {%- endif -%}
+        {%- if section.settings.overlay_urgency != blank -%}
+          <div class="overlay-urgency">{{ section.settings.overlay_urgency }}</div>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    {%- if section.settings.video_source == 'shopify' and section.settings.video_shopify != blank -%}
+      <div class="hero-video-container-{{ sec_id }}">
+        <video
+          class="hero-video-el-{{ sec_id }}"
+          {% if section.settings.enable_loop %}loop{% endif %}
+          muted
+          playsinline
+          preload="metadata"
+        >
+          <source src="{{ section.settings.video_shopify.sources[1].url }}" type="{{ section.settings.video_shopify.sources[1].mime_type }}">
+        </video>
+
+        {%- if section.settings.cover_image -%}
+          <img
+            src="{{ section.settings.cover_image | image_url: width: 1920 }}"
+            alt="{{ section.settings.cover_image.alt | escape }}"
+            class="hero-video-cover-{{ sec_id }}"
+            loading="eager"
+            width="{{ section.settings.cover_image.width }}"
+            height="{{ section.settings.cover_image.height }}"
+          >
+        {%- endif -%}
+
+        <button class="hero-video-play-btn-{{ sec_id }}" aria-label="Play video">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8 5v14l11-7z"/>
+          </svg>
+        </button>
+      </div>
+
+    {%- elsif section.settings.video_source == 'youtube' and section.settings.video_url != blank -%}
+      {%- assign yt_id = section.settings.video_url | split: 'v=' | last | split: '&' | first -%}
+      {%- if yt_id == section.settings.video_url -%}
+        {%- assign yt_id = section.settings.video_url | split: 'youtu.be/' | last | split: '?' | first -%}
+      {%- endif -%}
+      <div class="hero-video-container-{{ sec_id }}">
+        <iframe
+          src="https://www.youtube.com/embed/{{ yt_id }}?autoplay=1&mute=1&loop=1&playlist={{ yt_id }}&controls=0&modestbranding=1"
+          frameborder="0"
+          allow="autoplay; fullscreen"
+          allowfullscreen
+        ></iframe>
+        <button class="hero-video-play-btn-{{ sec_id }}" aria-label="Play video">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8 5v14l11-7z"/>
+          </svg>
+        </button>
+      </div>
+
+    {%- elsif section.settings.video_source == 'vimeo' and section.settings.video_url != blank -%}
+      {%- assign vimeo_id = section.settings.video_url | split: 'vimeo.com/' | last | split: '?' | first -%}
+      <div class="hero-video-container-{{ sec_id }}">
+        <iframe
+          src="https://player.vimeo.com/video/{{ vimeo_id }}?autoplay=1&muted=1&loop={{ section.settings.enable_loop }}&background=1"
+          frameborder="0"
+          allow="autoplay; fullscreen; picture-in-picture"
+          allowfullscreen
+        ></iframe>
+      </div>
+    {%- endif -%}
+
+  </div>
+</div>
+
+<script>
+  (function() {
+    const wrapper = document.querySelector('.hero-video-wrapper-{{ sec_id }}');
+    if (!wrapper) return;
+    const video = wrapper.querySelector('.hero-video-el-{{ sec_id }}');
+    const playBtn = wrapper.querySelector('.hero-video-play-btn-{{ sec_id }}');
+    const cover = wrapper.querySelector('.hero-video-cover-{{ sec_id }}');
+
+    function hideCoverAndBtn() {
+      if (cover) cover.classList.add('hidden');
+      if (playBtn) playBtn.classList.add('hidden');
+    }
+
+    if (video) {
+      video.addEventListener('loadedmetadata', function() {
+        video.play().catch(function() {});
+      });
+      if (playBtn) {
+        playBtn.addEventListener('click', function() {
+          video.play();
+          hideCoverAndBtn();
+        });
+      }
+    } else if (playBtn) {
+      playBtn.addEventListener('click', hideCoverAndBtn);
+    }
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Hero Video",
+  "tag": "section",
+  "class": "section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "header",
+      "content": "Video"
+    },
+    {
+      "type": "select",
+      "id": "video_source",
+      "label": "Video source",
+      "options": [
+        { "value": "shopify", "label": "Shopify hosted" },
+        { "value": "youtube", "label": "YouTube" },
+        { "value": "vimeo",   "label": "Vimeo" }
+      ],
+      "default": "shopify"
+    },
+    {
+      "type": "video",
+      "id": "video_shopify",
+      "label": "Shopify hosted video"
+    },
+    {
+      "type": "url",
+      "id": "video_url",
+      "label": "YouTube / Vimeo URL"
+    },
+    {
+      "type": "image_picker",
+      "id": "cover_image",
+      "label": "Cover image (before play)"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_loop",
+      "label": "Loop video",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Text overlay"
+    },
+    {
+      "type": "text",
+      "id": "overlay_heading",
+      "label": "Heading (red, uppercase)",
+      "default": "GRWOLF FLEXTARGET"
+    },
+    {
+      "type": "text",
+      "id": "overlay_line_2",
+      "label": "Line 2",
+      "default": "Train Smarter"
+    },
+    {
+      "type": "text",
+      "id": "overlay_line_3",
+      "label": "Line 3",
+      "default": "Shoot Sharper"
+    },
+    {
+      "type": "text",
+      "id": "overlay_line_4",
+      "label": "Line 4",
+      "default": "Dominate Faster"
+    },
+    {
+      "type": "text",
+      "id": "overlay_subtitle",
+      "label": "Subtitle",
+      "default": "The Smart Target That Replaces the Range"
+    },
+    {
+      "type": "text",
+      "id": "overlay_tagline",
+      "label": "Tagline",
+      "default": "Starting at $399 | Free Shipping | 30-Day Returns"
+    },
+    {
+      "type": "text",
+      "id": "overlay_promo",
+      "label": "Promo text",
+      "default": "🔥 Limited Time: Save $100 on FlexTarget"
+    },
+    {
+      "type": "text",
+      "id": "overlay_urgency",
+      "label": "Urgency text",
+      "default": "⏰ Offer Ends May 31"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Hero Video"
+    }
+  ]
+}
+{% endschema %}
