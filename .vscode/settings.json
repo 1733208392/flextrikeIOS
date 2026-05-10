@@ -20,6 +20,7 @@
     "comm": true,
     "git add": true,
     "strings": true,
-    "awk": true
+    "awk": true,
+    "theme": true
   }
 }

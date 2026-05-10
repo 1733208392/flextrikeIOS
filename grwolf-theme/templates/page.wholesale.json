@@ -13,14 +13,15 @@
       "type": "wholesale-hero",
       "settings": {
         "section_id": "wholesale-hero",
-        "overlay_opacity": 55,
+        "background_image": "shopify://shop_images/wholesale-hero_f07e44e0-b5ed-4f5c-896b-d4bcfc8fc27f.jpg",
+        "overlay_opacity": 90,
         "heading": "GRWOLF WHOLESALE",
-        "subtitle": "Premium Shooting Sports Equipment - Factory-Direct Pricing",
+        "subtitle": "Factory-Direct Pricing",
         "value_hook": "Up to 50% Off on 10+ Units",
         "primary_cta_label": "Request Quote",
         "primary_cta_link": "#wholesale-inquiry-form",
-        "padding_top": 104,
-        "padding_bottom": 104
+        "padding_top": 40,
+        "padding_bottom": 40
       }
     },
     "why": {
@@ -60,8 +61,8 @@
         "section_id": "wholesale-why",
         "heading": "Why GRWOLF",
         "subheading": "Three reasons wholesale buyers work with us long term.",
-        "padding_top": 92,
-        "padding_bottom": 92
+        "padding_top": 40,
+        "padding_bottom": 40
       }
     },
     "process": {
@@ -114,13 +115,34 @@
         "section_id": "wholesale-process",
         "heading": "How It Works",
         "subheading": "A streamlined 4-step flow from inquiry to delivery.",
-        "padding_top": 92,
-        "padding_bottom": 92
+        "padding_top": 40,
+        "padding_bottom": 40
       }
     },
     "trust": {
       "type": "wholesale-trust",
       "blocks": {
+        "logo_D4GRbQ": {
+          "type": "logo",
+          "settings": {
+            "logo_image": "shopify://shop_images/images.png",
+            "logo_alt": "Partner logo"
+          }
+        },
+        "logo_hBitYB": {
+          "type": "logo",
+          "settings": {
+            "logo_image": "shopify://shop_images/scubateam.jpg",
+            "logo_alt": "Partner logo"
+          }
+        },
+        "logo_cRXwfY": {
+          "type": "logo",
+          "settings": {
+            "logo_image": "shopify://shop_images/powair6_8d13d53f-6a2f-470a-a95f-6012db3f386a.jpg",
+            "logo_alt": "Partner logo"
+          }
+        },
         "logo_bHRaEe": {
           "type": "logo",
           "settings": {
@@ -197,6 +219,9 @@
         }
       },
       "block_order": [
+        "logo_D4GRbQ",
+        "logo_hBitYB",
+        "logo_cRXwfY",
         "logo_bHRaEe",
         "logo_38qmEp",
         "logo_1",
@@ -214,7 +239,7 @@
         "heading": "Trusted Worldwide",
         "subheading": "",
         "primary_stat": "Ship to 20+ Countries",
-        "secondary_stat": "Trusted by 50+ distributors worldwide",
+        "secondary_stat": "Trusted by the partners worldwide",
         "padding_top": 40,
         "padding_bottom": 40
       }
@@ -286,8 +311,8 @@
         "open_first_collapsible_row": true,
         "image_ratio": "adapt",
         "desktop_layout": "image_second",
-        "padding_top": 92,
-        "padding_bottom": 92
+        "padding_top": 0,
+        "padding_bottom": 0
       }
     },
     "inquiry_form": {
@@ -305,8 +330,8 @@
         "quick_email": "biz@grwolftactical.com",
         "quick_whatsapp": "+1 (949)279-6698",
         "quick_whatsapp_label": "+1 (949)279-6698",
-        "padding_top": 92,
-        "padding_bottom": 92
+        "padding_top": 0,
+        "padding_bottom": 0
       }
     }
   },
