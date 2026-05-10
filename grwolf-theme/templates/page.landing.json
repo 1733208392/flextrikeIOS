@@ -240,69 +240,94 @@
       "name": "CostCompare",
       "settings": {}
     },
-    "landing_drills": {
-      "type": "_blocks",
+    "landing_drills_carousel": {
+      "type": "feature-carousel-drills",
       "blocks": {
-        "landing_drills_block": {
-          "type": "ai_gen_block_22891ec",
+        "ldrill_1": {
+          "type": "drill",
           "settings": {
-            "heading": "<strong>DYNAMIC STRESS DRILLS</strong>",
-            "description": "",
-            "heading_size": 32,
-            "description_size": 16,
-            "heading_color": "#de3823",
-            "description_color": "#ffffff",
-            "text_alignment": "center",
-            "desktop_width_percent": 100,
-            "item_width": 190,
-            "item_width_mobile": 130,
-            "item_gap": 16,
-            "image_border_radius": 0,
-            "title_size": 18,
-            "subtitle_size": 14,
-            "title_color": "#de3823",
-            "subtitle_color": "#cccccc",
-            "scrollbar_color": "#666666",
-            "image_1": "shopify://shop_images/games.jpg",
-            "title_1": "GAME MENU",
-            "subtitle_1": "With OTA updates, the experience keeps evolving—demanding accuracy, speed, and intelligence.",
-            "link_1": "",
-            "image_2": "shopify://shop_images/fruit.jpg",
-            "title_2": "FRUIT NINJA",
-            "subtitle_2": "A classic fruit-falling shooting game that tests your reaction speed and shooting accuracy. With constantly moving targets, mastering the skill of leading your shots is key.",
-            "link_2": "",
-            "image_3": "shopify://shop_images/mole.jpg",
-            "title_3": "MOLE ATTACK",
-            "subtitle_3": "A hilarious random target shooting game. Endless cheeky moles keep popping up—smash them all!",
-            "link_3": "",
-            "image_4": "shopify://shop_images/monkey.jpg",
-            "title_4": "MONKEY DUEL",
-            "subtitle_4": "A two-player game mode. Shoot the monkey, and it will jump off the vine — miss it, and the sword will fall on you. See who is quicker and more precise.",
-            "link_4": "",
-            "image_5": "shopify://shop_images/chimp.jpg",
-            "title_5": "GHIMP TEST",
-            "subtitle_5": "Think you have a better memory than a chimp? Remember the sequence and shoot it in the correct order.",
-            "link_5": "",
-            "image_6": "shopify://shop_images/tictactoe.jpg",
-            "title_6": "TIC-TAC-TOE",
-            "subtitle_6": "Remember who you played with as a kid? This classic game brings back childhood memories.",
-            "link_6": "",
-            "image_7": "shopify://shop_images/quick.jpg",
-            "title_7": "Quick Reaction",
-            "subtitle_7": "Simple yet intense. Test how fast you can draw and shoot when every millisecond counts. 🎯",
-            "link_7": "",
-            "image_8": "shopify://shop_images/balloon.jpg",
-            "title_8": "SHOOTER PAINTER",
-            "subtitle_8": "Blast the balloons and watch vibrant colors burst across the screen. A fun and satisfying shooting game.",
-            "link_8": ""
-          },
-          "blocks": {}
+            "image": "shopify://shop_images/games.jpg",
+            "title": "GAME MENU",
+            "description": "With OTA updates, the experience keeps evolving—demanding accuracy, speed, and intelligence."
+          }
+        },
+        "ldrill_2": {
+          "type": "drill",
+          "settings": {
+            "image": "shopify://shop_images/fruit.jpg",
+            "title": "FRUIT NINJA",
+            "description": "A classic fruit-falling shooting game that tests your reaction speed and shooting accuracy. With constantly moving targets, mastering the skill of leading your shots is key."
+          }
+        },
+        "ldrill_3": {
+          "type": "drill",
+          "settings": {
+            "image": "shopify://shop_images/mole.jpg",
+            "title": "MOLE ATTACK",
+            "description": "A hilarious random target shooting game. Endless cheeky moles keep popping up—smash them all!"
+          }
+        },
+        "ldrill_4": {
+          "type": "drill",
+          "settings": {
+            "image": "shopify://shop_images/monkey.jpg",
+            "title": "MONKEY DUEL",
+            "description": "A two-player game mode. Shoot the monkey, and it will jump off the vine — miss it, and the sword will fall on you. See who is quicker and more precise."
+          }
+        },
+        "ldrill_5": {
+          "type": "drill",
+          "settings": {
+            "image": "shopify://shop_images/chimp.jpg",
+            "title": "GHIMP TEST",
+            "description": "Think you have a better memory than a chimp? Remember the sequence and shoot it in the correct order."
+          }
+        },
+        "ldrill_6": {
+          "type": "drill",
+          "settings": {
+            "image": "shopify://shop_images/tictactoe.jpg",
+            "title": "TIC-TAC-TOE",
+            "description": "Remember who you played with as a kid? This classic game brings back childhood memories."
+          }
+        },
+        "ldrill_7": {
+          "type": "drill",
+          "settings": {
+            "image": "shopify://shop_images/quick.jpg",
+            "title": "QUICK REACTION",
+            "description": "Simple yet intense. Test how fast you can draw and shoot when every millisecond counts."
+          }
+        },
+        "ldrill_8": {
+          "type": "drill",
+          "settings": {
+            "image": "shopify://shop_images/balloon.jpg",
+            "title": "SHOOTER PAINTER",
+            "description": "Blast the balloons and watch vibrant colors burst across the screen. A fun and satisfying shooting game."
+          }
         }
       },
       "block_order": [
-        "landing_drills_block"
+        "ldrill_1",
+        "ldrill_2",
+        "ldrill_3",
+        "ldrill_4",
+        "ldrill_5",
+        "ldrill_6",
+        "ldrill_7",
+        "ldrill_8"
       ],
-      "settings": {}
+      "settings": {
+        "heading": "<strong>DYNAMIC STRESS DRILLS</strong>",
+        "heading_color": "#de3823",
+        "accent_color": "#de3823",
+        "bg_left": "#de3823",
+        "bg_right": "#111111",
+        "autoplay_interval": 3,
+        "padding_top": 60,
+        "padding_bottom": 60
+      }
     },
     "landing_faq": {
       "type": "faq-flextarget",
@@ -349,7 +374,7 @@
     "landing_multirow",
     "landing_video",
     "landing_cost_compare",
-    "landing_drills",
+    "landing_drills_carousel",
     "landing_faq",
     "landing_privacy_claim"
   ]

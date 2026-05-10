@@ -1,0 +1,571 @@
+{% assign carousel_id = section.id | replace: '_', '' | downcase %}
+{% assign block_count = section.blocks.size %}
+{% assign accent = section.settings.accent_color %}
+{% assign bg_left = section.settings.bg_left %}
+{% assign bg_right = section.settings.bg_right %}
+
+{% style %}
+  .drills-carousel-{{ carousel_id }} {
+    display: block;
+    width: 100%;
+    padding-top: {{ section.settings.padding_top }}px;
+    padding-bottom: {{ section.settings.padding_bottom }}px;
+    background-color: {{ bg_right }};
+  }
+
+  .drills-carousel-{{ carousel_id }} .drills__heading-row {
+    text-align: center;
+    margin-bottom: 40px;
+    padding: 0 24px;
+  }
+
+  .drills-carousel-{{ carousel_id }} .drills__heading {
+    font-size: 32px;
+    font-weight: 700;
+    color: {{ section.settings.heading_color }};
+    margin: 0;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .drills-carousel-{{ carousel_id }} .drills__inner {
+    display: flex;
+    flex-direction: row;
+    overflow: hidden;
+    border-radius: 36px;
+    max-width: 1280px;
+    margin: 0 auto;
+    min-height: 560px;
+  }
+
+  /* ── LEFT PANEL ── */
+  .drills-carousel-{{ carousel_id }} .drills__left {
+    width: 40%;
+    background-color: {{ bg_left }};
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    overflow: hidden;
+    padding: 0 32px;
+  }
+
+  .drills-carousel-{{ carousel_id }} .drills__fade {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 80px;
+    z-index: 4;
+    pointer-events: none;
+  }
+
+  .drills-carousel-{{ carousel_id }} .drills__fade--top {
+    top: 0;
+    background: linear-gradient(to bottom, {{ bg_left }}, transparent);
+  }
+
+  .drills-carousel-{{ carousel_id }} .drills__fade--bottom {
+    bottom: 0;
+    background: linear-gradient(to top, {{ bg_left }}, transparent);
+  }
+
+  .drills-carousel-{{ carousel_id }} .drills__chips {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    z-index: 2;
+  }
+
+  .drills-carousel-{{ carousel_id }} .drills__chip {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 24px;
+    border-radius: 9999px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: transparent;
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    white-space: nowrap;
+    text-transform: uppercase;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    transition: transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                opacity 0.45s ease,
+                background-color 0.35s ease,
+                color 0.35s ease,
+                border-color 0.35s ease;
+    will-change: transform, opacity;
+    left: 0;
+  }
+
+  .drills-carousel-{{ carousel_id }} .drills__chip.is-active {
+    background-color: #ffffff;
+    color: {{ bg_left }};
+    border-color: #ffffff;
+    z-index: 10;
+  }
+
+  .drills-carousel-{{ carousel_id }} .drills__chip:not(.is-active):hover {
+    border-color: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  .drills-carousel-{{ carousel_id }} .drills__chip svg {
+    flex-shrink: 0;
+    transition: color 0.35s ease;
+  }
+
+  .drills-carousel-{{ carousel_id }} .drills__chip.is-active svg {
+    color: {{ bg_left }};
+  }
+
+  /* ── RIGHT PANEL ── */
+  .drills-carousel-{{ carousel_id }} .drills__right {
+    flex: 1;
+    background-color: {{ bg_right }};
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 40px;
+    border-left: 1px solid rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+  }
+
+  .drills-carousel-{{ carousel_id }} .drills__cards {
+    position: relative;
+    width: 100%;
+    max-width: 340px;
+    aspect-ratio: 9 / 16;
+  }
+
+  .drills-carousel-{{ carousel_id }} .drills__card {
+    position: absolute;
+    inset: 0;
+    border-radius: 0;
+    overflow: hidden;
+    border: none;
+    transition: transform 0.5s cubic-bezier(0.34, 1.3, 0.64, 1),
+                opacity 0.4s ease;
+    will-change: transform, opacity;
+  }
+
+  .drills-carousel-{{ carousel_id }} .drills__card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: filter 0.5s ease;
+    filter: grayscale(1) blur(2px) brightness(0.7);
+  }
+
+  .drills-carousel-{{ carousel_id }} .drills__card.is-active img {
+    filter: grayscale(0) blur(0) brightness(1);
+  }
+
+  .drills-carousel-{{ carousel_id }} .drills__card-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 48px 28px 28px;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.92), rgba(0, 0, 0, 0.35), transparent);
+    opacity: 0;
+    transition: opacity 0.45s ease;
+    pointer-events: none;
+  }
+
+  .drills-carousel-{{ carousel_id }} .drills__card.is-active .drills__card-overlay {
+    opacity: 1;
+  }
+
+  .drills-carousel-{{ carousel_id }} .drills__card-badge {
+    display: inline-block;
+    background: rgba(17, 17, 17, 0.85);
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    margin-bottom: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+  }
+
+  .drills-carousel-{{ carousel_id }} .drills__card-desc {
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: 400;
+    line-height: 1.4;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+
+  .drills-carousel-{{ carousel_id }} .drills__live-badge {
+    display: none;
+  }
+
+  /* ── MOBILE ── */
+  @media screen and (max-width: 749px) {
+    .drills-carousel-{{ carousel_id }} .drills__inner {
+      flex-direction: column;
+      border-radius: 24px;
+      min-height: unset;
+      margin: 0 16px;
+    }
+
+    .drills-carousel-{{ carousel_id }} .drills__left {
+      width: 100%;
+      min-height: 320px;
+      padding: 0 20px;
+      justify-content: center;
+    }
+
+    .drills-carousel-{{ carousel_id }} .drills__right {
+      border-left: none;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      min-height: 480px;
+      padding: 32px 24px;
+    }
+
+    .drills-carousel-{{ carousel_id }} .drills__chip {
+      font-size: 11px;
+      padding: 11px 20px;
+      gap: 9px;
+    }
+
+    .drills-carousel-{{ carousel_id }} .drills__cards {
+      max-width: 260px;
+    }
+
+    .drills-carousel-{{ carousel_id }} .drills__heading {
+      font-size: 24px;
+    }
+  }
+
+  /* ── TABLET ── */
+  @media screen and (min-width: 750px) and (max-width: 989px) {
+    .drills-carousel-{{ carousel_id }} .drills__inner {
+      min-height: 480px;
+    }
+
+    .drills-carousel-{{ carousel_id }} .drills__cards {
+      max-width: 280px;
+    }
+  }
+{% endstyle %}
+
+<drills-carousel-{{ carousel_id }}
+  class="drills-carousel-{{ carousel_id }}"
+  data-section-id="{{ section.id }}"
+  data-interval="{{ section.settings.autoplay_interval }}"
+  data-count="{{ block_count }}"
+>
+  {% if section.settings.heading != blank %}
+    <div class="drills__heading-row">
+      <h2 class="drills__heading">{{ section.settings.heading }}</h2>
+    </div>
+  {% endif %}
+
+  <div class="drills__inner">
+
+    {%- comment -%} LEFT PANEL — vertical animated chips {%- endcomment -%}
+    <div class="drills__left">
+      <div class="drills__fade drills__fade--top"></div>
+      <div class="drills__fade drills__fade--bottom"></div>
+      <div class="drills__chips" data-chips>
+        {% for block in section.blocks %}
+          <button
+            class="drills__chip"
+            data-chip-index="{{ forloop.index0 }}"
+            aria-label="{{ block.settings.title }}"
+            {{ block.shopify_attributes }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+            <span>{{ block.settings.title | upcase }}</span>
+          </button>
+        {% endfor %}
+      </div>
+    </div>
+
+    {%- comment -%} RIGHT PANEL — stacked card carousel {%- endcomment -%}
+    <div class="drills__right">
+      <div class="drills__cards" data-cards>
+        {% for block in section.blocks %}
+          <div
+            class="drills__card"
+            data-card-index="{{ forloop.index0 }}"
+            {{ block.shopify_attributes }}
+          >
+            {% if block.settings.image != blank %}
+              <img
+                src="{{ block.settings.image | image_url: width: 600 }}"
+                alt="{{ block.settings.image.alt | default: block.settings.title | escape }}"
+                loading="lazy"
+                width="600"
+                height="1067"
+              >
+            {% else %}
+              <div style="width:100%;height:100%;background:#1a1a1a;display:flex;align-items:center;justify-content:center;">
+                {{ 'image' | placeholder_svg_tag }}
+              </div>
+            {% endif %}
+
+            <div class="drills__card-overlay">
+              <div class="drills__card-badge">{{ forloop.index }} &bull; {{ block.settings.title | upcase }}</div>
+              {% if block.settings.description != blank %}
+                <p class="drills__card-desc">{{ block.settings.description }}</p>
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+</drills-carousel-{{ carousel_id }}>
+
+<script>
+(function() {
+  const ITEM_HEIGHT = 65;
+
+  class DrillsCarousel extends HTMLElement {
+    connectedCallback() {
+      this.step = 0;
+      this.isPaused = false;
+      this.intervalMs = (parseInt(this.dataset.interval, 10) || 3) * 1000;
+      this.count = parseInt(this.dataset.count, 10) || 0;
+      this.chips = Array.from(this.querySelectorAll('[data-chip-index]'));
+      this.cards = Array.from(this.querySelectorAll('[data-card-index]'));
+
+      if (this.count === 0) return;
+
+      this._render();
+      this._startAutoPlay();
+      this._setupEvents();
+    }
+
+    get currentIndex() {
+      return ((this.step % this.count) + this.count) % this.count;
+    }
+
+    _wrappedDist(index) {
+      let d = index - this.currentIndex;
+      const half = this.count / 2;
+      if (d > half) d -= this.count;
+      if (d < -half) d += this.count;
+      return d;
+    }
+
+    _render() {
+      const cur = this.currentIndex;
+
+      this.chips.forEach((chip, i) => {
+        const d = this._wrappedDist(i);
+        chip.style.transform = 'translateY(' + (d * ITEM_HEIGHT) + 'px)';
+        chip.style.opacity = Math.max(0, 1 - Math.abs(d) * 0.25).toString();
+        chip.classList.toggle('is-active', i === cur);
+      });
+
+      this.cards.forEach((card, i) => {
+        const d = this._wrappedDist(i);
+        const isActive = d === 0;
+        const isPrev   = d === -1;
+        const isNext   = d === 1;
+
+        card.classList.toggle('is-active', isActive);
+
+        if (isActive) {
+          card.style.transform = 'translateX(0) scale(1) rotate(0deg)';
+          card.style.opacity   = '1';
+          card.style.zIndex    = '20';
+        } else if (isPrev) {
+          card.style.transform = 'translateX(-100px) scale(0.85) rotate(-3deg)';
+          card.style.opacity   = '0.4';
+          card.style.zIndex    = '10';
+        } else if (isNext) {
+          card.style.transform = 'translateX(100px) scale(0.85) rotate(3deg)';
+          card.style.opacity   = '0.4';
+          card.style.zIndex    = '10';
+        } else {
+          card.style.transform = 'translateX(0) scale(0.7)';
+          card.style.opacity   = '0';
+          card.style.zIndex    = '0';
+        }
+      });
+    }
+
+    _next() {
+      this.step++;
+      this._render();
+    }
+
+    _startAutoPlay() {
+      this._timer = setInterval(() => {
+        if (!this.isPaused) this._next();
+      }, this.intervalMs);
+    }
+
+    _stopAutoPlay() {
+      clearInterval(this._timer);
+    }
+
+    _setupEvents() {
+      this.chips.forEach((chip, i) => {
+        chip.addEventListener('click', () => {
+          const diff = (i - this.currentIndex + this.count) % this.count;
+          if (diff > 0) this.step += diff;
+          this._render();
+        });
+        chip.addEventListener('mouseenter', () => { this.isPaused = true; });
+        chip.addEventListener('mouseleave', () => { this.isPaused = false; });
+      });
+
+      this.addEventListener('mouseenter', () => { this.isPaused = true; });
+      this.addEventListener('mouseleave', () => { this.isPaused = false; });
+
+      // Touch swipe on cards
+      const right = this.querySelector('[data-cards]');
+      if (right) {
+        let startX = null;
+        right.addEventListener('touchstart', (e) => { startX = e.touches[0].clientX; }, { passive: true });
+        right.addEventListener('touchend', (e) => {
+          if (startX === null) return;
+          const dx = e.changedTouches[0].clientX - startX;
+          if (Math.abs(dx) > 40) {
+            if (dx < 0) { this.step++; } else { this.step--; }
+            this._render();
+          }
+          startX = null;
+        }, { passive: true });
+      }
+    }
+
+    disconnectedCallback() {
+      this._stopAutoPlay();
+    }
+  }
+
+  // Use a unique tag name per section instance to avoid re-registration errors
+  const tagName = 'drills-carousel-{{ carousel_id }}';
+  if (!customElements.get(tagName)) {
+    customElements.define(tagName, DrillsCarousel);
+  }
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Feature Carousel — Drills",
+  "tag": "section",
+  "class": "section",
+  "settings": [
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "<strong>DYNAMIC STRESS DRILLS</strong>"
+    },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "Heading color",
+      "default": "#de3823"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent color",
+      "default": "#de3823"
+    },
+    {
+      "type": "color",
+      "id": "bg_left",
+      "label": "Left panel background",
+      "default": "#de3823"
+    },
+    {
+      "type": "color",
+      "id": "bg_right",
+      "label": "Right panel background",
+      "default": "#111111"
+    },
+    {
+      "type": "range",
+      "id": "autoplay_interval",
+      "label": "Auto-play interval (seconds)",
+      "min": 2,
+      "max": 8,
+      "step": 1,
+      "default": 3
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 60
+    }
+  ],
+  "blocks": [
+    {
+      "type": "drill",
+      "name": "Drill",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Game screenshot"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "DRILL NAME"
+        },
+        {
+          "type": "textarea",
+          "id": "description",
+          "label": "Description",
+          "default": "A short description of this drill."
+        }
+      ]
+    }
+  ],
+  "max_blocks": 10,
+  "presets": [
+    {
+      "name": "Feature Carousel — Drills",
+      "blocks": [
+        { "type": "drill", "settings": { "title": "GAME MENU", "description": "With OTA updates, the experience keeps evolving—demanding accuracy, speed, and intelligence." } },
+        { "type": "drill", "settings": { "title": "FRUIT NINJA", "description": "A classic fruit-falling shooting game that tests your reaction speed and shooting accuracy." } },
+        { "type": "drill", "settings": { "title": "MOLE ATTACK", "description": "A hilarious random target shooting game. Endless cheeky moles keep popping up—smash them all!" } },
+        { "type": "drill", "settings": { "title": "MONKEY DUEL", "description": "A two-player game mode. Shoot the monkey, and it will jump off the vine—miss it, and the sword will fall on you." } }
+      ]
+    }
+  ]
+}
+{% endschema %}

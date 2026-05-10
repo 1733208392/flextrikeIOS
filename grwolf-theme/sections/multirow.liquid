@@ -94,9 +94,11 @@
                   {% else %}
                     href="{{ block.settings.button_link }}"
                   {% endif %}
-                  class="button button--{{ section.settings.button_style }}"
+                  style="display:inline-flex;align-items:center;gap:10px;padding:14px 28px;background-color:transparent;color:#ffffff;font-size:0.75em;font-weight:500;font-family:Helvetica,'Helvetica Neue',Arial,sans-serif;letter-spacing:0.3px;text-decoration:none;border-radius:9999px;border:1px solid rgba(255,255,255,0.5);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:background-color 0.2s ease,transform 0.15s ease;"
+                  onmouseover="this.style.backgroundColor='rgba(255,255,255,0.1)';this.style.transform='translateY(-2px)'"
+                  onmouseout="this.style.backgroundColor='transparent';this.style.transform=''"
                 >
-                  {{ block.settings.button_label | escape }}
+                  {{ block.settings.button_label | escape }} ›
                 </a>
               {%- endif -%}
             </div>

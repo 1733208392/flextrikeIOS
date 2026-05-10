@@ -1,5 +1,19 @@
 /* ── GRWOLF Custom Overrides ─────────────────────────────────────────────── */
 
+/* Global font override — Helvetica (system font) */
+:root {
+  --font-heading-family: Helvetica, "Helvetica Neue", Arial, sans-serif;
+  --font-body-family: Helvetica, "Helvetica Neue", Arial, sans-serif;
+  --font-heading-style: normal;
+  --font-body-style: normal;
+}
+
+body,
+h1, h2, h3, h4, h5, h6,
+p, a, li, td, th, input, textarea, select, button {
+  font-family: Helvetica, "Helvetica Neue", Arial, sans-serif !important;
+}
+
 /* Multirow CTA buttons on homepage — orange/red with bold text + hover lift */
 .multirow .button {
   background-color: #de3823 !important;
