@@ -38,6 +38,8 @@ Features:
     .btn-submit{width:100%;padding:14px;font-size:15px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#de3823 !important;background:linear-gradient(135deg,#1a1a2e,#16213e);border:1px solid #333;border-radius:4px;cursor:pointer}
     .btn-submit:hover{background:linear-gradient(135deg,#16213e,#0f3460);border-color:#555}
     .form-note{margin-top:16px;font-size:12px;color:#555}
+    .b2b-success-banner{background:#1a2e1a;border:1px solid #2d5a2d;border-radius:6px;padding:16px 24px;margin:24px auto;max-width:720px;color:#7ecf7e;font-size:15px;text-align:center}
+    .b2b-form-errors{background:#2e1a1a;border:1px solid #5a2d2d;border-radius:4px;padding:12px 16px;margin-bottom:20px;color:#cf7e7e;font-size:14px}
     @media (max-width:600px){.main-title{font-size:32px;letter-spacing:4px}.wholesale-page{padding:60px 20px 24px}.form-container{padding:36px 24px}.form-row{grid-template-columns:1fr}.btn-inquiry{padding:16px 48px;font-size:14px}}
   </style>
 
@@ -61,43 +63,57 @@ Features:
     <button class="btn-inquiry accent-red" id="b2b-inquiry-toggle">Inquiry</button>
   </div>
 
+  {% form 'contact' %}
+    {% if form.posted_successfully? %}
+      <div class="b2b-success-banner" role="alert">
+        <p>&#10003; Thank you &mdash; your inquiry was sent. We&rsquo;ll respond within 24 business hours.</p>
+      </div>
+    {% endif %}
+  {% endform %}
+
   <!-- Modal -->
   <div class="form-overlay" id="b2b-form-overlay" aria-hidden="true">
     <div class="form-container" role="dialog" aria-modal="true" aria-labelledby="b2b-form-title">
       <button class="form-close" id="b2b-form-close" aria-label="Close">&times;</button>
       <h3 class="form-title" id="b2b-form-title">Wholesale Inquiry</h3>
 
-      {% form 'contact', id: 'b2b-contact-form', class: 'b2b-contact-form' %}
+      {% form 'contact' %}
         <input type="hidden" name="return_to" value="{{ request.path }}">
+
+        {% if form.errors %}
+          <div class="b2b-form-errors" role="alert">
+            {{ form.errors | default_errors }}
+          </div>
+        {% endif %}
 
         <div class="form-row">
           <div class="form-group">
             <label for="b2b-name">Name *</label>
-            <input id="b2b-name" name="contact[name]" type="text" required placeholder="Your name">
+            <input id="b2b-name" name="contact[name]" type="text" required placeholder="Your name" value="{{ form.name }}">
           </div>
           <div class="form-group">
             <label for="b2b-company">Company</label>
-            <input id="b2b-company" name="contact[company]" type="text" placeholder="Company name">
+            <input id="b2b-company" name="contact[Company]" type="text" placeholder="Company name">
           </div>
         </div>
 
         <div class="form-row">
           <div class="form-group">
             <label for="b2b-email">Email *</label>
-            <input id="b2b-email" name="contact[email]" type="email" required placeholder="you@example.com">
+            <input id="b2b-email" name="contact[email]" type="email" required placeholder="you@example.com" value="{{ form.email }}">
           </div>
           <div class="form-group">
             <label for="b2b-phone">Phone</label>
-            <input id="b2b-phone" name="contact[phone]" type="tel" placeholder="+1 (555) 000-0000">
+            <input id="b2b-phone" name="contact[Phone]" type="tel" placeholder="+1 (555) 000-0000">
           </div>
         </div>
 
         <div class="form-group">
           <label for="b2b-type">Inquiry Type</label>
           <select id="b2b-type" name="contact[Inquiry Type]">
-            <option value="wholesale">Wholesale Order (10+ units)</option>
-            <option value="oem">OEM / Customization (50+ units)</option>
-            <option value="other">Other</option>
+            <option value="Wholesale Order (10+ units)">Wholesale Order (10+ units)</option>
+            <option value="OEM / Customization (50+ units)">OEM / Customization (50+ units)</option>
+            <option value="Other">Other</option>
           </select>
         </div>
 
@@ -108,53 +124,33 @@ Features:
 
         <div class="form-group">
           <label for="b2b-message">Message *</label>
-          <textarea id="b2b-message" name="contact[body]" required placeholder="Tell us about your requirements..."></textarea>
+          <textarea id="b2b-message" name="contact[body]" required placeholder="Tell us about your requirements...">{{ form.body }}</textarea>
         </div>
 
         <button type="submit" class="btn-submit accent-red">Submit Inquiry</button>
-        <p class="form-note">We'll respond within 24 business hours.</p>
-        <div id="b2b-form-status" aria-live="polite" style="margin-top:12px;color:#9ad1ff"></div>
+        <p class="form-note">We&rsquo;ll respond within 24 business hours.</p>
       {% endform %}
     </div>
   </div>
 
   <script>
-    document.addEventListener('DOMContentLoaded', function(){(function(){
+    document.addEventListener('DOMContentLoaded', function() {
       var overlay = document.getElementById('b2b-form-overlay');
       var openBtn = document.getElementById('b2b-inquiry-toggle');
       var closeBtn = document.getElementById('b2b-form-close');
-      var form = document.getElementById('b2b-contact-form');
-      var status = document.getElementById('b2b-form-status');
 
-      function openForm(){ overlay.classList.add('active'); overlay.setAttribute('aria-hidden','false'); document.body.style.overflow='hidden'; }
-      function closeForm(){ overlay.classList.remove('active'); overlay.setAttribute('aria-hidden','true'); document.body.style.overflow=''; }
+      function openForm() { overlay.classList.add('active'); overlay.setAttribute('aria-hidden', 'false'); document.body.style.overflow = 'hidden'; }
+      function closeForm() { overlay.classList.remove('active'); overlay.setAttribute('aria-hidden', 'true'); document.body.style.overflow = ''; }
 
-      openBtn && openBtn.addEventListener('click', openForm);
-      closeBtn && closeBtn.addEventListener('click', closeForm);
-      overlay && overlay.addEventListener('click', function(e){ if(e.target===overlay) closeForm(); });
+      if (openBtn) openBtn.addEventListener('click', openForm);
+      if (closeBtn) closeBtn.addEventListener('click', closeForm);
+      if (overlay) overlay.addEventListener('click', function(e) { if (e.target === overlay) closeForm(); });
 
-      form && form.addEventListener('submit', function(e){
-        e.preventDefault();
-        status.textContent = 'Sending\u2026';
-        var params = new URLSearchParams(new FormData(form));
-        fetch('/contact', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
-          body: params.toString(),
-          credentials: 'same-origin'
-        })
-          .then(function(resp){
-            if(resp.ok || resp.redirected){
-              status.textContent = 'Thank you \u2014 your inquiry was sent.';
-              form.reset();
-              setTimeout(closeForm, 1800);
-            } else {
-              return resp.text().then(function(t){ throw new Error(t || 'Network error'); });
-            }
-          })
-          .catch(function(err){ status.textContent = 'Submission failed \u2014 please try again.'; console.error(err); });
-      });
-    })();});
+      {%- if form.errors -%}
+      // Re-open modal if there were server-side validation errors
+      openForm();
+      {%- endif -%}
+    });
   </script>
 
   {% schema %}
