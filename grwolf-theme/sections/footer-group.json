@@ -11,18 +11,45 @@
   "name": "t:sections.footer.name",
   "type": "footer",
   "sections": {
+    "contact_section_pPwUBJ": {
+      "type": "contact-section",
+      "name": "Contact Section",
+      "settings": {
+        "title": "Contact",
+        "address": "PETLIVAT INC DBA GRWOLF, 100 N HOWARD ST STE R, SPOKANE, WA, 99201-0508, UNITED STATES",
+        "logo_width": 300,
+        "email": "biz@grwolftactical.com",
+        "whatsapp": "+19492796698",
+        "facebook": "https://www.facebook.com/9492796698",
+        "instagram": "https://www.instagram.com/grwolftactical_official",
+        "youtube": "https://www.youtube.com/ @GRWOLFTACTICAL",
+        "link_1_label": "App Privacy Policy",
+        "link_1_url": "shopify://pages/policies-app-privacy",
+        "link_2_label": "Shop Privacy Policy",
+        "link_2_url": "shopify://policies/privacy-policy",
+        "link_3_label": "Shop Refund Policy",
+        "link_3_url": "shopify://policies/refund-policy",
+        "link_4_label": "Terms of Service",
+        "link_4_url": "shopify://policies/terms-of-service",
+        "background_color": "#111111",
+        "text_color": "#ffffff",
+        "address_color": "#cccccc",
+        "icon_color": "#ffffff",
+        "icon_border_color": "#555555",
+        "icon_hover_bg": "#de3823",
+        "icon_hover_color": "#ffffff",
+        "sublink_color": "#aaaaaa",
+        "sublink_hover_color": "#ffffff",
+        "padding_top": 48,
+        "padding_bottom": 32
+      }
+    },
     "footer": {
       "type": "footer",
       "blocks": {
-        "text_XHcBaX": {
-          "type": "text",
-          "settings": {
-            "heading": "<strong>Secure Training</strong>",
-            "subtext": "<p>Your data belongs to you. The FlexTarget App stores all performance metrics locally on your device—no cloud, no tracking, no internet required for training.</p>"
-          }
-        },
         "link_list_F4xfE7": {
           "type": "link_list",
+          "disabled": true,
           "settings": {
             "heading": "<strong>Policies</strong>",
             "menu": "policies"
@@ -30,27 +57,27 @@
         },
         "text_fy4PzX": {
           "type": "text",
+          "disabled": true,
           "settings": {
             "heading": "<strong>Contact</strong>",
-            "subtext": "<p>PETLIVAT INC DBA GRWOLF, 100 N HOWARD ST STE R, SPOKANE, WA, 99201-0508, UNITED STATES</p><p>Email: <a href=\"mailto:biz@grwolftactical.com\">biz@grwolftactical.com</a><br/>WhatsApp: <a href=\"https://wa.me/19492796698\">+1 (949)279-6698</a></p>"
+            "subtext": "<p>PETLIVAT INC DBA GRWOLF, 100 N HOWARD ST STE R, SPOKANE, WA, 99201-0508, UNITED STATES<br/><br/>Email: <a href=\"mailto:biz@grwolftactical.com\">biz@grwolftactical.com</a><br/>WhatsApp: <a href=\"https://wa.me/19492796698\">+1 (949)279-6698</a></p>"
           }
         }
       },
       "block_order": [
-        "text_XHcBaX",
         "link_list_F4xfE7",
         "text_fy4PzX"
       ],
       "settings": {
         "color_scheme": "scheme-1",
-        "newsletter_enable": true,
+        "newsletter_enable": false,
         "newsletter_heading": "Subscribe to our emails",
         "enable_follow_on_shop": false,
-        "show_social": true,
-        "enable_country_selector": true,
+        "show_social": false,
+        "enable_country_selector": false,
         "enable_language_selector": false,
         "payment_enable": true,
-        "show_policy": true,
+        "show_policy": false,
         "margin_top": 0,
         "padding_top": 36,
         "padding_bottom": 36
@@ -58,6 +85,7 @@
     }
   },
   "order": [
+    "contact_section_pPwUBJ",
     "footer"
   ]
 }

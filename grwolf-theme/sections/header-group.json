@@ -14,16 +14,16 @@
     "announcement-bar": {
       "type": "announcement-bar",
       "blocks": {
-        "announcement-bar-0": {
+        "announcement_QdbDnx": {
           "type": "announcement",
           "settings": {
-            "text": "The world’s leading immersive intelligent tactical training platform",
+            "text": "🔥 Limited Time: Save $100 on FlexTarget ⏰ Offer Ends May 31",
             "link": ""
           }
         }
       },
       "block_order": [
-        "announcement-bar-0"
+        "announcement_QdbDnx"
       ],
       "settings": {
         "color_scheme": "scheme-1",
@@ -53,15 +53,10 @@
         "padding_top": 20,
         "padding_bottom": 20
       }
-    },
-    "176961284439a6c4a0": {
-      "type": "_blocks",
-      "settings": {}
     }
   },
   "order": [
     "announcement-bar",
-    "header",
-    "176961284439a6c4a0"
+    "header"
   ]
 }

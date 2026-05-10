@@ -1,36 +1,95 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "sections": {
     "video_faq_main": {
       "type": "video-faq",
+      "blocks": {
+        "video_card_FVpdwB": {
+          "type": "video_card",
+          "settings": {
+            "thumbnail": "shopify://shop_images/maxresdefault.webp",
+            "title": "FlexTarget Setup Tutorial | Unboxing & Quick Start Guide",
+            "video_url": "https://youtu.be/bitIAGtTj90",
+            "duration": "2:47",
+            "show_duration": true,
+            "views": "0",
+            "show_views": false,
+            "date": "5 days ago",
+            "show_date": false,
+            "show_playlist_indicator": false
+          }
+        },
+        "video_card_QNQzCU": {
+          "type": "video_card",
+          "settings": {
+            "thumbnail": "shopify://shop_images/quickdrill.jpg",
+            "title": "GRWOLF Smart Target: Quick Drill in Under 60 Seconds — Full Walkthrough",
+            "video_url": "https://youtu.be/iA5nxYriEe0",
+            "duration": "1:07",
+            "show_duration": true,
+            "views": "0",
+            "show_views": false,
+            "date": "5 days ago",
+            "show_date": false,
+            "show_playlist_indicator": false
+          }
+        },
+        "video_1": {
+          "type": "video_card",
+          "settings": {
+            "thumbnail": "shopify://shop_images/maxresdefault_1.webp",
+            "title": "Can You Really Practice Home Defense at Home? (Yes — Here’s How)",
+            "video_url": "https://youtu.be/iA5nxYriEe0",
+            "duration": "1:22",
+            "show_duration": true,
+            "views": "0",
+            "show_views": false,
+            "date": "",
+            "show_date": false,
+            "show_playlist_indicator": false
+          }
+        },
+        "video_card_ciy84N": {
+          "type": "video_card",
+          "settings": {
+            "thumbnail": "shopify://shop_images/Weixin_Image_20260129122050_142_78.jpg",
+            "title": "CQB & IPSC Stage Training at Home: Build Match-Ready Skills with FlexTarget",
+            "video_url": "https://youtu.be/YG8Lu-5G-lw",
+            "duration": "1:44",
+            "show_duration": true,
+            "views": "0",
+            "show_views": false,
+            "date": "5 days ago",
+            "show_date": false,
+            "show_playlist_indicator": false
+          }
+        }
+      },
+      "block_order": [
+        "video_card_FVpdwB",
+        "video_card_QNQzCU",
+        "video_1",
+        "video_card_ciy84N"
+      ],
       "settings": {
         "heading": "Video Tutorials",
         "subheading": "",
         "heading_size": "h1",
         "columns_desktop": 3,
+        "color_scheme": "background-1",
         "columns_mobile": "1",
         "swipe_on_mobile": true,
         "padding_top": 36,
         "padding_bottom": 36
-      },
-      "blocks": {
-        "video_1": {
-          "type": "video_card",
-          "settings": {
-            "video_title": "Your Video Title Here",
-            "video_url": "",
-            "duration": "0:00",
-            "show_duration": true,
-            "view_count": "",
-            "show_views": false,
-            "date": "",
-            "show_date": false,
-            "show_playlist": false
-          }
-        }
-      },
-      "block_order": [
-        "video_1"
-      ]
+      }
     }
   },
   "order": [
