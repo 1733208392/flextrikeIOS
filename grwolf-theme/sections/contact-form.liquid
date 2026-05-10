@@ -56,59 +56,61 @@
           <p class="form-subcopy">{{ section.settings.cta_subheading }}</p>
         {%- endif -%}
 
-        <form id="contact-form" class="contact-form" action="/contact" method="post" accept-charset="UTF-8">
-          <input type="hidden" name="form_type" value="contact">
-          <input type="hidden" name="utf8" value="✓">
-          {%- if section.settings.default_tags and section.settings.default_tags != blank -%}
-            <input type="hidden" name="contact[tags]" value="{{ section.settings.default_tags }}">
-          {%- else -%}
-            <input type="hidden" name="contact[tags]" value="b2b-inquiry">
-          {%- endif -%}
+        {% form 'contact', id: 'contact-form', class: 'contact-form' %}
+          <input type="hidden" name="return_to" value="{{ request.path }}">
+
+          {% if form.posted_successfully? %}
+            <p style="color:#7ecf7e;margin-bottom:16px;">&#10003; Thank you &mdash; your inquiry was sent. We&rsquo;ll respond within 24 business hours.</p>
+          {% endif %}
+
+          {% if form.errors %}
+            {{ form.errors | default_errors }}
+          {% endif %}
 
           <div class="form-row">
             <div class="form-group">
               <label for="name">Name *</label>
-              <input id="name" name="contact[name]" type="text" required placeholder="Your name">
+              <input id="name" name="contact[name]" type="text" required placeholder="Your name" value="{{ form.name }}">
             </div>
             <div class="form-group">
               <label for="company">Company</label>
-              <input id="company" name="contact[company]" type="text" placeholder="Company name">
+              <input id="company" name="contact[Company]" type="text" placeholder="Company name">
             </div>
           </div>
 
           <div class="form-row">
             <div class="form-group">
               <label for="email">Email *</label>
-              <input id="email" name="contact[email]" type="email" required placeholder="you@example.com">
+              <input id="email" name="contact[email]" type="email" required placeholder="you@example.com" value="{{ form.email }}">
             </div>
             <div class="form-group">
               <label for="phone">Phone</label>
-              <input id="phone" name="contact[phone]" type="tel" placeholder="+1 (555) 000-0000">
+              <input id="phone" name="contact[Phone]" type="tel" placeholder="+1 (555) 000-0000">
             </div>
           </div>
 
           <div class="form-group">
             <label for="type">Inquiry Type</label>
-            <select id="type" name="contact[body][inquiry_type]">
-              <option value="wholesale">Wholesale Order (10+ units)</option>
-              <option value="oem">OEM / Customization (50+ units)</option>
-              <option value="other">Other</option>
+            <select id="type" name="contact[Inquiry Type]">
+              <option value="Wholesale Order (10+ units)">Wholesale Order (10+ units)</option>
+              <option value="OEM / Customization (50+ units)">OEM / Customization (50+ units)</option>
+              <option value="Other">Other</option>
             </select>
           </div>
 
           <div class="form-group">
             <label for="qty">Estimated Quantity</label>
-            <input id="qty" name="contact[body][quantity]" type="text" placeholder="e.g. 50 units">
+            <input id="qty" name="contact[Quantity]" type="text" placeholder="e.g. 50 units">
           </div>
 
           <div class="form-group">
             <label for="message">Message *</label>
-            <textarea id="message" name="contact[body]" required placeholder="Tell us about your requirements..."></textarea>
+            <textarea id="message" name="contact[body]" required placeholder="Tell us about your requirements...">{{ form.body }}</textarea>
           </div>
 
           <div class="form-group form-group--checkbox">
-            <input id="demo-draw" name="contact[body][demo_draw]" type="checkbox" value="yes">
-            <label for="demo-draw">✅ I'd like to enter the free demo draw</label>
+            <input id="demo-draw" name="contact[Demo Draw]" type="checkbox" value="yes">
+            <label for="demo-draw">&#9989; I&rsquo;d like to enter the free demo draw</label>
           </div>
 
           <button type="submit" class="btn-submit accent-red">Submit Inquiry</button>
@@ -124,7 +126,7 @@
               {%- endif -%}
             </div>
           {%- endif -%}
-        </form>
+        {% endform %}
       </div>
 
     </div>
