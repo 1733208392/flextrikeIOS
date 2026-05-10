@@ -1,0 +1,13 @@
+{
+  "sections": {
+    "redirect": {
+      "type": "appstore-redirect",
+      "settings": {
+        "ios_url": "https://apps.apple.com/us/app/%E6%99%BA%E8%83%BD%E9%9D%B6/id6755102346",
+        "android_url": "https://play.google.com/store/apps/details?id=com.flextarget.android",
+        "apk_url": "https://cdn.shopify.com/s/files/1/0829/8800/7744/files/app-release.apk?v=1771986905"
+      }
+    }
+  },
+  "order": ["redirect"]
+}

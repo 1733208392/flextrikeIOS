@@ -1,0 +1,60 @@
+<style>
+  .appstore-redirect {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+    color: #fff;
+    text-align: center;
+    padding: 40px 24px;
+  }
+  .appstore-redirect__msg { font-size: 18px; opacity: 0.6; letter-spacing: 0.04em; }
+</style>
+
+<div class="appstore-redirect">
+  <p class="appstore-redirect__msg" id="redirect-msg">Detecting your device&hellip;</p>
+</div>
+
+<script>
+  (function() {
+    var ua = navigator.userAgent.toLowerCase();
+    var msg = document.getElementById('redirect-msg');
+
+    var iosUrl     = {{ section.settings.ios_url | json }};
+    var androidUrl = {{ section.settings.android_url | json }};
+    var apkUrl     = {{ section.settings.apk_url | json }};
+
+    var chinaBrands = ['huawei','xiaomi','oppo','vivo','honor','realme','oneplus','meizu','lenovo','zte','coolpad'];
+    var isChina = chinaBrands.some(function(b){ return ua.indexOf(b) !== -1; });
+    var hasPlay = ua.indexOf('google') !== -1 || ua.indexOf('play') !== -1 || ua.indexOf('gms') !== -1;
+
+    if (ua.indexOf('iphone') !== -1 || ua.indexOf('ipad') !== -1) {
+      if (msg) msg.textContent = 'Opening App Store\u2026';
+      window.location.href = iosUrl;
+    } else if (ua.indexOf('android') !== -1) {
+      if (isChina && !hasPlay) {
+        if (msg) msg.textContent = 'Downloading APK\u2026';
+        window.location.href = apkUrl;
+      } else {
+        if (msg) msg.textContent = 'Opening Google Play\u2026';
+        window.location.href = androidUrl;
+      }
+    } else {
+      if (msg) msg.textContent = 'Open this link on your iOS or Android device.';
+    }
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "App Store Redirect",
+  "settings": [
+    { "type": "header", "content": "Redirect URLs" },
+    { "type": "url", "id": "ios_url", "label": "iOS App Store URL" },
+    { "type": "url", "id": "android_url", "label": "Google Play URL" },
+    { "type": "url", "id": "apk_url", "label": "APK Download URL (China Android)" }
+  ],
+  "presets": [{ "name": "App Store Redirect" }]
+}
+{% endschema %}

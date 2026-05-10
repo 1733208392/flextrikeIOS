@@ -1,96 +1,56 @@
 <style>
-  .app-download {
+  .app-qr {
     background: rgb(var(--color-background));
-    color: rgba(var(--color-foreground), 0.75);
-    padding: 80px 24px;
-    text-align: center;
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 24px;
   }
-  .app-download__inner { max-width: 480px; margin: 0 auto; }
-  .app-download__heading {
-    font-size: clamp(1.6rem, 4vw, 2.4rem); font-weight: 700;
-    color: rgb(var(--color-foreground)); margin-bottom: 12px;
-  }
-  .app-download__subtext {
-    font-size: 16px; line-height: 1.7;
-    color: rgba(var(--color-foreground), 0.6); margin-bottom: 40px;
-  }
-  .app-download__qr-wrap {
-    display: inline-block;
-    background: #fff;
-    border-radius: 16px;
-    padding: 16px;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.18);
-    margin-bottom: 16px;
-  }
-  .app-download__qr-wrap img { display: block; width: 200px; height: 200px; }
-  .app-download__qr-hint {
-    font-size: 13px; color: rgba(var(--color-foreground), 0.45);
-    margin-bottom: 40px; letter-spacing: 0.03em;
-  }
-  .app-download__divider {
-    display: flex; align-items: center; gap: 12px;
-    margin-bottom: 24px; color: rgba(var(--color-foreground), 0.3); font-size: 13px;
-  }
-  .app-download__divider::before,
-  .app-download__divider::after {
-    content: ''; flex: 1; height: 1px; background: rgba(var(--color-foreground), 0.12);
-  }
-  .app-download__buttons { display: flex; flex-direction: column; gap: 12px; }
-  .app-download__btn {
-    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
-    padding: 14px 24px; border-radius: 8px; font-size: 15px; font-weight: 600;
-    text-decoration: none; letter-spacing: 0.03em; transition: opacity 0.2s ease;
-    border: 2px solid transparent;
-  }
-  .app-download__btn:hover { opacity: 0.82; }
-  .app-download__btn--ios { background: #000; color: #fff; }
-  .app-download__btn--android { background: #1a73e8; color: #fff; }
-  .app-download__btn--apk {
-    background: transparent; color: rgb(var(--color-foreground));
-    border-color: rgba(var(--color-foreground), 0.25);
-  }
+  .app-qr__inner { max-width: 480px; width: 100%; text-align: center; margin: 0 auto; }
+  .app-qr__heading { font-size: clamp(1.5rem, 4vw, 2.2rem); font-weight: 700; color: rgb(var(--color-foreground)); margin: 0 0 12px; letter-spacing: 0.02em; }
+  .app-qr__subtext { font-size: 15px; line-height: 1.7; color: rgba(var(--color-foreground), 0.55); margin: 0 0 36px; }
+  .app-qr__code-wrap { display: inline-block; background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 4px 24px rgba(0,0,0,0.18); margin-bottom: 24px; text-decoration: none; }
+  .app-qr__code-wrap img { display: block; width: 200px; height: 200px; object-fit: contain; }
+  .app-qr__hint { font-size: 13px; color: rgba(var(--color-foreground), 0.35); margin: 0 0 32px; }
+  .app-qr__badges { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+  .app-qr__badge { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 600; text-decoration: none; opacity: 0.4; border: 1px solid rgba(var(--color-foreground), 0.2); color: rgba(var(--color-foreground), 0.6); }
+  @media (max-width: 480px) { .app-qr__code-wrap img { width: 160px; height: 160px; } }
 </style>
 
-<div class="app-download">
-  <div class="app-download__inner">
+<div class="app-qr">
+  <div class="app-qr__inner">
 
     {%- if section.settings.heading != blank -%}
-      <h1 class="app-download__heading">{{ section.settings.heading }}</h1>
+      <h1 class="app-qr__heading">{{ section.settings.heading }}</h1>
     {%- endif -%}
 
     {%- if section.settings.subtext != blank -%}
-      <p class="app-download__subtext">{{ section.settings.subtext }}</p>
+      <p class="app-qr__subtext">{{ section.settings.subtext }}</p>
     {%- endif -%}
 
-    {%- if section.settings.qr_image != blank -%}
-      <a href="{{ section.settings.qr_link | default: '/pages/app-redirect' }}" class="app-download__qr-wrap">
-        <img src="{{ section.settings.qr_image | image_url: width: 400 }}"
-             alt="Scan to download" width="200" height="200">
-      </a>
-      <p class="app-download__qr-hint">{{ section.settings.qr_hint | default: 'Scan with your phone camera to download' }}</p>
-    {%- endif -%}
+    {%- assign redirect_path = section.settings.redirect_page_url | default: '/pages/appstore-redirect' -%}
+    {%- assign qr_target = redirect_path | prepend: 'https://grwolf.com' | url_encode -%}
 
-    <div class="app-download__divider">or download directly</div>
+    <a href="{{ redirect_path }}" class="app-qr__code-wrap" aria-label="Scan to download the app">
+      {%- if section.settings.qr_image != blank -%}
+        <img src="{{ section.settings.qr_image | image_url: width: 400 }}" alt="QR code — scan to download" width="200" height="200">
+      {%- else -%}
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&margin=0&data={{ qr_target }}" alt="QR code — scan to download" width="200" height="200">
+      {%- endif -%}
+    </a>
 
-    <div class="app-download__buttons">
-      {%- if section.settings.ios_url != blank -%}
-        <a class="app-download__btn app-download__btn--ios" href="{{ section.settings.ios_url }}">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
-          {{ section.settings.ios_label | default: 'Download on App Store' }}
-        </a>
-      {%- endif -%}
-      {%- if section.settings.android_url != blank -%}
-        <a class="app-download__btn app-download__btn--android" href="{{ section.settings.android_url }}">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.523 15.341l-5.02-5.021 5.02-5.02-1.414-1.415-5.02 5.02-5.021-5.02-1.414 1.415 5.02 5.02-5.02 5.021 1.414 1.414 5.021-5.02 5.02 5.02 1.414-1.414z"/><path d="M1 21l3.5-6.06A9 9 0 1 1 12 21H1z"/></svg>
-          {{ section.settings.android_label | default: 'Get it on Google Play' }}
-        </a>
-      {%- endif -%}
-      {%- if section.settings.apk_url != blank -%}
-        <a class="app-download__btn app-download__btn--apk" href="{{ section.settings.apk_url }}" download>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
-          {{ section.settings.apk_label | default: 'Download APK (Android)' }}
-        </a>
-      {%- endif -%}
+    <p class="app-qr__hint">{{ section.settings.hint | default: 'Scan with your phone camera to download' }}</p>
+
+    <div class="app-qr__badges">
+      <span class="app-qr__badge">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+        iOS
+      </span>
+      <span class="app-qr__badge">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.6 9.48l1.84-3.18c.16-.31.04-.69-.26-.85a.637.637 0 0 0-.83.22l-1.88 3.24a11.46 11.46 0 0 0-8.94 0L5.65 5.67a.643.643 0 0 0-.87-.2c-.28.18-.37.54-.22.83L6.4 9.48A10.78 10.78 0 0 0 1 18h22a10.78 10.78 0 0 0-5.4-8.52zM7 15.25a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5zm10 0a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5z"/></svg>
+        Android
+      </span>
     </div>
 
   </div>
@@ -98,24 +58,15 @@
 
 {% schema %}
 {
-  "name": "App Download",
+  "name": "App Download (QR)",
   "settings": [
-    { "type": "text", "id": "heading", "label": "Heading", "default": "Download the FlexTarget App" },
-    { "type": "textarea", "id": "subtext", "label": "Subtext", "default": "Scan the QR code with your phone camera to download." },
-    { "type": "header", "content": "QR Code" },
-    { "type": "image_picker", "id": "qr_image", "label": "QR code image" },
-    { "type": "text", "id": "qr_hint", "label": "QR code hint text", "default": "Scan with your phone camera to download" },
-    { "type": "url", "id": "qr_link", "label": "QR code destination URL", "info": "Set to /pages/app-redirect for auto-redirect" },
-    { "type": "header", "content": "iOS" },
-    { "type": "url", "id": "ios_url", "label": "App Store URL" },
-    { "type": "text", "id": "ios_label", "label": "Button label", "default": "Download on App Store" },
-    { "type": "header", "content": "Android" },
-    { "type": "url", "id": "android_url", "label": "Google Play URL" },
-    { "type": "text", "id": "android_label", "label": "Button label", "default": "Get it on Google Play" },
-    { "type": "header", "content": "Direct APK" },
-    { "type": "url", "id": "apk_url", "label": "APK file URL" },
-    { "type": "text", "id": "apk_label", "label": "Button label", "default": "Download APK (Android)" }
+    { "type": "text",         "id": "heading",          "label": "Heading",            "default": "Download the FlexTarget App" },
+    { "type": "textarea",     "id": "subtext",           "label": "Subtext",            "default": "Scan the QR code with your phone camera. Automatically opens App Store or Google Play." },
+    { "type": "text",         "id": "hint",              "label": "QR hint text",       "default": "Scan with your phone camera to download" },
+    { "type": "header",       "content": "QR Code" },
+    { "type": "image_picker", "id": "qr_image",          "label": "QR code image",      "info": "Upload your own QR code image. If blank, one is auto-generated pointing to the redirect page." },
+    { "type": "text",         "id": "redirect_page_url", "label": "Redirect page path", "default": "/pages/appstore-redirect", "info": "Path to your appstore-redirect page. QR code will point here." }
   ],
-  "presets": [{ "name": "App Download" }]
+  "presets": [{ "name": "App Download (QR)" }]
 }
 {% endschema %}

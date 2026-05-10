@@ -4,16 +4,9 @@
       "type": "app-download",
       "settings": {
         "heading": "Download the FlexTarget App",
-        "subtext": "Scan the QR code with your phone camera to download.",
-        "qr_image": "shopify://shop_images/qrcode.png",
-        "qr_hint": "Scan with your phone camera to download",
-        "qr_link": "/pages/app-redirect",
-        "ios_url": "https://apps.apple.com/us/app/%E6%99%BA%E8%83%BD%E9%9D%B6/id6755102346",
-        "ios_label": "Download on App Store",
-        "android_url": "https://play.google.com/store/apps/details?id=com.flextarget.android",
-        "android_label": "Get it on Google Play",
-        "apk_url": "https://cdn.shopify.com/s/files/1/0829/8800/7744/files/app-release.apk?v=1771986905",
-        "apk_label": "Download APK (Android)"
+        "subtext": "Scan the QR code with your phone camera. Automatically opens App Store or Google Play.",
+        "hint": "Scan with your phone camera to download",
+        "redirect_page_url": "/pages/appstore-redirect"
       }
     }
   },
