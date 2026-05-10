@@ -68,6 +68,7 @@ Features:
       <h3 class="form-title" id="b2b-form-title">Wholesale Inquiry</h3>
 
       {% form 'contact', id: 'b2b-contact-form', class: 'b2b-contact-form' %}
+        <input type="hidden" name="return_to" value="{{ request.path }}">
 
         <div class="form-row">
           <div class="form-group">
@@ -118,7 +119,7 @@ Features:
   </div>
 
   <script>
-    (function(){
+    document.addEventListener('DOMContentLoaded', function(){(function(){
       var overlay = document.getElementById('b2b-form-overlay');
       var openBtn = document.getElementById('b2b-inquiry-toggle');
       var closeBtn = document.getElementById('b2b-form-close');
@@ -132,17 +133,28 @@ Features:
       closeBtn && closeBtn.addEventListener('click', closeForm);
       overlay && overlay.addEventListener('click', function(e){ if(e.target===overlay) closeForm(); });
 
-      // AJAX submit to Shopify /contact endpoint (server-side email, user-unnoticed)
       form && form.addEventListener('submit', function(e){
         e.preventDefault();
-        status.textContent = '';
-        var fd = new FormData(form);
-        // send to Shopify contact endpoint
-        fetch('/contact', { method:'POST', body: fd, credentials: 'same-origin' })
-          .then(function(resp){ if(resp.ok){ status.textContent = 'Thank you — your inquiry was sent.'; form.reset(); setTimeout(closeForm,1200); } else { return resp.text().then(function(t){ throw new Error(t||'Network error') }); } })
-          .catch(function(err){ status.textContent = 'Submission failed — please try again.'; console.error(err); });
+        status.textContent = 'Sending\u2026';
+        var params = new URLSearchParams(new FormData(form));
+        fetch('/contact', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
+          body: params.toString(),
+          credentials: 'same-origin'
+        })
+          .then(function(resp){
+            if(resp.ok || resp.redirected){
+              status.textContent = 'Thank you \u2014 your inquiry was sent.';
+              form.reset();
+              setTimeout(closeForm, 1800);
+            } else {
+              return resp.text().then(function(t){ throw new Error(t || 'Network error'); });
+            }
+          })
+          .catch(function(err){ status.textContent = 'Submission failed \u2014 please try again.'; console.error(err); });
       });
-    })();
+    })();});
   </script>
 
   {% schema %}
