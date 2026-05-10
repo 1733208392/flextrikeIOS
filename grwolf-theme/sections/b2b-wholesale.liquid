@@ -67,9 +67,7 @@ Features:
       <button class="form-close" id="b2b-form-close" aria-label="Close">&times;</button>
       <h3 class="form-title" id="b2b-form-title">Wholesale Inquiry</h3>
 
-      <form id="b2b-contact-form" class="b2b-contact-form">
-        <input type="hidden" name="form_type" value="contact">
-        <input type="hidden" name="utf8" value="✓">
+      {% form 'contact', id: 'b2b-contact-form', class: 'b2b-contact-form' %}
         <input type="hidden" name="contact[tags]" value="b2b-inquiry">
 
         <div class="form-row">
@@ -116,7 +114,7 @@ Features:
         <button type="submit" class="btn-submit accent-red">Submit Inquiry</button>
         <p class="form-note">We'll respond within 24 business hours.</p>
         <div id="b2b-form-status" aria-live="polite" style="margin-top:12px;color:#9ad1ff"></div>
-      </form>
+      {% endform %}
     </div>
   </div>
 
