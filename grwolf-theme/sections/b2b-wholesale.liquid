@@ -68,7 +68,6 @@ Features:
       <h3 class="form-title" id="b2b-form-title">Wholesale Inquiry</h3>
 
       {% form 'contact', id: 'b2b-contact-form', class: 'b2b-contact-form' %}
-        <input type="hidden" name="contact[tags]" value="b2b-inquiry">
 
         <div class="form-row">
           <div class="form-group">
@@ -94,7 +93,7 @@ Features:
 
         <div class="form-group">
           <label for="b2b-type">Inquiry Type</label>
-          <select id="b2b-type" name="contact[body][inquiry_type]">
+          <select id="b2b-type" name="contact[Inquiry Type]">
             <option value="wholesale">Wholesale Order (10+ units)</option>
             <option value="oem">OEM / Customization (50+ units)</option>
             <option value="other">Other</option>
@@ -103,12 +102,12 @@ Features:
 
         <div class="form-group">
           <label for="b2b-qty">Estimated Quantity</label>
-          <input id="b2b-qty" name="contact[body][quantity]" type="text" placeholder="e.g. 50 units">
+          <input id="b2b-qty" name="contact[Quantity]" type="text" placeholder="e.g. 50 units">
         </div>
 
         <div class="form-group">
           <label for="b2b-message">Message *</label>
-          <textarea id="b2b-message" name="contact[body][message]" required placeholder="Tell us about your requirements..."></textarea>
+          <textarea id="b2b-message" name="contact[body]" required placeholder="Tell us about your requirements..."></textarea>
         </div>
 
         <button type="submit" class="btn-submit accent-red">Submit Inquiry</button>
