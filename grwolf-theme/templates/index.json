@@ -255,6 +255,56 @@
         "padding_bottom": 28
       }
     },
+    "review_cards_TWqwnr": {
+      "type": "review-cards",
+      "blocks": {
+        "review_EtcwKK": {
+          "type": "review",
+          "settings": {
+            "image": "shopify://shop_images/black-and-white-portrait-mens-fashion.jpg",
+            "reviewer_name": "Ryan T",
+            "reviewer_title": "Shooting Sport Enthusiaist",
+            "review_text": "I’ve been using the GRWOLF FlexTarget Smart GBB Replica Training Target for a few weeks now for indoor airsoft training, and it’s honestly one of the best investments I’ve made for improving my skills without needing to head to an outdoor range every time. This smart electronic target turns solo practice into something genuinely engaging and data-driven—perfect for apartment, basement, or garage setups where space and noise are concerns.\n\nWhat It Actually Is\nIt’s a compact, shot-proof interactive target (medium size, about 8 kg / 17.6 lbs) designed specifically for airsoft GBB (Gas Blow Back) replicas, but it also works great for other low-velocity training. The big selling point is the app-connected smart system: it detects hits via built-in sensors, lights up or reacts visually, tracks your performance in real time, and feeds everything into a phone app for custom drills, scoring, and progress history.",
+            "review_date": "05/01/2026"
+          }
+        },
+        "review_PknKmY": {
+          "type": "review",
+          "settings": {
+            "image": "shopify://shop_images/urban-mens-fashion-on-young-adult.jpg",
+            "reviewer_name": "Morlim",
+            "reviewer_title": "Shooting Sport Enthusiast",
+            "review_text": "I bought this smart training target in the black color for practice at home, and the size is just right for setting up in our garage without taking up too much space. The setup and installation were very simple because it connected to the app quickly, and my husband was able to start using it within minutes. The system is easy to use and tracks shots accurately, which makes practice more engaging and helps build consistency during regular sessions. The materials feel very strong and durable, and the screen seems built to handle frequent use without showing wear. Overall, this has been a great value for money because it provides reliable functionality, useful feedback, and a convenient way for my family to practice safely at home.",
+            "review_date": "04/28/2026"
+          }
+        },
+        "review_TUEnA3": {
+          "type": "review",
+          "settings": {
+            "image": "shopify://shop_images/strong-women-planking.jpg",
+            "reviewer_name": "Jakcy",
+            "reviewer_title": "Shooting Club Trainer",
+            "review_text": "A Game Changer for Serious Training!\n\nMy son shoots 2,000 rounds every single day, and this target has been an absolute lifesaver. We used to go through mountains of paper targets and spend a fortune constantly replacing those sticky target sheets. Not anymore — this thing just keeps going. The time and money we’ve saved is unreal. Honestly, at this point we couldn’t train without it. If your kid is putting in serious volume like mine, stop wasting money on disposables and just get one of these. Absolutely love it!",
+            "review_date": "08/01/2025"
+          }
+        }
+      },
+      "block_order": [
+        "review_EtcwKK",
+        "review_PknKmY",
+        "review_TUEnA3"
+      ],
+      "name": "Review Cards",
+      "settings": {
+        "title": "Customer Reviews",
+        "heading_size": "h1",
+        "columns_desktop": "3",
+        "columns_mobile": "1",
+        "color_scheme": "",
+        "padding_top": 36,
+        "padding_bottom": 36
+      }
+    },
     "faq_flextarget_hEAfwD": {
       "type": "faq-flextarget",
       "blocks": {
@@ -371,6 +421,7 @@
     "multirow_pEe4Vt",
     "17738892271e9ce14e",
     "drills_carousel",
+    "review_cards_TWqwnr",
     "faq_flextarget_hEAfwD",
     "privacy_claim"
   ]

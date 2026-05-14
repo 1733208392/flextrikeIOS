@@ -1,3 +1,12 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "sections": {
     "file_downloads": {
@@ -8,11 +17,11 @@
         "file1_label": "Compound Bow Assembly Guide",
         "file1_url": "https://cdn.shopify.com/s/files/1/0829/8800/7744/files/compoundbow-_assembly-v2.pdf?v=1777794303",
         "file2_label": "FlexTarget Menu",
-        "file2_url": "https://cdn.shopify.com/s/files/1/0829/8800/7744/files/flextarget-menu.pdf?v=1777794301",
-        "file3_label": "Android App (APK)",
-        "file3_url": "https://cdn.shopify.com/s/files/1/0829/8800/7744/files/app-release.apk?v=1775031637"
+        "file2_url": "https://cdn.shopify.com/s/files/1/0829/8800/7744/files/flextarget-menu.pdf?v=1777794301"
       }
     }
   },
-  "order": ["file_downloads"]
+  "order": [
+    "file_downloads"
+  ]
 }

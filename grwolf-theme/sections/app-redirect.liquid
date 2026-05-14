@@ -1,0 +1,64 @@
+<style>
+  .app-redirect {
+    background: rgb(var(--color-background));
+    min-height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 60px 24px;
+  }
+  .app-redirect__msg {
+    font-size: 18px;
+    color: rgba(var(--color-foreground), 0.5);
+    font-family: inherit;
+  }
+</style>
+
+<div class="app-redirect">
+  <p class="app-redirect__msg" id="app-redirect-status">Detecting your device&hellip;</p>
+</div>
+
+<script>
+  (function() {
+    var msg = document.getElementById('app-redirect-status');
+    var ua = navigator.userAgent.toLowerCase();
+    var iosUrl     = {{ section.settings.ios_url | json }};
+    var androidUrl = {{ section.settings.android_url | json }};
+    var apkUrl     = {{ section.settings.apk_url | json }};
+
+    var chinaBrands = ['huawei','xiaomi','oppo','vivo','honor','realme','oneplus','meizu','lenovo','zte','coolpad'];
+    var isChina = chinaBrands.some(function(b){ return ua.indexOf(b) !== -1; });
+    var hasPlay = ua.indexOf('google') !== -1 || ua.indexOf('play') !== -1 || ua.indexOf('gms') !== -1;
+
+    if (ua.indexOf('iphone') !== -1 || ua.indexOf('ipad') !== -1) {
+      if (msg) msg.textContent = 'Redirecting to App Store\u2026';
+      if (iosUrl) window.location.href = iosUrl;
+    } else if (ua.indexOf('android') !== -1) {
+      if (isChina && !hasPlay) {
+        if (msg) msg.textContent = 'Downloading APK\u2026';
+        if (apkUrl) window.location.href = apkUrl;
+      } else {
+        if (msg) msg.textContent = 'Redirecting to Google Play\u2026';
+        if (androidUrl) window.location.href = androidUrl;
+      }
+    } else {
+      if (msg) msg.textContent = 'Open this link on your iOS or Android device.';
+    }
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "App Redirect",
+  "settings": [
+    { "type": "header", "content": "iOS" },
+    { "type": "url", "id": "ios_url", "label": "App Store URL" },
+    { "type": "header", "content": "Android" },
+    { "type": "url", "id": "android_url", "label": "Google Play URL" },
+    { "type": "header", "content": "Direct APK (China Android)" },
+    { "type": "url", "id": "apk_url", "label": "APK file URL" }
+  ],
+  "presets": [{ "name": "App Redirect" }]
+}
+{% endschema %}

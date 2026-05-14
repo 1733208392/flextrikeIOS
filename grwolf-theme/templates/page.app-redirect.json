@@ -1,0 +1,22 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "app_redirect": {
+      "type": "app-redirect",
+      "settings": {
+        "ios_url": "https://apps.apple.com/us/app/%E6%99%BA%E8%83%BD%E9%9D%B6/id6755102346",
+        "android_url": "https://play.google.com/store/apps/details?id=com.flextarget.android",
+        "apk_url": "https://cdn.shopify.com/s/files/1/0829/8800/7744/files/app-release.apk?v=1771986905"
+      }
+    }
+  },
+  "order": ["app_redirect"]
+}
