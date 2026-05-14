@@ -865,8 +865,10 @@ func _on_target_hit(zone_or_id, points_or_zone, hit_pos_or_points, target_pos_or
 	
 	# Check if we should transition to the next target in the sequence
 	# For paddle and popper targets, skip the 2-shot check and wait for target_disappeared signal
+	# For single-target sequences (targetlink stage with only 1 target configured), skip the
+	# 2-shot disappear so the target stays visible for the full stage duration.
 	var is_paddle_or_popper = (current_target_type == "paddle" or current_target_type == "popper")
-	if shots_on_current_target >= 2 and not is_paddle_or_popper:
+	if shots_on_current_target >= 2 and not is_paddle_or_popper and target_sequence.size() > 1:
 		# Check if this is the last target in the sequence
 		var is_last_in_sequence = (current_target_index >= target_sequence.size() - 1)
 		
@@ -879,6 +881,8 @@ func _on_target_hit(zone_or_id, points_or_zone, hit_pos_or_points, target_pos_or
 			# Fall through to the old logic below
 	elif is_paddle_or_popper and DEBUG_ENABLED:
 		print("[DrillsNetwork] Paddle/popper target detected, skipping 2-shot transition check (waiting for target_disappeared signal)")
+	elif target_sequence.size() <= 1 and shots_on_current_target >= 2 and DEBUG_ENABLED:
+		print("[DrillsNetwork] Single-target sequence — target stays visible (no 2-shot disappear)")
 	
 	# Track shots on the last target to trigger final spawn (legacy logic for single-target or last target in sequence)
 	if is_last and not final_target_spawned:
