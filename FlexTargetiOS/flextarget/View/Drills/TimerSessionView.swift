@@ -356,9 +356,10 @@ struct TimerSessionView: View {
     private func startSequence() {
         timerState = .standby
         playStandbySound()
-        let randomDelayValue = Double.random(in: 2...5)
+        let soundDuration = audioPlayer?.duration ?? 0
+        let randomDelayValue = Double.random(in: 1...4)
         randomDelay = randomDelayValue
-        delayTarget = Date().addingTimeInterval(randomDelayValue)
+        delayTarget = Date().addingTimeInterval(soundDuration + randomDelayValue)
         delayRemaining = randomDelayValue
         timerStartDate = nil
         startUpdateTimer()
@@ -387,7 +388,7 @@ struct TimerSessionView: View {
                     delayRemaining = 0
                     transitionToRunning(at: now)
                 } else {
-                    delayRemaining = target.timeIntervalSince(now)
+                    delayRemaining = min(randomDelay, target.timeIntervalSince(now))
                 }
             }
 

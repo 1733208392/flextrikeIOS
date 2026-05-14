@@ -1,9 +1,12 @@
 package com.flextarget.android.ui.drills
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import org.json.JSONObject
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -233,6 +236,16 @@ fun TargetLinkView(
                     onDeviceSelected = { deviceName ->
                         // Navigation to TargetConfigListViewV2 happens in the parent
                         onNavigateToConfig(deviceName)
+                    },
+                    onGreeting = { deviceName ->
+                        val content = JSONObject().apply { put("command", "greeting") }
+                        val message = JSONObject().apply {
+                            put("action", "netlink_forward")
+                            put("dest", deviceName)
+                            put("content", content)
+                        }
+                        println("[TargetLinkView] Sending greeting to: $deviceName")
+                        bleManager.writeJSON(message.toString())
                     }
                 )
             }
@@ -261,13 +274,15 @@ fun TargetLinkView(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun TargetGridContent(
     deviceList: List<NetworkDevice>,
     targetConfigs: List<DrillTargetsConfigData>,
     drillMode: String,
     accentColor: Color,
-    onDeviceSelected: (String) -> Unit
+    onDeviceSelected: (String) -> Unit,
+    onGreeting: (String) -> Unit
 ) {
     val gridColumns = 3
     val gridRows = 4
@@ -337,6 +352,9 @@ private fun TargetGridContent(
                     onSelected = {
                         device?.let { onDeviceSelected(it.name) }
                     },
+                    onGreeting = {
+                        device?.let { onGreeting(it.name) }
+                    },
                     onPositionChanged = { centerOffset ->
                         cellPositions = cellPositions.toMutableMap().apply {
                             this[gridPosition] = centerOffset
@@ -348,6 +366,7 @@ private fun TargetGridContent(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun TargetRectangle(
     device: NetworkDevice?,
@@ -356,6 +375,7 @@ private fun TargetRectangle(
     height: Dp,
     accentColor: Color,
     onSelected: () -> Unit,
+    onGreeting: () -> Unit,
     onPositionChanged: (Offset) -> Unit
 ) {
     Box(
@@ -364,7 +384,11 @@ private fun TargetRectangle(
             .height(height)
             .border(width = 6.dp, color = if (device != null) accentColor else Color.Gray.copy(alpha = 0.5f))
             .background(Color.Gray.copy(alpha = 0.1f))
-            .clickable(enabled = device != null) { onSelected() }
+            .combinedClickable(
+                enabled = device != null,
+                onClick = { onSelected() },
+                onDoubleClick = { onGreeting() }
+            )
             .onGloballyPositioned { coordinates ->
                 val center = Offset(
                     x = coordinates.positionInParent().x + coordinates.size.width / 2f,

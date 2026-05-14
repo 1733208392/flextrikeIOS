@@ -393,8 +393,8 @@ func _on_clear_pressed():
 func _collect_bullet_holes(node: Node, result: Array):
 	"""Recursively collect all bullet holes in the node tree"""
 	for child in node.get_children():
-		# Check if it's a bullet hole (Sprite2D with bullet hole script)
-		if child is Sprite2D and child.has_method("set_hole_position"):
+		# Check if it's a bullet hole (Node2D with bullet hole script)
+		if child.has_method("set_hole_position"):
 			result.append(child)
 		# Recursively search in child nodes
 		_collect_bullet_holes(child, result)

@@ -1,8 +1,8 @@
 extends Node
 
 const DEBUG_DISABLED = true
-#const WEBSOCKET_URL = "ws://127.0.0.1/websocket"
-const WEBSOCKET_URL = "ws://192.168.2.212/websocket"
+const WEBSOCKET_URL = "ws://127.0.0.1/websocket"
+#const WEBSOCKET_URL = "ws://192.168.50.195/websocket"
 
 signal data_received(data)
 signal netlink_forward(data: Dictionary)
@@ -15,6 +15,7 @@ signal animation_config(action: String, duration: float)
 signal target_name_received(target_name: String)
 signal provision_step_received(step: String)
 signal sensor_trigger_received(sensor_name: String, value: int)
+signal greeting_received()
 
 var socket: WebSocketPeer
 var bullet_spawning_enabled: bool = true
@@ -316,6 +317,9 @@ func _handle_ble_forwarded_command(parsed):
 		"query_version":
 			if not DEBUG_DISABLED: print("[WebSocket] Handling query_version command")
 			_handle_query_version()
+		"greeting":
+			if not DEBUG_DISABLED: print("[WebSocket] Greeting received, emitting greeting_received signal")
+			greeting_received.emit()
 		_:
 			if not DEBUG_DISABLED:
 				print("[WebSocket] BLE forwarded command unknown or unsupported command: ", command)

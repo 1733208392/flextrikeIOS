@@ -294,7 +294,7 @@ func spawn_bullet_hole(target_node: Node, local_position: Vector2):
 
 	# Reuse a preallocated Transform2D to avoid per-shot allocations and improve speed.
 	var t = _reusable_transform
-	var scale_factor = randf_range(0.6, 0.8)
+	var scale_factor = 1.0
 	# Set axes for uniform scale (no rotation)
 	t.x = Vector2(scale_factor, 0.0)
 	t.y = Vector2(0.0, scale_factor)
@@ -613,7 +613,7 @@ func load_bullet_hole_textures():
 func create_bullet_hole_mesh(texture: Texture2D) -> QuadMesh:
 	"""Create a quad mesh for the bullet hole texture"""
 	var mesh = QuadMesh.new()
-	mesh.size = texture.get_size()
+	mesh.size = Vector2(16.12, 16.12)
 
 	# Create shader material with texture
 	var shader_material = ShaderMaterial.new()

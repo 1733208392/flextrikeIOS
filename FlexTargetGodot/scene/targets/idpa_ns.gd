@@ -410,7 +410,7 @@ func spawn_bullet_hole(local_position: Vector2):
 		return
 
 	var transform = Transform2D()
-	var scale_factor = randf_range(0.6, 0.8)
+	var scale_factor = 1.0
 	transform = transform.scaled(Vector2(scale_factor, scale_factor))
 	transform.origin = local_position
 
@@ -623,7 +623,7 @@ func load_bullet_hole_textures():
 func create_bullet_hole_mesh(texture: Texture2D) -> QuadMesh:
 	"""Create a quad mesh for the bullet hole texture"""
 	var mesh = QuadMesh.new()
-	mesh.size = texture.get_size()
+	mesh.size = Vector2(16.12, 16.12)
 
 	# Create shader material with texture
 	var shader_material = ShaderMaterial.new()

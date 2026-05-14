@@ -35,6 +35,7 @@ HttpService="*res://script/HttpService.gd"
 MenuController="*res://script/MenuController.gd"
 GlobalDebug="*res://script/GlobalDebug.gd"
 StatusBar="*res://scene/StatusBar.tscn"
+GreetingOverlay="*res://script/greeting_overlay.gd"
 
 [display]
 

@@ -205,6 +205,11 @@ struct TargetLinkView: View {
                                 height: rectangleHeight
                             )
                         }
+                        .simultaneousGesture(
+                            TapGesture(count: 2).onEnded {
+                                sendGreeting(to: device.name)
+                            }
+                        )
                     } else {
                         // Empty slot
                         RoundedRectangle(cornerRadius: 0)
@@ -383,6 +388,19 @@ struct TargetLinkView: View {
             return "cqb_front"
         default:
             return "ipsc"
+        }
+    }
+
+    private func sendGreeting(to deviceName: String) {
+        let message: [String: Any] = [
+            "action": "netlink_forward",
+            "dest": deviceName,
+            "content": ["command": "greeting"]
+        ]
+        if let jsonData = try? JSONSerialization.data(withJSONObject: message),
+           let jsonString = String(data: jsonData, encoding: .utf8) {
+            bleManager.writeJSON(jsonString)
+            print("[TargetLinkView] Sent greeting to: \(deviceName)")
         }
     }
 }

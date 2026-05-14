@@ -1,12 +1,12 @@
 shader_type canvas_item;
 
+// texture_albedo kept as unused uniform to avoid shader parameter errors in existing code
 uniform sampler2D texture_albedo : source_color;
 
 void fragment() {
-    vec4 tex_color = texture(texture_albedo, UV);
-    // Handle alpha blending properly
-    if (tex_color.a < 0.1) {
+    float dist = distance(UV, vec2(0.5, 0.5));
+    if (dist > 0.5) {
         discard;
     }
-    COLOR = tex_color;
+    COLOR = vec4(0.06, 0.04, 0.04, 1.0);
 }

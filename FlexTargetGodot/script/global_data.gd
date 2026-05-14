@@ -107,12 +107,25 @@ func mark_provision_complete():
 		print("[GlobalData] Provision marked complete, first_run_complete set to true")
 
 func reset_provision_complete():
-	"""Reset provisioning flag and save settings to server"""
-	settings_dict["first_run_complete"] = false
+	"""Reset provisioning and restore all settings to factory defaults, then save to server."""
+	settings_dict = {
+		"first_run_complete": false,
+		"language": "English",
+		"drill_sequence": "Fixed",
+		"has_ending_target": false,
+		"auto_restart": false,
+		"auto_restart_pause_time": 5,
+		"sfx_volume": 5,
+		"workmode": "slave",
+		"channel": 17,
+		"max_index": 0,
+		"max_index_idpa": 0,
+		"last_games_menu_selection": ""
+	}
 	var settings_data = settings_dict.duplicate()
 	HttpService.save_game(Callable(), "settings", settings_data)
 	if not DEBUG_DISABLED:
-		print("[GlobalData] Provision reset, first_run_complete set to false")
+		print("[GlobalData] Provision reset: settings_dict restored to factory defaults")
 
 func _on_settings_loaded(_result, response_code, _headers, body):
 	# print("GlobalData: HTTP response received - Code: ", response_code)

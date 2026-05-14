@@ -218,7 +218,7 @@ fun TimerSessionView(
                                 delayRemaining = 0.0
                                 transitionToRunning(now)
                             } else {
-                                delayRemaining = (delayTarget!!.time - now.time) / 1000.0
+                                delayRemaining = minOf(randomDelay, (delayTarget!!.time - now.time) / 1000.0)
                             }
                         }
 
@@ -523,9 +523,10 @@ fun TimerSessionView(
             timerState = TimerState.STANDBY
             gracePeriodActive = false  // Ensure no ongoing grace period
             playStandbySound()
-            val randomDelayValue = Random.nextInt(2, 6).toDouble()
+            val soundDurationMs = standbyPlayer?.duration?.toLong() ?: 0L
+            val randomDelayValue = Random.nextInt(1, 5).toDouble()
             randomDelay = randomDelayValue
-            delayTarget = Date(Date().time + (randomDelayValue * 1000).toLong())
+            delayTarget = Date(Date().time + soundDurationMs + (randomDelayValue * 1000).toLong())
             delayRemaining = randomDelayValue
             timerStartDate = null
             startUpdateTimer()
