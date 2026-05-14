@@ -94,10 +94,12 @@ custom_minimum_size = Vector2(0, 16)
 layout_mode = 2
 
 [node name="NameLabel" type="Label" parent="CenterContainer/VBoxContainer"]
+visible = false
 layout_mode = 2
 theme = ExtResource("3_mxxne")
 
 [node name="NameLineEdit" type="LineEdit" parent="CenterContainer/VBoxContainer"]
+visible = false
 layout_mode = 2
 theme = ExtResource("3_mxxne")
 keep_editing_on_text_submit = true

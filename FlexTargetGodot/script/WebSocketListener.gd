@@ -2,7 +2,7 @@ extends Node
 
 const DEBUG_DISABLED = true
 #const WEBSOCKET_URL = "ws://127.0.0.1/websocket"
-const WEBSOCKET_URL = "ws://192.168.56.101/websocket"
+const WEBSOCKET_URL = "ws://192.168.2.212/websocket"
 
 signal data_received(data)
 signal netlink_forward(data: Dictionary)

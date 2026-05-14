@@ -3,8 +3,9 @@ extends Control
 const DEBUG_DISABLED = true  # Set to true to disable debug prints for production
 const QR_CODE_GENERATOR = preload("res://script/qrcode.gd")
 
-# Networking configuration UI for setting channel and target name
-# Features remote control navigation and onscreen keyboard for input
+# Networking configuration UI for setting workmode
+# System auto-determines target name from device bluetooth_name
+# Features remote control navigation
 
 @onready var status_label = $StatusLabel
 @onready var workmode_label = $CenterContainer/VBoxContainer/WorkMode
@@ -14,8 +15,6 @@ const QR_CODE_GENERATOR = preload("res://script/qrcode.gd")
 @onready var qr_texture = $CenterContainer/VBoxContainer/QRCodeTexture
 @onready var keyboard = $BottomContainer/OnscreenKeyboard
 
-var focused_control = 0  # 0 = workmode dropdown, 1 = name_line_edit
-var controls = []
 var dropdown_open = false
 var is_loading = false  # Flag to prevent configure on initial load
 var dropdown_initial_selected = -1  # Track initial selection when dropdown opens
@@ -29,9 +28,6 @@ var is_stopping = false
 var progress_text_key = ""
 
 func _ready():
-	# Initialize controls array - order: workmode_dropdown (0), name_line_edit (1)
-	controls = [workmode_dropdown, name_line_edit]
-	
 	# Update UI texts with translations
 	update_ui_texts()
 	
@@ -70,22 +66,6 @@ func _ready():
 	else:
 		if not DEBUG_DISABLED:
 			print("[NetworkingConfig] GlobalData singleton not found; will not auto-populate netlink info")
-
-	# Connect keyboard signal
-	if keyboard:
-		_attach_keyboard_handlers(keyboard)
-		if not DEBUG_DISABLED:
-			print("[NetworkingConfig] Attached keyboard handlers")
-	
-	# Connect to WebSocketListener for target name received
-	var websocket_listener = get_node_or_null("/root/WebSocketListener")
-	if websocket_listener:
-		websocket_listener.target_name_received.connect(_on_target_name_received)
-		if not DEBUG_DISABLED:
-			print("[NetworkingConfig] Connected to WebSocketListener.target_name_received signal")
-	else:
-		if not DEBUG_DISABLED:
-			print("[NetworkingConfig] WebSocketListener not found!")
 	
 	workmode_dropdown.grab_focus()
 
@@ -94,8 +74,6 @@ func update_ui_texts():
 		update_status_label()
 	if workmode_label:
 		workmode_label.text = tr("net_config_workmode")
-	if name_label:
-		name_label.text = tr("net_config_target_name")
 
 func update_qr_code():
 	if not qr_texture:
@@ -168,13 +146,8 @@ func load_current_settings():
 			workmode_index = 0
 		workmode_dropdown.select(workmode_index)
 		
-		# Load target name setting (default to empty)
-		var target_name = global_data.settings_dict.get("target_name", "")
-		name_line_edit.text = target_name
-		# Note: We don't update QR code here because it should only reflect the actual netlink status
-		
 		if not DEBUG_DISABLED:
-			print("[NetworkingConfig] Loaded settings - Channel: 17, Workmode: ", workmode_str, ", Name: ", target_name)
+			print("[NetworkingConfig] Loaded settings - Workmode: ", workmode_str)
 	else:
 		# Default to Slave if no settings
 		workmode_dropdown.select(1)
@@ -182,121 +155,29 @@ func load_current_settings():
 			print("[NetworkingConfig] No settings loaded, using defaults (Slave)")
 	is_loading = false
 
-func show_keyboard_for_name_input():
-	if keyboard and keyboard.has_method("_show_keyboard"):
-		keyboard._show_keyboard()
-		
-		# Focus the 'q' key on the keyboard
-		call_deferred("_focus_q_key")
-		
-		# # Connect text_submitted to hide keyboard
-		# if not name_line_edit.text_submitted.is_connected(_on_name_text_submitted):
-		# 	name_line_edit.text_submitted.connect(_on_name_text_submitted)
-		
-		if not DEBUG_DISABLED:
-			print("[NetworkingConfig] Keyboard shown for name input")
-		
-		# Send workmode to mobile app for name input
-		var workmode = "slave" if workmode_dropdown.selected == 1 else "master"
-		var http_service = get_node_or_null("/root/HttpService")
-		if http_service:
-			http_service.forward_data_to_app(func(_result, _response_code, _headers, _body):
-				if not DEBUG_DISABLED:
-					print("[NetworkingConfig] Workmode sent to mobile app: ", workmode)
-			, {"workmode": workmode})
+func _get_auto_determined_target_name() -> String:
+	"""Get target name from netlink_status bluetooth_name (auto-determined device ID)"""
+	var device_name = "01"  # Default fallback
+	var global_data = get_node_or_null("/root/GlobalData")
+	
+	if global_data and global_data.netlink_status:
+		var current_device_name = global_data.netlink_status.get("device_name")
+		if current_device_name:
+			device_name = str(current_device_name)
 		else:
-			if not DEBUG_DISABLED:
-				print("[NetworkingConfig] HttpService not found, cannot send workmode to mobile")
-
-
-func _attach_keyboard_handlers(node: Node = null):
-	"""
-	Recursively attach released signal handlers to all keyboard buttons
-	"""
-	if node == null:
-		node = keyboard
-
-	# Connect released signals for keyboard buttons
-	for child in node.get_children():
-		if child.has_signal("released"):
-			var callback = Callable(self, "_on_keyboard_key_released")
-			if not child.is_connected("released", callback):
-				child.connect("released", callback)
-		# Recurse into containers
-		_attach_keyboard_handlers(child)
-
-func _focus_q_key():
-	"""
-	Find and focus the 'q' key on the keyboard
-	"""
-	if not keyboard:
-		return
+			# If device_name not in status, try to extract from bluetooth_name
+			var bluetooth_name = global_data.netlink_status.get("bluetooth_name")
+			if bluetooth_name:
+				var bluetooth_str = str(bluetooth_name)
+				if " " in bluetooth_str:
+					var parts = bluetooth_str.split(" ")
+					device_name = parts[-1]  # Get last part after space
+				else:
+					device_name = bluetooth_str
 	
-	var q_key = _find_key_by_text(keyboard, "q")
-	if q_key:
-		q_key.grab_focus()
-		if not DEBUG_DISABLED:
-			print("[NetworkingConfig] Focused 'q' key on keyboard")
-	else:
-		if not DEBUG_DISABLED:
-			print("[NetworkingConfig] 'q' key not found on keyboard")
-
-func _find_key_by_text(node, text: String):
-	"""
-	Recursively search for a keyboard key with the specified text
-	"""
-	for child in node.get_children():
-		if child is Button and child.has_method("get_text"):
-			if child.get_text().to_lower() == text.to_lower():
-				return child
-		# Recurse into containers
-		var found = _find_key_by_text(child, text)
-		if found:
-			return found
-	return null
-
-func hide_keyboard():
-	keyboard._hide_keyboard()
-
-func _on_target_name_received(target_name: String):
 	if not DEBUG_DISABLED:
-		print("[NetworkingConfig] Received target name from mobile: ", target_name)
-	
-	# Set the name in the line edit
-	name_line_edit.text = target_name
-	
-	# Hide the keyboard
-	hide_keyboard()
-	
-	# Configure the network
-	configure_network()
-
-func _on_keyboard_key_released(key_data):
-	if not key_data or typeof(key_data) != TYPE_DICTIONARY:
-		return
-
-	# Extract key data
-	var out = key_data.get("output", "").strip_edges()
-	var display_text = key_data.get("display", "").strip_edges()
-	var _display_icon = key_data.get("display-icon", "").strip_edges()
-	var key_type = key_data.get("type", "").strip_edges()
-
-	# Check for Enter key
-	var is_enter = (out.to_lower() in ["enter", "return"] or
-				   display_text.to_lower() == "enter" or
-				   _display_icon == "PREDEFINED:ENTER" or
-				   (key_type == "special-hide-keyboard" and display_text.to_lower() == "enter"))
-
-	# Handle special keys that need custom behavior
-	if is_enter:
-		if not DEBUG_DISABLED:
-			print("[NetworkingConfig] Keyboard enter pressed, hiding keyboard and configuring network")
-		hide_keyboard()
-		configure_network()
-		return
-	
-	# For all other keys (including backspace), let the keyboard addon handle input automatically
-	# The addon sends InputEventKey to the focused LineEdit, so no manual text manipulation needed
+		print("[NetworkingConfig] Auto-determined target name: ", device_name)
+	return device_name
 
 func _on_navigate(direction: String):
 	if is_configuring or keyboard.visible:
@@ -306,24 +187,16 @@ func _on_navigate(direction: String):
 	match direction:
 		"up":
 			if dropdown_open:
-				if focused_control == 0:  # Workmode dropdown
-					var current_selected = workmode_dropdown.selected
-					if current_selected > 0:
-						workmode_dropdown.select(current_selected - 1)
-			else:
-				focused_control = (focused_control - 1 + 2) % 2
-				controls[focused_control].grab_focus()
+				var current_selected = workmode_dropdown.selected
+				if current_selected > 0:
+					workmode_dropdown.select(current_selected - 1)
 		"down":
 			if dropdown_open:
-				if focused_control == 0:  # Workmode dropdown
-					var current_selected = workmode_dropdown.selected
-					if current_selected < workmode_dropdown.item_count - 1:
-						workmode_dropdown.select(current_selected + 1)
-			else:
-				focused_control = (focused_control + 1) % 2
-				controls[focused_control].grab_focus()
+				var current_selected = workmode_dropdown.selected
+				if current_selected < workmode_dropdown.item_count - 1:
+					workmode_dropdown.select(current_selected + 1)
 		"left", "right":
-			if dropdown_open and focused_control == 0:  # Workmode dropdown
+			if dropdown_open:
 				var current_selected = workmode_dropdown.selected
 				if direction == "left" and current_selected > 0:
 					workmode_dropdown.select(current_selected - 1)
@@ -335,20 +208,18 @@ func _on_enter_pressed():
 		return  # Ignore enter during configuration or when keyboard is visible
 	if not DEBUG_DISABLED:
 		print("[NetworkingConfig] Enter pressed")
-	if focused_control == 0:  # Workmode dropdown
-		if not dropdown_open:
-			dropdown_initial_selected = workmode_dropdown.selected
-			var rect = workmode_dropdown.get_global_rect()
-			workmode_dropdown.get_popup().popup(rect)
-			dropdown_open = true
-		else:
-			workmode_dropdown.get_popup().hide()
-			dropdown_open = false
-			# Check if selection changed
-			if workmode_dropdown.selected != dropdown_initial_selected:
-				configure_network()
-	elif focused_control == 1:  # Name line edit
-		show_keyboard_for_name_input()
+	# Handle workmode dropdown
+	if not dropdown_open:
+		dropdown_initial_selected = workmode_dropdown.selected
+		var rect = workmode_dropdown.get_global_rect()
+		workmode_dropdown.get_popup().popup(rect)
+		dropdown_open = true
+	else:
+		workmode_dropdown.get_popup().hide()
+		dropdown_open = false
+		# Check if selection changed
+		if workmode_dropdown.selected != dropdown_initial_selected:
+			configure_network()
 
 func _on_back_pressed():
 	if is_configuring:
@@ -370,25 +241,20 @@ func _on_netlink_status_loaded():
 	
 	# Check if configured
 	var wm_val = status.get("work_mode")
-	var dev_val = status.get("device_name")
 	
 	is_loading = true
-	if wm_val == null and dev_val == null:
+	if wm_val == null:
 		# Case 1: Not configured before -> Default to Slave
 		workmode_dropdown.select(1)
 		if not DEBUG_DISABLED:
 			print("[NetworkingConfig] Netlink not configured, defaulting to Slave")
 	else:
-		# Case 2 & 3: Configured -> Use values
-		if wm_val:
-			var wm = str(wm_val).to_lower()
-			if wm == "slave":
-				workmode_dropdown.select(1)
-			else:
-				workmode_dropdown.select(0)
-		
-		if dev_val:
-			name_line_edit.text = str(dev_val)
+		# Case 2 & 3: Configured -> Use workmode value
+		var wm = str(wm_val).to_lower()
+		if wm == "slave":
+			workmode_dropdown.select(1)
+		else:
+			workmode_dropdown.select(0)
 	is_loading = false
 	
 	update_qr_code()
@@ -404,16 +270,15 @@ func save_settings():
 			print("[NetworkingConfig] GlobalData not found, cannot save settings")
 		return
 	
-	# Get values from UI
+	# Get values from UI (only workmode - target name is auto-determined)
 	var channel = 17
 	var workmode_index = workmode_dropdown.get_selected_id()
 	var workmode = "master" if workmode_index == 0 else "slave"
-	var target_name = name_line_edit.text.strip_edges()
 	
 	# Update settings_dict
 	global_data.settings_dict["channel"] = channel
 	global_data.settings_dict["workmode"] = workmode
-	global_data.settings_dict["target_name"] = target_name
+	# Note: target_name is removed - it's now always auto-determined from bluetooth_name
 	
 	# Save to HTTP service
 	var http_service = get_node_or_null("/root/HttpService")
@@ -447,25 +312,22 @@ func configure_network():
 			print("[NetworkingConfig] GlobalData not found, cannot check for changes")
 		return
 	
-	# Get current values from UI
+	# Get current values from UI (only workmode - target name is auto-determined)
 	var workmode_index = workmode_dropdown.get_selected_id()
 	var ui_workmode = "master" if workmode_index == 0 else "slave"
-	var ui_target_name = name_line_edit.text.strip_edges()
 	
 	# Get current values from netlink_status
 	var current_workmode = global_data.netlink_status.get("work_mode", "slave")
-	var current_target_name = str(global_data.netlink_status.get("device_name", "")).strip_edges()
 	
-	# Check if there are any changes
-	if ui_workmode == current_workmode and ui_target_name == current_target_name:
+	# Check if workmode changed
+	if ui_workmode == current_workmode:
 		if not DEBUG_DISABLED:
-			print("[NetworkingConfig] No changes detected (workmode: ", ui_workmode, ", name: ", ui_target_name, "), skipping configuration")
+			print("[NetworkingConfig] No workmode change detected, skipping configuration")
 		return
 	
 	if not DEBUG_DISABLED:
-		print("[NetworkingConfig] Changes detected!")
+		print("[NetworkingConfig] Workmode changed!")
 		print("[NetworkingConfig]   Workmode: ", current_workmode, " -> ", ui_workmode)
-		print("[NetworkingConfig]   Target name: ", current_target_name, " -> ", ui_target_name)
 	
 	# Start the configuration sequence
 	is_configuring = true
@@ -502,14 +364,16 @@ func do_netlink_config():
 		print("[NetworkingConfig] do_netlink_config called - this is legacy, use do_netlink_config_sequence instead")
 
 func do_netlink_config_sequence():
-	# Call netlink_config without processing its callback
+	# Call netlink_config with auto-determined target_name from bluetooth_name
 	var channel = 17
 	var workmode_index = workmode_dropdown.get_selected_id()
 	var workmode = "master" if workmode_index == 0 else "slave"
-	var target_name = name_line_edit.text.strip_edges()
+	
+	# Get target_name from netlink_status (auto-determined from bluetooth_name)
+	var target_name = _get_auto_determined_target_name()
 	
 	if not DEBUG_DISABLED:
-		print("[NetworkingConfig] Calling netlink_config in sequence (channel: ", channel, ", workmode: ", workmode, ", name: ", target_name, ")")
+		print("[NetworkingConfig] Calling netlink_config in sequence (channel: ", channel, ", workmode: ", workmode, ", auto target_name: ", target_name, ")")
 	
 	var http_service = get_node_or_null("/root/HttpService")
 	if http_service:
