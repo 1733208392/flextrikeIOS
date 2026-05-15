@@ -68,6 +68,7 @@ object AppContainer {
             FlexTargetDatabase::class.java,
             "flex_target_database_v3"
         )
+            .addMigrations(FlexTargetDatabase.MIGRATION_4_5)
             .fallbackToDestructiveMigration()
             .build()
     }

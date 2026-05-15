@@ -78,6 +78,10 @@ class BLEManager private constructor() {
     // Auth data response callback
     var onAuthDataReceived: ((String) -> Unit)? = null
 
+    // Physical popper hit callback — invoked when a compose directive arrives from a target device.
+    // The string parameter is the constructed target name (shortDeviceId + "-01").
+    var onPopperHitReceived: ((String) -> Unit)? = null
+
     // OTA Callbacks
     var onGameDiskOTAReady: (() -> Unit)? = null
     var onOTAPreparationFailed: ((String) -> Unit)? = null
@@ -174,6 +178,9 @@ class BLEManager private constructor() {
             }
             onAuthDataReceived = { authData ->
                 this@BLEManager.onAuthDataReceived?.invoke(authData)
+            }
+            onPopperHitReceived = { targetName ->
+                this@BLEManager.onPopperHitReceived?.invoke(targetName)
             }
             onGameDiskOTAReady = {
                 this@BLEManager.onGameDiskOTAReady?.invoke()

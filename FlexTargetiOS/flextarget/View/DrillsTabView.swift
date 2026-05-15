@@ -405,6 +405,7 @@ struct DrillsTabView: View {
                 target.action = targetData.action
                 target.duration = targetData.duration
                 target.targetVariant = targetData.targetVariant ?? "[]"
+                target.hasPhysicalPopper = targetData.hasPhysicalPopper
                 
                 drill.addToTargets(target)
             }

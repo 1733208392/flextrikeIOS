@@ -21,6 +21,7 @@ object ScoringUtility {
             "circle", "circlearea", "circle_area", "circle-area" -> "circlearea"
             "popper", "popperzone", "popper_zone", "popper-zone" -> "popperzone"
             "azone", "a", "a-zone", "a_zone" -> "azone"
+            "apopper", "a_popper", "a-popper" -> "apopper"
             "czone", "c", "c-zone", "c_zone" -> "czone"
             "dzone", "d", "d-zone", "d_zone" -> "dzone"
             "whitezone", "white_zone", "white-zone" -> "whitezone"
@@ -93,6 +94,7 @@ object ScoringUtility {
             "whitezone", "blackzone", "n" -> -10
             "circlearea" -> 5 // Paddle
             "popperzone" -> 5 // Popper
+            "apopper" -> 5 // Physical popper - scores as A
             else -> 0
         }
     }
@@ -193,8 +195,22 @@ object ScoringUtility {
             // Count no-shoot zones (always included, negative score)
             nCount += noShootZoneShots.size
 
-            // Filter for valid hits (positive score)
-            val validHits = otherShots.filter { scoreForHitArea(normalizeHitArea(it.content.actualHitArea)) > 0 }
+            // Separate APopper shots (physical popper hits) - scored independently,
+            // not subject to the per-target "best 2 shots" rule.
+            val apopperShots = otherShots.filter { normalizeHitArea(it.content.actualHitArea) == "apopper" }
+            val regularShots = otherShots.filter { normalizeHitArea(it.content.actualHitArea) != "apopper" }
+
+            // Each valid APopper hit scores as A with no per-target cap
+            val validApopperHits = apopperShots.count { scoreForHitArea(normalizeHitArea(it.content.actualHitArea)) > 0 }
+            aCount += validApopperHits
+
+            // Physical popper miss: 1 hit required when target has hasPhysicalPopper = true
+            if (config?.hasPhysicalPopper == true && validApopperHits == 0) {
+                mCount += 1
+            }
+
+            // Filter for valid hits (positive score) from regular shots only
+            val validHits = regularShots.filter { scoreForHitArea(normalizeHitArea(it.content.actualHitArea)) > 0 }
 
             if (isPaddleOrPopper) {
                 // Paddles/Poppers: 1 valid hit required, count all valid hits
@@ -304,8 +320,22 @@ object ScoringUtility {
             // Count no-shoot zones (always included)
             nCount += noShootZoneShots.size
 
-            // Filter for valid hits
-            val validHits = otherShots.filter { scoreForHitArea(normalizeHitArea(it.content.actualHitArea)) > 0 }
+            // Separate APopper shots (physical popper hits) - scored independently,
+            // not subject to the per-target "best 2 shots" rule.
+            val apopperShots = otherShots.filter { normalizeHitArea(it.content.actualHitArea) == "apopper" }
+            val regularShots = otherShots.filter { normalizeHitArea(it.content.actualHitArea) != "apopper" }
+
+            // Each valid APopper hit scores as A with no per-target cap
+            val validApopperHits = apopperShots.count { scoreForHitArea(normalizeHitArea(it.content.actualHitArea)) > 0 }
+            aCount += validApopperHits
+
+            // Physical popper miss: 1 hit required when target has hasPhysicalPopper = true
+            if (config?.hasPhysicalPopper == true && validApopperHits == 0) {
+                mCount += 1
+            }
+
+            // Filter for valid hits from regular shots only
+            val validHits = regularShots.filter { scoreForHitArea(normalizeHitArea(it.content.actualHitArea)) > 0 }
 
             if (isPaddleOrPopper) {
                 // Paddles/Poppers: 1 valid hit required

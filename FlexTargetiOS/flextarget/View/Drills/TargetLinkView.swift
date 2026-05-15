@@ -1,5 +1,6 @@
 import SwiftUI
 import Foundation
+import AudioToolbox
 
 struct TargetLinkView: View {
     let bleManager: BLEManager
@@ -13,6 +14,7 @@ struct TargetLinkView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var selectedConfigIndex: Int? = nil
     @State private var navigateToConfig = false
+    @State private var popperHitTargets: Set<String> = []
     
     private let gridColumns = Array(repeating: GridItem(.flexible(), spacing: 12), count: 3)
     private let rectangleHeight: CGFloat = 150
@@ -132,6 +134,22 @@ struct TargetLinkView: View {
         .onReceive(bleManager.$networkDevices) { devices in
             updateTargetNamesForConnectedDevices(devices)
         }
+        .onReceive(NotificationCenter.default.publisher(for: .blePopperHitReceived)) { notification in
+            guard let targetName = notification.userInfo?["targetName"] as? String else { return }
+            let hasPopper = targetConfigs.first { $0.targetName == String(targetName.dropLast(3)) }?.hasPhysicalPopper ?? false
+            guard hasPopper else { return }
+            AudioServicesPlaySystemSound(1104)
+            popperHitTargets.insert(targetName)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                popperHitTargets.remove(targetName)
+            }
+        }
+    }
+    
+    private func togglePopper(for deviceName: String) {
+        if let index = targetConfigs.firstIndex(where: { $0.targetName == deviceName }) {
+            targetConfigs[index].hasPhysicalPopper.toggle()
+        }
     }
     
     private func updateTargetNamesForConnectedDevices(_ devices: [NetworkDevice]) {
@@ -198,11 +216,15 @@ struct TargetLinkView: View {
                             onStartDrill: onStartDrill
                         )) {
                             let config = targetConfigs.first { $0.targetName == device.name }
+                            let popperTargetName = "\(device.name)-01"
                             TargetRectangleView(
                                 deviceName: device.name,
                                 config: config,
                                 width: rectangleWidth,
-                                height: rectangleHeight
+                                height: rectangleHeight,
+                                hasPopper: config?.hasPhysicalPopper ?? false,
+                                popperHitAnimating: popperHitTargets.contains(popperTargetName),
+                                onTogglePopper: { togglePopper(for: device.name) }
                             )
                         }
                         .simultaneousGesture(
@@ -410,6 +432,9 @@ struct TargetRectangleView: View {
     let config: DrillTargetsConfigData?
     let width: CGFloat
     let height: CGFloat
+    var hasPopper: Bool = false
+    var popperHitAnimating: Bool = false
+    var onTogglePopper: (() -> Void)? = nil
     
     private let accentColor = Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433)
     
@@ -440,6 +465,27 @@ struct TargetRectangleView: View {
         .frame(width: width, height: height)
         .background(config != nil ? Color.gray.opacity(0.2) : Color.gray.opacity(0.1))
         .border(config != nil ? accentColor : Color.gray.opacity(0.15), width: 6)
+        .overlay(alignment: .bottomTrailing) {
+            // Physical popper toggle button
+            Button(action: { onTogglePopper?() }) {
+                Image(systemName: hasPopper ? "xmark.circle.fill" : "plus.circle")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(hasPopper ? accentColor : .white.opacity(0.6))
+                    .padding(4)
+            }
+            .buttonStyle(.plain)
+        }
+        .overlay(alignment: .bottomTrailing) {
+            // Popper hit animation overlay
+            if hasPopper {
+                Image(systemName: "target")
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundColor(.white)
+                    .padding(EdgeInsets(top: 0, leading: 0, bottom: 24, trailing: 2))
+                    .scaleEffect(popperHitAnimating ? 1.5 : 1.0)
+                    .animation(.spring(response: 0.2, dampingFraction: 0.5), value: popperHitAnimating)
+            }
+        }
     }
 }
 

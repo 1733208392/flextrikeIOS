@@ -16,7 +16,8 @@ data class DrillTargetsConfigData(
     val timeout: Double = 30.0,
     val countedShots: Int = 5,
     val action: String = "",
-    val duration: Double = 3.0
+    val duration: Double = 3.0,
+    val hasPhysicalPopper: Boolean = false
 ) {
     fun parseTargetTypes(): List<String> {
         val raw = targetType.trim()
@@ -127,7 +128,8 @@ data class DrillTargetsConfigData(
                 timeout = entity.timeout,
                 countedShots = entity.countedShots,
                 action = entity.action ?: "",
-                duration = entity.duration
+                duration = entity.duration,
+                hasPhysicalPopper = entity.hasPhysicalPopper
             )
         }
 

@@ -1199,6 +1199,9 @@ func _on_menu_control(directive: String):
 			volume_down()
 		"power":
 			power_off()
+		"compose":
+			if not drill_completed and not (timeout_timer and timeout_timer.is_stopped()):
+				_handle_physical_popper_hit()
 		"homepage", "back":
 			var menu_controller = get_node("/root/MenuController")
 			if menu_controller:
@@ -1219,6 +1222,42 @@ func _on_menu_control(directive: String):
 		_:
 			if DEBUG_ENABLED:
 				print("[DrillsNetwork] Unknown directive:", directive)
+
+func _handle_physical_popper_hit():
+	"""Handle physical popper/plate trigger hit.
+	Emits a target_hit (A-zone, popper) through the normal scoring pipeline so the
+	performance tracker sends the result to the mobile app, then provides local
+	audio/visual feedback."""
+	print("[DrillsNetwork] Physical popper hit received")
+
+	# Compute elapsed ms since drill start (same reference used by hardware shots)
+	var t_ms = int(Time.get_ticks_msec() - drill_start_time * 1000.0)
+
+	# Use the current target position as the hit position, fall back to screen centre
+	var hit_pos: Vector2 = target_instance.global_position if target_instance else get_viewport_rect().size / 2.0
+
+	# Route through the standard scoring pipeline:
+	#   "simple target style" signature → (zone, points, hit_position, t)
+	# "APopper" zone tells the mobile app this is a physical popper hit -
+	# it scores as A but is exempt from the paper-target "best 2 shots" rule.
+	_on_target_hit("APopper", 5, hit_pos, t_ms)
+
+	# Play metal impact sound
+	var impact_sound = load("res://audio/metal_hit.WAV")
+	if impact_sound:
+		var audio_player = AudioStreamPlayer.new()
+		audio_player.stream = impact_sound
+		audio_player.volume_db = -5
+		audio_player.pitch_scale = randf_range(0.9, 1.1)
+		add_child(audio_player)
+		audio_player.play()
+		audio_player.finished.connect(func(): audio_player.queue_free())
+
+	# Brief white flash on the target area for visual confirmation
+	if center_container:
+		var tween = create_tween()
+		tween.tween_property(center_container, "modulate", Color(1.5, 1.5, 1.5), 0.08)
+		tween.tween_property(center_container, "modulate", Color(1.0, 1.0, 1.0), 0.25)
 
 func volume_up():
 	var http_service = get_node("/root/HttpService")

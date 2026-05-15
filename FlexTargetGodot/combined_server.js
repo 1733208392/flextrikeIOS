@@ -1248,6 +1248,36 @@ const httpServer = http.createServer((req, res) => {
       }, (index + 1) * 200); // 200ms staggered intervals
     });
 
+  } else if (pathname === '/sensor/popper' && req.method === 'POST') {
+    // ============================================================================
+    // PHYSICAL POPPER/PLATE TRIGGER ENDPOINT
+    // ============================================================================
+    // Called by the physical trigger device when the popper/plate is hit.
+    // 1. Forwards compose directive to the mobile app via BLE (for scoring)
+    // 2. Sends compose control to Godot via WebSocket (for audio/visual feedback)
+    //
+    // Usage:
+    //   curl -X POST http://localhost/sensor/popper
+    // ============================================================================
+    console.log('[PhysicalPopper] Physical popper hit received');
+
+    // Send compose directive to mobile app via BLE so it can score the hit
+    const popperComposeMessage = {
+      type: 'netlink',
+      action: 'forward',
+      device: netlinkDeviceName,
+      content: { action: 'remote_control', directive: 'compose' }
+    };
+    sendMessageInChunks(popperComposeMessage);
+    console.log('[PhysicalPopper] Sent compose directive to mobile app via BLE');
+
+    // Send compose control to Godot for audio/visual feedback
+    sendToGodot({ type: 'control', directive: 'compose' });
+    console.log('[PhysicalPopper] Sent compose control to Godot via WebSocket');
+
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ code: 0, msg: 'Physical popper hit processed' }));
+
   } else {
     let body = '';
     req.on('data', chunk => {
@@ -1927,3 +1957,7 @@ console.log('[CombinedServer]     Usage: POST (optional body with animation_conf
 console.log('[CombinedServer]     - Sends ready command after 1s');
 console.log('[CombinedServer]     - Sends animation_config after 2s (default: run_through for ipsc_mini)');
 console.log('[CombinedServer]     - Sends start command after 3s');
+console.log('[CombinedServer]   /sensor/popper - Physical popper/plate trigger endpoint');
+console.log('[CombinedServer]     Usage: POST (no body required)');
+console.log('[CombinedServer]     - Sends compose BLE directive to mobile app (for scoring)');  
+console.log('[CombinedServer]     - Sends compose control to Godot (for audio/visual feedback)');

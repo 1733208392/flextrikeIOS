@@ -21,6 +21,7 @@ extension DrillTargetsConfig {
     @NSManaged public var action: String?
     @NSManaged public var duration: Double
     @NSManaged public var targetVariant: String?
+    @NSManaged public var hasPhysicalPopper: Bool
     @NSManaged public var drillSetup: DrillSetup?
 
 }
@@ -43,7 +44,8 @@ extension DrillTargetsConfig {
             countedShots: Int(countedShots),
             action: action ?? "",
             duration: duration,
-            targetVariant: targetVariant
+            targetVariant: targetVariant,
+            hasPhysicalPopper: hasPhysicalPopper
         )
     }
 

@@ -1,7 +1,10 @@
 package com.flextarget.android.ui.drills
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -14,8 +17,10 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,8 +28,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -33,6 +40,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import android.media.AudioManager
 import coil.compose.AsyncImage
 import com.flextarget.android.R
 import com.flextarget.android.data.ble.BLEManager
@@ -60,6 +68,7 @@ fun TargetLinkView(
 ) {
     val accentRed = Color(red = 0.87f, green = 0.22f, blue = 0.14f)
     val deviceList = bleManager.networkDevices
+    val context = LocalContext.current
     
     var localConfigs by remember(targetConfigs) {
         mutableStateOf(targetConfigs)
@@ -67,6 +76,27 @@ fun TargetLinkView(
     
     var localDrillMode by remember(drillMode) {
         mutableStateOf(drillMode)
+    }
+
+    // Device name of the most recently hit physical popper (drives per-cell animation)
+    var popperHitTargetName by remember { mutableStateOf<String?>(null) }
+
+    // Register BLE popper hit callback and clean up on disposal
+    DisposableEffect(bleManager) {
+        bleManager.onPopperHitReceived = { targetName ->
+            // Only animate if this target has a physical popper configured
+            if (localConfigs.any { it.targetName == targetName && it.hasPhysicalPopper }) {
+                popperHitTargetName = targetName
+                val audioManager = context.getSystemService(android.content.Context.AUDIO_SERVICE) as AudioManager
+                audioManager.playSoundEffect(AudioManager.FX_KEY_CLICK, 1.0f)
+                android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                    popperHitTargetName = null
+                }, 600)
+            }
+        }
+        onDispose {
+            bleManager.onPopperHitReceived = null
+        }
     }
     
     // Initialize target configs on first appearance
@@ -233,6 +263,7 @@ fun TargetLinkView(
                     targetConfigs = localConfigs,
                     drillMode = localDrillMode,
                     accentColor = accentRed,
+                    popperHitTargetName = popperHitTargetName,
                     onDeviceSelected = { deviceName ->
                         // Navigation to TargetConfigListViewV2 happens in the parent
                         onNavigateToConfig(deviceName)
@@ -246,6 +277,15 @@ fun TargetLinkView(
                         }
                         println("[TargetLinkView] Sending greeting to: $deviceName")
                         bleManager.writeJSON(message.toString())
+                    },
+                    onTogglePopper = { deviceName ->
+                        val updated = localConfigs.map { config ->
+                            if (config.targetName == deviceName) {
+                                config.copy(hasPhysicalPopper = !config.hasPhysicalPopper)
+                            } else config
+                        }
+                        localConfigs = updated
+                        onUpdateTargetConfigs(updated)
                     }
                 )
             }
@@ -281,86 +321,88 @@ private fun TargetGridContent(
     targetConfigs: List<DrillTargetsConfigData>,
     drillMode: String,
     accentColor: Color,
+    popperHitTargetName: String?,
     onDeviceSelected: (String) -> Unit,
-    onGreeting: (String) -> Unit
+    onGreeting: (String) -> Unit,
+    onTogglePopper: (String) -> Unit
 ) {
     val gridColumns = 3
-    val gridRows = 4
-    val cellCount = gridColumns * gridRows
-    
+    val cellCount = 12 // Fixed 3×4 grid
+
     val rectangleHeight = 150.dp
-    val rectangleWidth = rectangleHeight * 9f / 16f // 9x16 aspect ratio
+    val rectangleWidth = rectangleHeight * 9f / 16f
     val horizontalSpacing = 24.dp
     val verticalSpacing = 24.dp
-    
-    // Zigzag order: devices are positioned according to this pattern
-    val zigzagOrder = listOf(0, 1, 2, 5, 4, 3, 6, 7, 8, 11, 10, 9)
-    
-    // Create mapping from grid position to device index
-    val gridToDeviceMap = remember(deviceList.size) {
-        mutableMapOf<Int, Int>().apply {
-            for ((deviceIndex, gridPosition) in zigzagOrder.withIndex()) {
-                if (deviceIndex < deviceList.size) {
-                    this[gridPosition] = deviceIndex
-                }
-            }
+
+    // Flat display list: DeviceItem, then PopperItem if hasPhysicalPopper, padded to 12
+    val gridItems = remember(deviceList, targetConfigs) {
+        buildGridItems(deviceList, targetConfigs)
+    }
+
+    // Indices of DeviceItem slots — used to draw sequence connection dots
+    val deviceGridIndices = remember(gridItems) {
+        gridItems.mapIndexedNotNull { index, item ->
+            if (item is GridItem.DeviceItem) index else null
         }
     }
-    
-    // Store positions of rectangles for drawing lines
+
     var cellPositions by remember { mutableStateOf<Map<Int, Offset>>(emptyMap()) }
-    
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        // Connection lines canvas (drawn behind the grid, doesn't affect layout)
-        Canvas(
-            modifier = Modifier
-                .matchParentSize()
-        ) {
-            drawConnectionLines(
+        Canvas(modifier = Modifier.matchParentSize()) {
+            drawSequenceDots(
                 cellPositions = cellPositions,
-                gridToDeviceMap = gridToDeviceMap,
-                accentColor = accentColor,
-                gridColumns = gridColumns
-                )
+                deviceGridIndices = deviceGridIndices,
+                accentColor = accentColor
+            )
         }
-        
-        // Grid of target rectangles (scrollable)
+
         LazyVerticalGrid(
             columns = GridCells.Fixed(gridColumns),
             horizontalArrangement = Arrangement.spacedBy(horizontalSpacing),
             verticalArrangement = Arrangement.spacedBy(verticalSpacing),
-            modifier = Modifier
-                .fillMaxSize()
+            modifier = Modifier.fillMaxSize()
         ) {
-            items(cellCount) { gridPosition ->
-                val deviceIndex = gridToDeviceMap[gridPosition]
-                val device = deviceIndex?.let { deviceList[it] }
-                val config = device?.let { dev ->
-                    targetConfigs.firstOrNull { it.targetName == dev.name }
-                }
-                
-                TargetRectangle(
-                    device = device,
-                    config = config,
-                    width = rectangleWidth,
-                    height = rectangleHeight,
-                    accentColor = accentColor,
-                    onSelected = {
-                        device?.let { onDeviceSelected(it.name) }
-                    },
-                    onGreeting = {
-                        device?.let { onGreeting(it.name) }
-                    },
-                    onPositionChanged = { centerOffset ->
-                        cellPositions = cellPositions.toMutableMap().apply {
-                            this[gridPosition] = centerOffset
+            items(cellCount) { index ->
+                when (val item = gridItems[index]) {
+                    is GridItem.DeviceItem -> TargetRectangle(
+                        device = item.device,
+                        config = item.config,
+                        width = rectangleWidth,
+                        height = rectangleHeight,
+                        accentColor = accentColor,
+                        onSelected = { onDeviceSelected(item.device.name) },
+                        onGreeting = { onGreeting(item.device.name) },
+                        onTogglePopper = if (item.config?.hasPhysicalPopper != true) {
+                            { onTogglePopper(item.device.name) }
+                        } else null,
+                        onPositionChanged = { offset ->
+                            cellPositions = cellPositions.toMutableMap().apply { this[index] = offset }
                         }
-                    }
-                )
+                    )
+                    is GridItem.PopperItem -> PopperRectangle(
+                        parentDeviceName = item.parentDeviceName,
+                        width = rectangleWidth,
+                        height = rectangleHeight,
+                        accentColor = accentColor,
+                        animationTrigger = popperHitTargetName == "${item.parentDeviceName}-01",
+                        onRemove = { onTogglePopper(item.parentDeviceName) },
+                        onPositionChanged = { offset ->
+                            cellPositions = cellPositions.toMutableMap().apply { this[index] = offset }
+                        }
+                    )
+                    is GridItem.EmptyItem -> EmptyTargetCell(
+                        width = rectangleWidth,
+                        height = rectangleHeight,
+                        onPositionChanged = { offset ->
+                            cellPositions = cellPositions.toMutableMap().apply { this[index] = offset }
+                        }
+                    )
+                }
             }
         }
     }
@@ -376,6 +418,7 @@ private fun TargetRectangle(
     accentColor: Color,
     onSelected: () -> Unit,
     onGreeting: () -> Unit,
+    onTogglePopper: (() -> Unit)?, // null = popper already attached; hide + button
     onPositionChanged: (Offset) -> Unit
 ) {
     Box(
@@ -404,7 +447,6 @@ private fun TargetRectangle(
                 verticalArrangement = Arrangement.Center,
                 modifier = Modifier.fillMaxSize()
             ) {
-                // Target icon/image
                 if (config != null && config.targetType.isNotEmpty() && config.targetType != "[]") {
                     val iconModel = getTargetIconResource(config.primaryTargetType())
                     if (iconModel != null) {
@@ -428,7 +470,6 @@ private fun TargetRectangle(
                         )
                     }
                 } else {
-                    // Use IPSC target as default
                     val defaultIconModel = getTargetIconResource("ipsc")
                     if (defaultIconModel != null) {
                         AsyncImage(
@@ -451,10 +492,7 @@ private fun TargetRectangle(
                         )
                     }
                 }
-                
                 Spacer(modifier = Modifier.height(8.dp))
-                
-                // Device name
                 Text(
                     text = device.name,
                     fontSize = 12.sp,
@@ -465,62 +503,175 @@ private fun TargetRectangle(
                     modifier = Modifier.padding(horizontal = 4.dp)
                 )
             }
+
+            // + button — only shown when no popper is linked yet
+            if (onTogglePopper != null) {
+                IconButton(
+                    onClick = onTogglePopper,
+                    modifier = Modifier
+                        .size(72.dp)
+                        .align(Alignment.BottomEnd)
+                        .offset(x = 8.dp, y = 8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Add Popper",
+                        tint = Color.White.copy(alpha = 0.7f),
+                        modifier = Modifier.size(42.dp)
+                    )
+                }
+            }
         }
     }
 }
 
-private fun DrawScope.drawConnectionLines(
-    cellPositions: Map<Int, Offset>,
-    gridToDeviceMap: Map<Int, Int>,
+@Composable
+private fun PopperRectangle(
+    parentDeviceName: String,
+    width: Dp,
+    height: Dp,
     accentColor: Color,
-    gridColumns: Int
+    animationTrigger: Boolean,
+    onRemove: () -> Unit,
+    onPositionChanged: (Offset) -> Unit
+) {
+    val scale by animateFloatAsState(
+        targetValue = if (animationTrigger) 1.3f else 1.0f,
+        animationSpec = tween(durationMillis = 200),
+        label = "popperCellScale"
+    )
+
+    Box(
+        modifier = Modifier
+            .width(width)
+            .height(height)
+            .border(width = 6.dp, color = accentColor)
+            .background(Color.Gray.copy(alpha = 0.1f))
+            .onGloballyPositioned { coordinates ->
+                val center = Offset(
+                    x = coordinates.positionInParent().x + coordinates.size.width / 2f,
+                    y = coordinates.positionInParent().y + coordinates.size.height / 2f
+                )
+                onPositionChanged(center)
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Image(
+                painter = painterResource(R.drawable.popper),
+                contentDescription = "Physical Popper",
+                modifier = Modifier
+                    .fillMaxWidth(0.6f)
+                    .aspectRatio(1f)
+                    .graphicsLayer {
+                        scaleX = scale
+                        scaleY = scale
+                    }
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = parentDeviceName,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = accentColor,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(horizontal = 4.dp)
+            )
+        }
+
+        // × button to unlink this physical popper
+        IconButton(
+            onClick = onRemove,
+            modifier = Modifier
+                .size(72.dp)
+                .align(Alignment.BottomEnd)
+                .padding(6.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = "Remove Popper",
+                tint = accentColor,
+                modifier = Modifier.size(42.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun EmptyTargetCell(
+    width: Dp,
+    height: Dp,
+    onPositionChanged: (Offset) -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .width(width)
+            .height(height)
+            .border(width = 6.dp, color = Color.Gray.copy(alpha = 0.5f))
+            .background(Color.Gray.copy(alpha = 0.1f))
+            .onGloballyPositioned { coordinates ->
+                val center = Offset(
+                    x = coordinates.positionInParent().x + coordinates.size.width / 2f,
+                    y = coordinates.positionInParent().y + coordinates.size.height / 2f
+                )
+                onPositionChanged(center)
+            }
+    )
+}
+
+private fun DrawScope.drawSequenceDots(
+    cellPositions: Map<Int, Offset>,
+    deviceGridIndices: List<Int>,
+    accentColor: Color
 ) {
     val dotRadius = 6f
-    val maxCellIndex = 12 // 3x4 grid = 12 cells total
-    
-    // Snake pattern for 3x4 grid: 0→1→2, 2↓5, 5→4→3, 3↓6, 6→7→8, 8↓11, 11→10→9
-    val snakePattern = listOf(
-        0 to 1, 1 to 2, // Row 0: 0→1→2 (left to right)
-        2 to 5, // Transition: 2↓5 (down)
-        5 to 4, 4 to 3, // Row 1: 5→4→3 (right to left)
-        3 to 6, // Transition: 3↓6 (down)
-        6 to 7, 7 to 8, // Row 2: 6→7→8 (left to right)
-        8 to 11, // Transition: 8↓11 (down)
-        11 to 10, 10 to 9 // Row 3: 11→10→9 (right to left)
-    )
-    
-    for ((fromIndex, toIndex) in snakePattern) {
-        // Skip if indices are beyond grid
-        if (fromIndex >= maxCellIndex || toIndex >= maxCellIndex) continue
-        if (fromIndex !in cellPositions || toIndex !in cellPositions) continue
-        
-        val fromPoint = cellPositions[fromIndex] ?: continue
-        val toPoint = cellPositions[toIndex] ?: continue
-        
-        // Calculate midpoint between the two targets
+    for (i in 0 until deviceGridIndices.size - 1) {
+        val fromIdx = deviceGridIndices[i]
+        val toIdx = deviceGridIndices[i + 1]
+        val fromPos = cellPositions[fromIdx] ?: continue
+        val toPos = cellPositions[toIdx] ?: continue
         val midpoint = Offset(
-            x = (fromPoint.x + toPoint.x) / 2f,
-            y = (fromPoint.y + toPoint.y) / 2f
+            x = (fromPos.x + toPos.x) / 2f,
+            y = (fromPos.y + toPos.y) / 2f
         )
-        
-        // Determine dot color: accent color if both grid positions have devices, grey otherwise
-        val dotColor = if (fromIndex in gridToDeviceMap && toIndex in gridToDeviceMap) {
-            // Both targets have devices
-            accentColor
-        } else {
-            // One or both targets are empty
-            Color.Gray.copy(alpha = 0.3f)
-        }
-        
-        // Draw dot at the connection point
-        drawCircle(
-            color = dotColor,
-            radius = dotRadius,
-            center = midpoint
-        )
+        drawCircle(color = accentColor, radius = dotRadius, center = midpoint)
     }
 }
 
+private sealed class GridItem {
+    data class DeviceItem(
+        val device: NetworkDevice,
+        val config: DrillTargetsConfigData?
+    ) : GridItem()
+
+    data class PopperItem(
+        val parentDeviceName: String
+    ) : GridItem()
+
+    object EmptyItem : GridItem()
+}
+
+private fun buildGridItems(
+    deviceList: List<NetworkDevice>,
+    targetConfigs: List<DrillTargetsConfigData>
+): List<GridItem> {
+    val items = mutableListOf<GridItem>()
+    for (device in deviceList) {
+        if (items.size >= 12) break
+        val config = targetConfigs.firstOrNull { it.targetName == device.name }
+        items.add(GridItem.DeviceItem(device, config))
+        if (config?.hasPhysicalPopper == true && items.size < 12) {
+            items.add(GridItem.PopperItem(device.name))
+        }
+    }
+    while (items.size < 12) items.add(GridItem.EmptyItem)
+    return items
+}
 private fun getTargetIconResource(targetType: String): Any? {
     // Return drawable resource ID or asset URI based on target type
     return when (targetType.lowercase()) {

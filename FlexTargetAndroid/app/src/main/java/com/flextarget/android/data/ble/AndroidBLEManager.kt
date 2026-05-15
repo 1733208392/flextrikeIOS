@@ -62,6 +62,10 @@ class AndroidBLEManager(private val context: Context) {
     // Callback for auth data response
     var onAuthDataReceived: ((String) -> Unit)? = null
 
+    // Physical popper hit callback — invoked when compose directive arrives from a target device.
+    // The string parameter is the constructed target name (shortDeviceId + "-01").
+    var onPopperHitReceived: ((String) -> Unit)? = null
+
     // OTA Callbacks
     var onGameDiskOTAReady: (() -> Unit)? = null
     var onOTAPreparationFailed: ((String) -> Unit)? = null
@@ -499,6 +503,18 @@ class AndroidBLEManager(private val context: Context) {
                         println("Received shot data: $json")
                         val shotData = Gson().fromJson(json.toString(), ShotData::class.java)
                         this.onShotReceived?.invoke(shotData)
+                    }
+
+                    // Handle physical popper trigger: compose directive from a target device
+                    if (content != null &&
+                        content.optString("action") == "remote_control" &&
+                        content.optString("directive") == "compose") {
+                        val shortId = json.optString("device")
+                        if (shortId.isNotEmpty()) {
+                            val targetName = "$shortId-01"
+                            println("[AndroidBLEManager] Physical popper hit from device: $shortId -> targetName: $targetName")
+                            this.onPopperHitReceived?.invoke(targetName)
+                        }
                     }
                 }
                 type == "forward" -> {

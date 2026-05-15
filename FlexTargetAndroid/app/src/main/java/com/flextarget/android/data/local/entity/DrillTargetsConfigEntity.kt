@@ -49,7 +49,9 @@ data class DrillTargetsConfigEntity(
     
     val duration: Double = 0.0,
     
-    val targetVariant: String? = null
+    val targetVariant: String? = null,
+    
+    val hasPhysicalPopper: Boolean = false
 )
 
 /**

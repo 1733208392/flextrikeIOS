@@ -52,9 +52,10 @@ fun DrillResultView(
     
     // Convert to type-safe display format using new architecture
     val displayTargets = targets.toDisplayTargets()
+    val resultPages = remember(displayTargets, targets) { buildResultPages(targets, displayTargets) }
 
     // DEBUG: Log initialization
-    println("[DrillResultView] Initialized with ${displayTargets.size} targets, ${displayShots.size} shots")
+    println("[DrillResultView] Initialized with ${displayTargets.size} targets (${resultPages.size} pages), ${displayShots.size} shots")
     displayTargets.forEachIndexed { index, target ->
         when (target) {
             is DrillTargetState.SingleTarget -> {
@@ -66,7 +67,7 @@ fun DrillResultView(
         }
     }
 
-    // State for target selection and shot selection
+    // State for page selection and shot selection
     var selectedTargetIndex by remember { mutableStateOf(0) }
     var selectedShotIndex by remember { mutableStateOf<Int?>(null) }
 
@@ -112,11 +113,11 @@ fun DrillResultView(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             TargetDisplayView(
-                targets = displayTargets,
+                pages = resultPages,
                 shots = displayShots,
-                selectedTargetIndex = selectedTargetIndex,
+                selectedPageIndex = selectedTargetIndex,
                 selectedShotIndex = selectedShotIndex,
-                onTargetSelected = { selectedTargetIndex = it },
+                onPageSelected = { selectedTargetIndex = it },
                 modifier = Modifier.weight(0.7f).fillMaxWidth()
             )
 
@@ -124,9 +125,9 @@ fun DrillResultView(
             Divider(color = Color.White.copy(alpha = 0.3f))
             ShotListView(
                 shots = displayShots,
-                selectedTargetIndex = selectedTargetIndex,
+                selectedPageIndex = selectedTargetIndex,
                 selectedShotIndex = selectedShotIndex,
-                targets = displayTargets,
+                pages = resultPages,
                 onShotSelected = { selectedShotIndex = it },
                 modifier = Modifier
                     .weight(0.3f)
@@ -160,22 +161,55 @@ private fun getTargetImageResId(targetType: String): Int? {
     }
 }
 
+private sealed class ResultPage {
+    data class TargetPage(val target: DrillTargetState) : ResultPage()
+    data class PopperPage(val deviceName: String) : ResultPage()
+}
+
+private fun buildResultPages(
+    configs: List<DrillTargetsConfigData>,
+    displayTargets: List<DrillTargetState>
+): List<ResultPage> {
+    val pages = mutableListOf<ResultPage>()
+    for (target in displayTargets) {
+        pages.add(ResultPage.TargetPage(target))
+        val deviceName = when (target) {
+            is DrillTargetState.SingleTarget -> target.targetName
+            is DrillTargetState.ExpandedMultiTarget -> target.deviceId.value
+        }
+        val config = configs.firstOrNull { it.targetName == deviceName }
+        if (config?.hasPhysicalPopper == true) {
+            pages.add(ResultPage.PopperPage(deviceName))
+        }
+    }
+    return pages
+}
+
+private fun shotMatchesPopper(shot: ShotData, deviceName: String): Boolean {
+    val shotDevice = (shot.target ?: shot.device)?.trim()?.lowercase()
+    val hitArea = shot.content.actualHitArea.trim().lowercase()
+    return hitArea == "apopper" && (shotDevice == null || shotDevice == deviceName.lowercase())
+}
+
 /**
  * Determines if a shot matches a target configuration.
  * Uses explicit type-based matching for expanded multi-targets,
  * device name matching for single targets.
- * 
+ *
  * This function is the SAME as in ShotMatchingTests - they must stay in sync!
  */
 private fun shotMatchesTarget(shot: ShotData, target: DrillTargetState): Boolean {
-    val shotDevice = shot.device?.trim()?.lowercase()
+    val shotDevice = (shot.target ?: shot.device)?.trim()?.lowercase()
     val shotTargetType = shot.content.actualTargetType.lowercase()
 
     return when (target) {
         is DrillTargetState.ExpandedMultiTarget -> {
-            // For expanded targets, ONLY match by type
-            // Never use device fallback (prevents all-shots-on-all-targets bug)
-            shotTargetType == target.targetType.value.lowercase()
+            // Match by both target type AND device/name so that same-type targets on
+            // different devices each only show their own shots.
+            // shotDevice == null is a fallback for legacy data with no device field.
+            val typeMatches = shotTargetType == target.targetType.value.lowercase()
+            val deviceMatches = shotDevice == null || shotDevice == target.deviceId.value.lowercase()
+            typeMatches && deviceMatches
         }
         is DrillTargetState.SingleTarget -> {
             // For single targets, match by device name
@@ -184,132 +218,50 @@ private fun shotMatchesTarget(shot: ShotData, target: DrillTargetState): Boolean
     }
 }
 
-/**
- * Displays targets with bullet holes positioned according to shot coordinates.
- * Ported from iOS TargetDisplayView.
- */
 @Composable
 private fun TargetDisplayView(
-    targets: List<DrillTargetState>,
+    pages: List<ResultPage>,
     shots: List<ShotData>,
-    selectedTargetIndex: Int,
+    selectedPageIndex: Int,
     selectedShotIndex: Int?,
-    onTargetSelected: (Int) -> Unit,
+    onPageSelected: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val currentTarget = targets.getOrNull(selectedTargetIndex)
-    val targetType = when (currentTarget) {
-        is DrillTargetState.SingleTarget -> currentTarget.targetType.value
-        is DrillTargetState.ExpandedMultiTarget -> currentTarget.targetType.value
-        null -> "ipsc"
-    }
-    val targetResId = getTargetImageResId(targetType)
-    
-    println("[TargetDisplayView] Displaying target ${selectedTargetIndex + 1}/${targets.size}: targetType=$targetType, resId=$targetResId")
-    if (currentTarget != null) {
-        when (currentTarget) {
-            is DrillTargetState.SingleTarget -> println("[TargetDisplayView]   Type: SingleTarget(name=${currentTarget.targetName})")
-            is DrillTargetState.ExpandedMultiTarget -> println("[TargetDisplayView]   Type: ExpandedMultiTarget(deviceId=${currentTarget.deviceId.value}, seqNo=${currentTarget.seqNo})")
-        }
-    }
+    val accentRed = Color(0xffde3823)
+    val currentPage = pages.getOrNull(selectedPageIndex)
 
     Box(
         modifier = modifier
-            .pointerInput(selectedTargetIndex, targets.size) {
-                if (targets.size > 1) {
+            .pointerInput(selectedPageIndex, pages.size) {
+                if (pages.size > 1) {
                     detectHorizontalDragGestures { change, dragAmount ->
                         change.consume()
-                        // Swipe threshold in pixels
                         if (dragAmount < -50) {
-                            // Swipe left: go to next target
-                            val nextIndex = (selectedTargetIndex + 1) % targets.size
-                            onTargetSelected(nextIndex)
+                            onPageSelected((selectedPageIndex + 1) % pages.size)
                         } else if (dragAmount > 50) {
-                            // Swipe right: go to previous target
-                            val prevIndex = if (selectedTargetIndex == 0) targets.size - 1 else selectedTargetIndex - 1
-                            onTargetSelected(prevIndex)
+                            val prev = if (selectedPageIndex == 0) pages.size - 1 else selectedPageIndex - 1
+                            onPageSelected(prev)
                         }
                     }
                 }
             }
     ) {
-        // Target background with image
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            // Load and display target image from drawable resources
-            val targetResIdLocal = targetResId
-            if (targetResIdLocal != null) {
-                androidx.compose.foundation.Image(
-                    painter = painterResource(id = targetResIdLocal),
-                    contentDescription = "Target image",
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-
-            // Target name overlay in top right corner
-            val displayName = when (currentTarget) {
-                is DrillTargetState.SingleTarget -> currentTarget.targetName
-                is DrillTargetState.ExpandedMultiTarget -> currentTarget.targetName
-                null -> "Target"
-            }
-            Text(
-                text = displayName,
-                color = Color.White,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(8.dp)
+        when (currentPage) {
+            is ResultPage.TargetPage -> TargetPageContent(
+                target = currentPage.target,
+                shots = shots,
+                selectedShotIndex = selectedShotIndex
             )
-
-            // Bullet holes overlay using drawable images
-            BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-                shots.forEachIndexed { index, shot ->
-                    // Check if shot matches current target using consolidated logic
-                    val matchesTarget = currentTarget?.let { shotMatchesTarget(shot, it) } ?: false
-
-                    if (matchesTarget) {
-                        // Transform coordinates from 720x1280 to box size
-                        val transformedX = (shot.content.actualHitPosition.x / 720.0)
-                        val transformedY = (shot.content.actualHitPosition.y / 1280.0)
-
-                        val isSelected = selectedShotIndex == index
-                        val bulletHoleSize = if (isSelected) 32.dp else 24.dp
-
-                        // Render bullet hole drawable at transformed position
-                        androidx.compose.foundation.Image(
-                            painter = painterResource(id = R.drawable.bullet_hole2),
-                            contentDescription = "Bullet hole $index",
-                            contentScale = ContentScale.Fit,
-                            modifier = Modifier
-                                .size(bulletHoleSize)
-                                .align(Alignment.TopStart)
-                                .offset(
-                                    x = (transformedX * maxWidth) - bulletHoleSize / 2,
-                                    y = (transformedY * maxHeight) - bulletHoleSize / 2
-                                )
-                                .then(
-                                    if (isSelected) {
-                                        Modifier.border(
-                                            width = 2.dp,
-                                            color = Color.Yellow.copy(alpha = 0.8f),
-                                            shape = CircleShape
-                                        )
-                                    } else {
-                                        Modifier
-                                    }
-                                )
-                        )
-                    }
-                }
-            }
+            is ResultPage.PopperPage -> PopperPageContent(
+                deviceName = currentPage.deviceName,
+                shots = shots,
+                accentRed = accentRed
+            )
+            null -> Unit
         }
 
-        // Target selector (if multiple targets)
-        if (targets.size > 1) {
+        // Page indicator dots
+        if (pages.size > 1) {
             Row(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -318,16 +270,153 @@ private fun TargetDisplayView(
                     .padding(horizontal = 8.dp, vertical = 4.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                targets.forEachIndexed { index, target ->
-                    val isSelected = index == selectedTargetIndex
+                pages.forEachIndexed { index, page ->
+                    val isSelected = index == selectedPageIndex
+                    val dotColor = when {
+                        isSelected -> accentRed
+                        page is ResultPage.PopperPage -> accentRed.copy(alpha = 0.4f)
+                        else -> Color.White.copy(alpha = 0.5f)
+                    }
                     Box(
                         modifier = Modifier
                             .size(8.dp)
                             .clip(CircleShape)
-                            .background(if (isSelected) Color.Red else Color.White.copy(alpha = 0.5f))
-                            .clickable { onTargetSelected(index) }
+                            .background(dotColor)
+                            .clickable { onPageSelected(index) }
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TargetPageContent(
+    target: DrillTargetState,
+    shots: List<ShotData>,
+    selectedShotIndex: Int?
+) {
+    val targetType = when (target) {
+        is DrillTargetState.SingleTarget -> target.targetType.value
+        is DrillTargetState.ExpandedMultiTarget -> target.targetType.value
+    }
+    val displayName = when (target) {
+        is DrillTargetState.SingleTarget -> target.targetName
+        is DrillTargetState.ExpandedMultiTarget -> target.targetName
+    }
+    val targetResId = getTargetImageResId(targetType)
+
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        if (targetResId != null) {
+            androidx.compose.foundation.Image(
+                painter = painterResource(id = targetResId),
+                contentDescription = "Target image",
+                contentScale = ContentScale.Fit,
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+
+        Text(
+            text = displayName,
+            color = Color.White,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(8.dp)
+        )
+
+        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            shots.forEachIndexed { index, shot ->
+                if (shotMatchesTarget(shot, target) && shot.content.actualHitArea.trim().lowercase() != "apopper") {
+                    val transformedX = shot.content.actualHitPosition.x / 720.0
+                    val transformedY = shot.content.actualHitPosition.y / 1280.0
+                    val isSelected = selectedShotIndex == index
+                    val bulletHoleSize = if (isSelected) 32.dp else 24.dp
+
+                    androidx.compose.foundation.Image(
+                        painter = painterResource(id = R.drawable.bullet_hole2),
+                        contentDescription = "Bullet hole $index",
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier
+                            .size(bulletHoleSize)
+                            .align(Alignment.TopStart)
+                            .offset(
+                                x = (transformedX * maxWidth) - bulletHoleSize / 2,
+                                y = (transformedY * maxHeight) - bulletHoleSize / 2
+                            )
+                            .then(
+                                if (isSelected) Modifier.border(2.dp, Color.Yellow.copy(alpha = 0.8f), CircleShape)
+                                else Modifier
+                            )
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PopperPageContent(
+    deviceName: String,
+    shots: List<ShotData>,
+    accentRed: Color
+) {
+    val knocked = shots.any { shotMatchesPopper(it, deviceName) }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black),
+        contentAlignment = Alignment.Center
+    ) {
+        androidx.compose.foundation.Image(
+            painter = painterResource(id = R.drawable.popper_live_target),
+            contentDescription = "Physical Popper",
+            contentScale = ContentScale.Fit,
+            modifier = Modifier.fillMaxSize()
+        )
+
+        Text(
+            text = deviceName,
+            color = Color.White,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(8.dp)
+        )
+
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = "PHYSICAL POPPER",
+                color = accentRed,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Box(
+                modifier = Modifier
+                    .background(
+                        if (knocked) Color(0xff1a7a1a) else Color(0xff7a1a1a),
+                        RoundedCornerShape(8.dp)
+                    )
+                    .padding(horizontal = 20.dp, vertical = 8.dp)
+            ) {
+                Text(
+                    text = if (knocked) "KNOCKED DOWN" else "MISSED",
+                    color = Color.White,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Black
+                )
             }
         }
     }
@@ -362,25 +451,26 @@ private fun RotationOverlay(
 @Composable
 private fun ShotListView(
     shots: List<ShotData>,
-    selectedTargetIndex: Int,
+    selectedPageIndex: Int,
     selectedShotIndex: Int?,
-    targets: List<DrillTargetState>,
+    pages: List<ResultPage>,
     onShotSelected: (Int?) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val currentTarget = targets.getOrNull(selectedTargetIndex)
+    val currentPage = pages.getOrNull(selectedPageIndex)
     val scrollState = rememberLazyListState()
 
     // Calculate cumulative timestamps for all shots (iOS-compatible)
     val shotTimestamps = TimingCalculator.calculateShotTimestamps(shots)
 
-    // Filter shots for current target using consolidated matching logic
+    // Filter shots for current page
     val targetShots = shots.mapIndexedNotNull { index, shot ->
-        if (currentTarget != null && shotMatchesTarget(shot, currentTarget)) {
-            index to shot
-        } else {
-            null
+        val matches = when (currentPage) {
+            is ResultPage.TargetPage -> shotMatchesTarget(shot, currentPage.target) && shot.content.actualHitArea.trim().lowercase() != "apopper"
+            is ResultPage.PopperPage -> shotMatchesPopper(shot, currentPage.deviceName)
+            null -> false
         }
+        if (matches) index to shot else null
     }
 
     Box(modifier = modifier.fillMaxHeight()) {

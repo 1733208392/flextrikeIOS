@@ -11,14 +11,17 @@ package com.flextarget.android.data.model
  * - For SingleTarget: Match by device name (accepts any type from the device)
  */
 fun shotMatchesTarget(shot: ShotData, target: DrillTargetState): Boolean {
-    val shotDevice = shot.device?.trim()?.lowercase()
+    val shotDevice = (shot.target ?: shot.device)?.trim()?.lowercase()
     val shotTargetType = shot.content.actualTargetType.lowercase()
 
     return when (target) {
         is DrillTargetState.ExpandedMultiTarget -> {
-            // For expanded targets, ONLY match by type
-            // Never use device fallback (prevents all-shots-on-all-targets bug)
-            shotTargetType == target.targetType.value.lowercase()
+            // Match by both target type AND device/name so that same-type targets on
+            // different devices each only show their own shots.
+            // shotDevice == null is a fallback for legacy data with no device field.
+            val typeMatches = shotTargetType == target.targetType.value.lowercase()
+            val deviceMatches = shotDevice == null || shotDevice == target.deviceId.value.lowercase()
+            typeMatches && deviceMatches
         }
         is DrillTargetState.SingleTarget -> {
             // For single targets, match by device name

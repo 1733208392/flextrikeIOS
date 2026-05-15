@@ -555,7 +555,8 @@ fun DrillFormView(
                                     countedShots = config.countedShots,
                                     action = config.action,
                                     duration = config.duration,
-                                    drillSetupId = sessionDrill.id
+                                    drillSetupId = sessionDrill.id,
+                                    hasPhysicalPopper = config.hasPhysicalPopper
                                 )
                             }
                             coroutineScope.launch {
@@ -646,7 +647,8 @@ fun DrillFormView(
                                     countedShots = config.countedShots,
                                     action = config.action,
                                     duration = config.duration,
-                                    drillSetupId = sessionDrill.id
+                                    drillSetupId = sessionDrill.id,
+                                    hasPhysicalPopper = config.hasPhysicalPopper
                                 )
                             }
 
@@ -865,7 +867,8 @@ private fun FormScreen(
                                     targetType = target.targetType,  // Preserve full targetType (may contain JSON array with multiple types)
                                     timeout = target.timeout,
                                     countedShots = target.countedShots,
-                                    drillSetupId = sessionDrill.id
+                                    drillSetupId = sessionDrill.id,
+                                    hasPhysicalPopper = target.hasPhysicalPopper
                                 )
                             }
                             

@@ -31,7 +31,8 @@ class DrillFormViewModel(
                 targetType = target.targetType,
                 timeout = target.timeout,
                 countedShots = target.countedShots,
-                drillSetupId = drillSetup.id
+                drillSetupId = drillSetup.id,
+                hasPhysicalPopper = target.hasPhysicalPopper
             )
         }
         drillSetupRepository.insertDrillSetupWithTargets(drillSetup, targetEntities)
@@ -61,7 +62,8 @@ class DrillFormViewModel(
                 targetType = target.targetType,
                 timeout = target.timeout,
                 countedShots = target.countedShots,
-                drillSetupId = drillSetup.id
+                drillSetupId = drillSetup.id,
+                hasPhysicalPopper = target.hasPhysicalPopper
             )
         }
         drillSetupRepository.insertTargetConfigs(targetEntities)
@@ -78,7 +80,8 @@ class DrillFormViewModel(
                 targetName = entity.targetName ?: "",
                 targetType = entity.targetType ?: "ipsc",
                 timeout = entity.timeout,
-                countedShots = entity.countedShots
+                countedShots = entity.countedShots,
+                hasPhysicalPopper = entity.hasPhysicalPopper
             )
         } ?: emptyList()
     }

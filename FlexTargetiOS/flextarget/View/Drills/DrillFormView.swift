@@ -643,6 +643,7 @@ struct DrillFormView: View {
             target.action = targetData.action
             target.duration = targetData.duration
             target.targetVariant = targetData.targetVariant
+            target.hasPhysicalPopper = targetData.hasPhysicalPopper
             
             // Use the Core Data generated method to establish relationship
             drillSetup.addToTargets(target)
@@ -727,6 +728,7 @@ struct DrillFormView: View {
             target.action = targetData.action
             target.duration = targetData.duration
             target.targetVariant = targetData.targetVariant
+            target.hasPhysicalPopper = targetData.hasPhysicalPopper
         }
         
         // Remove targets that are no longer needed

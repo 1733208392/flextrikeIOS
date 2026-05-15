@@ -5,6 +5,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.flextarget.android.data.local.converter.Converters
 import com.flextarget.android.data.local.dao.*
@@ -39,7 +40,7 @@ import java.util.UUID
         AthleteEntity::class,
         AppAuthEntity::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
@@ -62,6 +63,12 @@ abstract class FlexTargetDatabase : RoomDatabase() {
         
         private const val DATABASE_NAME = "flex_target_database_v3"
         
+        val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE drill_targets_config ADD COLUMN hasPhysicalPopper INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+        
         fun getDatabase(
             context: Context,
             scope: CoroutineScope = CoroutineScope(Dispatchers.IO)
@@ -73,6 +80,7 @@ abstract class FlexTargetDatabase : RoomDatabase() {
                     DATABASE_NAME
                 )
                     .addCallback(DatabaseCallback(context.applicationContext, scope))
+                    .addMigrations(MIGRATION_4_5)
                     .fallbackToDestructiveMigration() // For development; remove in production
                     .build()
                 INSTANCE = instance

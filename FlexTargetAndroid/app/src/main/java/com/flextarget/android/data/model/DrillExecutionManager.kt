@@ -365,6 +365,13 @@ class DrillExecutionManager(
                     completeRepeat()
                 }
             }
+
+            // Handle physical popper hit: compose directive from a slave device
+            val contentAction = contentObj["action"] as? String
+            val contentDirective = contentObj["directive"] as? String
+            if (contentAction == "remote_control" && contentDirective == "compose") {
+                handlePopperHit(device)
+            }
         }
     }
 
@@ -590,6 +597,7 @@ class DrillExecutionManager(
 
             val numShots = adjustedShots.size
 
+            val effectiveCounts = ScoringUtility.calculateEffectiveCounts(adjustedShots, targets)
             val totalScore = ScoringUtility.calculateTotalScore(adjustedShots, targets).toInt()
 
             var cqbResults: List<CQBShotResult>? = null
@@ -635,7 +643,8 @@ class DrillExecutionManager(
                 score = totalScore,
                 shots = adjustedShots,
                 cqbResults = cqbResults,
-                cqbPassed = cqbPassed
+                cqbPassed = cqbPassed,
+                adjustedHitZones = effectiveCounts
             )
             println("[DrillExecutionManager] Created summary for repeat $repeatIndex")
 
@@ -736,6 +745,48 @@ class DrillExecutionManager(
     /// A target is considered missed if no shots were received from it
     private fun calculateMissedTargets(shots: List<ShotData>): Int {
         return ScoringUtility.calculateMissedTargets(shots, targets)
+    }
+
+    /**
+     * Handle a physical popper hit triggered by a compose BLE directive.
+     * Constructs the target name as [deviceName]-01 and injects a synthetic
+     * A-zone popper shot into the current repeat, provided:
+     *   - the drill is actively running (currentRepeatStartTime is set), and
+     *   - a matching target with hasPhysicalPopper == true exists.
+     */
+    private fun handlePopperHit(deviceName: String) {
+        val startTime = currentRepeatStartTime ?: run {
+            println("[DrillExecutionManager] Physical popper hit ignored — drill not active (device: $deviceName)")
+            return
+        }
+
+        val targetName = "$deviceName-01"
+        val matchingTarget = targets.firstOrNull { it.targetName == targetName && it.hasPhysicalPopper }
+        if (matchingTarget == null) {
+            println("[DrillExecutionManager] Physical popper hit ignored — no matching popper target for: $targetName")
+            return
+        }
+
+        val elapsed = (Date().time - startTime.time) / 1000.0
+        println("[DrillExecutionManager] Physical popper hit! device=$deviceName, targetName=$targetName, elapsed=$elapsed")
+
+        val syntheticContent = Content(
+            command = "shot",
+            hitArea = "A",
+            hitPosition = Position(0.0, 0.0),
+            targetType = "popper",
+            timeDiff = elapsed,
+            device = targetName,
+            `repeat` = currentRepeat
+        )
+        val syntheticShot = ShotData(
+            target = targetName,
+            content = syntheticContent,
+            type = "netlink",
+            action = "forward",
+            device = targetName
+        )
+        handleShotNotification(syntheticShot)
     }
 
     private data class ShotEvent(

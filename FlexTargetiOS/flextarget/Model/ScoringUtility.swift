@@ -15,6 +15,8 @@ class ScoringUtility {
             return "popperzone"
         case "azone", "a", "a-zone", "a_zone":
             return "azone"
+        case "apopper", "a_popper", "a-popper":
+            return "apopper"
         case "czone", "c", "c-zone", "c_zone":
             return "czone"
         case "dzone", "d", "d-zone", "d_zone":
@@ -73,6 +75,8 @@ class ScoringUtility {
         case "whitezone", "blackzone", "n":
             return -10
         case "circlearea", "popperzone": // Steel
+            return 5
+        case "apopper": // Physical popper - scores as A
             return 5
         default:
             return 0
@@ -190,9 +194,23 @@ class ScoringUtility {
             
             // Count no-shoot zones (always included)
             nCount += noShootZoneShots.count
-            
-            // Filter for valid hits
-            let validHits = otherShots.filter { ScoringUtility.scoreForHitArea(ScoringUtility.normalizeHitArea($0.content.hitArea)) > 0 }
+
+            // Separate APopper shots (physical popper hits) - scored independently,
+            // not subject to the per-target "best 2 shots" rule.
+            let apopperShots = otherShots.filter { ScoringUtility.normalizeHitArea($0.content.hitArea) == "apopper" }
+            let regularShots = otherShots.filter { ScoringUtility.normalizeHitArea($0.content.hitArea) != "apopper" }
+
+            // Each valid APopper hit scores as A with no per-target cap
+            let validApopperHits = apopperShots.filter { ScoringUtility.scoreForHitArea(ScoringUtility.normalizeHitArea($0.content.hitArea)) > 0 }.count
+            aCount += validApopperHits
+
+            // Physical popper miss: 1 hit required when target has hasPhysicalPopper = true
+            if config?.hasPhysicalPopper == true && validApopperHits == 0 {
+                mCount += 1
+            }
+
+            // Filter for valid hits from regular shots only
+            let validHits = regularShots.filter { ScoringUtility.scoreForHitArea(ScoringUtility.normalizeHitArea($0.content.hitArea)) > 0 }
             
             if isPaddleOrPopper {
                 // Paddles/Poppers: 1 valid hit required

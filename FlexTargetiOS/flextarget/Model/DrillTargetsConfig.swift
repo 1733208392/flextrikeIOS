@@ -17,8 +17,9 @@ struct DrillTargetsConfigData: Identifiable, Codable, Equatable {
     var action: String
     var duration: Double
     var targetVariant: String? // JSON array of TargetVariant objects
+    var hasPhysicalPopper: Bool // whether this target has a physical popper attached
     
-    init(id: UUID = UUID(), seqNo: Int, targetName: String, targetType: String, timeout: TimeInterval, countedShots: Int, action: String = "", duration: Double = 0.0, targetVariant: String? = nil) {
+    init(id: UUID = UUID(), seqNo: Int, targetName: String, targetType: String, timeout: TimeInterval, countedShots: Int, action: String = "", duration: Double = 0.0, targetVariant: String? = nil, hasPhysicalPopper: Bool = false) {
         self.id = id
         self.seqNo = seqNo
         self.targetName = targetName
@@ -28,6 +29,7 @@ struct DrillTargetsConfigData: Identifiable, Codable, Equatable {
         self.action = action
         self.duration = duration
         self.targetVariant = targetVariant
+        self.hasPhysicalPopper = hasPhysicalPopper
     }
     
     /// Parses targetVariant JSON string into array of TargetVariant structs

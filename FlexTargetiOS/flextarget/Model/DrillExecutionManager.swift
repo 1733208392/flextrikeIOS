@@ -24,6 +24,7 @@ class DrillExecutionManager {
     private var beepTime: Date?
     private var endCommandTime: Date?
     private var shotObserver: NSObjectProtocol?
+    private var popperObserver: NSObjectProtocol?
     private let firstShotMockValue: TimeInterval = 1.0
     private let gracePeriodDuration: TimeInterval = 5.0
     private var deviceDelayTimes: [String: String] = [:]
@@ -701,6 +702,13 @@ class DrillExecutionManager {
         ) { [weak self] notification in
             self?.handleShotNotification(notification)
         }
+        popperObserver = NotificationCenter.default.addObserver(
+            forName: .blePopperHitReceived,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            self?.handlePopperHitNotification(notification)
+        }
         print("[DrillExecutionManager] Shot observer registered")
     }
 
@@ -709,6 +717,42 @@ class DrillExecutionManager {
             NotificationCenter.default.removeObserver(observer)
             shotObserver = nil
         }
+        if let observer = popperObserver {
+            NotificationCenter.default.removeObserver(observer)
+            popperObserver = nil
+        }
+    }
+
+    private func handlePopperHitNotification(_ notification: Notification) {
+        guard let startTime = currentRepeatStartTime else {
+            print("[DrillExecutionManager] Physical popper hit received but no active repeat")
+            return
+        }
+        guard let targetName = notification.userInfo?["targetName"] as? String else { return }
+        
+        // Only process if the matching target has a physical popper enabled
+        let targets = drillSetup.targets as? Set<DrillTargetsConfig> ?? []
+        guard targets.first(where: { $0.targetName == targetName && $0.hasPhysicalPopper }) != nil else {
+            print("[DrillExecutionManager] Physical popper hit from \(targetName) ignored — no physical popper enabled for this target")
+            return
+        }
+        
+        let elapsed = Date().timeIntervalSince(startTime)
+        let shotDict: [String: Any] = [
+            "type": "netlink",
+            "action": "forward",
+            "device": targetName,
+            "content": [
+                "command": "shot",
+                "hit_area": "A",
+                "target_type": "popper",
+                "time_diff": elapsed,
+                "device": targetName,
+                "repeat": currentRepeat
+            ]
+        ]
+        print("[DrillExecutionManager] Physical popper hit from \(targetName), elapsed: \(elapsed)s — synthesizing shot")
+        NotificationCenter.default.post(name: .bleShotReceived, object: nil, userInfo: ["shot_data": shotDict])
     }
 
     private func handleShotNotification(_ notification: Notification) {

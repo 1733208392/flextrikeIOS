@@ -26,13 +26,77 @@ private struct TargetDisplay: Identifiable, Hashable {
     }
 }
 
+private enum ResultPage: Identifiable, Hashable {
+    case target(TargetDisplay)
+    case popper(deviceName: String, parentId: String)
+
+    var id: String {
+        switch self {
+        case .target(let d): return d.id
+        case .popper(_, let parentId): return parentId + "-popper"
+        }
+    }
+}
+
 private func isScoringZone(_ hitArea: String) -> Bool {
     let trimmed = hitArea.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
     return trimmed == "azone" || trimmed == "czone" || trimmed == "dzone" || trimmed == "head" || trimmed == "body" || trimmed == "circlearea" || trimmed == "popperzone"
 }
 
+private struct PopperPageView: View {
+    let deviceName: String
+    let shots: [ShotData]
+    let frameWidth: CGFloat
+    let frameHeight: CGFloat
+
+    private let accentRed = Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433)
+
+    private var knocked: Bool {
+        shots.contains { shot in
+            let hitArea = shot.content.hitArea.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+            let shotDevice = shot.device?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            return hitArea == "apopper" && (shotDevice.isEmpty || shotDevice == deviceName)
+        }
+    }
+
+    var body: some View {
+        ZStack {
+            Color.black
+            Image("popper.live.target")
+                .resizable()
+                .scaledToFit()
+                .frame(width: frameWidth, height: frameHeight)
+            VStack {
+                Text(deviceName)
+                    .foregroundColor(.white)
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .padding(6)
+                    .background(Color.black.opacity(0.8))
+                    .cornerRadius(8)
+                    .padding(.top, 10)
+                Spacer()
+                VStack(spacing: 8) {
+                    Text("PHYSICAL POPPER")
+                        .foregroundColor(accentRed)
+                        .font(.system(size: 14, weight: .bold))
+                    Text(knocked ? "KNOCKED DOWN" : "MISSED")
+                        .foregroundColor(.white)
+                        .font(.system(size: 18, weight: .black))
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 8)
+                        .background(knocked ? Color(red: 0.1, green: 0.475, blue: 0.1) : Color(red: 0.475, green: 0.1, blue: 0.1))
+                        .cornerRadius(8)
+                }
+                .padding(.bottom, 32)
+            }
+        }
+        .frame(width: frameWidth, height: frameHeight)
+    }
+}
+
 private struct TargetDisplayView: View {
-    let targetDisplays: [TargetDisplay]
+    let resultPages: [ResultPage]
     @Binding var selectedTargetKey: String
     let shots: [ShotData]
     let selectedShotIndex: Int?
@@ -137,8 +201,11 @@ private struct TargetDisplayView: View {
 
     var body: some View {
         TabView(selection: $selectedTargetKey) {
-            ForEach(targetDisplays, id: \.id) { display in
-                ZStack {
+            ForEach(resultPages) { page in
+                Group {
+                    switch page {
+                    case .target(let display):
+                        ZStack {
                     Rectangle()
                         .fill(Color.gray.opacity(0.3))
                         .frame(width: frameWidth, height: frameHeight)
@@ -212,7 +279,8 @@ private struct TargetDisplayView: View {
                     // Non-scoring shots rendered on top (fixed position for all target types)
                     ForEach(shots.indices, id: \.self) { index in
                         let shot = shots[index]
-                        if display.matches(shot) && !isScoringZone(shot.content.hitArea) {
+                        let hitAreaLower = shot.content.hitArea.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+                        if display.matches(shot) && !isScoringZone(shot.content.hitArea) && hitAreaLower != "apopper" {
                             let x = shot.content.hitPosition.x
                             let y = shot.content.hitPosition.y
                             let transformedX = (x / 720.0) * frameWidth
@@ -235,12 +303,21 @@ private struct TargetDisplayView: View {
                         }
                     }
                 }
-                .frame(width: frameWidth, height: frameHeight)
-                .tag(display.id)
+                        .frame(width: frameWidth, height: frameHeight)
+                    case .popper(let deviceName, _):
+                        PopperPageView(
+                            deviceName: deviceName,
+                            shots: shots,
+                            frameWidth: frameWidth,
+                            frameHeight: frameHeight
+                        )
+                    }
+                }
+                .tag(page.id)
             }
         }
         .frame(width: frameWidth, height: frameHeight)
-        .tabViewStyle(PageTabViewStyle(indexDisplayMode: targetDisplays.count > 1 ? .automatic : .never))
+        .tabViewStyle(PageTabViewStyle(indexDisplayMode: resultPages.count > 1 ? .automatic : .never))
         .onChange(of: shots.count) { _ in
             // This would need to be passed as a closure or handled differently
             // For now, we'll handle this in the parent view
@@ -395,7 +472,47 @@ struct DrillResultView: View {
         
         return displays
     }
-    
+
+    private var resultPages: [ResultPage] {
+        var pages: [ResultPage] = []
+        for display in targetDisplays {
+            pages.append(.target(display))
+            if display.config.hasPhysicalPopper {
+                pages.append(.popper(deviceName: display.config.targetName ?? "", parentId: display.id))
+            }
+        }
+        return pages
+    }
+
+    private var currentPageShotData: [(index: Int, time: Double, diff: Double)] {
+        guard let page = resultPages.first(where: { $0.id == selectedTargetKey }) else { return [] }
+        switch page {
+        case .target(let display):
+            let filteredShots = shots.enumerated().filter {
+                display.matches($0.element) &&
+                $0.element.content.hitArea.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() != "apopper"
+            }
+            var cumulativeTime = 0.0
+            return filteredShots.map { enumeratedShot in
+                let interval = enumeratedShot.element.content.timeDiff
+                cumulativeTime += interval
+                return (enumeratedShot.offset, cumulativeTime, interval)
+            }
+        case .popper(let deviceName, _):
+            let filteredShots = shots.enumerated().filter { (_, shot) in
+                let hitArea = shot.content.hitArea.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+                let shotDevice = shot.device?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                return hitArea == "apopper" && (shotDevice.isEmpty || shotDevice == deviceName)
+            }
+            var cumulativeTime = 0.0
+            return filteredShots.map { enumeratedShot in
+                let interval = enumeratedShot.element.content.timeDiff
+                cumulativeTime += interval
+                return (enumeratedShot.offset, cumulativeTime, interval)
+            }
+        }
+    }
+
     var totalDuration: Double {
         if let repeatSummary = repeatSummary {
             return repeatSummary.totalTime
@@ -482,7 +599,7 @@ struct DrillResultView: View {
                 
                 VStack {
                     TargetDisplayView(
-                        targetDisplays: targetDisplays,
+                        resultPages: resultPages,
                         selectedTargetKey: $selectedTargetKey,
                         shots: shots,
                         selectedShotIndex: selectedShotIndex,
@@ -521,7 +638,7 @@ struct DrillResultView: View {
                         // Use the precomputed `currentTargetTimelineData` which contains
                         // tuples with the original shot index.
                         LazyVStack(alignment: .center, spacing: 6) {
-                            ForEach(Array(currentTargetTimelineData.enumerated()), id: \.element.index) { enumeratedEntry in
+                            ForEach(Array(currentPageShotData.enumerated()), id: \.element.index) { enumeratedEntry in
                                 let pos = enumeratedEntry.offset
                                 let idx = enumeratedEntry.element.index
                                 let shot = shots[idx]
@@ -679,8 +796,8 @@ struct DrillResultView: View {
     
 
     private func ensureSelectedTargetIsValid() {
-        guard !targetDisplays.contains(where: { $0.id == selectedTargetKey }) else { return }
-        if let fallback = targetDisplays.first {
+        guard !resultPages.contains(where: { $0.id == selectedTargetKey }) else { return }
+        if let fallback = resultPages.first {
             selectedTargetKey = fallback.id
         }
     }

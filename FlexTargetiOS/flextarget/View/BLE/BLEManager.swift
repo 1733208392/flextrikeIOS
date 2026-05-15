@@ -253,6 +253,19 @@ public class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, C
                     print("Received image chunk: \(json)")
                     NotificationCenter.default.post(name: .bleImageChunkReceived, object: nil, userInfo: ["json": content])
                 }
+
+                // Handle physical popper trigger: compose directive from a slave device
+                if let action = content["action"] as? String, action == "remote_control",
+                   let directive = content["directive"] as? String, directive == "compose",
+                   let shortId = json["device"] as? String {
+                    let targetName = "\(shortId)-01"
+                    print("[BLEManager] Physical popper hit from device: \(shortId) -> targetName: \(targetName)")
+                    NotificationCenter.default.post(
+                        name: .blePopperHitReceived,
+                        object: nil,
+                        userInfo: ["targetName": targetName, "device": shortId]
+                    )
+                }
             }
         }
     }
@@ -1166,4 +1179,7 @@ extension Notification.Name {
     static let bleOTAPreparationFailed = Notification.Name("bleOTAPreparationFailed")
     static let bleWifiSsidReceived = Notification.Name("bleWifiSsidReceived")
     static let bleWorkmodeReceived = Notification.Name("bleWorkmodeReceived")
+    /// Fired when a physical popper/plate trigger sends a compose directive via netlink forward.
+    /// userInfo: ["targetName": String (device + "-01"), "device": String (short device id)]
+    static let blePopperHitReceived = Notification.Name("blePopperHitReceived")
 }
