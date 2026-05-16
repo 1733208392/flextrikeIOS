@@ -108,11 +108,14 @@ class ScoringUtility {
         
         var targetsWithValidHits = Set<String>()
         for (device, targetShots) in shotsByTarget {
-            let hasValidHit = targetShots.contains { shot in
+            // A target is considered "engaged" for PE purposes only if it has valid PAPER shots.
+            // APopper hits (physical popper knocks) do not count as paper engagement:
+            // if you only knock the popper but never shoot the paper, the paper target is still PE.
+            let hasValidPaperHit = targetShots.contains { shot in
                 let area = ScoringUtility.normalizeHitArea(shot.content.hitArea)
-                return ScoringUtility.scoreForHitArea(area) > 0
+                return area != "apopper" && ScoringUtility.scoreForHitArea(area) > 0
             }
-            if hasValidHit {
+            if hasValidPaperHit {
                 targetsWithValidHits.insert(device)
             }
         }
@@ -206,6 +209,7 @@ class ScoringUtility {
 
             // Physical popper miss: 1 hit required when target has hasPhysicalPopper = true
             if config?.hasPhysicalPopper == true && validApopperHits == 0 {
+                print("[ScoringUtility] Popper miss for target '\(targetName)': hasPhysicalPopper=true, validApopperHits=0 → +1M")
                 mCount += 1
             }
 
@@ -230,10 +234,14 @@ class ScoringUtility {
                     }
                 }
             } else {
-                // Paper target: 2 valid hits required
+                // Paper target: 2 valid hits required.
+                // If validHits.count == 0, the target is already penalized as PE
+                // (no paper engagement) — don't double-count with M as well.
                 let requiredHits = 2
                 let deficit = max(0, requiredHits - validHits.count)
-                mCount += deficit
+                if validHits.count > 0 {
+                    mCount += deficit
+                }
                 
                 // Count best 2 valid hits
                 let sortedValidHits = validHits.sorted {

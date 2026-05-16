@@ -120,13 +120,16 @@ object ScoringUtility {
             shotsByTarget.getOrPut(key) { mutableListOf() }.add(shot)
         }
 
-        // Find which targets have at least one valid hit
+        // Find which targets have at least one valid PAPER hit.
+        // APopper hits (physical popper knocks) do not count as paper engagement:
+        // if you only knock the popper but never shoot the paper, the paper target is still PE.
         var targetsWithValidHits = mutableSetOf<String>()
         for ((key, targetShots) in shotsByTarget) {
-            val hasValidHit = targetShots.any { shot ->
-                scoreForHitArea(normalizeHitArea(shot.content.actualHitArea)) > 0
+            val hasValidPaperHit = targetShots.any { shot ->
+                val area = normalizeHitArea(shot.content.actualHitArea)
+                area != "apopper" && scoreForHitArea(area) > 0
             }
-            if (hasValidHit) {
+            if (hasValidPaperHit) {
                 targetsWithValidHits.add(key)
             }
         }
@@ -227,10 +230,14 @@ object ScoringUtility {
                     }
                 }
             } else {
-                // Paper target: 2 valid hits required, count best 2
+                // Paper target: 2 valid hits required, count best 2.
+                // If validHits is empty, the target is already penalized as PE
+                // (no paper engagement) — don't double-count with M as well.
                 val requiredHits = 2
                 val deficit = maxOf(0, requiredHits - validHits.size)
-                mCount += deficit
+                if (validHits.isNotEmpty()) {
+                    mCount += deficit
+                }
 
                 // Count best 2 valid hits
                 val sortedValidHits = validHits.sortedByDescending { scoreForHitArea(normalizeHitArea(it.content.actualHitArea)) }
@@ -352,10 +359,14 @@ object ScoringUtility {
                     }
                 }
             } else {
-                // Paper target: 2 valid hits required
+                // Paper target: 2 valid hits required.
+                // If validHits is empty, the target is already penalized as PE
+                // (no paper engagement) — don't double-count with M as well.
                 val requiredHits = 2
                 val deficit = maxOf(0, requiredHits - validHits.size)
-                mCount += deficit
+                if (validHits.isNotEmpty()) {
+                    mCount += deficit
+                }
 
                 // Count best 2 valid hits
                 val sortedValidHits = validHits.sortedByDescending { scoreForHitArea(normalizeHitArea(it.content.actualHitArea)) }

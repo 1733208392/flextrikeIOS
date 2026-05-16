@@ -99,6 +99,9 @@ var shots_on_last_target: int = 0
 var final_target_spawned: bool = false
 var final_target_instance: Node = null
 
+# Physical popper one-shot protection: ignore hardware clench bounces after the first knock-down
+var _physical_popper_hit_registered: bool = false
+
 # Multi-target sequence support
 var target_sequence: Array = []  # Array of target types to cycle through
 var current_target_index: int = 0  # Index of current target in sequence
@@ -1154,6 +1157,7 @@ func reset_drill_state():
 	drill_start_time = 0.0
 	shots_on_last_target = 0
 	final_target_spawned = false
+	_physical_popper_hit_registered = false
 	current_animation_action.clear()
 	
 	# Reset multi-target sequence state
@@ -1227,8 +1231,17 @@ func _handle_physical_popper_hit():
 	"""Handle physical popper/plate trigger hit.
 	Emits a target_hit (A-zone, popper) through the normal scoring pipeline so the
 	performance tracker sends the result to the mobile app, then provides local
-	audio/visual feedback."""
+	audio/visual feedback.
+	Only the first knock-down per drill is registered; subsequent signals are
+	ignored as hardware clench bounces."""
 	print("[DrillsNetwork] Physical popper hit received")
+
+	# One-shot guard: a physical popper can only be knocked down once per drill.
+	# Any subsequent signal is a hardware clench bounce and must be ignored.
+	if _physical_popper_hit_registered:
+		print("[DrillsNetwork] Physical popper hit ignored (already registered this drill - hardware clench)")
+		return
+	_physical_popper_hit_registered = true
 
 	# Compute elapsed ms since drill start (same reference used by hardware shots)
 	var t_ms = int(Time.get_ticks_msec() - drill_start_time * 1000.0)
