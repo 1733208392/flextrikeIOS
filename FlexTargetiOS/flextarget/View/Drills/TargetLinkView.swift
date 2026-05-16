@@ -15,6 +15,7 @@ struct TargetLinkView: View {
     @State private var selectedConfigIndex: Int? = nil
     @State private var navigateToConfig = false
     @State private var popperHitTargets: Set<String> = []
+    @State private var navigateToDevice: String? = nil
     
     private let gridColumns = Array(repeating: GridItem(.flexible(), spacing: 12), count: 3)
     private let rectangleHeight: CGFloat = 150
@@ -409,31 +410,61 @@ struct TargetLinkView: View {
     private func gridCell(for item: TargetGridItem) -> some View {
         switch item {
         case .device(let device, let config):
-            NavigationLink(destination: TargetConfigListViewV2(
-                deviceList: bleManager.networkDevices,
-                targetConfigs: $targetConfigs,
-                onDone: onDone,
-                drillMode: $drillMode,
-                singleDeviceMode: true,
-                deviceNameFilter: device.name,
-                isFromTargetLink: true,
-                hasResults: hasResults,
-                onSettings: onSettings,
-                onStartDrill: onStartDrill
-            )) {
+            // ZStack(alignment: .topTrailing) so the + button sits at the top-right corner.
+            // The button is a ZStack sibling – placed after (on top of) the gestured
+            // view – so SwiftUI's hit-testing picks the button first for its area
+            // and never falls through to the navigation gesture below.
+            ZStack(alignment: .topTrailing) {
+                // Programmatic NavigationLink – activated by state, not by tap gesture directly
+                NavigationLink(
+                    destination: TargetConfigListViewV2(
+                        deviceList: bleManager.networkDevices,
+                        targetConfigs: $targetConfigs,
+                        onDone: onDone,
+                        drillMode: $drillMode,
+                        singleDeviceMode: true,
+                        deviceNameFilter: device.name,
+                        isFromTargetLink: true,
+                        hasResults: hasResults,
+                        onSettings: onSettings,
+                        onStartDrill: onStartDrill
+                    ),
+                    tag: device.name,
+                    selection: $navigateToDevice
+                ) { EmptyView() }
+                .hidden()
+
                 TargetRectangleView(
                     deviceName: device.name,
                     config: config,
                     width: rectangleWidth,
                     height: rectangleHeight,
-                    onTogglePopper: config?.hasPhysicalPopper == true ? nil : { togglePopper(for: device.name) }
+                    onTogglePopper: nil  // button is lifted out to the ZStack below
                 )
-            }
-            .simultaneousGesture(
-                TapGesture(count: 2).onEnded {
-                    sendGreeting(to: device.name)
+                .contentShape(Rectangle())
+                .gesture(
+                    // Double tap takes exclusive priority: if two taps arrive quickly,
+                    // send a greeting. Otherwise the single-tap fallback triggers navigation.
+                    TapGesture(count: 2)
+                        .onEnded { sendGreeting(to: device.name) }
+                        .exclusively(before:
+                            TapGesture(count: 1)
+                                .onEnded { navigateToDevice = device.name }
+                        )
+                )
+
+                // + button is a ZStack sibling (frontmost layer) so it is hit-tested
+                // before the gesture view and does not trigger navigation.
+                if config?.hasPhysicalPopper != true {
+                    Button(action: { togglePopper(for: device.name) }) {
+                        Image(systemName: "plus.circle")
+                            .font(.system(size: 22, weight: .semibold))
+                            .foregroundColor(.white.opacity(0.7))
+                            .padding(4)
+                    }
+                    .buttonStyle(.plain)
                 }
-            )
+            }
         case .popper(let parentDeviceName):
             PopperRectangleView(
                 parentDeviceName: parentDeviceName,
@@ -485,7 +516,7 @@ struct TargetRectangleView: View {
         .frame(width: width, height: height)
         .background(config != nil ? Color.gray.opacity(0.2) : Color.gray.opacity(0.1))
         .border(config != nil ? accentColor : Color.gray.opacity(0.15), width: 6)
-        .overlay(alignment: .bottomTrailing) {
+        .overlay(alignment: .topTrailing) {
             if let onTogglePopper = onTogglePopper {
                 Button(action: onTogglePopper) {
                     Image(systemName: "plus.circle")
@@ -534,7 +565,7 @@ struct PopperRectangleView: View {
         .frame(width: width, height: height)
         .background(Color.gray.opacity(0.2))
         .border(accentColor, width: 6)
-        .overlay(alignment: .bottomTrailing) {
+        .overlay(alignment: .topTrailing) {
             Button(action: { onRemove?() }) {
                 Image(systemName: "xmark.circle.fill")
                     .font(.system(size: 22, weight: .bold))
