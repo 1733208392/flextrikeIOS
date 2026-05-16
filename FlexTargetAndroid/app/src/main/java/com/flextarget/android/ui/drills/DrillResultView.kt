@@ -374,7 +374,7 @@ private fun PopperPageContent(
         contentAlignment = Alignment.Center
     ) {
         androidx.compose.foundation.Image(
-            painter = painterResource(id = R.drawable.popper_live_target),
+            painter = painterResource(id = R.drawable.physical_popper_live_target),
             contentDescription = "Physical Popper",
             contentScale = ContentScale.Fit,
             modifier = Modifier.fillMaxSize()

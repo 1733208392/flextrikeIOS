@@ -545,6 +545,7 @@ struct DrillSummaryView: View {
             .sheet(item: $editingSummary) { summary in
                 SummaryEditSheet(
                     summary: summary,
+                    drillSetup: drillSetup,
                     onSave: { updatedZones in
                         // Find the index of the summary being edited
                         if let index = summaries.firstIndex(where: { $0.id == summary.id }) {
@@ -899,6 +900,7 @@ struct RestoreButton: View {
 // MARK: - Summary Edit Sheet
 struct SummaryEditSheet: View {
     let summary: DrillRepeatSummary
+    let drillSetup: DrillSetup?
     let onSave: ([String: Int]) -> Void
     let onCancel: () -> Void
 
@@ -927,30 +929,20 @@ struct SummaryEditSheet: View {
     @State private var mCount: Int
     @State private var peCount: Int
     
-    init(summary: DrillRepeatSummary, onSave: @escaping ([String: Int]) -> Void, onCancel: @escaping () -> Void) {
+    init(summary: DrillRepeatSummary, drillSetup: DrillSetup? = nil, onSave: @escaping ([String: Int]) -> Void, onCancel: @escaping () -> Void) {
         self.summary = summary
+        self.drillSetup = drillSetup
         self.onSave = onSave
         self.onCancel = onCancel
         
         let adjusted = summary.adjustedHitZones
+        let effectiveCounts = ScoringUtility.calculateEffectiveCounts(shots: summary.shots, drillSetup: drillSetup)
         
-        let aZoneCount = summary.shots.filter { $0.content.hitArea.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) == "azone" }.count
-        let cZoneCount = summary.shots.filter { $0.content.hitArea.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) == "czone" }.count
-        let dZoneCount = summary.shots.filter { $0.content.hitArea.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) == "dzone" }.count
-        let noShootCount = summary.shots.filter {
-            let area = $0.content.hitArea.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
-            return area == "blackzone" || area == "whitezone"
-        }.count
-        let missCount = summary.shots.filter {
-            let area = $0.content.hitArea.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
-            return area == "miss" || area == "m" || area.isEmpty
-        }.count
-        
-        _aCount = State(initialValue: adjusted?["A"] ?? aZoneCount)
-        _cCount = State(initialValue: adjusted?["C"] ?? cZoneCount)
-        _dCount = State(initialValue: adjusted?["D"] ?? dZoneCount)
-        _nCount = State(initialValue: adjusted?["N"] ?? noShootCount)
-        _mCount = State(initialValue: adjusted?["M"] ?? missCount)
+        _aCount = State(initialValue: adjusted?["A"] ?? effectiveCounts["A"] ?? 0)
+        _cCount = State(initialValue: adjusted?["C"] ?? effectiveCounts["C"] ?? 0)
+        _dCount = State(initialValue: adjusted?["D"] ?? effectiveCounts["D"] ?? 0)
+        _nCount = State(initialValue: adjusted?["N"] ?? effectiveCounts["N"] ?? 0)
+        _mCount = State(initialValue: adjusted?["M"] ?? effectiveCounts["M"] ?? 0)
         _peCount = State(initialValue: adjusted?["PE"] ?? 0)
     }
     

@@ -732,10 +732,12 @@ class DrillExecutionManager {
         
         // Only process if the matching target has a physical popper enabled
         let targets = drillSetup.targets as? Set<DrillTargetsConfig> ?? []
-        guard targets.first(where: { $0.targetName == targetName && $0.hasPhysicalPopper }) != nil else {
+        guard let matchingConfig = targets.first(where: { $0.targetName == targetName && $0.hasPhysicalPopper }) else {
             print("[DrillExecutionManager] Physical popper hit from \(targetName) ignored — no physical popper enabled for this target")
             return
         }
+        // Use the device's actual target type so the shot is keyed identically to the expected target
+        let deviceTargetType = matchingConfig.primaryTargetType()
         
         let elapsed = Date().timeIntervalSince(startTime)
         let shotDict: [String: Any] = [
@@ -744,8 +746,8 @@ class DrillExecutionManager {
             "device": targetName,
             "content": [
                 "command": "shot",
-                "hit_area": "A",
-                "target_type": "popper",
+                "hit_area": "apopper",
+                "target_type": deviceTargetType,
                 "time_diff": elapsed,
                 "device": targetName,
                 "repeat": currentRepeat

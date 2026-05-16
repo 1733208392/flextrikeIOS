@@ -9,16 +9,23 @@ private struct TargetDisplay: Identifiable, Hashable {
     let index: Int?  // Position in multi-target array (nil for single target)
 
     func matches(_ shot: ShotData) -> Bool {
-        // For multi-target displays, always match by targetType (icon), not by device name
+        // For multi-target displays, match by device name (if known) AND targetType (icon)
         if index != nil {
             let shotIcon = shot.content.targetType.isEmpty ? "hostage" : shot.content.targetType
-            return shotIcon == icon
+            guard shotIcon == icon else { return false }
+            // When a device name is known, restrict to shots from that device so two
+            // targets of the same type don't each show all bullet holes.
+            if let targetName = targetName, !targetName.isEmpty {
+                let shotDevice = shot.device?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                return shotDevice.lowercased() == targetName.lowercased()
+            }
+            return true
         }
         
         // For single-target displays, use original logic (targetName takes precedence if set)
         if let targetName = targetName {
             let shotTargetName = shot.device?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-            return shotTargetName == targetName
+            return shotTargetName.lowercased() == targetName.lowercased()
         } else {
             let shotIcon = shot.content.targetType.isEmpty ? "hostage" : shot.content.targetType
             return shotIcon == icon
@@ -62,7 +69,7 @@ private struct PopperPageView: View {
     var body: some View {
         ZStack {
             Color.black
-            Image("popper.live.target")
+            Image("physical.popper.live.target")
                 .resizable()
                 .scaledToFit()
                 .frame(width: frameWidth, height: frameHeight)

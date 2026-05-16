@@ -189,119 +189,84 @@ struct TargetLinkView: View {
     
     @ViewBuilder
     private var gridContent: some View {
-        ZStack(alignment: .topLeading) {
-            // Connection lines overlay
-            Canvas { context, size in
-                var mutableContext = context
-                drawConnectionLines(context: &mutableContext, canvasSize: size)
+        LazyVGrid(columns: gridColumns, spacing: 40) {
+            ForEach(Array(buildGridItems().enumerated()), id: \.offset) { (_, item) in
+                gridCell(for: item)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            
-            // Grid background (on top so it's tappable)
-            LazyVGrid(columns: gridColumns, spacing: 40) {
-                ForEach(0...11, id: \.self) { (index: Int) in
-                    if index < bleManager.networkDevices.count {
-                        let device = bleManager.networkDevices[index]
-                        
-                        NavigationLink(destination: TargetConfigListViewV2(
-                            deviceList: bleManager.networkDevices,
-                            targetConfigs: $targetConfigs,
-                            onDone: onDone,
-                            drillMode: $drillMode,
-                            singleDeviceMode: true,
-                            deviceNameFilter: device.name,
-                            isFromTargetLink: true,
-                            hasResults: hasResults,
-                            onSettings: onSettings,
-                            onStartDrill: onStartDrill
-                        )) {
-                            let config = targetConfigs.first { $0.targetName == device.name }
-                            let popperTargetName = "\(device.name)-01"
-                            TargetRectangleView(
-                                deviceName: device.name,
-                                config: config,
-                                width: rectangleWidth,
-                                height: rectangleHeight,
-                                hasPopper: config?.hasPhysicalPopper ?? false,
-                                popperHitAnimating: popperHitTargets.contains(popperTargetName),
-                                onTogglePopper: { togglePopper(for: device.name) }
-                            )
-                        }
-                        .simultaneousGesture(
-                            TapGesture(count: 2).onEnded {
-                                sendGreeting(to: device.name)
-                            }
-                        )
-                    } else {
-                        // Empty slot
-                        RoundedRectangle(cornerRadius: 0)
-                            .stroke(Color.gray.opacity(0.15), lineWidth: 6)
-                            .frame(width: rectangleWidth, height: rectangleHeight)
-                    }
-                }
-            }
-            .padding(16)
         }
+        .padding(16)
     }
     
     private func drawConnectionLines(context: inout GraphicsContext, canvasSize: CGSize) {
         let gridWidth = 3
-        let horizontalSpacing: CGFloat = 24
+        let horizontalSpacing: CGFloat = 12  // matches GridItem(.flexible(), spacing: 12)
         let verticalSpacing: CGFloat = 40
         let paddingLeftRight: CGFloat = 16
         let paddingTop: CGFloat = 16
-        let lineWidth: CGFloat = 4
         let lineColor = Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433)
-        
-        // Calculate actual available width for grid
+        let dotRadius: CGFloat = 3
+        let dotSpacing: CGFloat = 8
+
         let availableWidth = canvasSize.width - 2 * paddingLeftRight
-        let totalHorizontalSpacing = CGFloat(gridWidth - 1) * horizontalSpacing
-        let totalRectangleWidth = availableWidth - totalHorizontalSpacing
-        let cellWidth = totalRectangleWidth / CGFloat(gridWidth)
+        let cellWidth = (availableWidth - CGFloat(gridWidth - 1) * horizontalSpacing) / CGFloat(gridWidth)
         let cellHeight = rectangleHeight
-        
-        // Snake pattern for 3x4 grid: 0→1→2, 2↓5, 5→4→3, 3↓6, 6→7→8, 8↓11, 11→10→9
-        let snakePattern: [(Int, Int)] = [
-            (0, 1), (1, 2), // Row 0: 0→1→2 (left to right)
-            (2, 5), // Transition: 2↓5 (down)
-            (5, 4), (4, 3), // Row 1: 5→4→3 (right to left)
-            (3, 6), // Transition: 3↓6 (down)
-            (6, 7), (7, 8), // Row 2: 6→7→8 (left to right)
-            (8, 11), // Transition: 8↓11 (down)
-            (11, 10), (10, 9) // Row 3: 11→10→9 (right to left)
-        ]
-        
-        for (fromIndex, toIndex) in snakePattern {
-            guard fromIndex < bleManager.networkDevices.count && toIndex < bleManager.networkDevices.count else { continue }
-            
+        // Fixed-width content is centred inside each flexible column
+        let contentOffsetX = (cellWidth - rectangleWidth) / 2
+
+        let deviceGridIndices = buildGridItems().enumerated().compactMap { (i, item) -> Int? in
+            if case .device = item { return i } else { return nil }
+        }
+
+        for i in 0..<(deviceGridIndices.count - 1) {
+            let fromIndex = deviceGridIndices[i]
+            let toIndex = deviceGridIndices[i + 1]
             let fromPos = getGridPosition(index: fromIndex, gridWidth: gridWidth)
             let toPos = getGridPosition(index: toIndex, gridWidth: gridWidth)
-            
-            let fromRect = getRectangleBounds(row: fromPos.row, col: fromPos.col, paddingLeft: paddingLeftRight, paddingTop: paddingTop, cellWidth: cellWidth, cellHeight: cellHeight, horizontalSpacing: horizontalSpacing, verticalSpacing: verticalSpacing)
-            let toRect = getRectangleBounds(row: toPos.row, col: toPos.col, paddingLeft: paddingLeftRight, paddingTop: paddingTop, cellWidth: cellWidth, cellHeight: cellHeight, horizontalSpacing: horizontalSpacing, verticalSpacing: verticalSpacing)
-            
-            let fromPoint = getExitPoint(rect: fromRect, to: toPos, from: fromPos)
-            let toPoint = getEntryPoint(rect: toRect, from: fromPos, to: toPos)
-            
-            // Draw dots instead of lines
-            let dotRadius: CGFloat = 3
-            let dotSpacing: CGFloat = 8
-            
-            // Calculate distance and number of dots
-            let dx = toPoint.x - fromPoint.x
-            let dy = toPoint.y - fromPoint.y
-            let distance = sqrt(dx * dx + dy * dy)
-            let numberOfDots = Int(ceil(Double(distance) / Double(dotSpacing)))
-            
-            for i in 1...max(1, numberOfDots - 1) {
-                let progress = CGFloat(i) / CGFloat(max(2, numberOfDots))
-                let dotX = fromPoint.x + dx * progress
-                let dotY = fromPoint.y + dy * progress
-                let dotPoint = CGPoint(x: dotX, y: dotY)
-                
-                var circle = Path()
-                circle.addEllipse(in: CGRect(x: dotPoint.x - dotRadius, y: dotPoint.y - dotRadius, width: dotRadius * 2, height: dotRadius * 2))
-                context.fill(circle, with: .color(lineColor))
+
+            let rawFrom = getRectangleBounds(row: fromPos.row, col: fromPos.col, paddingLeft: paddingLeftRight, paddingTop: paddingTop, cellWidth: cellWidth, cellHeight: cellHeight, horizontalSpacing: horizontalSpacing, verticalSpacing: verticalSpacing)
+            let rawTo = getRectangleBounds(row: toPos.row, col: toPos.col, paddingLeft: paddingLeftRight, paddingTop: paddingTop, cellWidth: cellWidth, cellHeight: cellHeight, horizontalSpacing: horizontalSpacing, verticalSpacing: verticalSpacing)
+            let fromRect = CGRect(x: rawFrom.minX + contentOffsetX, y: rawFrom.minY, width: rectangleWidth, height: cellHeight)
+            let toRect = CGRect(x: rawTo.minX + contentOffsetX, y: rawTo.minY, width: rectangleWidth, height: cellHeight)
+
+            // Build waypoints: for same-row non-adjacent devices (popper in between),
+            // route below the row to avoid drawing through the popper cell.
+            var waypoints: [CGPoint]
+            if fromPos.row == toPos.row && abs(toPos.col - fromPos.col) > 1 {
+                let routeY = fromRect.maxY + verticalSpacing * 0.4
+                let fromX = toPos.col > fromPos.col ? fromRect.maxX : fromRect.minX
+                let toX   = toPos.col > fromPos.col ? toRect.minX  : toRect.maxX
+                waypoints = [
+                    CGPoint(x: fromX, y: fromRect.midY),
+                    CGPoint(x: fromX, y: routeY),
+                    CGPoint(x: toX,   y: routeY),
+                    CGPoint(x: toX,   y: toRect.midY)
+                ]
+            } else {
+                waypoints = [
+                    getExitPoint(rect: fromRect, to: toPos, from: fromPos),
+                    getEntryPoint(rect: toRect, from: fromPos, to: toPos)
+                ]
+            }
+
+            // Draw dots along each segment of the path
+            for s in 0..<(waypoints.count - 1) {
+                let p0 = waypoints[s]
+                let p1 = waypoints[s + 1]
+                let dx = p1.x - p0.x
+                let dy = p1.y - p0.y
+                let distance = sqrt(dx * dx + dy * dy)
+                guard distance > 0 else { continue }
+                let numberOfDots = Int(ceil(Double(distance) / Double(dotSpacing)))
+                for j in 1...max(1, numberOfDots - 1) {
+                    let progress = CGFloat(j) / CGFloat(max(2, numberOfDots))
+                    var circle = Path()
+                    circle.addEllipse(in: CGRect(
+                        x: p0.x + dx * progress - dotRadius,
+                        y: p0.y + dy * progress - dotRadius,
+                        width: dotRadius * 2, height: dotRadius * 2
+                    ))
+                    context.fill(circle, with: .color(lineColor))
+                }
             }
         }
     }
@@ -425,6 +390,64 @@ struct TargetLinkView: View {
             print("[TargetLinkView] Sent greeting to: \(deviceName)")
         }
     }
+
+    private func buildGridItems() -> [TargetGridItem] {
+        var items: [TargetGridItem] = []
+        for device in bleManager.networkDevices {
+            if items.count >= 12 { break }
+            let config = targetConfigs.first { $0.targetName == device.name }
+            items.append(.device(device: device, config: config))
+            if config?.hasPhysicalPopper == true && items.count < 12 {
+                items.append(.popper(parentDeviceName: device.name))
+            }
+        }
+        while items.count < 12 { items.append(.empty) }
+        return items
+    }
+
+    @ViewBuilder
+    private func gridCell(for item: TargetGridItem) -> some View {
+        switch item {
+        case .device(let device, let config):
+            NavigationLink(destination: TargetConfigListViewV2(
+                deviceList: bleManager.networkDevices,
+                targetConfigs: $targetConfigs,
+                onDone: onDone,
+                drillMode: $drillMode,
+                singleDeviceMode: true,
+                deviceNameFilter: device.name,
+                isFromTargetLink: true,
+                hasResults: hasResults,
+                onSettings: onSettings,
+                onStartDrill: onStartDrill
+            )) {
+                TargetRectangleView(
+                    deviceName: device.name,
+                    config: config,
+                    width: rectangleWidth,
+                    height: rectangleHeight,
+                    onTogglePopper: config?.hasPhysicalPopper == true ? nil : { togglePopper(for: device.name) }
+                )
+            }
+            .simultaneousGesture(
+                TapGesture(count: 2).onEnded {
+                    sendGreeting(to: device.name)
+                }
+            )
+        case .popper(let parentDeviceName):
+            PopperRectangleView(
+                parentDeviceName: parentDeviceName,
+                width: rectangleWidth,
+                height: rectangleHeight,
+                popperHitAnimating: popperHitTargets.contains("\(parentDeviceName)-01"),
+                onRemove: { togglePopper(for: parentDeviceName) }
+            )
+        case .empty:
+            RoundedRectangle(cornerRadius: 0)
+                .stroke(Color.gray.opacity(0.15), lineWidth: 6)
+                .frame(width: rectangleWidth, height: rectangleHeight)
+        }
+    }
 }
 
 struct TargetRectangleView: View {
@@ -432,12 +455,10 @@ struct TargetRectangleView: View {
     let config: DrillTargetsConfigData?
     let width: CGFloat
     let height: CGFloat
-    var hasPopper: Bool = false
-    var popperHitAnimating: Bool = false
     var onTogglePopper: (() -> Void)? = nil
-    
+
     private let accentColor = Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433)
-    
+
     var body: some View {
         VStack(spacing: 8) {
             if let config = config, !config.targetType.isEmpty {
@@ -447,14 +468,13 @@ struct TargetRectangleView: View {
                     .frame(height: height * 0.6)
                     .padding(8)
             } else {
-                // Default IPSC target image
                 Image("ipsc")
                     .resizable()
                     .scaledToFit()
                     .frame(height: height * 0.6)
                     .padding(8)
             }
-            
+
             Text(deviceName)
                 .font(.caption)
                 .fontWeight(.semibold)
@@ -466,25 +486,62 @@ struct TargetRectangleView: View {
         .background(config != nil ? Color.gray.opacity(0.2) : Color.gray.opacity(0.1))
         .border(config != nil ? accentColor : Color.gray.opacity(0.15), width: 6)
         .overlay(alignment: .bottomTrailing) {
-            // Physical popper toggle button
-            Button(action: { onTogglePopper?() }) {
-                Image(systemName: hasPopper ? "xmark.circle.fill" : "plus.circle")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(hasPopper ? accentColor : .white.opacity(0.6))
+            if let onTogglePopper = onTogglePopper {
+                Button(action: onTogglePopper) {
+                    Image(systemName: "plus.circle")
+                        .font(.system(size: 22, weight: .semibold))
+                        .foregroundColor(.white.opacity(0.7))
+                        .padding(4)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+}
+
+private enum TargetGridItem {
+    case device(device: NetworkDevice, config: DrillTargetsConfigData?)
+    case popper(parentDeviceName: String)
+    case empty
+}
+
+struct PopperRectangleView: View {
+    let parentDeviceName: String
+    let width: CGFloat
+    let height: CGFloat
+    var popperHitAnimating: Bool = false
+    var onRemove: (() -> Void)? = nil
+
+    private let accentColor = Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433)
+
+    var body: some View {
+        VStack(spacing: 8) {
+            Image("popper")
+                .resizable()
+                .scaledToFit()
+                .frame(height: height * 0.6)
+                .padding(8)
+                .scaleEffect(popperHitAnimating ? 1.3 : 1.0)
+                .animation(.spring(response: 0.2, dampingFraction: 0.5), value: popperHitAnimating)
+
+            Text(parentDeviceName)
+                .font(.caption)
+                .fontWeight(.semibold)
+                .foregroundColor(accentColor)
+                .lineLimit(1)
+                .truncationMode(.tail)
+        }
+        .frame(width: width, height: height)
+        .background(Color.gray.opacity(0.2))
+        .border(accentColor, width: 6)
+        .overlay(alignment: .bottomTrailing) {
+            Button(action: { onRemove?() }) {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundColor(accentColor)
                     .padding(4)
             }
             .buttonStyle(.plain)
-        }
-        .overlay(alignment: .bottomTrailing) {
-            // Popper hit animation overlay
-            if hasPopper {
-                Image(systemName: "target")
-                    .font(.system(size: 20, weight: .bold))
-                    .foregroundColor(.white)
-                    .padding(EdgeInsets(top: 0, leading: 0, bottom: 24, trailing: 2))
-                    .scaleEffect(popperHitAnimating ? 1.5 : 1.0)
-                    .animation(.spring(response: 0.2, dampingFraction: 0.5), value: popperHitAnimating)
-            }
         }
     }
 }

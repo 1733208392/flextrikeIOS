@@ -175,8 +175,8 @@ class ScoringUtility {
             let baseName = parts.first.map { String($0) } ?? targetName
             let baseTypeFromKey = parts.count > 1 ? String(parts[1]) : ""
 
-            // Find target config to determine type (lookup by baseName)
-            let config = expectedTargets.first { $0.targetName == baseName }
+            // Find target config to determine type (case-insensitive lookup by baseName)
+            let config = expectedTargets.first { $0.targetName?.lowercased() == baseName }
             let configType = (config?.primaryTargetType())?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).lowercased()
             let shotType = (targetShots.first?.content.targetType)?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).lowercased() ?? baseTypeFromKey
             let targetType = (configType != nil && configType! != "") ? configType! : shotType
