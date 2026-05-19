@@ -22,31 +22,27 @@ struct CompetitionTabView: View {
     }
     
     private var competitionMenuView: some View {
-        VStack(spacing: 20) {            
-            // Competitions Link
-            NavigationLink(destination: 
-                ZStack {
-                    Color.black.ignoresSafeArea()
-                    CompetitionListView()
-                }
-            ) {
+        VStack(spacing: 20) {
+            NavigationLink(destination: CompetitionSessionStartView()) {
                 HStack {
-                    Image(systemName: "trophy.fill")
+                    Image(systemName: "scope")
                         .font(.title2)
                         .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
-                    
+
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(NSLocalizedString("competitions", comment: "Competitions menu item"))
+                        Text(NSLocalizedString("competition_session_start", comment: "Start competition session title"))
                             .font(.headline)
                             .foregroundColor(.white)
-                        
-                        Text(NSLocalizedString("view_competitions", comment: "View competitions description"))
+
+                        Text(NSLocalizedString("competition_session_start_hint", comment: "Start competition session hint"))
                             .font(.caption)
                             .foregroundColor(.gray)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
                     }
-                    
+
                     Spacer()
-                    
+
                     Image(systemName: "chevron.right")
                         .foregroundColor(.gray)
                 }
@@ -55,75 +51,6 @@ struct CompetitionTabView: View {
                 .cornerRadius(8)
             }
             .frame(maxWidth: .infinity)
-            .background(Color.black.ignoresSafeArea())
-            
-            // Shooters/Athletes Link
-            NavigationLink(destination: 
-                ZStack {
-                    Color.black.ignoresSafeArea()
-                    AthletesManagementView()
-                }
-            ) {
-                HStack {
-                    Image(systemName: "person.3.fill")
-                        .font(.title2)
-                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
-                    
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(NSLocalizedString("shooters", comment: "Shooters menu item"))
-                            .font(.headline)
-                            .foregroundColor(.white)
-                        
-                        Text(NSLocalizedString("manage_shooters", comment: "Manage shooters description"))
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                    }
-                    
-                    Spacer()
-                    
-                    Image(systemName: "chevron.right")
-                        .foregroundColor(.gray)
-                }
-                .padding()
-                .background(Color.gray.opacity(0.1))
-                .cornerRadius(8)
-            }
-            .frame(maxWidth: .infinity)
-            .background(Color.black.ignoresSafeArea())
-            
-            // Leaderboard Link
-            NavigationLink(destination: 
-                ZStack {
-                    Color.black.ignoresSafeArea()
-                    LeaderboardView()
-                }
-            ) {
-                HStack {
-                    Image(systemName: "list.number")
-                        .font(.title2)
-                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
-                    
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(NSLocalizedString("leaderboard", comment: "Leaderboard menu item"))
-                            .font(.headline)
-                            .foregroundColor(.white)
-                        
-                        Text(NSLocalizedString("view_leaderboard", comment: "View leaderboard description"))
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                    }
-                    
-                    Spacer()
-                    
-                    Image(systemName: "chevron.right")
-                        .foregroundColor(.gray)
-                }
-                .padding()
-                .background(Color.gray.opacity(0.1))
-                .cornerRadius(8)
-            }
-            .frame(maxWidth: .infinity)
-            .background(Color.black.ignoresSafeArea())
             
             Spacer()
         }

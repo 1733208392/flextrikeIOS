@@ -106,24 +106,10 @@ class CompetitionResultAPIService {
         limit: Int = 30,
         namespace: String = "default"
     ) async throws -> GamePlayListResponse {
-        let url = URL(string: "\(baseURL)/game/play/list")!
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        // Get user access token from AuthManager
-        guard let userAccessToken = AuthManager.shared.currentUser?.accessToken else {
-            throw NSError(domain: "CompetitionResultAPI", code: -1, userInfo: [NSLocalizedDescriptionKey: "User not authenticated"])
-        }
-        
         // Get device UUID from DeviceAuthManager
         guard let deviceUUID = DeviceAuthManager.shared.deviceUUID else {
             throw NSError(domain: "CompetitionResultAPI", code: -1, userInfo: [NSLocalizedDescriptionKey: "Device UUID not available. Please ensure device is properly authenticated"])
         }
-        
-        // Get authorization header with user token only (user authentication required)
-        let authHeader = "Bearer \(userAccessToken)"
-        request.setValue(authHeader, forHTTPHeaderField: "Authorization")
         
         let body: [String: Any] = [
             "game_type": gameType,
@@ -133,10 +119,13 @@ class CompetitionResultAPIService {
             "limit": limit,
             "namespace": namespace
         ]
-        
-        request.httpBody = try JSONSerialization.data(withJSONObject: body, options: [])
-        
-        let (data, _) = try await session.data(for: request)
+
+        let data = try await UserAPIService.shared.performAuthorizedRequest(
+            path: "/game/play/list",
+            method: "POST",
+            body: body,
+            requireDeviceToken: false
+        )
         let response: APIResponse<GamePlayListResponse> = try JSONDecoder().decode(APIResponse.self, from: data)
         
         if response.code != 0 {
@@ -175,20 +164,6 @@ class CompetitionResultAPIService {
         isPublic: Bool = true,
         namespace: String = "default"
     ) async throws -> GamePlayResponse {
-        let url = URL(string: "\(baseURL)/game/play/add")!
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        // Get user access token from AuthManager
-        guard let userAccessToken = AuthManager.shared.currentUser?.accessToken else {
-            throw NSError(domain: "CompetitionResultAPI", code: -1, userInfo: [NSLocalizedDescriptionKey: "User not authenticated"])
-        }
-        
-        // Get authorization header with device token (device token required for game play submission)
-        let authHeader = try DeviceAuthManager.shared.getAuthorizationHeaderValue(userAccessToken: userAccessToken, requireDeviceToken: true)
-        request.setValue(authHeader, forHTTPHeaderField: "Authorization")
-        
         var body: [String: Any] = [
             "game_type": gameType,
             "game_ver": gameVer,
@@ -200,10 +175,13 @@ class CompetitionResultAPIService {
             "is_public": isPublic,
             "namespace": namespace
         ]
-        
-        request.httpBody = try JSONSerialization.data(withJSONObject: body, options: [])
-        
-        let (data, _) = try await session.data(for: request)
+
+        let data = try await UserAPIService.shared.performAuthorizedRequest(
+            path: "/game/play/add",
+            method: "POST",
+            body: body,
+            requireDeviceToken: true
+        )
         let response: APIResponse<GamePlayResponse> = try JSONDecoder().decode(APIResponse.self, from: data)
         
         if response.code != 0 {
@@ -224,27 +202,16 @@ class CompetitionResultAPIService {
     func getGamePlayDetail(
         playUuid: String
     ) async throws -> GamePlayDetailResponse {
-        let url = URL(string: "\(baseURL)/game/play/detail")!
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        // Get user access token from AuthManager
-        guard let userAccessToken = AuthManager.shared.currentUser?.accessToken else {
-            throw NSError(domain: "CompetitionResultAPI", code: -1, userInfo: [NSLocalizedDescriptionKey: "User not authenticated"])
-        }
-        
-        // Get authorization header with user token only (user authentication required)
-        let authHeader = "Bearer \(userAccessToken)"
-        request.setValue(authHeader, forHTTPHeaderField: "Authorization")
-        
         let body: [String: Any] = [
             "play_uuid": playUuid
         ]
-        
-        request.httpBody = try JSONSerialization.data(withJSONObject: body, options: [])
-        
-        let (data, _) = try await session.data(for: request)
+
+        let data = try await UserAPIService.shared.performAuthorizedRequest(
+            path: "/game/play/detail",
+            method: "POST",
+            body: body,
+            requireDeviceToken: false
+        )
         let response: APIResponse<GamePlayDetailResponse> = try JSONDecoder().decode(APIResponse.self, from: data)
         
         if response.code != 0 {

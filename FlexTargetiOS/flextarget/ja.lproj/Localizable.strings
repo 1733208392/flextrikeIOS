@@ -19,7 +19,6 @@
 "athletes_empty" = "まだ選手がいません";
 
 /* Leaderboard */
-"leaderboard_title" = "ランキング";
 "submit_to_leaderboard_button" = "ランキングに送信";
 "select_athlete_title" = "選手を選択";
 
@@ -300,10 +299,6 @@
 "last_3_months" = "過去3ヶ月";
 "competitions" = "大会一覧";
 "view_competitions" = "大会を表示";
-"shooters" = "射手";
-"manage_shooters" = "射手を管理";
-"leaderboard" = "ランキング";
-"view_leaderboard" = "ランキングを表示";
 "untitled_competition" = "無題の大会";
 "competition_info" = "大会情報";
 "competition_name" = "大会名";
@@ -321,6 +316,47 @@
 "unknown_athlete" = "不明な選手";
 "competition_mode" = "大会モード";
 "drill_editing_disabled_hint" = "このドリルには結果があるため、ターゲット設定はロックされています。名前、説明、一時停止時間、繰り返し回数は引き続き編集できます。";
+"competition_session_start" = "大会セッションを開始";
+"competition_session_start_hint" = "ドリル開始前にマッチ、ステージ、スクワッド、射手を選択";
+"competition_session_match" = "MATCH";
+"competition_session_stage" = "STAGE";
+"competition_session_squad" = "SQUAD";
+"competition_session_shooter" = "射手";
+"competition_session_select_match" = "マッチを選択";
+"competition_session_select_stage" = "ステージを選択";
+"competition_session_select_squad" = "スクワッドを選択";
+"competition_session_select_shooter" = "射手を選択";
+"competition_session_no_matches" = "マッチが見つかりません。";
+"competition_session_retry_matches" = "マッチを再試行";
+"competition_session_no_stages" = "選択したマッチに利用可能なステージがありません。";
+"competition_session_retry_stages" = "ステージを再試行";
+"competition_session_no_squads" = "選択したマッチに利用可能なスクワッドがありません。";
+"competition_session_retry_squads" = "スクワッドを再試行";
+"competition_session_no_shooters" = "選択したスクワッドに射手がいません。";
+"competition_session_retry_squad_queue" = "スクワッドキューを再試行";
+"competition_session_loading" = "大会データを読み込み中...";
+"competition_session_retry_matches_short" = "マッチ";
+"competition_session_retry_stages_short" = "ステージ";
+"competition_session_retry_squads_short" = "スクワッド";
+"competition_session_retry_format" = "%@を再試行";
+"competition_session_ble_connected_hint" = "デバイス接続済み。ドリル開始時に選択はロックされます。";
+"competition_session_ble_disconnected_hint" = "開始前にターゲットデバイスを接続してください。";
+
+/* IPSC Submit */
+"ipsc_submit_loading_context" = "大会コンテキストを読み込み中...";
+"ipsc_submit_submitting" = "送信中...";
+"ipsc_submit_confirm_title" = "確認して送信";
+"ipsc_submit_shooter" = "射手";
+"ipsc_submit_select_repeat" = "リピートを選択";
+"ipsc_submit_submit_score" = "スコアを送信";
+"ipsc_submit_score_preview_repeat" = "スコアプレビュー - リピート %d";
+"ipsc_submit_time" = "時間";
+"ipsc_submit_first_shot" = "初弾";
+"ipsc_submit_fastest" = "最速";
+"ipsc_submit_success_title" = "スコアを送信しました！";
+"ipsc_submit_hit_factor" = "HIT FACTOR";
+"ipsc_submit_total_points" = "合計ポイント";
+"ipsc_submit_error_title" = "問題が発生しました";
 /* AdminTabView - 管理メニュー */
 "device_management" = "デバイス管理";
 "device_connected" = "デバイス接続済み";

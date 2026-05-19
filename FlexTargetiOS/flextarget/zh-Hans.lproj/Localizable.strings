@@ -19,7 +19,6 @@
 "athletes_empty" = "暂无运动员";
 
 /* Leaderboard */
-"leaderboard_title" = "排行榜";
 "submit_to_leaderboard_button" = "提交到排行榜";
 "select_athlete_title" = "选择运动员";
 
@@ -299,16 +298,7 @@
 "last_3_months" = "最近3个月";
 "competitions" = "竞赛列表";
 "view_competitions" = "查看竞赛";
-"shooters" = "射手";
-"manage_shooters" = "管理射手";
-"leaderboard" = "排行榜";
-"view_leaderboard" = "查看排行榜";
 "select_competition" = "选择竞赛";
-"choose_competition" = "选择一个竞赛";
-"no_competitions" = "暂无竞赛";
-"loading_ranking" = "加载排行榜...";
-"ranking_error" = "加载排行榜出错";
-"no_ranking_data" = "暂无排行数据";
 "retry" = "重试";
 "points" = "分";
 "untitled_competition" = "未命名竞赛";
@@ -328,6 +318,47 @@
 "unknown_athlete" = "未知运动员";
 "competition_mode" = "竞赛模式";
 "drill_editing_disabled_hint" = "由于此练习已有结果，目标配置已锁定。您仍可以编辑名称、描述、暂停时间和重复次数。";
+"competition_session_start" = "开始竞赛会话";
+"competition_session_start_hint" = "在训练前选择比赛、关卡、小队和射手";
+"competition_session_match" = "MATCH";
+"competition_session_stage" = "STAGE";
+"competition_session_squad" = "SQUAD";
+"competition_session_shooter" = "射手";
+"competition_session_select_match" = "选择比赛";
+"competition_session_select_stage" = "选择关卡";
+"competition_session_select_squad" = "选择小队";
+"competition_session_select_shooter" = "选择射手";
+"competition_session_no_matches" = "未找到比赛。";
+"competition_session_retry_matches" = "重试比赛";
+"competition_session_no_stages" = "所选比赛暂无可用关卡。";
+"competition_session_retry_stages" = "重试关卡";
+"competition_session_no_squads" = "所选比赛暂无可用小队。";
+"competition_session_retry_squads" = "重试小队";
+"competition_session_no_shooters" = "所选小队暂无射手。";
+"competition_session_retry_squad_queue" = "重试小队队列";
+"competition_session_loading" = "正在加载竞赛数据...";
+"competition_session_retry_matches_short" = "比赛";
+"competition_session_retry_stages_short" = "关卡";
+"competition_session_retry_squads_short" = "小队";
+"competition_session_retry_format" = "重试%@";
+"competition_session_ble_connected_hint" = "设备已连接。训练开始后选择将被锁定。";
+"competition_session_ble_disconnected_hint" = "开始前请先连接目标设备。";
+
+/* IPSC Submit */
+"ipsc_submit_loading_context" = "正在加载竞赛上下文...";
+"ipsc_submit_submitting" = "正在提交...";
+"ipsc_submit_confirm_title" = "确认并提交";
+"ipsc_submit_shooter" = "射手";
+"ipsc_submit_select_repeat" = "选择轮次";
+"ipsc_submit_submit_score" = "提交成绩";
+"ipsc_submit_score_preview_repeat" = "成绩预览 - 轮次 %d";
+"ipsc_submit_time" = "时间";
+"ipsc_submit_first_shot" = "首发";
+"ipsc_submit_fastest" = "最快";
+"ipsc_submit_success_title" = "成绩已提交！";
+"ipsc_submit_hit_factor" = "命中系数";
+"ipsc_submit_total_points" = "总分";
+"ipsc_submit_error_title" = "发生错误";
 /* AdminTabView - 管理菜单 */
 "device_management" = "设备管理";
 "device_connected" = "设备已连接";

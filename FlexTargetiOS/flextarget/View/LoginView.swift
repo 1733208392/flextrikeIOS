@@ -147,17 +147,11 @@ struct LoginView: View {
         Task {
             do {
                 let loginData = try await authManager.loginWithAutoDetect(input: mobile, password: password)
-                let user = User(
-                    userUUID: loginData.user_uuid,
-                    mobile: mobile,
-                    accessToken: loginData.access_token,
-                    refreshToken: loginData.refresh_token
-                )
-                authManager.login(user: user)
+                authManager.applyLoginData(loginData, accountHint: mobile)
                 
                 // Fetch user info and update username
                 do {
-                    let userGetData = try await UserAPIService.shared.getUser(accessToken: loginData.access_token)
+                    let userGetData = try await UserAPIService.shared.getUser()
                     authManager.updateUserInfo(username: userGetData.username)
                     print("[LoginView] User info fetched and updated: \(userGetData.username)")
                 } catch {

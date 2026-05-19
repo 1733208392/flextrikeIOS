@@ -19,7 +19,6 @@
 "athletes_empty" = "尚無運動員";
 
 /* Leaderboard */
-"leaderboard_title" = "排行榜";
 "submit_to_leaderboard_button" = "提交到排行榜";
 "select_athlete_title" = "選擇運動員";
 
@@ -300,10 +299,6 @@
 "last_3_months" = "最近3個月";
 "competitions" = "競賽列表";
 "view_competitions" = "查看競賽";
-"shooters" = "射手";
-"manage_shooters" = "管理射手";
-"leaderboard" = "排行榜";
-"view_leaderboard" = "查看排行榜";
 "untitled_competition" = "未命名競賽";
 "competition_info" = "競賽信息";
 "competition_name" = "競賽名稱";
@@ -321,6 +316,47 @@
 "unknown_athlete" = "未知運動員";
 "competition_mode" = "競賽模式";
 "drill_editing_disabled_hint" = "由於此練習已有結果，目標配置已鎖定。您仍可以編輯名稱、描述、暫停時間和重複次數。";
+"competition_session_start" = "開始競賽會話";
+"competition_session_start_hint" = "在訓練前選擇比賽、關卡、小隊與射手";
+"competition_session_match" = "MATCH";
+"competition_session_stage" = "STAGE";
+"competition_session_squad" = "SQUAD";
+"competition_session_shooter" = "射手";
+"competition_session_select_match" = "選擇比賽";
+"competition_session_select_stage" = "選擇關卡";
+"competition_session_select_squad" = "選擇小隊";
+"competition_session_select_shooter" = "選擇射手";
+"competition_session_no_matches" = "找不到比賽。";
+"competition_session_retry_matches" = "重試比賽";
+"competition_session_no_stages" = "所選比賽目前沒有可用關卡。";
+"competition_session_retry_stages" = "重試關卡";
+"competition_session_no_squads" = "所選比賽目前沒有可用小隊。";
+"competition_session_retry_squads" = "重試小隊";
+"competition_session_no_shooters" = "所選小隊沒有射手。";
+"competition_session_retry_squad_queue" = "重試小隊隊列";
+"competition_session_loading" = "正在載入競賽資料...";
+"competition_session_retry_matches_short" = "比賽";
+"competition_session_retry_stages_short" = "關卡";
+"competition_session_retry_squads_short" = "小隊";
+"competition_session_retry_format" = "重試%@";
+"competition_session_ble_connected_hint" = "裝置已連線。訓練開始後將鎖定選擇。";
+"competition_session_ble_disconnected_hint" = "開始前請先連接目標裝置。";
+
+/* IPSC Submit */
+"ipsc_submit_loading_context" = "正在載入競賽內容...";
+"ipsc_submit_submitting" = "提交中...";
+"ipsc_submit_confirm_title" = "確認並提交";
+"ipsc_submit_shooter" = "射手";
+"ipsc_submit_select_repeat" = "選擇輪次";
+"ipsc_submit_submit_score" = "提交成績";
+"ipsc_submit_score_preview_repeat" = "成績預覽 - 輪次 %d";
+"ipsc_submit_time" = "時間";
+"ipsc_submit_first_shot" = "首發";
+"ipsc_submit_fastest" = "最快";
+"ipsc_submit_success_title" = "成績已提交！";
+"ipsc_submit_hit_factor" = "命中係數";
+"ipsc_submit_total_points" = "總分";
+"ipsc_submit_error_title" = "發生錯誤";
 /* AdminTabView - 管理菜單 */
 "device_management" = "設備管理";
 "device_connected" = "設備已連接";

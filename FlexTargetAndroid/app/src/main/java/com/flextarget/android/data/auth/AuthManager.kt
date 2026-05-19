@@ -7,6 +7,7 @@ import com.flextarget.android.data.remote.api.FlexTargetAPI
 import com.flextarget.android.data.remote.api.LoginRequest
 import com.flextarget.android.data.remote.api.LoginWithEmailRequest
 import com.flextarget.android.data.remote.api.LoginWithMobileRequest
+import com.flextarget.android.data.remote.api.V1LoginRequest
 import com.flextarget.android.data.remote.api.ChangePasswordRequest
 import com.flextarget.android.data.remote.api.RegisterRequest
 import com.flextarget.android.data.remote.api.SendVerifyCodeRequest
@@ -56,6 +57,7 @@ class AuthManager @Inject constructor(
     // Token refresh timer
     private var tokenRefreshJob: Job? = null
     private val TOKEN_REFRESH_INTERVAL = 55 * 60 * 1000L // 55 minutes in milliseconds
+    private val v1AuthBaseUrl = "http://124.222.233.30"
     
     init {
         scope.launch {
@@ -111,37 +113,24 @@ class AuthManager @Inject constructor(
     suspend fun login(input: String, password: String): Result<UserData> = 
         withContext(Dispatchers.IO) {
             try {
-                // Auto-detect email vs mobile
-                val isEmail = input.contains("@")
-                
                 val encodedPassword = base64EncodePassword(password)
-                val response = if (isEmail) {
-                    userApiService.loginWithEmail(
-                        LoginWithEmailRequest(
-                            email = input,
-                            password = encodedPassword
-                        )
-                    )
-                } else {
-                    userApiService.loginWithMobile(
-                        LoginWithMobileRequest(
-                            mobile = input,
-                            password = encodedPassword
-                        )
-                    )
-                }
+                val isEmail = input.contains("@")
+                val isMobile = isLikelyMobile(input)
 
-                if (response.code != 0) {
-                    return@withContext Result.failure(Exception(response.msg))
-                }
+                val loginOutcome = performLoginWithFallbacks(
+                    input = input,
+                    plainPassword = password,
+                    encodedPassword = encodedPassword,
+                    isEmail = isEmail,
+                    isMobile = isMobile
+                )
 
-                val data = response.data ?: return@withContext Result.failure(Exception("Invalid login response"))
                 val user = UserData(
-                    userUUID = response.data.userUUID,
-                    accessToken = data.accessToken,
-                    refreshToken = data.refreshToken,
-                    mobile = input,
-                    username = null // Loaded from editProfile call later if needed
+                    userUUID = loginOutcome.userUUID,
+                    accessToken = loginOutcome.accessToken,
+                    refreshToken = loginOutcome.refreshToken,
+                    mobile = loginOutcome.mobile ?: input,
+                    username = loginOutcome.username
                 )
                 
                 // Save to encrypted storage
@@ -161,7 +150,7 @@ class AuthManager @Inject constructor(
                 
                 // Fetch user info to get username
                 try {
-                    val userGetResponse = userApiService.getUser("Bearer ${data.accessToken}")
+                    val userGetResponse = userApiService.getUser("Bearer ${user.accessToken}")
                     if (userGetResponse.code == 0 && userGetResponse.data != null) {
                         val updatedUser = user.copy(username = userGetResponse.data.username)
                         _currentUser.value = updatedUser
@@ -181,13 +170,121 @@ class AuthManager @Inject constructor(
                     // Continue with login even if user info fetch fails
                 }
                 
-                Log.d(TAG, "Login successful for ${if (isEmail) "email" else "mobile"}: $input")
+                Log.d(TAG, "Login successful for ${if (isEmail) "email" else if (isMobile) "mobile" else "account"}: $input")
                 Result.success(user)
             } catch (e: Exception) {
                 Log.e(TAG, "Login failed", e)
                 Result.failure(e)
             }
         }
+
+    private suspend fun performLoginWithFallbacks(
+        input: String,
+        plainPassword: String,
+        encodedPassword: String,
+        isEmail: Boolean,
+        isMobile: Boolean
+    ): LoginOutcome {
+        var lastError: Exception? = null
+
+        // 1) New v1 endpoint on fixed host (same as iOS)
+        try {
+            val v1Response = userApiService.loginV1(
+                "$v1AuthBaseUrl/api/v1/auth/login",
+                V1LoginRequest(
+                    username = input,
+                    password = plainPassword,
+                    mobile = input,
+                    account = input
+                )
+            )
+            if (v1Response.success && v1Response.data != null) {
+                val data = v1Response.data
+                return LoginOutcome(
+                    userUUID = data.user?.id?.toString() ?: "0",
+                    accessToken = data.accessToken,
+                    refreshToken = data.refreshToken,
+                    username = data.user?.username ?: data.user?.name,
+                    mobile = data.user?.phone
+                )
+            }
+            lastError = Exception(v1Response.message ?: "Login failed")
+        } catch (e: Exception) {
+            lastError = e
+        }
+
+        // 2) Legacy fallback chain
+        if (isEmail) {
+            try {
+                val emailResponse = userApiService.loginWithEmail(
+                    LoginWithEmailRequest(email = input, password = encodedPassword)
+                )
+                if (emailResponse.code == 0 && emailResponse.data != null) {
+                    val data = emailResponse.data
+                    return LoginOutcome(
+                        userUUID = data.userUUID,
+                        accessToken = data.accessToken,
+                        refreshToken = data.refreshToken,
+                        mobile = input
+                    )
+                }
+                lastError = Exception(emailResponse.msg)
+            } catch (e: Exception) {
+                lastError = e
+            }
+        } else if (isMobile) {
+            try {
+                val mobileResponse = userApiService.loginWithMobile(
+                    LoginWithMobileRequest(mobile = input, password = encodedPassword)
+                )
+                if (mobileResponse.code == 0 && mobileResponse.data != null) {
+                    val data = mobileResponse.data
+                    return LoginOutcome(
+                        userUUID = data.userUUID,
+                        accessToken = data.accessToken,
+                        refreshToken = data.refreshToken,
+                        mobile = input
+                    )
+                }
+                lastError = Exception(mobileResponse.msg)
+            } catch (e: Exception) {
+                lastError = e
+            }
+        } else {
+            val attempts = listOf(
+                mapOf("mobile" to input, "username" to input, "account" to input, "password" to plainPassword),
+                mapOf("mobile" to input, "username" to input, "account" to input, "password" to encodedPassword),
+                mapOf("username" to input, "password" to plainPassword),
+                mapOf("username" to input, "password" to encodedPassword),
+                mapOf("account" to input, "password" to plainPassword),
+                mapOf("account" to input, "password" to encodedPassword),
+                mapOf("mobile" to input, "password" to encodedPassword)
+            )
+            for (payload in attempts) {
+                try {
+                    val response = userApiService.loginLegacyGeneric(payload)
+                    if (response.code == 0 && response.data != null) {
+                        val data = response.data
+                        return LoginOutcome(
+                            userUUID = data.userUUID,
+                            accessToken = data.accessToken,
+                            refreshToken = data.refreshToken,
+                            mobile = input
+                        )
+                    }
+                    lastError = Exception(response.msg)
+                } catch (e: Exception) {
+                    lastError = e
+                }
+            }
+        }
+
+        throw lastError ?: Exception("Login failed")
+    }
+
+    private fun isLikelyMobile(value: String): Boolean {
+        return value.all { it.isDigit() } && value.length in 8..15
+    }
     
     /**
      * User logout: clear tokens and state
@@ -586,6 +683,14 @@ class AuthManager @Inject constructor(
         private const val TAG = "AuthManager"
     }
 }
+
+private data class LoginOutcome(
+    val userUUID: String,
+    val accessToken: String,
+    val refreshToken: String,
+    val username: String? = null,
+    val mobile: String? = null
+)
 
 /**
  * User data class

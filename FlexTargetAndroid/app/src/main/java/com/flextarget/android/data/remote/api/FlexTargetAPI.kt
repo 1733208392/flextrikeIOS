@@ -3,6 +3,7 @@ package com.flextarget.android.data.remote.api
 import retrofit2.http.Body
 import retrofit2.http.POST
 import retrofit2.http.Header
+import retrofit2.http.Url
 
 /**
  * Retrofit API interface for FlexTarget backend
@@ -18,6 +19,21 @@ interface FlexTargetAPI {
      */
     @POST("/user/login")
     suspend fun login(@Body request: LoginRequest): ApiResponse<LoginResponse>
+
+    /**
+     * POST dynamic URL for v1 login endpoint (for example http://124.222.233.30/api/v1/auth/login)
+     */
+    @POST
+    suspend fun loginV1(
+        @Url url: String,
+        @Body request: V1LoginRequest
+    ): V1ApiResponse<V1LoginData>
+
+    /**
+     * POST /user/login with flexible payload for backward compatibility.
+     */
+    @POST("/user/login")
+    suspend fun loginLegacyGeneric(@Body request: Map<String, String>): ApiResponse<LoginResponse>
     
     /**
      * POST /user/login/mobile

@@ -35,6 +35,7 @@ struct DrillSummaryView: View {
     let drillSetup: DrillSetup
     @State var summaries: [DrillRepeatSummary]
     var competition: Competition? = nil
+    var ipscContext: IpscLockedSelectionContext? = nil
     @State private var originalScores: [UUID: Int] = [:]
     @State private var penaltyCounts: [UUID: Int] = [:]
     @State private var editingSummary: DrillRepeatSummary? = nil
@@ -45,6 +46,10 @@ struct DrillSummaryView: View {
     @State private var submitAlertTitle = ""
     @State private var submitAlertMessage = ""
     @State private var submitError: Error? = nil
+
+    // IPSC submit sheet
+    @State private var showIpscSubmit = false
+    @StateObject private var ipscSubmitViewModel = IpscSubmitViewModel()
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.managedObjectContext) private var environmentContext
@@ -536,11 +541,36 @@ struct DrillSummaryView: View {
     
     // MARK: - IPSC Drill Summary with Modifiers
     
+    private var isGamingMode: Bool {
+        drillSetup.mode?.lowercased() == "gaming"
+    }
+
+    private var showIpscButton: Bool {
+        !isCQBMode && !isGamingMode && !summaries.isEmpty && ipscContext != nil
+    }
+
     private var ipscDrillSummaryViewWithAllModifiers: some View {
         ipscDrillSummaryView
             .navigationBarHidden(true)
             .onAppear {
                 initializeOriginalScores()
+            }
+            .fullScreenCover(isPresented: $showIpscSubmit) {
+                IpscSubmitView(
+                    viewModel: ipscSubmitViewModel,
+                    summaries: summaries,
+                    onDismiss: {
+                        showIpscSubmit = false
+                        ipscSubmitViewModel.dismiss()
+                    }
+                )
+            }
+            .onChange(of: showIpscSubmit) { isPresented in
+                if isPresented {
+                    ipscSubmitViewModel.lockedContext = ipscContext
+                } else {
+                    ipscSubmitViewModel.lockedContext = nil
+                }
             }
             .sheet(item: $editingSummary) { summary in
                 SummaryEditSheet(
@@ -630,6 +660,13 @@ struct DrillSummaryView: View {
             Spacer()
 
             if !summaries.isEmpty {
+                if showIpscButton {
+                    Button(action: { showIpscSubmit = true }) {
+                        Image(systemName: "arrow.up.to.line")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+                    }
+                }
                 ShareLink(item: generateCSVFile()) {
                     Image(systemName: "square.and.arrow.up")
                         .font(.system(size: 18, weight: .semibold))
@@ -917,7 +954,6 @@ struct SummaryEditSheet: View {
     }
 
     @State private var showAthletePicker: Bool = false
-    @State private var showLeaderboard: Bool = false
     @State private var showError: Bool = false
     @State private var errorTitle: String = NSLocalizedString("error_title", comment: "Generic error title")
     @State private var errorMessage: String = ""
@@ -1009,13 +1045,6 @@ struct SummaryEditSheet: View {
                 .padding(.horizontal)
             }
             .padding()
-        }
-        .sheet(isPresented: $showLeaderboard) {
-            NavigationView {
-                LeaderboardView()
-                    .preferredColorScheme(.dark)
-            }
-            .environment(\.managedObjectContext, viewContext)
         }
         .alert(isPresented: $showError) {
             Alert(

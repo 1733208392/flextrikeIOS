@@ -6,6 +6,7 @@ enum UserAPIError: Error, LocalizedError {
     case tokenExpired(String)
     case invalidResponse(String)
     case apiError(code: Int, message: String)
+    case unauthorizedRefresh
     
     var errorDescription: String? {
         switch self {
@@ -15,6 +16,8 @@ enum UserAPIError: Error, LocalizedError {
             return message
         case .apiError(_, let message):
             return message
+        case .unauthorizedRefresh:
+            return "Session expired"
         }
     }
     
@@ -28,6 +31,8 @@ class UserAPIService {
     
     private let session = URLSession.shared
     lazy var serverConfig = ServerConfig()
+    private let retryCoordinator = AuthorizedRetryCoordinator()
+    private let v1AuthBaseURL = "http://124.222.233.30"
     
     private var baseURL: String { serverConfig.getServerUrl() }
     
@@ -50,21 +55,42 @@ class UserAPIService {
         let msg: String
         let data: T?
     }
+
+    struct AuthAPIResponse<T: Codable>: Codable {
+        let success: Bool
+        let data: T?
+        let message: String?
+    }
     
     struct EmptyData: Codable {
         // Empty structure for API responses with no data
     }
     
     struct LoginData: Codable {
-        let user_uuid: String
+        let token: String?
         let access_token: String
         let refresh_token: String
+        let expires_in: Int?
+        let user: AuthUser?
+        let user_uuid: String?
+    }
+
+    struct AuthUser: Codable {
+        let id: Int
+        let username: String?
+        let role: String?
+        let club_id: Int?
+        let name: String?
+        let phone: String?
+        let status: String?
     }
     
     struct RefreshTokenData: Codable {
-        let user_uuid: String
+        let token: String?
         let access_token: String
-        let refresh_token: String?
+        let refresh_token: String
+        let expires_in: Int?
+        let user: AuthUser?
     }
     
     struct EditUserData: Codable {
@@ -124,22 +150,42 @@ class UserAPIService {
     // MARK: - API Methods
     
     func login(mobile: String, password: String) async throws -> LoginData {
-        let url = URL(string: "\(baseURL)/user/login")!
+        do {
+            return try await loginV1(username: mobile, password: password)
+        } catch {
+            // Keep compatibility with existing production servers that still expose legacy auth routes.
+            if shouldFallbackToLegacyLogin(error) {
+                return try await loginLegacy(account: mobile, password: password)
+            }
+            throw error
+        }
+    }
+
+    private func loginV1(username: String, password: String) async throws -> LoginData {
+        let url = URL(string: "\(v1AuthBaseURL)/api/v1/auth/login")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
         let body = [
-            "mobile": mobile,
-            "password": base64Encoded(password)
+            "mobile": username,
+            "username": username,
+            "password": password
         ]
         request.httpBody = try JSONEncoder().encode(body)
         
-        let (data, _) = try await session.data(for: request)
-        let response: APIResponse<LoginData> = try JSONDecoder().decode(APIResponse.self, from: data)
-        
-        if response.code != 0 {
-            throw NSError(domain: "UserAPI", code: response.code, userInfo: [NSLocalizedDescriptionKey: response.msg])
+        let (data, httpResponse) = try await execute(request)
+        guard (200...299).contains(httpResponse.statusCode) else {
+            throw NSError(
+                domain: "UserAPI",
+                code: httpResponse.statusCode,
+                userInfo: [NSLocalizedDescriptionKey: extractServerErrorMessage(data: data, fallback: "Login failed")]
+            )
+        }
+        let response: AuthAPIResponse<LoginData> = try JSONDecoder().decode(AuthAPIResponse.self, from: data)
+
+        if response.success == false {
+            throw NSError(domain: "UserAPI", code: httpResponse.statusCode, userInfo: [NSLocalizedDescriptionKey: response.message ?? "Login failed"])
         }
         
         guard let data = response.data else {
@@ -147,62 +193,181 @@ class UserAPIService {
         }
         
         return data
+    }
+
+    private func loginLegacy(account: String, password: String) async throws -> LoginData {
+        let encodedPassword = base64Encoded(password)
+        let plainPassword = password
+        let isEmail = account.contains("@")
+        let isMobile = isLikelyMobile(account)
+
+        var attempts: [(path: String, body: [String: String])] = []
+
+        if isEmail {
+            attempts.append(("/user/login/email", ["email": account, "password": encodedPassword]))
+            attempts.append(("/user/login", ["email": account, "password": encodedPassword]))
+        } else if isMobile {
+            attempts.append(("/user/login/mobile", ["mobile": account, "password": encodedPassword]))
+            attempts.append(("/user/login", ["mobile": account, "password": encodedPassword]))
+        } else {
+            // Username-style accounts (for example seeded admin accounts) may still be deserialized by
+            // legacy handlers that require the `mobile` field to exist.
+            attempts.append((
+                "/user/login",
+                [
+                    "mobile": account,
+                    "username": account,
+                    "account": account,
+                    "password": plainPassword
+                ]
+            ))
+            attempts.append((
+                "/user/login",
+                [
+                    "mobile": account,
+                    "username": account,
+                    "account": account,
+                    "password": encodedPassword
+                ]
+            ))
+            attempts.append((
+                "/user/login/username",
+                [
+                    "mobile": account,
+                    "username": account,
+                    "account": account,
+                    "password": plainPassword
+                ]
+            ))
+            attempts.append((
+                "/user/login/username",
+                [
+                    "mobile": account,
+                    "username": account,
+                    "account": account,
+                    "password": encodedPassword
+                ]
+            ))
+            attempts.append(("/user/login", ["username": account, "password": plainPassword]))
+            attempts.append(("/user/login", ["username": account, "password": encodedPassword]))
+            attempts.append(("/user/login", ["account": account, "password": plainPassword]))
+            attempts.append(("/user/login", ["account": account, "password": encodedPassword]))
+        }
+
+        var lastError: Error?
+        var nonMobileFormatError: Error?
+        for attempt in attempts {
+            do {
+                return try await loginLegacyViaPath(path: attempt.path, body: attempt.body)
+            } catch {
+                lastError = error
+                if !isMobileFormatError(error) {
+                    nonMobileFormatError = error
+                }
+            }
+        }
+
+        throw nonMobileFormatError ?? lastError ?? NSError(domain: "UserAPI", code: -1, userInfo: [NSLocalizedDescriptionKey: "Login failed"])
+    }
+
+    private func loginLegacyViaPath(path: String, body: [String: String]) async throws -> LoginData {
+        let url = URL(string: "\(baseURL)\(path)")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(body)
+
+        let (data, httpResponse) = try await execute(request)
+        guard (200...299).contains(httpResponse.statusCode) else {
+            throw NSError(
+                domain: "UserAPI",
+                code: httpResponse.statusCode,
+                userInfo: [NSLocalizedDescriptionKey: extractServerErrorMessage(data: data, fallback: "Login failed")]
+            )
+        }
+
+        let response: APIResponse<LoginData> = try JSONDecoder().decode(APIResponse.self, from: data)
+        if response.code != 0 {
+            throw NSError(domain: "UserAPI", code: response.code, userInfo: [NSLocalizedDescriptionKey: response.msg])
+        }
+
+        guard let payload = response.data else {
+            throw NSError(domain: "UserAPI", code: -1, userInfo: [NSLocalizedDescriptionKey: "No data received"])
+        }
+        return payload
     }
     
     func loginWithMobile(mobile: String, password: String) async throws -> LoginData {
-        let url = URL(string: "\(baseURL)/user/login/mobile")!
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        let body = [
-            "mobile": mobile,
-            "password": base64Encoded(password)
+        try await login(mobile: mobile, password: password)
+    }
+
+    func loginWithAccount(account: String, password: String) async throws -> LoginData {
+        let encodedPassword = base64Encoded(password)
+        let attempts: [(url: String, body: [String: String])] = [
+            (
+                "\(v1AuthBaseURL)/api/v1/auth/login",
+                [
+                    "mobile": account,
+                    "username": account,
+                    "account": account,
+                    "password": password
+                ]
+            ),
+            (
+                "\(v1AuthBaseURL)/api/v1/auth/login",
+                [
+                    "username": account,
+                    "password": password
+                ]
+            ),
+            (
+                "\(v1AuthBaseURL)/api/v1/auth/login",
+                [
+                    "mobile": account,
+                    "password": password
+                ]
+            ),
+            (
+                "\(baseURL)/user/login",
+                [
+                    "mobile": account,
+                    "username": account,
+                    "account": account,
+                    "password": encodedPassword
+                ]
+            ),
+            (
+                "\(baseURL)/user/login",
+                [
+                    "mobile": account,
+                    "password": encodedPassword
+                ]
+            ),
+            (
+                "\(baseURL)/user/login/username",
+                [
+                    "username": account,
+                    "password": password
+                ]
+            ),
+            (
+                "\(baseURL)/user/login",
+                [
+                    "username": account,
+                    "password": password
+                ]
+            )
         ]
-        request.httpBody = try JSONEncoder().encode(body)
-        
-        let (data, _) = try await session.data(for: request)
-        let response: APIResponse<LoginData> = try JSONDecoder().decode(APIResponse.self, from: data)
-        
-        if response.code != 0 {
-            throw NSError(domain: "UserAPI", code: response.code, userInfo: [NSLocalizedDescriptionKey: response.msg])
-        }
-        
-        guard let data = response.data else {
-            throw NSError(domain: "UserAPI", code: -1, userInfo: [NSLocalizedDescriptionKey: "No data received"])
-        }
-        
-        return data
+
+        return try await loginWithAttempts(attempts)
     }
     
     func loginWithEmail(email: String, password: String) async throws -> LoginData {
-        let url = URL(string: "\(baseURL)/user/login/email")!
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        let body = [
-            "email": email,
-            "password": base64Encoded(password)
-        ]
-        request.httpBody = try JSONEncoder().encode(body)
-        
-        let (data, _) = try await session.data(for: request)
-        let response: APIResponse<LoginData> = try JSONDecoder().decode(APIResponse.self, from: data)
-        
-        if response.code != 0 {
-            throw NSError(domain: "UserAPI", code: response.code, userInfo: [NSLocalizedDescriptionKey: response.msg])
-        }
-        
-        guard let data = response.data else {
-            throw NSError(domain: "UserAPI", code: -1, userInfo: [NSLocalizedDescriptionKey: "No data received"])
-        }
-        
-        return data
+        try await login(mobile: email, password: password)
     }
     
     func refreshToken(refreshToken: String) async throws -> RefreshTokenData {
-        let url = URL(string: "\(baseURL)/user/token/refresh")!
+        let url = URL(string: "\(v1AuthBaseURL)/api/v1/auth/refresh")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -210,11 +375,17 @@ class UserAPIService {
         let body = ["refresh_token": refreshToken]
         request.httpBody = try JSONEncoder().encode(body)
         
-        let (data, _) = try await session.data(for: request)
-        let response: APIResponse<RefreshTokenData> = try JSONDecoder().decode(APIResponse.self, from: data)
-        
-        if response.code != 0 {
-            throw NSError(domain: "UserAPI", code: response.code, userInfo: [NSLocalizedDescriptionKey: response.msg])
+        let (data, httpResponse) = try await execute(request)
+        if httpResponse.statusCode == 401 {
+            throw UserAPIError.unauthorizedRefresh
+        }
+        guard (200...299).contains(httpResponse.statusCode) else {
+            throw NSError(domain: "UserAPI", code: httpResponse.statusCode, userInfo: [NSLocalizedDescriptionKey: "Token refresh failed"])
+        }
+
+        let response: AuthAPIResponse<RefreshTokenData> = try JSONDecoder().decode(AuthAPIResponse.self, from: data)
+        if response.success == false {
+            throw NSError(domain: "UserAPI", code: httpResponse.statusCode, userInfo: [NSLocalizedDescriptionKey: response.message ?? "Token refresh failed"])
         }
         
         guard let data = response.data else {
@@ -224,19 +395,38 @@ class UserAPIService {
         return data
     }
     
-    func logout(accessToken: String) async throws {
-        let url = URL(string: "\(baseURL)/user/logout")!
+    func logout(accessToken: String, refreshToken: String) async throws {
+        let url = URL(string: "\(v1AuthBaseURL)/api/v1/auth/logout")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        request.httpBody = try JSONEncoder().encode(["refresh_token": refreshToken])
         
-        let (data, _) = try await session.data(for: request)
-        let response: APIResponse<String> = try JSONDecoder().decode(APIResponse.self, from: data)
-        
-        if response.code != 0 {
-            throw NSError(domain: "UserAPI", code: response.code, userInfo: [NSLocalizedDescriptionKey: response.msg])
+        let (data, httpResponse) = try await execute(request)
+        if !(200...299).contains(httpResponse.statusCode) {
+            throw NSError(domain: "UserAPI", code: httpResponse.statusCode, userInfo: [NSLocalizedDescriptionKey: String(data: data, encoding: .utf8) ?? "Logout failed"])
         }
+    }
+
+    func performAuthorizedRequest(path: String, method: String = "POST", body: [String: Any]? = nil, requireDeviceToken: Bool = false) async throws -> Data {
+        guard let url = URL(string: "\(baseURL)\(path)") else {
+            throw UserAPIError.invalidResponse("Invalid URL")
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = method
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        if let body {
+            request.httpBody = try JSONSerialization.data(withJSONObject: body, options: [])
+        }
+        request.setValue(try authorizationHeader(requireDeviceToken: requireDeviceToken), forHTTPHeaderField: "Authorization")
+
+        let (data, _) = try await sendWithAutoRefresh(
+            request,
+            requireDeviceToken: requireDeviceToken
+        )
+        return data
     }
     
     func editUser(username: String, accessToken: String) async throws -> EditUserData {
@@ -249,7 +439,7 @@ class UserAPIService {
         let body = ["username": username]
         request.httpBody = try JSONEncoder().encode(body)
         
-        let (data, _) = try await session.data(for: request)
+        let (data, _) = try await sendWithAutoRefresh(request)
         let response: APIResponse<EditUserData> = try JSONDecoder().decode(APIResponse.self, from: data)
         
         if response.code != 0 {
@@ -280,7 +470,7 @@ class UserAPIService {
         ]
         request.httpBody = try JSONEncoder().encode(body)
         
-        let (data, _) = try await session.data(for: request)
+        let (data, _) = try await sendWithAutoRefresh(request)
         let response: APIResponse<ChangePasswordData> = try JSONDecoder().decode(APIResponse.self, from: data)
         
         if response.code != 0 {
@@ -298,29 +488,29 @@ class UserAPIService {
         return data
     }
     
-    func getUser(accessToken: String) async throws -> UserGetData {
-        let url = URL(string: "\(baseURL)/user/get")!
+    func getUser(accessToken: String? = nil) async throws -> UserGetData {
+        let url = URL(string: "\(v1AuthBaseURL)/api/v1/auth/me")!
         var request = URLRequest(url: url)
-        request.httpMethod = "POST"
+        request.httpMethod = "GET"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-        
-        let (data, _) = try await session.data(for: request)
-        let response: APIResponse<UserGetData> = try JSONDecoder().decode(APIResponse.self, from: data)
-        
-        if response.code != 0 {
-            // Check for token expiration (code 401)
-            if response.code == 401 && response.msg.lowercased().contains("token") && response.msg.lowercased().contains("expired") {
-                throw UserAPIError.tokenExpired(response.msg)
-            }
-            throw NSError(domain: "UserAPI", code: response.code, userInfo: [NSLocalizedDescriptionKey: response.msg])
+        request.setValue(try authorizationHeader(requireDeviceToken: false), forHTTPHeaderField: "Authorization")
+
+        let (data, _) = try await sendWithAutoRefresh(request)
+        let response: AuthAPIResponse<AuthUser> = try JSONDecoder().decode(AuthAPIResponse.self, from: data)
+
+        guard response.success, let authUser = response.data else {
+            throw NSError(domain: "UserAPI", code: -1, userInfo: [NSLocalizedDescriptionKey: response.message ?? "Failed to get user"])
         }
-        
-        guard let data = response.data else {
+
+        guard let userUUID = AuthManager.shared.currentUser?.userUUID else {
             throw NSError(domain: "UserAPI", code: -1, userInfo: [NSLocalizedDescriptionKey: "No data received"])
         }
-        
-        return data
+
+        return UserGetData(
+            user_uuid: userUUID,
+            username: authUser.username ?? authUser.name ?? "",
+            mobile: authUser.phone
+        )
     }
     
     func relateDevice(authData: String, accessToken: String) async throws -> DeviceRelateData {
@@ -333,7 +523,7 @@ class UserAPIService {
         let body = ["auth_data": authData]
         request.httpBody = try JSONEncoder().encode(body)
         
-        let (data, _) = try await session.data(for: request)
+        let (data, _) = try await sendWithAutoRefresh(request)
         let response: APIResponse<DeviceRelateData> = try JSONDecoder().decode(APIResponse.self, from: data)
         
         if response.code != 0 {
@@ -497,5 +687,172 @@ class UserAPIService {
             print("[UserAPIService] resetPassword JSON decode failed: \(error)")
             throw error
         }
+    }
+
+    private func authorizationHeader(requireDeviceToken: Bool) throws -> String {
+        guard let accessToken = AuthManager.shared.currentAccessToken() else {
+            throw NSError(domain: "UserAPI", code: 401, userInfo: [NSLocalizedDescriptionKey: "User not authenticated"])
+        }
+        return try DeviceAuthManager.shared.getAuthorizationHeaderValue(
+            userAccessToken: accessToken,
+            requireDeviceToken: requireDeviceToken
+        )
+    }
+
+    private func execute(_ request: URLRequest) async throws -> (Data, HTTPURLResponse) {
+        let (data, response) = try await session.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw UserAPIError.invalidResponse("Invalid HTTP response")
+        }
+        return (data, httpResponse)
+    }
+
+    private func loginWithAttempts(_ attempts: [(url: String, body: [String: String])]) async throws -> LoginData {
+        var lastError: Error?
+        for attempt in attempts {
+            do {
+                return try await loginAuto(urlString: attempt.url, body: attempt.body)
+            } catch {
+                lastError = error
+            }
+        }
+
+        throw lastError ?? NSError(domain: "UserAPI", code: -1, userInfo: [NSLocalizedDescriptionKey: "Login failed"])
+    }
+
+    private func loginAuto(urlString: String, body: [String: String]) async throws -> LoginData {
+        let url = URL(string: urlString)!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(body)
+
+        let (data, httpResponse) = try await execute(request)
+        guard (200...299).contains(httpResponse.statusCode) else {
+            throw NSError(
+                domain: "UserAPI",
+                code: httpResponse.statusCode,
+                userInfo: [NSLocalizedDescriptionKey: extractServerErrorMessage(data: data, fallback: "Login failed")]
+            )
+        }
+
+        if let v1 = try? JSONDecoder().decode(AuthAPIResponse<LoginData>.self, from: data) {
+            if v1.success, let payload = v1.data {
+                return payload
+            }
+            throw NSError(domain: "UserAPI", code: httpResponse.statusCode, userInfo: [NSLocalizedDescriptionKey: v1.message ?? "Login failed"])
+        }
+
+        if let legacy = try? JSONDecoder().decode(APIResponse<LoginData>.self, from: data) {
+            if legacy.code == 0, let payload = legacy.data {
+                return payload
+            }
+            throw NSError(domain: "UserAPI", code: legacy.code, userInfo: [NSLocalizedDescriptionKey: legacy.msg])
+        }
+
+        throw UserAPIError.invalidResponse("Unexpected login response format")
+    }
+
+    private func isNotFound(_ error: Error) -> Bool {
+        let nsError = error as NSError
+        return nsError.domain == "UserAPI" && nsError.code == 404
+    }
+
+    private func shouldFallbackToLegacyLogin(_ error: Error) -> Bool {
+        if isNotFound(error) {
+            return true
+        }
+
+        let nsError = error as NSError
+        guard nsError.domain == "UserAPI" else {
+            return false
+        }
+
+        if nsError.code == 400 || nsError.code == 422 {
+            let message = nsError.localizedDescription.lowercased()
+            return message.contains("missing field")
+                || message.contains("invalid mobile")
+                || message.contains("deserialize")
+                || message.contains("field 'mobile'")
+        }
+
+        return false
+    }
+
+    private func isLikelyMobile(_ value: String) -> Bool {
+        let digitsOnly = value.allSatisfy { $0.isNumber }
+        return digitsOnly && value.count >= 8 && value.count <= 15
+    }
+
+    private func isMobileFormatError(_ error: Error) -> Bool {
+        let message = (error as NSError).localizedDescription.lowercased()
+        return message.contains("invalid mobile number format") || message.contains("field 'mobile'")
+    }
+
+    private func extractServerErrorMessage(data: Data, fallback: String) -> String {
+        if let v1 = try? JSONDecoder().decode(AuthAPIResponse<EmptyData>.self, from: data),
+           let message = v1.message,
+           !message.isEmpty {
+            return message
+        }
+        if let legacy = try? JSONDecoder().decode(APIResponse<EmptyData>.self, from: data), !legacy.msg.isEmpty {
+            return legacy.msg
+        }
+        if let raw = String(data: data, encoding: .utf8), !raw.isEmpty {
+            return raw
+        }
+        return fallback
+    }
+
+    private func sendWithAutoRefresh(_ request: URLRequest, requireDeviceToken: Bool = false) async throws -> (Data, HTTPURLResponse) {
+        let firstAttempt = try await execute(request)
+        if !isUnauthorized(data: firstAttempt.0, response: firstAttempt.1) {
+            return firstAttempt
+        }
+
+        let refreshed = try await retryCoordinator.retryAfterRefresh {
+            _ = try await AuthManager.shared.refreshAccessToken(force: true)
+        }
+        guard refreshed else {
+            await AuthManager.shared.handleRefreshTokenRejected()
+            throw UserAPIError.unauthorizedRefresh
+        }
+
+        var retryRequest = request
+        retryRequest.setValue(try authorizationHeader(requireDeviceToken: requireDeviceToken), forHTTPHeaderField: "Authorization")
+        return try await execute(retryRequest)
+    }
+
+    private func isUnauthorized(data: Data, response: HTTPURLResponse) -> Bool {
+        if response.statusCode == 401 {
+            return true
+        }
+        if let envelope = try? JSONDecoder().decode(APIResponse<EmptyData>.self, from: data), envelope.code == 401 {
+            return true
+        }
+        return false
+    }
+}
+
+private actor AuthorizedRetryCoordinator {
+    private var activeRefreshTask: Task<Bool, Error>?
+
+    func retryAfterRefresh(_ refreshBlock: @escaping () async throws -> Void) async throws -> Bool {
+        if let activeRefreshTask {
+            return try await activeRefreshTask.value
+        }
+
+        let task = Task<Bool, Error> {
+            do {
+                try await refreshBlock()
+                return true
+            } catch {
+                return false
+            }
+        }
+
+        activeRefreshTask = task
+        defer { activeRefreshTask = nil }
+        return try await task.value
     }
 }

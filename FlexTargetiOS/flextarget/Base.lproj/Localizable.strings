@@ -212,7 +212,6 @@
 "save_button" = "Save";
 
 /* Leaderboard */
-"leaderboard_title" = "Leaderboard";
 "submit_to_leaderboard_button" = "Submit to Leaderboard";
 "select_athlete_title" = "Select Athlete";
 
@@ -240,10 +239,6 @@
 "last_3_months" = "Last 3 Months";
 "competitions" = "Competitions";
 "view_competitions" = "View competitions";
-"shooters" = "Shooters";
-"manage_shooters" = "Manage shooters";
-"leaderboard" = "Leaderboard";
-"view_leaderboard" = "View leaderboard";
 "untitled_competition" = "Untitled Competition";
 "competition_info" = "Competition Information";
 "competition_name" = "Competition Name";
@@ -261,6 +256,47 @@
 "unknown_athlete" = "Unknown Athlete";
 "competition_mode" = "COMPETITION MODE";
 "drill_editing_disabled_hint" = "Target configuration is locked because this drill has results. You can still edit the name, description, pause time, and number of repeats.";
+"competition_session_start" = "Competition Session";
+"competition_session_start_hint" = "Select match, stage, squad, and shooter before drill";
+"competition_session_match" = "MATCH";
+"competition_session_stage" = "STAGE";
+"competition_session_squad" = "SQUAD";
+"competition_session_shooter" = "SHOOTER";
+"competition_session_select_match" = "Select match";
+"competition_session_select_stage" = "Select stage";
+"competition_session_select_squad" = "Select squad";
+"competition_session_select_shooter" = "Select shooter";
+"competition_session_no_matches" = "No matches found.";
+"competition_session_retry_matches" = "Retry Matches";
+"competition_session_no_stages" = "No stages available for the selected match.";
+"competition_session_retry_stages" = "Retry Stages";
+"competition_session_no_squads" = "No squads available for the selected match.";
+"competition_session_retry_squads" = "Retry Squads";
+"competition_session_no_shooters" = "No shooters in the selected squad.";
+"competition_session_retry_squad_queue" = "Retry Squad Queue";
+"competition_session_loading" = "Loading competition data...";
+"competition_session_retry_matches_short" = "Matches";
+"competition_session_retry_stages_short" = "Stages";
+"competition_session_retry_squads_short" = "Squads";
+"competition_session_retry_format" = "Retry %@";
+"competition_session_ble_connected_hint" = "Device connected. Selection will lock when drill starts.";
+"competition_session_ble_disconnected_hint" = "Connect target device before starting.";
+
+/* IPSC Submit */
+"ipsc_submit_loading_context" = "Loading competition context...";
+"ipsc_submit_submitting" = "Submitting...";
+"ipsc_submit_confirm_title" = "Confirm & Submit";
+"ipsc_submit_shooter" = "SHOOTER";
+"ipsc_submit_select_repeat" = "SELECT REPEAT";
+"ipsc_submit_submit_score" = "Submit Score";
+"ipsc_submit_score_preview_repeat" = "SCORE PREVIEW - REPEAT %d";
+"ipsc_submit_time" = "Time";
+"ipsc_submit_first_shot" = "1st Shot";
+"ipsc_submit_fastest" = "Fastest";
+"ipsc_submit_success_title" = "Score Submitted!";
+"ipsc_submit_hit_factor" = "HIT FACTOR";
+"ipsc_submit_total_points" = "TOTAL PTS";
+"ipsc_submit_error_title" = "Something went wrong";
 
 /* History Tab */
 "all_modes" = "All Modes";

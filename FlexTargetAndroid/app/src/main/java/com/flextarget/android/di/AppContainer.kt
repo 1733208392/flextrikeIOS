@@ -10,7 +10,9 @@ import com.flextarget.android.data.local.FlexTargetDatabase
 import com.flextarget.android.data.local.preferences.AppPreferences
 import com.flextarget.android.data.remote.ServerConfig
 import com.flextarget.android.data.remote.api.FlexTargetAPI
+import com.flextarget.android.data.remote.api.IpscApi
 import com.flextarget.android.data.repository.*
+import com.flextarget.android.ui.ipsc.IpscSubmitViewModel
 import com.flextarget.android.ui.viewmodel.AuthViewModel
 import com.flextarget.android.ui.viewmodel.BLEViewModel
 import com.flextarget.android.ui.viewmodel.CompetitionViewModel
@@ -21,6 +23,8 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
+
+private const val IPSC_BASE_URL = "http://124.222.233.30/"
 
 /**
  * Simple dependency injection container to replace Hilt
@@ -59,6 +63,32 @@ object AppContainer {
 
     private val flexTargetAPIInstance by lazy {
         retrofit.create(FlexTargetAPI::class.java)
+    }
+
+    // IPSC Match Management API (separate server: http://124.222.233.30/)
+    private val ipscOkHttpClient by lazy {
+        OkHttpClient.Builder()
+            .addInterceptor(loggingInterceptor)
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
+            .build()
+    }
+
+    private val ipscRetrofit by lazy {
+        Retrofit.Builder()
+            .baseUrl(IPSC_BASE_URL)
+            .client(ipscOkHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+
+    private val ipscApiInstance by lazy {
+        ipscRetrofit.create(IpscApi::class.java)
+    }
+
+    private val ipscRepositoryInstance by lazy {
+        IpscRepository(ipscApiInstance)
     }
 
     // Database
@@ -178,6 +208,10 @@ object AppContainer {
 
     val otaViewModel by lazy {
         OTAViewModel(otaRepository)
+    }
+
+    val ipscSubmitViewModel by lazy {
+        IpscSubmitViewModel(ipscRepositoryInstance)
     }
 
     fun initialize(context: Context) {

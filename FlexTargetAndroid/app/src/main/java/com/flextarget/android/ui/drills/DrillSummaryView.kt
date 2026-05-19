@@ -41,6 +41,8 @@ import com.flextarget.android.ui.theme.AppTypography
 import java.util.*
 import com.flextarget.android.di.AppContainer
 import com.flextarget.android.data.connectivity.ConnectivityObserver
+import com.flextarget.android.ui.ipsc.IpscSubmitDialog
+import com.flextarget.android.ui.ipsc.IpscSubmitStep
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -84,10 +86,13 @@ fun DrillSummaryView(
 
     var showEditDialog by remember { mutableStateOf(false) }
     var editingSummary by remember { mutableStateOf<DrillRepeatSummary?>(null) }
+    var showIpscSubmit by remember { mutableStateOf(false) }
 
     val drillName = drillSetup.name ?: "Untitled Drill"
     val isCQBMode = drillSetup.mode?.lowercase() == "cqb"
     val isIDPAMode = drillSetup.mode?.lowercase() == "idpa"
+    val isGamingMode = drillSetup.mode?.lowercase() == "gaming"
+    val showIpscButton = !isCQBMode && !isGamingMode && summaries.isNotEmpty()
 
     Column(
         modifier = Modifier
@@ -115,6 +120,17 @@ fun DrillSummaryView(
                             contentDescription = "Back",
                             tint = Color.Red,
                             modifier = Modifier.align(Alignment.Center)
+                        )
+                    }
+                }
+            },
+            actions = {
+                if (showIpscButton) {
+                    IconButton(onClick = { showIpscSubmit = true }) {
+                        Icon(
+                            Icons.Default.Upload,
+                            contentDescription = "Submit to IPSC",
+                            tint = Color.Red
                         )
                     }
                 }
@@ -245,6 +261,19 @@ fun DrillSummaryView(
                 }
             }
         }
+    }
+
+    // IPSC Submit Dialog
+    if (showIpscSubmit) {
+        val ipscVm = AppContainer.ipscSubmitViewModel
+        IpscSubmitDialog(
+            viewModel = ipscVm,
+            summaries = summaries,
+            onDismiss = {
+                showIpscSubmit = false
+                ipscVm.dismiss()
+            }
+        )
     }
 
     // Edit Dialog

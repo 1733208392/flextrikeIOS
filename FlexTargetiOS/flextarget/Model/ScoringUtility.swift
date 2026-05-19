@@ -23,8 +23,8 @@ class ScoringUtility {
             return "dzone"
         case "whitezone", "white_zone", "white-zone":
             return "whitezone"
-        case "blackzone", "black_zone", "black-zone":
-            return "blackzone"
+        case "blackzone", "black_zone", "black-zone", "blackzoneleft", "black_zone_left", "black-zone-left", "blackzoneright", "black_zone_right", "black-zone-right":
+            return "miss"
         case "miss", "m":
             return "miss"
         default:
@@ -70,9 +70,9 @@ class ScoringUtility {
             return 3
         case "dzone", "d":
             return 1
-        case "miss", "m":
+        case "miss", "m", "blackzone", "blackzoneleft", "blackzoneright":
             return -10
-        case "whitezone", "blackzone", "n":
+        case "whitezone", "n":
             return -10
         case "circlearea", "popperzone": // Steel
             return 5
@@ -187,12 +187,12 @@ class ScoringUtility {
 
             let noShootZoneShots = targetShots.filter { shot in
                 let trimmed = ScoringUtility.normalizeHitArea(shot.content.hitArea)
-                return trimmed == "whitezone" || trimmed == "blackzone"
+                return trimmed == "whitezone"
             }
 
             let otherShots = targetShots.filter { shot in
                 let trimmed = ScoringUtility.normalizeHitArea(shot.content.hitArea)
-                return trimmed != "whitezone" && trimmed != "blackzone"
+                return trimmed != "whitezone"
             }
             
             // Count no-shoot zones (always included)

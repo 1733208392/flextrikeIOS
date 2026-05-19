@@ -15,6 +15,15 @@ data class ApiResponse<T>(
     val data: T?
 )
 
+data class V1ApiResponse<T>(
+    @SerializedName("success")
+    val success: Boolean,
+    @SerializedName("data")
+    val data: T?,
+    @SerializedName("message")
+    val message: String?
+)
+
 // ============ LOGIN & AUTHENTICATION ============
 
 data class LoginRequest(
@@ -22,6 +31,17 @@ data class LoginRequest(
     val mobile: String,
     @SerializedName("password")
     val password: String // Base64 encoded without padding
+)
+
+data class V1LoginRequest(
+    @SerializedName("username")
+    val username: String,
+    @SerializedName("password")
+    val password: String,
+    @SerializedName("mobile")
+    val mobile: String? = null,
+    @SerializedName("account")
+    val account: String? = null
 )
 
 data class LoginWithMobileRequest(
@@ -45,6 +65,30 @@ data class LoginResponse(
     val accessToken: String,
     @SerializedName("refresh_token")
     val refreshToken: String
+)
+
+data class V1AuthUser(
+    @SerializedName("id")
+    val id: Long,
+    @SerializedName("username")
+    val username: String?,
+    @SerializedName("name")
+    val name: String?,
+    @SerializedName("phone")
+    val phone: String?
+)
+
+data class V1LoginData(
+    @SerializedName("token")
+    val token: String?,
+    @SerializedName("access_token")
+    val accessToken: String,
+    @SerializedName("refresh_token")
+    val refreshToken: String,
+    @SerializedName("expires_in")
+    val expiresIn: Long?,
+    @SerializedName("user")
+    val user: V1AuthUser?
 )
 
 // ============ EMAIL REGISTRATION ============

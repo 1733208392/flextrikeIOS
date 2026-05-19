@@ -185,7 +185,7 @@ struct RegistrationView: View {
                 
                 // Fetch user info and update username if available
                 do {
-                    let userGetData = try await UserAPIService.shared.getUser(accessToken: loginData.access_token)
+                    let userGetData = try await UserAPIService.shared.getUser()
                     authManager.updateUserInfo(username: userGetData.username)
                     print("[RegistrationView] User info fetched after registration: \(userGetData.username)")
                 } catch {

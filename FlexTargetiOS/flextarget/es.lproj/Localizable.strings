@@ -19,7 +19,6 @@
 "athletes_empty" = "Aún no hay atletas";
 
 /* Leaderboard */
-"leaderboard_title" = "Clasificación";
 "submit_to_leaderboard_button" = "Enviar a la clasificación";
 "select_athlete_title" = "Seleccionar atleta";
 
@@ -299,10 +298,6 @@
 "last_3_months" = "Últimos 3 meses";
 "competitions" = "Competiciones";
 "view_competitions" = "Ver competiciones";
-"shooters" = "Tiradores";
-"manage_shooters" = "Gestionar tiradores";
-"leaderboard" = "Tabla de clasificación";
-"view_leaderboard" = "Ver tabla de clasificación";
 "untitled_competition" = "Competición sin título";
 "competition_info" = "Información de la competición";
 "competition_name" = "Nombre de la competición";
@@ -320,6 +315,47 @@
 "unknown_athlete" = "Atleta desconocido";
 "competition_mode" = "MODO COMPETICIÓN";
 "drill_editing_disabled_hint" = "La configuración de objetivos está bloqueada porque este ejercicio tiene resultados. Aún puedes editar el nombre, la descripción, el tiempo de pausa y el número de repeticiones.";
+"competition_session_start" = "Iniciar sesión de competición";
+"competition_session_start_hint" = "Selecciona match, stage, squad y tirador antes del ejercicio";
+"competition_session_match" = "MATCH";
+"competition_session_stage" = "STAGE";
+"competition_session_squad" = "SQUAD";
+"competition_session_shooter" = "TIRADOR";
+"competition_session_select_match" = "Seleccionar match";
+"competition_session_select_stage" = "Seleccionar stage";
+"competition_session_select_squad" = "Seleccionar squad";
+"competition_session_select_shooter" = "Seleccionar tirador";
+"competition_session_no_matches" = "No se encontraron matches.";
+"competition_session_retry_matches" = "Reintentar matches";
+"competition_session_no_stages" = "No hay stages disponibles para el match seleccionado.";
+"competition_session_retry_stages" = "Reintentar stages";
+"competition_session_no_squads" = "No hay squads disponibles para el match seleccionado.";
+"competition_session_retry_squads" = "Reintentar squads";
+"competition_session_no_shooters" = "No hay tiradores en el squad seleccionado.";
+"competition_session_retry_squad_queue" = "Reintentar cola de squad";
+"competition_session_loading" = "Cargando datos de competición...";
+"competition_session_retry_matches_short" = "Matches";
+"competition_session_retry_stages_short" = "Stages";
+"competition_session_retry_squads_short" = "Squads";
+"competition_session_retry_format" = "Reintentar %@";
+"competition_session_ble_connected_hint" = "Dispositivo conectado. La selección se bloqueará al iniciar el ejercicio.";
+"competition_session_ble_disconnected_hint" = "Conecta el dispositivo objetivo antes de iniciar.";
+
+/* IPSC Submit */
+"ipsc_submit_loading_context" = "Cargando contexto de competición...";
+"ipsc_submit_submitting" = "Enviando...";
+"ipsc_submit_confirm_title" = "Confirmar y enviar";
+"ipsc_submit_shooter" = "TIRADOR";
+"ipsc_submit_select_repeat" = "SELECCIONAR REPETICIÓN";
+"ipsc_submit_submit_score" = "Enviar puntuación";
+"ipsc_submit_score_preview_repeat" = "VISTA PREVIA DE PUNTUACIÓN - REPETICIÓN %d";
+"ipsc_submit_time" = "Tiempo";
+"ipsc_submit_first_shot" = "1er disparo";
+"ipsc_submit_fastest" = "Más rápido";
+"ipsc_submit_success_title" = "¡Puntuación enviada!";
+"ipsc_submit_hit_factor" = "HIT FACTOR";
+"ipsc_submit_total_points" = "PTS TOTALES";
+"ipsc_submit_error_title" = "Algo salió mal";
 
 /* AdminTabView - Menú Admin */
 "device_management" = "Gestión de dispositivos";

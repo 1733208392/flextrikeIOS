@@ -25,7 +25,9 @@ object ScoringUtility {
             "czone", "c", "c-zone", "c_zone" -> "czone"
             "dzone", "d", "d-zone", "d_zone" -> "dzone"
             "whitezone", "white_zone", "white-zone" -> "whitezone"
-            "blackzone", "black_zone", "black-zone" -> "blackzone"
+            "blackzone", "black_zone", "black-zone",
+            "blackzoneleft", "black_zone_left", "black-zone-left",
+            "blackzoneright", "black_zone_right", "black-zone-right" -> "miss"
             "miss", "m" -> "miss"
             else -> trimmed
         }
@@ -91,7 +93,7 @@ object ScoringUtility {
             "czone", "c" -> 3
             "dzone", "d" -> 1
             "miss", "m" -> -15
-            "whitezone", "blackzone", "n" -> -10
+            "whitezone", "n" -> -10
             "circlearea" -> 5 // Paddle
             "popperzone" -> 5 // Popper
             "apopper" -> 5 // Physical popper - scores as A
@@ -187,12 +189,12 @@ object ScoringUtility {
             // Separate no-shoot zone hits from valid hits
             val noShootZoneShots = targetShots.filter { shot ->
                 val trimmed = normalizeHitArea(shot.content.actualHitArea)
-                trimmed == "whitezone" || trimmed == "blackzone"
+                trimmed == "whitezone"
             }
 
             val otherShots = targetShots.filter { shot ->
                 val trimmed = normalizeHitArea(shot.content.actualHitArea)
-                trimmed != "whitezone" && trimmed != "blackzone"
+                trimmed != "whitezone"
             }
 
             // Count no-shoot zones (always included, negative score)
@@ -316,12 +318,12 @@ object ScoringUtility {
             // Separate no-shoot zone hits from valid hits
             val noShootZoneShots = targetShots.filter { shot ->
                 val trimmed = normalizeHitArea(shot.content.actualHitArea)
-                trimmed == "whitezone" || trimmed == "blackzone"
+                trimmed == "whitezone"
             }
 
             val otherShots = targetShots.filter { shot ->
                 val trimmed = normalizeHitArea(shot.content.actualHitArea)
-                trimmed != "whitezone" && trimmed != "blackzone"
+                trimmed != "whitezone"
             }
 
             // Count no-shoot zones (always included)

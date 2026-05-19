@@ -19,7 +19,6 @@
 "athletes_empty" = "Noch keine Athleten";
 
 /* Leaderboard */
-"leaderboard_title" = "Rangliste";
 "submit_to_leaderboard_button" = "An Rangliste senden";
 "select_athlete_title" = "Athlet auswählen";
 
@@ -299,10 +298,6 @@
 "last_3_months" = "Letzte 3 Monate";
 "competitions" = "Wettbewerbe";
 "view_competitions" = "Wettbewerbe anzeigen";
-"shooters" = "Schützen";
-"manage_shooters" = "Schützen verwalten";
-"leaderboard" = "Bestenliste";
-"view_leaderboard" = "Bestenliste anzeigen";
 "untitled_competition" = "Unbenannter Wettbewerb";
 "competition_info" = "Wettbewerbsinformationen";
 "competition_name" = "Wettbewerbsname";
@@ -320,6 +315,47 @@
 "unknown_athlete" = "Unbekannter Athlet";
 "competition_mode" = "WETTBEWERBSMODUS";
 "drill_editing_disabled_hint" = "Die Zielkonfiguration ist gesperrt, da diese Übung Ergebnisse hat. Du kannst weiterhin Name, Beschreibung, Pausenzeit und Wiederholungsanzahl bearbeiten.";
+"competition_session_start" = "Wettbewerbssitzung starten";
+"competition_session_start_hint" = "Vor dem Drill Match, Stage, Squad und Schützen auswählen";
+"competition_session_match" = "MATCH";
+"competition_session_stage" = "STAGE";
+"competition_session_squad" = "SQUAD";
+"competition_session_shooter" = "SCHÜTZE";
+"competition_session_select_match" = "Match auswählen";
+"competition_session_select_stage" = "Stage auswählen";
+"competition_session_select_squad" = "Squad auswählen";
+"competition_session_select_shooter" = "Schützen auswählen";
+"competition_session_no_matches" = "Keine Matches gefunden.";
+"competition_session_retry_matches" = "Matches erneut laden";
+"competition_session_no_stages" = "Keine Stages für das ausgewählte Match verfügbar.";
+"competition_session_retry_stages" = "Stages erneut laden";
+"competition_session_no_squads" = "Keine Squads für das ausgewählte Match verfügbar.";
+"competition_session_retry_squads" = "Squads erneut laden";
+"competition_session_no_shooters" = "Keine Schützen im ausgewählten Squad.";
+"competition_session_retry_squad_queue" = "Squad-Warteschlange erneut laden";
+"competition_session_loading" = "Wettbewerbsdaten werden geladen...";
+"competition_session_retry_matches_short" = "Matches";
+"competition_session_retry_stages_short" = "Stages";
+"competition_session_retry_squads_short" = "Squads";
+"competition_session_retry_format" = "%@ erneut laden";
+"competition_session_ble_connected_hint" = "Gerät verbunden. Auswahl wird beim Drill-Start gesperrt.";
+"competition_session_ble_disconnected_hint" = "Vor dem Start Zielgerät verbinden.";
+
+/* IPSC Submit */
+"ipsc_submit_loading_context" = "Wettbewerbskontext wird geladen...";
+"ipsc_submit_submitting" = "Wird gesendet...";
+"ipsc_submit_confirm_title" = "Bestätigen & Senden";
+"ipsc_submit_shooter" = "SCHÜTZE";
+"ipsc_submit_select_repeat" = "WIEDERHOLUNG AUSWÄHLEN";
+"ipsc_submit_submit_score" = "Score senden";
+"ipsc_submit_score_preview_repeat" = "SCORE-VORSCHAU - WIEDERHOLUNG %d";
+"ipsc_submit_time" = "Zeit";
+"ipsc_submit_first_shot" = "1. Schuss";
+"ipsc_submit_fastest" = "Schnellste";
+"ipsc_submit_success_title" = "Score gesendet!";
+"ipsc_submit_hit_factor" = "HIT FACTOR";
+"ipsc_submit_total_points" = "GESAMTPKT";
+"ipsc_submit_error_title" = "Etwas ist schiefgelaufen";
 
 /* AdminTabView - Admin Menü */
 "device_management" = "Geräteverwaltung";
