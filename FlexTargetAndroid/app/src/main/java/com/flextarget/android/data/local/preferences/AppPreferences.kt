@@ -132,6 +132,40 @@ class AppPreferences(context: Context) {
     suspend fun clearAll() = withContext(Dispatchers.IO) {
         sharedPreferences.edit().clear().apply()
     }
+
+    suspend fun saveCompetitionSessionSelection(
+        matchId: Int?,
+        stageId: Int?,
+        squadId: Int?,
+        drillId: String?
+    ) = withContext(Dispatchers.IO) {
+        sharedPreferences.edit().apply {
+            if (matchId != null) putInt(KEY_COMPETITION_SESSION_MATCH_ID, matchId) else remove(KEY_COMPETITION_SESSION_MATCH_ID)
+            if (stageId != null) putInt(KEY_COMPETITION_SESSION_STAGE_ID, stageId) else remove(KEY_COMPETITION_SESSION_STAGE_ID)
+            if (squadId != null) putInt(KEY_COMPETITION_SESSION_SQUAD_ID, squadId) else remove(KEY_COMPETITION_SESSION_SQUAD_ID)
+            if (!drillId.isNullOrEmpty()) putString(KEY_COMPETITION_SESSION_DRILL_ID, drillId) else remove(KEY_COMPETITION_SESSION_DRILL_ID)
+            apply()
+        }
+    }
+
+    suspend fun getCompetitionSessionSelection(): CompetitionSessionSelection = withContext(Dispatchers.IO) {
+        CompetitionSessionSelection(
+            matchId = if (sharedPreferences.contains(KEY_COMPETITION_SESSION_MATCH_ID)) sharedPreferences.getInt(KEY_COMPETITION_SESSION_MATCH_ID, 0) else null,
+            stageId = if (sharedPreferences.contains(KEY_COMPETITION_SESSION_STAGE_ID)) sharedPreferences.getInt(KEY_COMPETITION_SESSION_STAGE_ID, 0) else null,
+            squadId = if (sharedPreferences.contains(KEY_COMPETITION_SESSION_SQUAD_ID)) sharedPreferences.getInt(KEY_COMPETITION_SESSION_SQUAD_ID, 0) else null,
+            drillId = sharedPreferences.getString(KEY_COMPETITION_SESSION_DRILL_ID, null)
+        )
+    }
+
+    suspend fun clearCompetitionSessionSelection() = withContext(Dispatchers.IO) {
+        sharedPreferences.edit().apply {
+            remove(KEY_COMPETITION_SESSION_MATCH_ID)
+            remove(KEY_COMPETITION_SESSION_STAGE_ID)
+            remove(KEY_COMPETITION_SESSION_SQUAD_ID)
+            remove(KEY_COMPETITION_SESSION_DRILL_ID)
+            apply()
+        }
+    }
     
     companion object {
         private const val PREFS_FILE_NAME = "flextarget_encrypted_prefs"
@@ -147,9 +181,22 @@ class AppPreferences(context: Context) {
         // Device Token Keys
         private const val KEY_DEVICE_UUID = "device_uuid"
         private const val KEY_DEVICE_TOKEN = "device_token"
+
+        // Competition Session Selection Keys
+        private const val KEY_COMPETITION_SESSION_MATCH_ID = "competition_session_match_id"
+        private const val KEY_COMPETITION_SESSION_STAGE_ID = "competition_session_stage_id"
+        private const val KEY_COMPETITION_SESSION_SQUAD_ID = "competition_session_squad_id"
+        private const val KEY_COMPETITION_SESSION_DRILL_ID = "competition_session_drill_id"
         private const val TAG = "AppPreferences"
     }
 }
+
+data class CompetitionSessionSelection(
+    val matchId: Int?,
+    val stageId: Int?,
+    val squadId: Int?,
+    val drillId: String?
+)
 
 data class UserTokenData(
     val userUUID: String,

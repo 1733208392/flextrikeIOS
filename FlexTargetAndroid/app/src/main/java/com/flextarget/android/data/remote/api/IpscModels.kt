@@ -20,6 +20,13 @@ data class IpscMatch(
     @SerializedName("created_at") val createdAt: String
 )
 
+data class IpscStage(
+    val id: Int,
+    @SerializedName("match_id") val matchId: Int,
+    val name: String,
+    @SerializedName("sort_order") val sortOrder: Int
+)
+
 // ============ SQUAD QUEUE (接口 1) ============
 
 data class IpscShooter(
@@ -27,6 +34,7 @@ data class IpscShooter(
     val name: String,
     @SerializedName("bib_number") val bibNumber: String,
     @SerializedName("division_name") val divisionName: String,
+    @SerializedName(value = "category_name", alternate = ["category"]) val categoryName: String? = null,
     @SerializedName("power_factor") val powerFactor: String,
     @SerializedName("stages_done") val stagesDone: Int,
     val status: String  // "waiting" | "shooting" | "done"

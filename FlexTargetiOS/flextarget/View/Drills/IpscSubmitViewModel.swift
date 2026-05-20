@@ -117,7 +117,9 @@ final class IpscSubmitViewModel: ObservableObject {
 
         for shot in summary.shots {
             let targetType = shot.content.targetType.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-            let rowType = (targetType.contains("steel") || targetType.contains("popper") || targetType.contains("paddle")) ? "steel" : "paper"
+            let rawHitArea = shot.content.hitArea
+            let isAPopper = isAPopperHitArea(rawHitArea)
+            let rowType = (isAPopper || targetType.contains("steel") || targetType.contains("popper") || targetType.contains("paddle")) ? "steel" : "paper"
             let targetName = (shot.target?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false)
                 ? shot.target!.trimmingCharacters(in: .whitespacesAndNewlines)
                 : (shot.content.device?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
@@ -126,10 +128,11 @@ final class IpscSubmitViewModel: ObservableObject {
                         ? shot.device!.trimmingCharacters(in: .whitespacesAndNewlines)
                         : "target"))
 
-            let key = "\(rowType)|\(targetName.lowercased())|\(targetType)"
+            let keyTargetType = isAPopper ? "apopper" : targetType
+            let key = "\(rowType)|\(targetName.lowercased())|\(keyTargetType)"
             var row = grouped[key] ?? RowAccumulator(rowType: rowType, key: key)
 
-            switch normalizeHitArea(shot.content.hitArea) {
+            switch normalizeHitArea(rawHitArea) {
             case "a": row.a += 1
             case "c": row.c += 1
             case "d": row.d += 1
@@ -178,6 +181,11 @@ final class IpscSubmitViewModel: ObservableObject {
             }
 
         return steelRows + paperRows
+    }
+
+    private func isAPopperHitArea(_ raw: String) -> Bool {
+        let normalized = raw.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        return normalized == "apopper" || normalized == "a_popper" || normalized == "a-popper"
     }
 
     private func normalizeHitArea(_ raw: String) -> String {

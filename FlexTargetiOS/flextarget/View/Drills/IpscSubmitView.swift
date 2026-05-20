@@ -119,7 +119,7 @@ private struct ConfirmStep: View {
                                 Text(context.shooter.name)
                                     .foregroundColor(textPrimary)
                                     .font(.system(size: 16, weight: .semibold))
-                                Text("\(context.shooter.divisionName) · \(context.shooter.powerFactor.prefix(1).uppercased() + context.shooter.powerFactor.dropFirst())")
+                                Text(shooterMetadata(context.shooter))
                                     .foregroundColor(textSecondary)
                                     .font(.system(size: 12))
                             }
@@ -196,6 +196,19 @@ private struct ConfirmStep: View {
         }
         .background(darkBg.ignoresSafeArea())
     }
+}
+
+private func shooterMetadata(_ shooter: IpscShooter) -> String {
+    var parts: [String] = []
+    if !shooter.divisionName.isEmpty {
+        parts.append(shooter.divisionName)
+    }
+    if let category = shooter.categoryName, !category.isEmpty {
+        parts.append(category)
+    } else if !shooter.powerFactor.isEmpty {
+        parts.append(shooter.powerFactor.prefix(1).uppercased() + shooter.powerFactor.dropFirst())
+    }
+    return parts.joined(separator: " · ")
 }
 
 // MARK: - Score Preview Card

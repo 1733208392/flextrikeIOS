@@ -29,6 +29,7 @@ import com.flextarget.android.data.repository.DrillSetupRepository
 import com.flextarget.android.data.model.DrillRepeatSummary
 import com.flextarget.android.data.model.ShotData
 import com.flextarget.android.data.local.entity.DrillSetupEntity
+import com.flextarget.android.data.local.entity.DrillTargetsConfigEntity
 import com.google.gson.Gson
 import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.launch
@@ -59,9 +60,27 @@ fun LeaderboardView(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val showDrillSummary = remember { mutableStateOf(false) }
+    val showCompetitionGrid = remember { mutableStateOf(false) }
     val selectedDrillSummary = remember { mutableStateOf<DrillRepeatSummary?>(null) }
     val selectedDrillSetup = remember { mutableStateOf<DrillSetupEntity?>(null) }
+    val selectedDrillTargets = remember { mutableStateOf<List<DrillTargetsConfigEntity>>(emptyList()) }
     val selectedAthleteName = remember { mutableStateOf("") }
+
+    if (showCompetitionGrid.value && selectedDrillSummary.value != null && selectedDrillSetup.value != null) {
+        CompetitionTargetGridSummaryView(
+            drillSetup = selectedDrillSetup.value!!,
+            targets = selectedDrillTargets.value,
+            summaries = listOf(selectedDrillSummary.value!!),
+            shooterName = selectedAthleteName.value,
+            stageName = selectedLeaderboardCompetition.value?.name,
+            onBack = { showCompetitionGrid.value = false },
+            onReview = { updated ->
+                selectedDrillSummary.value = updated.firstOrNull() ?: selectedDrillSummary.value
+                showCompetitionGrid.value = false
+                showDrillSummary.value = true
+            }
+        )
+    } else 
 
     if (showDrillSummary.value && selectedDrillSummary.value != null && selectedDrillSetup.value != null) {
         DrillSummaryView(
@@ -233,10 +252,13 @@ fun LeaderboardView(
                                                     .getDrillSetupById(competition.drillSetupId!!)
                                                 
                                                 if (drillSetup != null) {
+                                                    val drillWithTargets = DrillSetupRepository.getInstance(context)
+                                                        .getDrillSetupWithTargets(drillSetup.id)
                                                     selectedDrillSummary.value = summary
                                                     selectedDrillSetup.value = drillSetup
+                                                    selectedDrillTargets.value = drillWithTargets?.targets ?: emptyList()
                                                     selectedAthleteName.value = ranking.playerNickname ?: ""
-                                                    showDrillSummary.value = true
+                                                    showCompetitionGrid.value = true
                                                 }
                                             }
                                         } catch (e: Exception) {

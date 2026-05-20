@@ -152,6 +152,9 @@ object AppContainer {
     val competitionRepository: com.flextarget.android.data.repository.CompetitionRepository
         get() = competitionRepositoryInstance
 
+    val ipscRepository: IpscRepository
+        get() = ipscRepositoryInstance
+
     // Connectivity observer
     private val connectivityObserver by lazy { 
         com.flextarget.android.data.connectivity.ConnectivityObserverImpl(applicationContext)

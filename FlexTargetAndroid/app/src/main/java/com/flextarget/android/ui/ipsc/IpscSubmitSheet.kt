@@ -336,8 +336,13 @@ private fun ShooterCard(shooter: IpscShooter, onClick: () -> Unit) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(shooter.name, color = TextPrimary, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
                 Spacer(Modifier.height(2.dp))
+                val shooterMeta = listOfNotNull(
+                    shooter.divisionName.takeIf { it.isNotEmpty() },
+                    shooter.categoryName?.takeIf { it.isNotEmpty() }
+                        ?: shooter.powerFactor.takeIf { it.isNotEmpty() }?.replaceFirstChar { it.uppercase() }
+                ).joinToString(" · ")
                 Text(
-                    "${shooter.divisionName} · ${shooter.powerFactor.replaceFirstChar { it.uppercase() }}",
+                    shooterMeta,
                     color = TextSecondary,
                     fontSize = 12.sp
                 )

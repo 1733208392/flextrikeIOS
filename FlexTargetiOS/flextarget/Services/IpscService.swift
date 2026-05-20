@@ -56,6 +56,7 @@ struct IpscShooter: Decodable, Identifiable {
     let name: String
     let bibNumber: String
     let divisionName: String
+    let categoryName: String?
     let powerFactor: String
     let stagesDone: Int
     let status: String  // "waiting" | "shooting" | "done"
@@ -64,6 +65,8 @@ struct IpscShooter: Decodable, Identifiable {
         case id, name, status
         case bibNumber    = "bib_number"
         case divisionName = "division_name"
+        case categoryName = "category_name"
+        case categoryAlias = "category"
         case powerFactor  = "power_factor"
         case stagesDone   = "stages_done"
     }
@@ -74,6 +77,8 @@ struct IpscShooter: Decodable, Identifiable {
         name = try container.decode(String.self, forKey: .name)
         bibNumber = try container.decode(String.self, forKey: .bibNumber)
         divisionName = try container.decode(String.self, forKey: .divisionName)
+        categoryName = try container.decodeIfPresent(String.self, forKey: .categoryName)
+            ?? container.decodeIfPresent(String.self, forKey: .categoryAlias)
         powerFactor = try container.decodeIfPresent(String.self, forKey: .powerFactor) ?? "Unknown"
         stagesDone = try container.decode(Int.self, forKey: .stagesDone)
         status = try container.decode(String.self, forKey: .status)

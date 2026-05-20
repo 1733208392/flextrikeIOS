@@ -171,7 +171,10 @@ class IpscSubmitViewModel(
 
         summary.shots.forEach { shot ->
             val targetType = shot.content.actualTargetType.trim().lowercase()
+            val rawHitArea = shot.content.actualHitArea
+            val isAPopper = isAPopperHitArea(rawHitArea)
             val rowType = if (
+                isAPopper ||
                 targetType.contains("steel") ||
                 targetType.contains("popper") ||
                 targetType.contains("paddle")
@@ -182,10 +185,11 @@ class IpscSubmitViewModel(
                 ?: shot.device?.trim().takeUnless { it.isNullOrEmpty() }
                 ?: "target"
 
-            val key = "$rowType|${targetName.lowercase()}|$targetType"
+            val keyTargetType = if (isAPopper) "apopper" else targetType
+            val key = "$rowType|${targetName.lowercase()}|$keyTargetType"
             val row = grouped.getOrPut(key) { RowAccumulator(rowType = rowType, key = key) }
 
-            when (normalizeHitArea(shot.content.actualHitArea)) {
+            when (normalizeHitArea(rawHitArea)) {
                 "a" -> row.a += 1
                 "c" -> row.c += 1
                 "d" -> row.d += 1
@@ -227,6 +231,13 @@ class IpscSubmitViewModel(
             }
 
         return steelRows + paperRows
+    }
+
+    private fun isAPopperHitArea(raw: String?): Boolean {
+        return when (raw?.trim()?.lowercase()) {
+            "apopper", "a_popper", "a-popper" -> true
+            else -> false
+        }
     }
 
     private fun normalizeHitArea(raw: String?): String {

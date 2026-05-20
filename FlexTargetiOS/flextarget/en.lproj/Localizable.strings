@@ -328,10 +328,12 @@
 "competition_session_stage" = "STAGE";
 "competition_session_squad" = "SQUAD";
 "competition_session_shooter" = "SHOOTER";
+"competition_session_drill" = "DRILL";
 "competition_session_select_match" = "Select match";
 "competition_session_select_stage" = "Select stage";
 "competition_session_select_squad" = "Select squad";
 "competition_session_select_shooter" = "Select shooter";
+"competition_session_select_drill" = "Select drill";
 "competition_session_no_matches" = "No matches found.";
 "competition_session_retry_matches" = "Retry Matches";
 "competition_session_no_stages" = "No stages available for the selected match.";

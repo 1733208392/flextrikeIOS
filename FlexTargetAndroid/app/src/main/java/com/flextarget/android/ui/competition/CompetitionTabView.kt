@@ -100,6 +100,13 @@ fun CompetitionTabView(
         } ?: run {
             // Otherwise show the appropriate screen based on menu selection
             when (selectedScreen.value) {
+                CompetitionScreen.SESSION_START -> {
+                    CompetitionSessionStartView(
+                        onBack = { selectedScreen.value = null },
+                        drillViewModel = drillViewModel,
+                        bleManager = bleManager
+                    )
+                }
                 CompetitionScreen.COMPETITIONS -> {
                     CompetitionListView(
                         onBack = { selectedScreen.value = null },
@@ -162,6 +169,14 @@ private fun CompetitionMenuView(
                     .align(Alignment.TopCenter),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                // Competitions Menu Item
+                CompetitionMenuItem(
+                    icon = Icons.Default.TrackChanges,
+                    title = stringResource(R.string.competition_session_start),
+                    description = stringResource(R.string.competition_session_start_hint),
+                    onClick = { selectedScreen.value = CompetitionScreen.SESSION_START }
+                )
+
                 // Competitions Menu Item
                 CompetitionMenuItem(
                     icon = Icons.Default.EmojiEvents,
@@ -251,6 +266,7 @@ private fun CompetitionMenuItem(
 }
 
 enum class CompetitionScreen {
+    SESSION_START,
     COMPETITIONS,
     ATHLETES,
     LEADERBOARD

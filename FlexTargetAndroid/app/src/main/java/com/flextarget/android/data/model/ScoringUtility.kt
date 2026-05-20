@@ -92,7 +92,7 @@ object ScoringUtility {
             "azone", "a" -> 5
             "czone", "c" -> 3
             "dzone", "d" -> 1
-            "miss", "m" -> -15
+            "miss", "m" -> -10
             "whitezone", "n" -> -10
             "circlearea" -> 5 // Paddle
             "popperzone" -> 5 // Popper
@@ -122,17 +122,26 @@ object ScoringUtility {
             shotsByTarget.getOrPut(key) { mutableListOf() }.add(shot)
         }
 
-        // Find which targets have at least one valid PAPER hit.
-        // APopper hits (physical popper knocks) do not count as paper engagement:
-        // if you only knock the popper but never shoot the paper, the paper target is still PE.
+        // Find which targets have at least one valid engagement hit.
+        // For steel/popper targets, APopper counts as engagement.
+        // For paper targets, APopper does not count as engagement.
         var targetsWithValidHits = mutableSetOf<String>()
-        for ((key, targetShots) in shotsByTarget) {
-            val hasValidPaperHit = targetShots.any { shot ->
+        for ((targetKey, targetShots) in shotsByTarget) {
+            val parts = targetKey.split("|", limit = 2)
+            val baseName = parts.getOrNull(0) ?: targetKey
+            val baseType = parts.getOrNull(1) ?: "unknown"
+            val config = findConfigByNameAndType(targetsSet, baseName, baseType)
+            val configType = config?.targetType?.trim()?.lowercase()
+            val shotType = targetShots.firstOrNull()?.content?.actualTargetType?.trim()?.lowercase() ?: baseType
+            val targetType = if (!configType.isNullOrBlank()) configType else shotType
+            val isPaddleOrPopper = targetType.contains("paddle") || targetType.contains("popper")
+
+            val hasValidEngagementHit = targetShots.any { shot ->
                 val area = normalizeHitArea(shot.content.actualHitArea)
-                area != "apopper" && scoreForHitArea(area) > 0
+                scoreForHitArea(area) > 0 && (isPaddleOrPopper || area != "apopper")
             }
-            if (hasValidPaperHit) {
-                targetsWithValidHits.add(key)
+            if (hasValidEngagementHit) {
+                targetsWithValidHits.add(targetKey)
             }
         }
 
@@ -209,18 +218,14 @@ object ScoringUtility {
             val validApopperHits = apopperShots.count { scoreForHitArea(normalizeHitArea(it.content.actualHitArea)) > 0 }
             aCount += validApopperHits
 
-            // Physical popper miss: 1 hit required when target has hasPhysicalPopper = true
-            if (config?.hasPhysicalPopper == true && validApopperHits == 0) {
-                mCount += 1
-            }
-
             // Filter for valid hits (positive score) from regular shots only
             val validHits = regularShots.filter { scoreForHitArea(normalizeHitArea(it.content.actualHitArea)) > 0 }
 
             if (isPaddleOrPopper) {
                 // Paddles/Poppers: 1 valid hit required, count all valid hits
                 val requiredHits = 1
-                val deficit = maxOf(0, requiredHits - validHits.size)
+                val totalSteelHits = validHits.size + validApopperHits
+                val deficit = maxOf(0, requiredHits - totalSteelHits)
                 mCount += deficit
 
                 // Count all valid hits for paddles/poppers
@@ -233,13 +238,9 @@ object ScoringUtility {
                 }
             } else {
                 // Paper target: 2 valid hits required, count best 2.
-                // If validHits is empty, the target is already penalized as PE
-                // (no paper engagement) — don't double-count with M as well.
                 val requiredHits = 2
                 val deficit = maxOf(0, requiredHits - validHits.size)
-                if (validHits.isNotEmpty()) {
-                    mCount += deficit
-                }
+                mCount += deficit
 
                 // Count best 2 valid hits
                 val sortedValidHits = validHits.sortedByDescending { scoreForHitArea(normalizeHitArea(it.content.actualHitArea)) }
@@ -257,8 +258,8 @@ object ScoringUtility {
         val peCount = calculateMissedTargets(shots, targets)
 
         // Calculate base score from adjusted counts
-        // A=5, C=3, D=1, N=-10, M=-15, PE=-10
-        val totalScore = (aCount * 5.0) + (cCount * 3.0) + (dCount * 1.0) + (mCount * -15.0) + (nCount * -10.0) + (peCount * -10.0)
+        // A=5, C=3, D=1, N=-10, M=-10, PE=-10
+        val totalScore = (aCount * 5.0) + (cCount * 3.0) + (dCount * 1.0) + (mCount * -10.0) + (nCount * -10.0) + (peCount * -10.0)
 
         // Ensure score never goes below 0
         return maxOf(0.0, totalScore)
@@ -338,18 +339,14 @@ object ScoringUtility {
             val validApopperHits = apopperShots.count { scoreForHitArea(normalizeHitArea(it.content.actualHitArea)) > 0 }
             aCount += validApopperHits
 
-            // Physical popper miss: 1 hit required when target has hasPhysicalPopper = true
-            if (config?.hasPhysicalPopper == true && validApopperHits == 0) {
-                mCount += 1
-            }
-
             // Filter for valid hits from regular shots only
             val validHits = regularShots.filter { scoreForHitArea(normalizeHitArea(it.content.actualHitArea)) > 0 }
 
             if (isPaddleOrPopper) {
                 // Paddles/Poppers: 1 valid hit required
                 val requiredHits = 1
-                val deficit = maxOf(0, requiredHits - validHits.size)
+                val totalSteelHits = validHits.size + validApopperHits
+                val deficit = maxOf(0, requiredHits - totalSteelHits)
                 mCount += deficit
 
                 // Count all valid hits for paddles/poppers as A zone
@@ -362,13 +359,9 @@ object ScoringUtility {
                 }
             } else {
                 // Paper target: 2 valid hits required.
-                // If validHits is empty, the target is already penalized as PE
-                // (no paper engagement) — don't double-count with M as well.
                 val requiredHits = 2
                 val deficit = maxOf(0, requiredHits - validHits.size)
-                if (validHits.isNotEmpty()) {
-                    mCount += deficit
-                }
+                mCount += deficit
 
                 // Count best 2 valid hits
                 val sortedValidHits = validHits.sortedByDescending { scoreForHitArea(normalizeHitArea(it.content.actualHitArea)) }

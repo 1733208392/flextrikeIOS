@@ -33,6 +33,15 @@ interface IpscApi {
     ): IpscApiResponse<List<IpscSquad>>
 
     /**
+     * Stage list for a match.
+     * GET /api/v1/matches/{matchId}/stages
+     */
+    @GET("api/v1/matches/{matchId}/stages")
+    suspend fun getStages(
+        @Path("matchId") matchId: Int
+    ): IpscApiResponse<List<IpscStage>>
+
+    /**
      * 接口 2: Submit FlexTarget score for a shooter/stage.
      * POST /api/v1/matches/{matchId}/scores/flextarget
      *

@@ -107,16 +107,23 @@ class ScoringUtility {
         }
         
         var targetsWithValidHits = Set<String>()
-        for (device, targetShots) in shotsByTarget {
-            // A target is considered "engaged" for PE purposes only if it has valid PAPER shots.
-            // APopper hits (physical popper knocks) do not count as paper engagement:
-            // if you only knock the popper but never shoot the paper, the paper target is still PE.
-            let hasValidPaperHit = targetShots.contains { shot in
+        for (targetKey, targetShots) in shotsByTarget {
+            let parts = targetKey.split(separator: "|", maxSplits: 1, omittingEmptySubsequences: false)
+            let baseName = parts.first.map { String($0) } ?? targetKey
+            let baseTypeFromKey = parts.count > 1 ? String(parts[1]) : ""
+            let config = targetsSet.first { $0.targetName?.lowercased() == baseName }
+            let configType = (config?.primaryTargetType())?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).lowercased()
+            let shotType = (targetShots.first?.content.targetType)?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).lowercased() ?? baseTypeFromKey
+            let targetType = (configType != nil && configType! != "") ? configType! : shotType
+            let isPaddleOrPopper = targetType.contains("paddle") || targetType.contains("popper")
+
+            let hasValidEngagementHit = targetShots.contains { shot in
                 let area = ScoringUtility.normalizeHitArea(shot.content.hitArea)
-                return area != "apopper" && ScoringUtility.scoreForHitArea(area) > 0
+                if ScoringUtility.scoreForHitArea(area) <= 0 { return false }
+                return isPaddleOrPopper || area != "apopper"
             }
-            if hasValidPaperHit {
-                targetsWithValidHits.insert(device)
+            if hasValidEngagementHit {
+                targetsWithValidHits.insert(targetKey)
             }
         }
         
@@ -131,7 +138,7 @@ class ScoringUtility {
         let aScore = Double(counts["A"] ?? 0) * 5.0
         let cScore = Double(counts["C"] ?? 0) * 3.0
         let dScore = Double(counts["D"] ?? 0) * 1.0
-        let mScore = Double(counts["M"] ?? 0) * -15.0
+        let mScore = Double(counts["M"] ?? 0) * -10.0
         let nScore = Double(counts["N"] ?? 0) * -10.0
         let peScore = Double(counts["PE"] ?? 0) * -10.0
         
@@ -207,21 +214,15 @@ class ScoringUtility {
             let validApopperHits = apopperShots.filter { ScoringUtility.scoreForHitArea(ScoringUtility.normalizeHitArea($0.content.hitArea)) > 0 }.count
             aCount += validApopperHits
 
-            // Physical popper miss: 1 hit required when target has hasPhysicalPopper = true
-            if config?.hasPhysicalPopper == true && validApopperHits == 0 {
-                print("[ScoringUtility] Popper miss for target '\(targetName)': hasPhysicalPopper=true, validApopperHits=0 → +1M")
-                mCount += 1
-            }
-
             // Filter for valid hits from regular shots only
             let validHits = regularShots.filter { ScoringUtility.scoreForHitArea(ScoringUtility.normalizeHitArea($0.content.hitArea)) > 0 }
             
             if isPaddleOrPopper {
                 // Paddles/Poppers: 1 valid hit required
                 let requiredHits = 1
-                let deficit = max(0, requiredHits - validHits.count)
-                // For paddles/poppers, do not count misses as M
-                // mCount += deficit
+                let totalSteelHits = validHits.count + validApopperHits
+                let deficit = max(0, requiredHits - totalSteelHits)
+                mCount += deficit
                 
                 // Count all valid hits for paddles/poppers
                 for shot in validHits {
@@ -235,13 +236,9 @@ class ScoringUtility {
                 }
             } else {
                 // Paper target: 2 valid hits required.
-                // If validHits.count == 0, the target is already penalized as PE
-                // (no paper engagement) — don't double-count with M as well.
                 let requiredHits = 2
                 let deficit = max(0, requiredHits - validHits.count)
-                if validHits.count > 0 {
-                    mCount += deficit
-                }
+                mCount += deficit
                 
                 // Count best 2 valid hits
                 let sortedValidHits = validHits.sorted {
@@ -276,7 +273,7 @@ class ScoringUtility {
         let mCount = adjustedHitZones["M"] ?? 0
         
         // Calculate base score from adjusted counts
-        // A=5, C=3, D=1, N=-10, M=-15, PE=-10
+        // A=5, C=3, D=1, N=-10, M=-10, PE=-10
         let totalScore = (aCount * 5) + (cCount * 3) + (dCount * 1) + (mCount * -10) + (nCount * -10) + (peCount * -10)
         
         // Ensure score never goes below 0

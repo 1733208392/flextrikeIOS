@@ -64,7 +64,12 @@ struct CompetitionDetailView: View {
                                     ZStack {
                                         Color.black.ignoresSafeArea()
                                         if let drillSetup = result.drillSetup {
-                                            DrillSummaryView(drillSetup: drillSetup, summaries: reconstructSummaries(from: result), competition: competition)
+                                            CompetitionTargetGridSummaryView(
+                                                drillSetup: drillSetup,
+                                                summaries: reconstructSummaries(from: result),
+                                                competition: competition,
+                                                ipscContext: nil
+                                            )
                                         }
                                     }
                                 ) {
@@ -128,7 +133,12 @@ struct CompetitionDetailView: View {
             
             NavigationLink(isActive: $navigateToDrillSummary) {
                 if let drillSetup = competition.drillSetup {
-                    DrillSummaryView(drillSetup: drillSetup, summaries: drillRepeatSummaries, competition: competition)
+                    CompetitionTargetGridSummaryView(
+                        drillSetup: drillSetup,
+                        summaries: drillRepeatSummaries,
+                        competition: competition,
+                        ipscContext: nil
+                    )
                 }
             } label: {
                 EmptyView()

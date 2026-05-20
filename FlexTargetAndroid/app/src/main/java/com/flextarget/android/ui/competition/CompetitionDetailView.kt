@@ -65,12 +65,14 @@ fun CompetitionDetailView(
     var showAthletePicker by remember { mutableStateOf(false) }
     var showTimerSession by remember { mutableStateOf(false) }
     var timerSessionTargets by remember { mutableStateOf<List<DrillTargetsConfigEntity>>(emptyList()) }
+    var showCompetitionGridSummary by remember { mutableStateOf(false) }
     var showDrillSummary by remember { mutableStateOf(false) }
     var drillSummaries by remember { mutableStateOf<List<DrillRepeatSummary>>(emptyList()) }
     var competitionResults by remember { mutableStateOf<List<DrillResultWithShots>>(emptyList()) }
     var selectedResultDrill by remember { mutableStateOf<DrillSetupEntity?>(null) }
     var selectedResultSummaries by remember { mutableStateOf<List<DrillRepeatSummary>>(emptyList()) }
     var showResultSummary by remember { mutableStateOf(false) }
+    var showLegacyResultSummary by remember { mutableStateOf(false) }
     var showResultReplay by remember { mutableStateOf(false) }
     var showResultDetails by remember { mutableStateOf(false) }
     var selectedReplaySummary by remember { mutableStateOf<DrillRepeatSummary?>(null) }
@@ -102,7 +104,7 @@ fun CompetitionDetailView(
             onDrillComplete = { summaries ->
                 drillSummaries = summaries
                 showTimerSession = false
-                showDrillSummary = true
+                showCompetitionGridSummary = true
             },
             onDrillFailed = {
                 showTimerSession = false
@@ -110,6 +112,41 @@ fun CompetitionDetailView(
             onBack = {
                 showTimerSession = false
             }
+        )
+    } else if (showCompetitionGridSummary && linkedDrill != null) {
+        CompetitionTargetGridSummaryView(
+            drillSetup = linkedDrill,
+            targets = timerSessionTargets,
+            summaries = drillSummaries,
+            shooterName = uiState.selectedAthlete?.name,
+            stageName = competition.name,
+            onBack = {
+                showCompetitionGridSummary = false
+            },
+            onReview = { updatedSummaries ->
+                drillSummaries = updatedSummaries
+                showCompetitionGridSummary = false
+                showDrillSummary = true
+            }
+        )
+    } else if (showDrillSummary && linkedDrill != null) {
+        DrillSummaryView(
+            drillSetup = linkedDrill,
+            summaries = drillSummaries,
+            isCompetitionDrill = true,
+            athleteName = uiState.selectedAthlete?.name.orEmpty(),
+            onBack = {
+                showDrillSummary = false
+            },
+            onViewResult = { summary ->
+                selectedDetailsSummary = summary
+                showResultDetails = true
+            },
+            onReplay = { summary ->
+                selectedReplaySummary = summary
+                showResultReplay = true
+            },
+            onCompetitionSubmit = {}
         )
     } else if (showResultReplay && selectedResultDrill != null && selectedReplaySummary != null) {
         // Show drill replay from competition results
@@ -134,15 +171,15 @@ fun CompetitionDetailView(
                 selectedDetailsSummary = null
             }
         )
-    } else if (showResultSummary && selectedResultDrill != null) {
-        // Show drill summary from competition results
+    } else if (showLegacyResultSummary && selectedResultDrill != null) {
+        // Show detailed summary from competition results after reviewing target-grid edits
         DrillSummaryView(
             drillSetup = selectedResultDrill!!,
             summaries = selectedResultSummaries,
             isCompetitionDrill = true,
             athleteName = resultAthleteNameForDisplay,
             onBack = {
-                showResultSummary = false
+                showLegacyResultSummary = false
                 selectedResultDrill = null
                 selectedResultSummaries = emptyList()
             },
@@ -184,6 +221,24 @@ fun CompetitionDetailView(
                         )
                     }
                 }
+            }
+        )
+    } else if (showResultSummary && selectedResultDrill != null) {
+        CompetitionTargetGridSummaryView(
+            drillSetup = selectedResultDrill!!,
+            targets = resultDrillTargets,
+            summaries = selectedResultSummaries,
+            shooterName = resultAthleteNameForDisplay,
+            stageName = competition.name,
+            onBack = {
+                showResultSummary = false
+                selectedResultDrill = null
+                selectedResultSummaries = emptyList()
+            },
+            onReview = { updatedSummaries ->
+                selectedResultSummaries = updatedSummaries
+                showResultSummary = false
+                showLegacyResultSummary = true
             }
         )
     } else {
