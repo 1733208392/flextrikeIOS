@@ -16,14 +16,16 @@ struct TimerSessionView: View {
     let bleManager: BLEManager
     let competition: Competition?
     let athlete: Athlete?
+    let isCompetitionSession: Bool
     let onDrillComplete: ([DrillRepeatSummary]) -> Void
     let onDrillFailed: () -> Void
     
-    init(drillSetup: DrillSetup, bleManager: BLEManager, competition: Competition? = nil, athlete: Athlete? = nil, onDrillComplete: @escaping ([DrillRepeatSummary]) -> Void, onDrillFailed: @escaping () -> Void) {
+    init(drillSetup: DrillSetup, bleManager: BLEManager, competition: Competition? = nil, athlete: Athlete? = nil, isCompetitionSession: Bool = false, onDrillComplete: @escaping ([DrillRepeatSummary]) -> Void, onDrillFailed: @escaping () -> Void) {
         self.drillSetup = drillSetup
         self.bleManager = bleManager
         self.competition = competition
         self.athlete = athlete
+        self.isCompetitionSession = isCompetitionSession
         self.onDrillComplete = onDrillComplete
         self.onDrillFailed = onDrillFailed
     }
@@ -327,15 +329,9 @@ struct TimerSessionView: View {
                     self.onDrillFailed()
                 }
             },
-            onReadinessUpdate: { readyCount, totalCount in
+            onReadinessUpdate: { readyCount, _ in
                 DispatchQueue.main.async {
-                    let wasReady = self.readyTargetsCount == self.expectedDevices.count && self.expectedDevices.count > 0
                     self.readyTargetsCount = readyCount
-                    let isReady = readyCount == totalCount && totalCount > 0
-                    
-                    if isReady && !wasReady {
-                        self.playReadySound()
-                    }
                 }
             },
             onReadinessTimeout: { nonResponsiveList in
@@ -355,8 +351,8 @@ struct TimerSessionView: View {
 
     private func startSequence() {
         timerState = .standby
-        playStandbySound()
-        let soundDuration = audioPlayer?.duration ?? 0
+        // Silent mode: no "standby" voice prompt.
+        let soundDuration: TimeInterval = 0
         let randomDelayValue = Double.random(in: 1...4)
         randomDelay = randomDelayValue
         delayTarget = Date().addingTimeInterval(soundDuration + randomDelayValue)
@@ -454,7 +450,10 @@ struct TimerSessionView: View {
     private func transitionToRunning(at timestamp: Date) {
         timerState = .running
         timerStartDate = timestamp
-        playHighBeep()
+        // Keep start beep only for competition sessions.
+        if isCompetitionSession {
+            playHighBeep()
+        }
         executionManager?.setBeepTime(timestamp)
         executionManager?.startExecution()
         // Disable idle timer to prevent screen lock during drill

@@ -47,9 +47,13 @@ struct DrillSummaryView: View {
     @State private var submitAlertMessage = ""
     @State private var submitError: Error? = nil
 
-    // IPSC submit sheet
-    @State private var showIpscSubmit = false
     @StateObject private var ipscSubmitViewModel = IpscSubmitViewModel()
+
+    @State private var targetRows: [IpscEditableTargetRow] = []
+    @State private var originalTargetRows: [IpscEditableTargetRow] = []
+    @State private var dqApplied = false
+    @State private var dnfApplied = false
+    @State private var ipscPeCount = 0
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.managedObjectContext) private var environmentContext
@@ -86,6 +90,22 @@ struct DrillSummaryView: View {
             return result.submittedAt != nil
         }
         return false
+    }
+
+    private var isIpscContextFlow: Bool {
+        ipscContext != nil
+    }
+
+    private var shooterDivisionLine: String {
+        guard let shooter = ipscContext?.shooter else { return "" }
+        var parts: [String] = []
+        if !shooter.divisionName.isEmpty {
+            parts.append(shooter.divisionName)
+        }
+        if let category = shooter.categoryName, !category.isEmpty {
+            parts.append(category)
+        }
+        return parts.joined(separator: " • ")
     }
 
     private func metrics(for summary: DrillRepeatSummary) -> [SummaryMetric] {
@@ -456,83 +476,59 @@ struct DrillSummaryView: View {
                                 VStack(spacing: 12) {
                                     NavigationLink(destination: DrillResultView(drillSetup: drillSetup, repeatSummary: summaries[index])) {
                                         summaryCard(
-                                            title: String(format: NSLocalizedString("repeat_number", comment: "Repeat number format"), summaries[index].repeatIndex),
-                                            subtitle: AnyView(EmptyView()),
+                                            title: isIpscContextFlow ? (ipscContext?.shooter.name ?? String(format: NSLocalizedString("repeat_number", comment: "Repeat number format"), summaries[index].repeatIndex)) : String(format: NSLocalizedString("repeat_number", comment: "Repeat number format"), summaries[index].repeatIndex),
+                                            subtitle: AnyView(
+                                                Group {
+                                                    if isIpscContextFlow && !shooterDivisionLine.isEmpty {
+                                                        Text(shooterDivisionLine)
+                                                            .font(.system(size: 12))
+                                                            .foregroundColor(.gray)
+                                                    }
+                                                }
+                                            ),
                                             iconName: "scope",
                                             metrics: metrics(for: summaries[index]),
                                             hitZoneMetrics: hitZoneMetrics(for: summaries[index]),
                                             summaryIndex: index
                                         )
                                     }
-                                    .tint(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
-                                    
-                                    NavigationLink(destination: DrillReplayView(drillSetup: drillSetup, shots: summaries[index].shots)) {
-                                        HStack(spacing: 8) {
-                                            Image(systemName: "play.circle.fill")
-                                                .font(.system(size: 16, weight: .bold))
-                                            Text(NSLocalizedString("watch_replay_button", comment: "Watch replay button text"))
-                                                .font(.system(size: 14, weight: .bold))
-                                                .kerning(0.5)
-                                        }
-                                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
-                                        .padding(.vertical, 10)
-                                        .frame(maxWidth: .infinity)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 12)
-                                                .fill(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433).opacity(0.1))
-                                                .overlay(
-                                                    RoundedRectangle(cornerRadius: 12)
-                                                        .stroke(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433).opacity(0.3), lineWidth: 1)
-                                                )
-                                        )
-                                    }
                                     .padding(.horizontal, 20)
                                     .tint(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
-                                    
-                                    // Submit button - only for competition results
-                                    if competition != nil {
-                                        let isSubmittingNow = isSubmitting
-                                        let isDeviceConnected = bleManager.isConnected
-                                        let deviceTokenExists = DeviceAuthManager.shared.deviceToken != nil
-                                        let isButtonDisabled = isSubmittingNow || !isDeviceConnected || !deviceTokenExists || isResultAlreadySubmitted
-                                        
-                                        Button(action: {
-                                            if !isButtonDisabled {
-                                                submitCompetitionResult()
-                                            }
-                                        }) {
-                                            HStack(spacing: 8) {
-                                                if isSubmitting {
-                                                    ProgressView()
-                                                        .tint(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
-                                                } else {
-                                                    Image(systemName: "paperplane.fill")
-                                                        .font(.system(size: 16, weight: .bold))
-                                                }
-                                                Text(NSLocalizedString("submit_result", comment: "Submit result button text"))
-                                                    .font(.system(size: 14, weight: .bold))
-                                                    .kerning(0.5)
-                                            }
-                                            .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
-                                            .padding(.vertical, 10)
-                                            .frame(maxWidth: .infinity)
-                                            .background(
-                                                RoundedRectangle(cornerRadius: 12)
-                                                    .fill(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433).opacity(0.1))
-                                                    .overlay(
-                                                        RoundedRectangle(cornerRadius: 12)
-                                                            .stroke(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433).opacity(0.3), lineWidth: 1)
-                                                    )
-                                            )
-                                        }
-                                        .disabled(isButtonDisabled)
-                                        .opacity(isButtonDisabled ? 0.5 : 1.0)
-                                        .padding(.horizontal, 20)
-                                    }
                                 }
+                            }
+
+                            if isIpscContextFlow {
+                                ipscInlineSubmitPanel
+                                    .padding(.horizontal, 20)
                             }
                         }
                         .padding(.vertical, 24)
+                    }
+
+                    if let replaySummary = summaries.first {
+                        NavigationLink(destination: DrillReplayView(drillSetup: drillSetup, shots: replaySummary.shots)) {
+                            HStack(spacing: 8) {
+                                Image(systemName: "play.circle.fill")
+                                    .font(.system(size: 16, weight: .bold))
+                                Text(NSLocalizedString("watch_replay_button", comment: "Watch replay button text"))
+                                    .font(.system(size: 14, weight: .bold))
+                                    .kerning(0.5)
+                            }
+                            .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+                            .padding(.vertical, 10)
+                            .frame(maxWidth: .infinity)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433).opacity(0.1))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .stroke(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433).opacity(0.3), lineWidth: 1)
+                                    )
+                            )
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 16)
+                        .tint(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                     }
                 }
             }
@@ -545,31 +541,30 @@ struct DrillSummaryView: View {
         drillSetup.mode?.lowercased() == "gaming"
     }
 
-    private var showIpscButton: Bool {
-        !isCQBMode && !isGamingMode && !summaries.isEmpty && ipscContext != nil
-    }
-
     private var ipscDrillSummaryViewWithAllModifiers: some View {
         ipscDrillSummaryView
             .navigationBarHidden(true)
             .onAppear {
                 initializeOriginalScores()
+                initializeIpscEditableRowsIfNeeded()
+                ipscSubmitViewModel.lockedContext = ipscContext
             }
-            .fullScreenCover(isPresented: $showIpscSubmit) {
-                IpscSubmitView(
-                    viewModel: ipscSubmitViewModel,
-                    summaries: summaries,
-                    onDismiss: {
-                        showIpscSubmit = false
-                        ipscSubmitViewModel.dismiss()
-                    }
-                )
-            }
-            .onChange(of: showIpscSubmit) { isPresented in
-                if isPresented {
-                    ipscSubmitViewModel.lockedContext = ipscContext
-                } else {
-                    ipscSubmitViewModel.lockedContext = nil
+            .onChange(of: ipscSubmitViewModel.step) { step in
+                switch step {
+                case .success(let hitFactor, let totalPoints):
+                    showSubmitSuccess(
+                        title: NSLocalizedString("success_title", comment: "Success"),
+                        message: "HF \(String(format: "%.3f", hitFactor)), TOTAL \(totalPoints)"
+                    )
+                    ipscSubmitViewModel.dismiss()
+                case .error(let message):
+                    showSubmitError(
+                        title: NSLocalizedString("submit_failed_title", comment: "Submission Failed"),
+                        message: message
+                    )
+                    ipscSubmitViewModel.dismiss()
+                default:
+                    break
                 }
             }
             .sheet(item: $editingSummary) { summary in
@@ -657,27 +652,342 @@ struct DrillSummaryView: View {
                     .cornerRadius(4)
             }
 
+            if let shooter = ipscContext?.shooter {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(shooter.name)
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(.white)
+                        .lineLimit(1)
+                    if !shooterDivisionLine.isEmpty {
+                        Text(shooterDivisionLine)
+                            .font(.system(size: 10, weight: .regular))
+                            .foregroundColor(.gray)
+                            .lineLimit(1)
+                    }
+                }
+                .padding(.horizontal, 8)
+            }
+
             Spacer()
 
-            if !summaries.isEmpty {
-                if showIpscButton {
-                    Button(action: { showIpscSubmit = true }) {
-                        Image(systemName: "arrow.up.to.line")
+            if !summaries.isEmpty && (isIpscContextFlow || competition != nil) {
+                Button(action: {
+                    if isIpscContextFlow {
+                        submitIpscFromSummary()
+                    } else if competition != nil {
+                        submitCompetitionResult()
+                    }
+                }) {
+                    if case .submitting = ipscSubmitViewModel.step {
+                        ProgressView()
+                            .tint(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+                    } else if isSubmitting {
+                        ProgressView()
+                            .tint(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+                    } else {
+                        Image(systemName: "paperplane.fill")
                             .font(.system(size: 18, weight: .semibold))
                             .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                     }
                 }
-                ShareLink(item: generateCSVFile()) {
-                    Image(systemName: "square.and.arrow.up")
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
-                }
+                .disabled(summaries.isEmpty || isResultAlreadySubmitted)
+                .opacity((summaries.isEmpty || isResultAlreadySubmitted) ? 0.5 : 1.0)
             }
         }
         .padding(.horizontal, 20)
         .padding(.top, 16)
         .padding(.bottom, 12)
         .background(Color.black.opacity(0.95))
+    }
+
+    private var ipscInlineSubmitPanel: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            ipscTargetGridHeader
+
+            ForEach(Array(targetRows.enumerated()), id: \.element.id) { index, row in
+                ipscTargetGridRow(row: row, rowIndex: index)
+            }
+
+            HStack(spacing: 12) {
+                Spacer()
+
+                PenaltyButton(action: {
+                    ipscPeCount += 1
+                    applyIpscGridToSummary()
+                }, penaltyCount: ipscPeCount)
+
+                CircularActionButton(title: "DNF", tint: .orange, action: applyDnf)
+                CircularActionButton(title: "DQ", tint: .orange, action: applyDq)
+
+                RestoreButton(action: resetIpscPenaltyAndFlags)
+            }
+
+            if dnfApplied || dqApplied {
+                Text(dqApplied ? "DQ applied: all hit counts set to 0" : "DNF applied: all hit counts set to 0")
+                    .font(.system(size: 12))
+                    .foregroundColor(.gray)
+            }
+        }
+        .padding(16)
+        .background(cardGradient)
+        .overlay(
+            RoundedRectangle(cornerRadius: 24)
+                .stroke(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433).opacity(0.2), lineWidth: 1)
+        )
+        .cornerRadius(24)
+    }
+
+    private var ipscTargetGridHeader: some View {
+        HStack(spacing: 6) {
+            Text("T#")
+                .foregroundColor(.gray)
+                .frame(width: 44, alignment: .leading)
+            Text("A").frame(maxWidth: .infinity)
+            Text("C").frame(maxWidth: .infinity)
+            Text("D").frame(maxWidth: .infinity)
+            Text("NS").frame(maxWidth: .infinity)
+            Text("M").frame(maxWidth: .infinity)
+        }
+        .font(.system(size: 12, weight: .semibold))
+        .foregroundColor(.gray)
+    }
+
+    private func ipscTargetGridRow(row: IpscEditableTargetRow, rowIndex: Int) -> some View {
+        HStack(spacing: 6) {
+            Text("\(row.rowNo)")
+                .foregroundColor(.gray)
+                .frame(width: 44, alignment: .leading)
+
+            ipscCell(value: row.a, rowIndex: rowIndex, zone: .a)
+            ipscCell(value: row.c, rowIndex: rowIndex, zone: .c)
+            ipscCell(value: row.d, rowIndex: rowIndex, zone: .d)
+            ipscCell(value: row.ns, rowIndex: rowIndex, zone: .ns)
+            ipscCell(value: row.m, rowIndex: rowIndex, zone: .m)
+        }
+    }
+
+    private func ipscCell(value: Int, rowIndex: Int, zone: IpscEditableZone) -> some View {
+        Text("\(value)")
+            .font(.system(size: 14, weight: .bold))
+            .foregroundColor(.black)
+            .frame(maxWidth: .infinity)
+            .frame(height: 36)
+            .background(value > 0 ? Color.green : Color.red.opacity(0.85))
+            .cornerRadius(6)
+            .onTapGesture {
+                updateIpscCell(rowIndex: rowIndex, zone: zone, reset: false)
+            }
+            .onLongPressGesture(minimumDuration: 0.45) {
+                updateIpscCell(rowIndex: rowIndex, zone: zone, reset: true)
+            }
+    }
+
+    private func initializeIpscEditableRowsIfNeeded() {
+        guard isIpscContextFlow else { return }
+        guard !targetRows.isEmpty || summaries.isEmpty else {
+            targetRows = buildIpscEditableRows(summary: summaries.first)
+            originalTargetRows = targetRows
+            ipscPeCount = summaries.first?.adjustedHitZones?["PE"] ?? 0
+            applyIpscGridToSummary()
+            return
+        }
+    }
+
+    private func applyDnf() {
+        dnfApplied = true
+        dqApplied = false
+        zeroIpscRowsAndSummary()
+    }
+
+    private func applyDq() {
+        dqApplied = true
+        dnfApplied = false
+        zeroIpscRowsAndSummary()
+    }
+
+    private func zeroIpscRowsAndSummary() {
+        targetRows = targetRows.map { row in
+            var next = row
+            next.a = 0
+            next.c = 0
+            next.d = 0
+            next.ns = 0
+            next.m = 0
+            return next
+        }
+        ipscPeCount = 0
+        applyIpscGridToSummary(forceZeroPenalties: true)
+    }
+
+    private func resetIpscPenaltyAndFlags() {
+        dnfApplied = false
+        dqApplied = false
+        ipscPeCount = 0
+        if !originalTargetRows.isEmpty {
+            targetRows = originalTargetRows
+        }
+        applyIpscGridToSummary()
+    }
+
+    private func submitIpscFromSummary() {
+        guard let context = ipscContext else {
+            showSubmitError(title: NSLocalizedString("error_title", comment: "Error"), message: "Competition context missing.")
+            return
+        }
+        guard !summaries.isEmpty else {
+            showSubmitError(title: NSLocalizedString("error_title", comment: "Error"), message: "No summary data available.")
+            return
+        }
+        applyIpscGridToSummary()
+        ipscSubmitViewModel.submit(context: context, summary: summaries[0])
+    }
+
+    private func updateIpscCell(rowIndex: Int, zone: IpscEditableZone, reset: Bool) {
+        guard targetRows.indices.contains(rowIndex) else { return }
+
+        switch zone {
+        case .a:
+            targetRows[rowIndex].a = reset ? 0 : targetRows[rowIndex].a + 1
+        case .c:
+            targetRows[rowIndex].c = reset ? 0 : targetRows[rowIndex].c + 1
+        case .d:
+            targetRows[rowIndex].d = reset ? 0 : targetRows[rowIndex].d + 1
+        case .ns:
+            targetRows[rowIndex].ns = reset ? 0 : targetRows[rowIndex].ns + 1
+        case .m:
+            targetRows[rowIndex].m = reset ? 0 : targetRows[rowIndex].m + 1
+        }
+
+        dnfApplied = false
+        dqApplied = false
+        applyIpscGridToSummary()
+    }
+
+    private func applyIpscGridToSummary(forceZeroPenalties: Bool = false) {
+        guard !summaries.isEmpty else { return }
+        let totals = aggregateIpscZones()
+        let existingPe = forceZeroPenalties ? 0 : ipscPeCount
+        let zones: [String: Int] = [
+            "A": totals.a,
+            "C": totals.c,
+            "D": totals.d,
+            "N": totals.ns,
+            "M": totals.m,
+            "PE": existingPe
+        ]
+        summaries[0].adjustedHitZones = zones
+        summaries[0].score = ScoringUtility.calculateScoreFromAdjustedHitZones(zones, drillSetup: drillSetup)
+    }
+
+    private func aggregateIpscZones() -> (a: Int, c: Int, d: Int, ns: Int, m: Int) {
+        (
+            a: targetRows.reduce(0) { $0 + $1.a },
+            c: targetRows.reduce(0) { $0 + $1.c },
+            d: targetRows.reduce(0) { $0 + $1.d },
+            ns: targetRows.reduce(0) { $0 + $1.ns },
+            m: targetRows.reduce(0) { $0 + $1.m }
+        )
+    }
+
+    private func buildIpscEditableRows(summary: DrillRepeatSummary?) -> [IpscEditableTargetRow] {
+        let targets = ((drillSetup.targets as? Set<DrillTargetsConfig>) ?? []).sorted { lhs, rhs in
+            if lhs.seqNo == rhs.seqNo {
+                return (lhs.targetName ?? "") < (rhs.targetName ?? "")
+            }
+            return lhs.seqNo < rhs.seqNo
+        }
+
+        let shots = summary?.shots ?? []
+        var groupedShots: [String: [ShotData]] = [:]
+        for shot in shots {
+            let key = ScoringUtility.normalizedTargetKey(for: shot)
+            groupedShots[key, default: []].append(shot)
+        }
+
+        return targets.enumerated().map { idx, target in
+            let name = target.targetName?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() ?? "target_\(idx + 1)"
+            let type = target.primaryTargetType().trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+            let key = "\(name)|\(type)"
+            let rowShots = groupedShots[key] ?? []
+            let counts = calculateIpscRowCounts(rowShots: rowShots, targetType: type)
+
+            return IpscEditableTargetRow(
+                id: key,
+                rowNo: Int(target.seqNo) > 0 ? Int(target.seqNo) : idx + 1,
+                a: counts.a,
+                c: counts.c,
+                d: counts.d,
+                ns: counts.ns,
+                m: counts.m
+            )
+        }
+    }
+
+    private func calculateIpscRowCounts(rowShots: [ShotData], targetType: String) -> (a: Int, c: Int, d: Int, ns: Int, m: Int) {
+        var a = 0
+        var c = 0
+        var d = 0
+        var ns = 0
+        var m = 0
+
+        let isPaddleOrPopper = targetType.contains("paddle") || targetType.contains("popper")
+
+        let normalizedShots = rowShots.map { shot -> (shot: ShotData, area: String) in
+            (shot, ScoringUtility.normalizeHitArea(shot.content.hitArea))
+        }
+
+        let noShootShots = normalizedShots.filter { $0.area == "whitezone" }
+        ns += noShootShots.count
+
+        let nonNoShootShots = normalizedShots.filter { $0.area != "whitezone" }
+        let apopperShots = nonNoShootShots.filter { $0.area == "apopper" }
+        let regularShots = nonNoShootShots.filter { $0.area != "apopper" }
+
+        let validApopperHits = apopperShots.filter { ScoringUtility.scoreForHitArea($0.area) > 0 }.count
+        a += validApopperHits
+
+        let validRegularShots = regularShots.filter { ScoringUtility.scoreForHitArea($0.area) > 0 }
+
+        if isPaddleOrPopper {
+            let requiredHits = 1
+            let totalSteelHits = validRegularShots.count + validApopperHits
+            m += max(0, requiredHits - totalSteelHits)
+
+            for validShot in validRegularShots {
+                switch validShot.area {
+                case "azone", "a", "circlearea", "popperzone":
+                    a += 1
+                case "czone", "c":
+                    c += 1
+                case "dzone", "d":
+                    d += 1
+                default:
+                    break
+                }
+            }
+        } else {
+            let requiredHits = 2
+            m += max(0, requiredHits - validRegularShots.count)
+
+            let scoringShots = validRegularShots
+                .sorted { ScoringUtility.scoreForHitArea($0.area) > ScoringUtility.scoreForHitArea($1.area) }
+                .prefix(requiredHits)
+
+            for scoringShot in scoringShots {
+                switch scoringShot.area {
+                case "azone", "a":
+                    a += 1
+                case "czone", "c":
+                    c += 1
+                case "dzone", "d":
+                    d += 1
+                default:
+                    break
+                }
+            }
+        }
+
+        return (a: a, c: c, d: d, ns: ns, m: m)
     }
 
     private func generateCSVFile() -> URL {
@@ -736,16 +1046,6 @@ struct DrillSummaryView: View {
                 }
 
                 Spacer()
-                
-                // PE Button for penalty deduction
-                PenaltyButton(action: {
-                    deductScore(at: summaryIndex)
-                }, penaltyCount: penaltyCounts[summaries[summaryIndex].id, default: 0] + missedTargets(for: summaries[summaryIndex]))
-                
-                // Restore Button
-                RestoreButton(action: {
-                    restoreScore(at: summaryIndex)
-                })
             }
 
             Divider()
@@ -846,6 +1146,24 @@ struct DrillSummaryView: View {
     }
 }
 
+private enum IpscEditableZone {
+    case a
+    case c
+    case d
+    case ns
+    case m
+}
+
+private struct IpscEditableTargetRow: Identifiable {
+    let id: String
+    let rowNo: Int
+    var a: Int
+    var c: Int
+    var d: Int
+    var ns: Int
+    var m: Int
+}
+
 private struct SummaryMetric: Identifiable {
     let id = UUID()
     let iconName: String
@@ -923,6 +1241,39 @@ struct RestoreButton: View {
                     .foregroundColor(.green)
             }
             .shadow(color: Color.green.opacity(0.3), radius: 6, x: 0, y: 3)
+        }
+        .scaleEffect(isPressed ? 0.92 : 1.0)
+        .opacity(isPressed ? 0.8 : 1.0)
+        .onLongPressGesture(minimumDuration: 0.05, perform: {}, onPressingChanged: { pressing in
+            withAnimation(.easeInOut(duration: 0.15)) {
+                isPressed = pressing
+            }
+        })
+    }
+}
+
+struct CircularActionButton: View {
+    @State private var isPressed = false
+    let title: String
+    let tint: Color
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            ZStack {
+                Circle()
+                    .fill(Color.black)
+                    .frame(width: 40, height: 40)
+                    .overlay(
+                        Circle()
+                            .stroke(tint, lineWidth: 2)
+                    )
+
+                Text(title)
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundColor(tint)
+            }
+            .shadow(color: tint.opacity(0.3), radius: 6, x: 0, y: 3)
         }
         .scaleEffect(isPressed ? 0.92 : 1.0)
         .opacity(isPressed ? 0.8 : 1.0)

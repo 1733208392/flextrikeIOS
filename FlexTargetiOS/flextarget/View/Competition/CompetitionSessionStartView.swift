@@ -52,6 +52,7 @@ struct CompetitionSessionStartView: View {
                         bleManager: bleManager,
                         competition: nil,
                         athlete: nil,
+                        isCompetitionSession: true,
                         onDrillComplete: { summaries in
                             DispatchQueue.main.async {
                                 drillRepeatSummaries = summaries
@@ -74,7 +75,7 @@ struct CompetitionSessionStartView: View {
 
             NavigationLink(isActive: $navigateToCompetitionSummary) {
                 if let drill = drillSetupForTimer {
-                    CompetitionTargetGridSummaryView(
+                    DrillSummaryView(
                         drillSetup: drill,
                         summaries: drillRepeatSummaries,
                         competition: nil,

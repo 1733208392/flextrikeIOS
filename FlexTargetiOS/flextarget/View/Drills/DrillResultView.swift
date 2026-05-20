@@ -1,5 +1,78 @@
 import SwiftUI
 import CoreData
+import UIKit
+
+private func normalizeTargetTypeKey(_ raw: String, drillMode: String? = nil) -> String {
+    let key = raw.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+    let mode = drillMode?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() ?? ""
+
+    if key.isEmpty {
+        switch mode {
+        case "ipsc": return "ipsc"
+        case "idpa": return "idpa"
+        case "cqb": return "cqb_swing"
+        default: return "hostage"
+        }
+    }
+
+    let aliases: [String: String] = [
+        "standard": "ipsc",
+        "ipsc": "ipsc",
+        "hostage": "hostage",
+        "paddle": "paddle",
+        "popper": "popper",
+        "rotation": "rotation",
+        "special_1": "special_1",
+        "special_2": "special_2",
+        "idpa": "idpa",
+        "idpa_ns": "idpa_ns",
+        "idpa_black_1": "idpa_hard_cover_1",
+        "idpa_black_2": "idpa_hard_cover_2",
+        "idpa-back-1": "idpa_hard_cover_1",
+        "idpa-back-2": "idpa_hard_cover_2",
+        "cqb_swing": "cqb_swing",
+        "cqb_front": "cqb_front",
+        "cqb_move": "cqb_move",
+        "cqb_hostage": "cqb_hostage",
+        "disguised_enemy": "disguised_enemy",
+        "disguised_enemy_surrender": "disguised_enemy_surrender"
+    ]
+
+    if let mapped = aliases[key] {
+        return mapped
+    }
+
+    if key.contains("ipsc") { return "ipsc" }
+    if key.contains("idpa") { return "idpa" }
+    if key.contains("rotation") { return "rotation" }
+    if key.contains("hostage") { return "hostage" }
+    if key.contains("popper") { return "popper" }
+    if key.contains("paddle") { return "paddle" }
+    if key.contains("cqb") { return "cqb_swing" }
+
+    switch mode {
+    case "ipsc": return "ipsc"
+    case "idpa": return "idpa"
+    case "cqb": return "cqb_swing"
+    default: return "hostage"
+    }
+}
+
+private func targetDisplayImageName(for icon: String, drillMode: String? = nil) -> String {
+    let normalized = normalizeTargetTypeKey(icon, drillMode: drillMode)
+    let preferredLiveName = "\(normalized).live.target"
+
+    if UIImage(named: preferredLiveName) != nil {
+        return preferredLiveName
+    }
+    if UIImage(named: normalized) != nil {
+        return normalized
+    }
+    if UIImage(named: "ipsc.live.target") != nil {
+        return "ipsc.live.target"
+    }
+    return "ipsc"
+}
 
 private struct TargetDisplay: Identifiable, Hashable {
     let id: String
@@ -11,8 +84,9 @@ private struct TargetDisplay: Identifiable, Hashable {
     func matches(_ shot: ShotData) -> Bool {
         // For multi-target displays, match by device name (if known) AND targetType (icon)
         if index != nil {
-            let shotIcon = shot.content.targetType.isEmpty ? "hostage" : shot.content.targetType
-            guard shotIcon == icon else { return false }
+            let shotIcon = normalizeTargetTypeKey(shot.content.targetType)
+            let displayIcon = normalizeTargetTypeKey(icon)
+            guard shotIcon == displayIcon else { return false }
             // When a device name is known, restrict to shots from that device so two
             // targets of the same type don't each show all bullet holes.
             if let targetName = targetName, !targetName.isEmpty {
@@ -27,8 +101,8 @@ private struct TargetDisplay: Identifiable, Hashable {
             let shotTargetName = shot.device?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
             return shotTargetName.lowercased() == targetName.lowercased()
         } else {
-            let shotIcon = shot.content.targetType.isEmpty ? "hostage" : shot.content.targetType
-            return shotIcon == icon
+            let shotIcon = normalizeTargetTypeKey(shot.content.targetType)
+            return shotIcon == normalizeTargetTypeKey(icon)
         }
     }
 }
@@ -221,7 +295,7 @@ private struct TargetDisplayView: View {
                                 .stroke(Color.white, lineWidth: 12)
                         )
 
-                    Image("\(display.icon).live.target")
+                    Image(targetDisplayImageName(for: display.icon))
                         .resizable()
                         .scaledToFit()
                         .frame(width: frameWidth, height: frameHeight)
@@ -449,7 +523,7 @@ struct DrillResultView: View {
             if !parsedTypes.isEmpty {
                 // Multi-target: create separate display for each target type
                 for (index, targetType) in parsedTypes.enumerated() {
-                    let resolvedIcon = targetType.isEmpty ? "hostage" : targetType
+                    let resolvedIcon = normalizeTargetTypeKey(targetType, drillMode: drillSetup.mode)
                     let id = (target.id?.uuidString ?? UUID().uuidString) + "-multitarget-\(index)"
                     let display = TargetDisplay(
                         id: id,
@@ -463,7 +537,7 @@ struct DrillResultView: View {
                 }
             } else {
                 // Single target (backward compatible)
-                let resolvedIcon = targetTypeStr.isEmpty ? "hostage" : targetTypeStr
+                let resolvedIcon = normalizeTargetTypeKey(targetTypeStr, drillMode: drillSetup.mode)
                 let id = target.id?.uuidString ?? UUID().uuidString
                 let display = TargetDisplay(
                     id: id,
