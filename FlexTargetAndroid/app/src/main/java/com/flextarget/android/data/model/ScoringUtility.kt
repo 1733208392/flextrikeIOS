@@ -13,6 +13,27 @@ import android.util.Log
  */
 object ScoringUtility {
 
+    private fun panelSuffixForShot(shot: ShotData, targetType: String): String {
+        if (targetType != "ipsc_mini_double") return ""
+        return when (shot.content.actualHitArea.trim().lowercase()) {
+            "azone1", "a1", "a-zone1", "a_zone1",
+            "czone1", "c1", "c-zone1", "c_zone1",
+            "dzone1", "d1", "d-zone1", "d_zone1" -> "#p1"
+            else -> "#p0"
+        }
+    }
+
+    private fun expandedExpectedTargetKeys(name: String, targetType: String): List<String> {
+        val normalizedName = name.trim().lowercase()
+        val normalizedType = targetType.trim().lowercase()
+        if (normalizedName.isEmpty()) return emptyList()
+        return if (normalizedType == "ipsc_mini_double") {
+            listOf("${normalizedName}#p0|$normalizedType", "${normalizedName}#p1|$normalizedType")
+        } else {
+            listOf("${normalizedName}|$normalizedType")
+        }
+    }
+
     // Normalize incoming hit area strings to canonical values
     private fun normalizeHitArea(raw: String?): String {
         val trimmed = raw?.trim()?.lowercase() ?: ""
@@ -21,9 +42,12 @@ object ScoringUtility {
             "circle", "circlearea", "circle_area", "circle-area" -> "circlearea"
             "popper", "popperzone", "popper_zone", "popper-zone" -> "popperzone"
             "azone", "a", "a-zone", "a_zone" -> "azone"
+            "azone1", "a1", "a-zone1", "a_zone1" -> "azone"
             "apopper", "a_popper", "a-popper" -> "apopper"
             "czone", "c", "c-zone", "c_zone" -> "czone"
+            "czone1", "c1", "c-zone1", "c_zone1" -> "czone"
             "dzone", "d", "d-zone", "d_zone" -> "dzone"
+            "dzone1", "d1", "d-zone1", "d_zone1" -> "dzone"
             "whitezone", "white_zone", "white-zone" -> "whitezone"
             "blackzone", "black_zone", "black-zone",
             "blackzoneleft", "black_zone_left", "black-zone-left",
@@ -43,19 +67,20 @@ object ScoringUtility {
      * 3. Last resort: "unknown|unknown"
      */
     private fun normalizedTargetKey(shot: ShotData): String {
+        val ttype = shot.content.actualTargetType?.trim()?.lowercase() ?: "unknown"
+        val panel = panelSuffixForShot(shot, ttype)
+
         // Priority 1: Explicit target name from shot.target
         val name = shot.target?.trim()
         if (!name.isNullOrBlank()) {
-            val ttype = shot.content.actualTargetType?.trim()?.lowercase() ?: "unknown"
-            return "${name.lowercase()}|$ttype"
+            return "${name.lowercase()}$panel|$ttype"
         }
 
         // Priority 2: Fall back to device|targetType 
         // (ensures shots to different types on same device are grouped separately)
         val device = shot.content.device ?: shot.device
-        val ttype = shot.content.actualTargetType?.trim()?.lowercase() ?: "unknown"
         if (!device.isNullOrBlank()) {
-            val key = "${device.trim().lowercase()}|$ttype"
+            val key = "${device.trim().lowercase()}$panel|$ttype"
             Log.d("ScoringUtility", "normalizedTargetKey: using fallback device|type: $key")
             return key
         }
@@ -89,9 +114,9 @@ object ScoringUtility {
     fun scoreForHitArea(hitArea: String): Int {
         val trimmed = hitArea.trim().lowercase()
         return when (trimmed) {
-            "azone", "a" -> 5
-            "czone", "c" -> 3
-            "dzone", "d" -> 1
+            "azone", "a", "azone1", "a1" -> 5
+            "czone", "c", "czone1", "c1" -> 3
+            "dzone", "d", "dzone1", "d1" -> 1
             "miss", "m" -> -10
             "whitezone", "n" -> -10
             "circlearea" -> 5 // Paddle
@@ -108,11 +133,11 @@ object ScoringUtility {
     fun calculateMissedTargets(shots: List<ShotData>, targets: List<DrillTargetsConfigData>?): Int {
         val targetsSet = targets ?: return 0
         // Build expected targets as combined keys "name|type"
-        val expectedTargets = targetsSet.mapNotNull { cfg ->
-            val name = cfg.targetName?.trim()
-            if (name.isNullOrEmpty()) return@mapNotNull null
+        val expectedTargets = targetsSet.flatMap { cfg ->
+            val name = cfg.targetName?.trim().orEmpty()
+            if (name.isEmpty()) return@flatMap emptyList()
             val type = cfg.targetType?.trim()?.lowercase() ?: "unknown"
-            "${name.lowercase()}|$type"
+            expandedExpectedTargetKeys(name, type)
         }.toSet()
         
         // Group shots by target/device using combined key
@@ -163,11 +188,11 @@ object ScoringUtility {
 
         val targetsConfigs = targets ?: emptyList()
         // Build expected target combined keys "name|type"
-        val expectedTargetNames = targetsConfigs.mapNotNull { cfg ->
-            val name = cfg.targetName?.trim()
-            if (name.isNullOrEmpty()) return@mapNotNull null
+        val expectedTargetNames = targetsConfigs.flatMap { cfg ->
+            val name = cfg.targetName?.trim().orEmpty()
+            if (name.isEmpty()) return@flatMap emptyList()
             val type = cfg.targetType?.trim()?.lowercase() ?: "unknown"
-            "${name.lowercase()}|$type"
+            expandedExpectedTargetKeys(name, type)
         }.toSet()
 
         // Group shots by target using combined key
@@ -284,11 +309,11 @@ object ScoringUtility {
 
         val targetsConfigs = targets ?: emptyList()
         // Build expected target combined keys "name|type"
-        val expectedTargetNames = targetsConfigs.mapNotNull { cfg ->
-            val name = cfg.targetName?.trim()
-            if (name.isNullOrEmpty()) return@mapNotNull null
+        val expectedTargetNames = targetsConfigs.flatMap { cfg ->
+            val name = cfg.targetName?.trim().orEmpty()
+            if (name.isEmpty()) return@flatMap emptyList()
             val type = cfg.targetType?.trim()?.lowercase() ?: "unknown"
-            "${name.lowercase()}|$type"
+            expandedExpectedTargetKeys(name, type)
         }.toSet()
 
         // Group shots by target using combined key (ensures different types are separate groups)

@@ -19,6 +19,7 @@ var shot_count: int = 0
 # Bullet system
 const BulletScene = preload("res://scene/bullet.tscn")
 const BulletHoleScene = preload("res://scene/bullet_hole.tscn")
+const IPSC_BULLET_HOLE_ALPHA: float = 0.75
 
 # Bullet hole pool for performance optimization
 var bullet_hole_pool: Array[Node] = []
@@ -581,6 +582,8 @@ func get_pooled_bullet_hole() -> Node:
 
 	if BulletHoleScene:
 		var new_hole = BulletHoleScene.instantiate()
+		if new_hole.has_method("set_hole_alpha"):
+			new_hole.set_hole_alpha(IPSC_BULLET_HOLE_ALPHA)
 		bullet_hole_pool.append(new_hole)
 		return new_hole
 
@@ -621,6 +624,7 @@ func create_bullet_hole_mesh(texture: Texture2D) -> QuadMesh:
 	if shader:
 		shader_material.shader = shader
 		shader_material.set_shader_parameter("texture_albedo", texture)
+		shader_material.set_shader_parameter("hole_alpha", IPSC_BULLET_HOLE_ALPHA)
 
 	mesh.material = shader_material
 	return mesh

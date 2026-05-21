@@ -752,11 +752,31 @@ struct CompetitionTargetGridSummaryView: View {
             groupedShots[key, default: []].append(shot)
         }
 
-        return targets.enumerated().map { idx, target in
-            let name = target.targetName?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() ?? "target_\(idx + 1)"
+        // Expand each configured target into 1 or more display rows.
+        // ipsc_mini_double has 2 panels (P0/P1) each treated as an independent paper target.
+        struct ExpandedTarget {
+            let target: DrillTargetsConfig
+            let panel: String?     // "P0" / "P1" / nil
+            let key: String        // grouping key matching ScoringUtility.normalizedTargetKey
+            let rowSuffix: String  // appended to label for the panel row
+        }
+
+        var expanded: [ExpandedTarget] = []
+        for target in targets {
+            let name = target.targetName?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() ?? ""
             let type = target.primaryTargetType().trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-            let key = "\(name)|\(type)"
-            let rowShots = groupedShots[key] ?? []
+            if type == "ipsc_mini_double" {
+                expanded.append(ExpandedTarget(target: target, panel: "P0", key: "\(name)+p0|\(type)", rowSuffix: " (P0)"))
+                expanded.append(ExpandedTarget(target: target, panel: "P1", key: "\(name)+p1|\(type)", rowSuffix: " (P1)"))
+            } else {
+                expanded.append(ExpandedTarget(target: target, panel: nil, key: "\(name)|\(type)", rowSuffix: ""))
+            }
+        }
+
+        return expanded.enumerated().map { idx, entry in
+            let target = entry.target
+            let type = target.primaryTargetType().trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+            let rowShots = groupedShots[entry.key] ?? []
 
             var a = 0
             var c = 0
@@ -764,28 +784,51 @@ struct CompetitionTargetGridSummaryView: View {
             var m = 0
             var ns = 0
 
-            for shot in rowShots {
-                let area = ScoringUtility.normalizeHitArea(shot.content.hitArea)
-                switch area {
-                case "azone", "a", "circlearea", "popperzone", "apopper":
-                    a += 1
-                case "czone", "c":
-                    c += 1
-                case "dzone", "d":
-                    d += 1
-                case "whitezone":
-                    ns += 1
-                case "miss", "m":
-                    m += 1
-                default:
-                    break
+            // For paper targets (incl. each ipsc_mini_double panel) credit best 2 hits;
+            // any deficit becomes Ms. This mirrors ScoringUtility paper-target rules so
+            // the per-panel row totals align with overall scoring.
+            let isPaddleOrPopper = type.contains("paddle") || type.contains("popper")
+
+            let nsShots = rowShots.filter { ScoringUtility.normalizeHitArea($0.content.hitArea) == "whitezone" }
+            let otherShots = rowShots.filter { ScoringUtility.normalizeHitArea($0.content.hitArea) != "whitezone" }
+            ns += nsShots.count
+
+            let validHits = otherShots.filter { ScoringUtility.scoreForHitArea(ScoringUtility.normalizeHitArea($0.content.hitArea)) > 0 }
+
+            if isPaddleOrPopper {
+                let deficit = max(0, 1 - validHits.count)
+                m += deficit
+                for shot in validHits {
+                    let area = ScoringUtility.normalizeHitArea(shot.content.hitArea)
+                    switch area {
+                    case "azone", "a", "circlearea", "popperzone", "apopper": a += 1
+                    case "czone", "c": c += 1
+                    case "dzone", "d": d += 1
+                    default: break
+                    }
+                }
+            } else {
+                let deficit = max(0, 2 - validHits.count)
+                m += deficit
+                let sorted = validHits.sorted {
+                    ScoringUtility.scoreForHitArea($0.content.hitArea) > ScoringUtility.scoreForHitArea($1.content.hitArea)
+                }
+                for shot in sorted.prefix(2) {
+                    let area = ScoringUtility.normalizeHitArea(shot.content.hitArea)
+                    switch area {
+                    case "azone", "a": a += 1
+                    case "czone", "c": c += 1
+                    case "dzone", "d": d += 1
+                    default: break
+                    }
                 }
             }
 
+            let baseSeq = Int(target.seqNo) > 0 ? Int(target.seqNo) : idx + 1
             return CompetitionTargetRowState(
-                id: key,
-                rowNo: Int(target.seqNo) > 0 ? Int(target.seqNo) : idx + 1,
-                label: target.targetName ?? "T\(idx + 1)",
+                id: entry.key,
+                rowNo: baseSeq,
+                label: (target.targetName ?? "T\(idx + 1)") + entry.rowSuffix,
                 targetType: type,
                 a: a,
                 c: c,

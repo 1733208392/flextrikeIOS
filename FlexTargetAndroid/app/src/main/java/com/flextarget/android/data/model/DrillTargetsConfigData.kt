@@ -44,6 +44,7 @@ data class DrillTargetsConfigData(
         val DEFAULT_TARGET_TYPES = listOf(
             "hostage",
             "ipsc",
+            "ipsc_mini_double",
             "paddle",
             "popper",
             "rotation",
@@ -56,6 +57,7 @@ data class DrillTargetsConfigData(
             return when (drillMode.lowercase()) {
                 "ipsc" -> listOf(
                     "ipsc",
+                    "ipsc_mini_double",
                     "hostage",
                     "paddle",
                     "popper",

@@ -9,6 +9,7 @@ var is_disappearing: bool = false
 const BulletScene = preload("res://scene/bullet.tscn")
 const BulletHoleScene = preload("res://scene/bullet_hole.tscn")
 const ScoreUtils = preload("res://script/score_utils.gd")
+const IPSC_BULLET_HOLE_ALPHA: float = 0.75
 
 # Scoring system
 var total_score: int = 0
@@ -122,6 +123,8 @@ func spawn_bullet_hole(local_position: Vector2):
 	if BulletHoleScene:
 		var bullet_hole = BulletHoleScene.instantiate()
 		add_child(bullet_hole)
+		if bullet_hole.has_method("set_hole_alpha"):
+			bullet_hole.set_hole_alpha(IPSC_BULLET_HOLE_ALPHA)
 		bullet_hole.set_hole_position(local_position)
 		print("Bullet hole spawned on hostage target at local position: ", local_position)
 	else:

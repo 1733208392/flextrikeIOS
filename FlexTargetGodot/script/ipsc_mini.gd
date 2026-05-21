@@ -13,6 +13,7 @@ var shot_count: int = 0
 const BulletScene = preload("res://scene/bullet.tscn")
 const BulletHoleScene = preload("res://scene/bullet_hole.tscn")
 const ScoreUtils = preload("res://script/score_utils.gd")
+const IPSC_BULLET_HOLE_ALPHA: float = 0.75
 
 # Bullet hole system - GPU instanced rendering for performance
 var bullet_hole_multimeshes: Array[MultiMeshInstance2D] = []
@@ -269,6 +270,7 @@ func create_bullet_hole_mesh(texture: Texture2D) -> QuadMesh:
 	if shader:
 		shader_material.shader = shader
 		shader_material.set_shader_parameter("texture_albedo", texture)
+		shader_material.set_shader_parameter("hole_alpha", IPSC_BULLET_HOLE_ALPHA)
 	
 	mesh.material = shader_material
 	return mesh

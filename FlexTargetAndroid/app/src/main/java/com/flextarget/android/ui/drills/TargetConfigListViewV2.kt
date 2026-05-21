@@ -84,7 +84,7 @@ fun TargetConfigListViewV2(
     var isSelectingMode by remember { mutableStateOf(false) }
 
     val availableTargetTypes = when (localDrillMode) {
-        "ipsc" -> listOf("ipsc", "hostage", "paddle", "popper", "special_1", "special_2")
+        "ipsc" -> listOf("ipsc", "ipsc_mini_double", "hostage", "paddle", "popper", "special_1", "special_2")
         "idpa" -> listOf("idpa", "idpa_ns", "idpa_black_1", "idpa_black_2")
         "cqb" -> listOf("disguised_enemy", "cqb_swing", "cqb_front", "cqb_hostage")
         "gaming" -> listOf("clay pigeon")
@@ -382,6 +382,7 @@ private fun getIconForTargetType(type: String): String {
     return when (type) {
         "hostage" -> "hostage.png"
         "ipsc" -> "ipsc.png"
+        "ipsc_mini_double" -> "ipsc.png"
         "special_1" -> "ipsc_black_1.png"
         "special_2" -> "ipsc_black_2.png"
         "paddle" -> "paddle.png"
@@ -404,6 +405,7 @@ private fun getDrawableResourceId(type: String): Int {
     return when (type) {
         "hostage" -> R.drawable.hostage
         "ipsc" -> R.drawable.ipsc
+        "ipsc_mini_double" -> R.drawable.ipsc
         "special_1" -> R.drawable.ipsc_black_1
         "special_2" -> R.drawable.ipsc_black_2
         "paddle" -> R.drawable.paddle

@@ -38,6 +38,7 @@ struct TimerSessionView: View {
     @State private var elapsedDuration: TimeInterval = 0
     @State private var updateTimer: Timer?
     @State private var audioPlayer: AVAudioPlayer?
+    @State private var readyCuePlayed: Bool = false
     @State private var showEndDrillAlert: Bool = false
     @State private var gracePeriodActive: Bool = false
     @State private var gracePeriodRemaining: TimeInterval = 0
@@ -351,8 +352,14 @@ struct TimerSessionView: View {
 
     private func startSequence() {
         timerState = .standby
-        // Silent mode: no "standby" voice prompt.
+
+        // Non-competition mode plays full cue sequence: standby -> ready -> start beep.
         let soundDuration: TimeInterval = 0
+        readyCuePlayed = false
+        if !isCompetitionSession {
+            playStandbySound()
+        }
+
         let randomDelayValue = Double.random(in: 1...4)
         randomDelay = randomDelayValue
         delayTarget = Date().addingTimeInterval(soundDuration + randomDelayValue)
@@ -385,6 +392,12 @@ struct TimerSessionView: View {
                     transitionToRunning(at: now)
                 } else {
                     delayRemaining = min(randomDelay, target.timeIntervalSince(now))
+
+                    // In non-competition mode, play "ready" about 1 second before the beep.
+                    if !isCompetitionSession, !readyCuePlayed, delayRemaining <= 1.0 {
+                        readyCuePlayed = true
+                        playReadySound()
+                    }
                 }
             }
 
@@ -450,10 +463,7 @@ struct TimerSessionView: View {
     private func transitionToRunning(at timestamp: Date) {
         timerState = .running
         timerStartDate = timestamp
-        // Keep start beep only for competition sessions.
-        if isCompetitionSession {
-            playHighBeep()
-        }
+        playHighBeep()
         executionManager?.setBeepTime(timestamp)
         executionManager?.startExecution()
         // Disable idle timer to prevent screen lock during drill
@@ -539,6 +549,16 @@ struct TimerSessionView: View {
         pauseRemaining = 0
     }
 
+    private func prepareAudioSessionForCuePlayback() {
+        do {
+            let session = AVAudioSession.sharedInstance()
+            try session.setCategory(.playback, mode: .default, options: [.duckOthers])
+            try session.setActive(true)
+        } catch {
+            print("Failed to configure audio session for cue playback: \(error)")
+        }
+    }
+
     private func playHighBeep() {
         guard let url = Bundle.main.url(forResource: "synthetic-shot-timer", withExtension: "wav") else {
             print("Audio file not found")
@@ -546,7 +566,9 @@ struct TimerSessionView: View {
         }
         
         do {
+            prepareAudioSessionForCuePlayback()
             audioPlayer = try AVAudioPlayer(contentsOf: url)
+            audioPlayer?.prepareToPlay()
             audioPlayer?.play()
         } catch {
             print("Failed to play audio: \(error)")
@@ -560,7 +582,9 @@ struct TimerSessionView: View {
         }
         
         do {
+            prepareAudioSessionForCuePlayback()
             audioPlayer = try AVAudioPlayer(contentsOf: url)
+            audioPlayer?.prepareToPlay()
             audioPlayer?.play()
         } catch {
             print("Failed to play standby audio: \(error)")
@@ -574,7 +598,9 @@ struct TimerSessionView: View {
         }
         
         do {
+            prepareAudioSessionForCuePlayback()
             audioPlayer = try AVAudioPlayer(contentsOf: url)
+            audioPlayer?.prepareToPlay()
             audioPlayer?.play()
         } catch {
             print("Failed to play ready audio: \(error)")

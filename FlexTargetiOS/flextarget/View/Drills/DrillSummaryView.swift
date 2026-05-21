@@ -38,14 +38,11 @@ struct DrillSummaryView: View {
     var ipscContext: IpscLockedSelectionContext? = nil
     @State private var originalScores: [UUID: Int] = [:]
     @State private var penaltyCounts: [UUID: Int] = [:]
-    @State private var editingSummary: DrillRepeatSummary? = nil
     
     // Submission state
     @State private var isSubmitting = false
-    @State private var showSubmitAlert = false
-    @State private var submitAlertTitle = ""
-    @State private var submitAlertMessage = ""
-    @State private var submitError: Error? = nil
+    @State private var submitSuccessMessage: String? = nil
+    @State private var submitErrorMessage: String? = nil
 
     @StateObject private var ipscSubmitViewModel = IpscSubmitViewModel()
 
@@ -94,6 +91,14 @@ struct DrillSummaryView: View {
 
     private var isIpscContextFlow: Bool {
         ipscContext != nil
+    }
+
+    /// True when this summary is being viewed as part of a competition session
+    /// (either a generic competition or the IPSC locked-shooter flow). In that
+    /// context we hide the DrillResultView/DrillReplayView navigations and the
+    /// hit-zone edit sheet because the official scoring grid is the source of truth.
+    private var isCompetitionFlow: Bool {
+        competition != nil || isIpscContextFlow
     }
 
     private var shooterDivisionLine: String {
@@ -435,17 +440,15 @@ struct DrillSummaryView: View {
     }
     
     private func showSubmitError(title: String, message: String) {
-        submitAlertTitle = title
-        submitAlertMessage = message
-        submitError = NSError(domain: "Submit", code: -1)
-        showSubmitAlert = true
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+            submitErrorMessage = message
+        }
     }
     
     private func showSubmitSuccess(title: String, message: String) {
-        submitAlertTitle = title
-        submitAlertMessage = message
-        submitError = nil
-        showSubmitAlert = true
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
+            submitSuccessMessage = message
+        }
     }
 
     var body: some View {
@@ -474,7 +477,7 @@ struct DrillSummaryView: View {
                         VStack(spacing: 20) {
                             ForEach(summaries.indices, id: \.self) { index in
                                 VStack(spacing: 12) {
-                                    NavigationLink(destination: DrillResultView(drillSetup: drillSetup, repeatSummary: summaries[index])) {
+                                    if isCompetitionFlow {
                                         summaryCard(
                                             title: isIpscContextFlow ? (ipscContext?.shooter.name ?? String(format: NSLocalizedString("repeat_number", comment: "Repeat number format"), summaries[index].repeatIndex)) : String(format: NSLocalizedString("repeat_number", comment: "Repeat number format"), summaries[index].repeatIndex),
                                             subtitle: AnyView(
@@ -491,9 +494,29 @@ struct DrillSummaryView: View {
                                             hitZoneMetrics: hitZoneMetrics(for: summaries[index]),
                                             summaryIndex: index
                                         )
+                                        .padding(.horizontal, 20)
+                                    } else {
+                                        NavigationLink(destination: DrillResultView(drillSetup: drillSetup, repeatSummary: summaries[index])) {
+                                            summaryCard(
+                                                title: isIpscContextFlow ? (ipscContext?.shooter.name ?? String(format: NSLocalizedString("repeat_number", comment: "Repeat number format"), summaries[index].repeatIndex)) : String(format: NSLocalizedString("repeat_number", comment: "Repeat number format"), summaries[index].repeatIndex),
+                                                subtitle: AnyView(
+                                                    Group {
+                                                        if isIpscContextFlow && !shooterDivisionLine.isEmpty {
+                                                            Text(shooterDivisionLine)
+                                                                .font(.system(size: 12))
+                                                                .foregroundColor(.gray)
+                                                        }
+                                                    }
+                                                ),
+                                                iconName: "scope",
+                                                metrics: metrics(for: summaries[index]),
+                                                hitZoneMetrics: hitZoneMetrics(for: summaries[index]),
+                                                summaryIndex: index
+                                            )
+                                        }
+                                        .padding(.horizontal, 20)
+                                        .tint(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                                     }
-                                    .padding(.horizontal, 20)
-                                    .tint(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                                 }
                             }
 
@@ -505,7 +528,7 @@ struct DrillSummaryView: View {
                         .padding(.vertical, 24)
                     }
 
-                    if let replaySummary = summaries.first {
+                    if let replaySummary = summaries.first, !isCompetitionFlow {
                         NavigationLink(destination: DrillReplayView(drillSetup: drillSetup, shots: replaySummary.shots)) {
                             HStack(spacing: 8) {
                                 Image(systemName: "play.circle.fill")
@@ -531,6 +554,99 @@ struct DrillSummaryView: View {
                         .tint(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                     }
                 }
+            }
+
+            // Error toast
+            if let errorMsg = submitErrorMessage {
+                VStack {
+                    HStack(spacing: 10) {
+                        Image(systemName: "exclamationmark.circle.fill")
+                            .font(.system(size: 16))
+                            .foregroundColor(Color(red: 0.87, green: 0.22, blue: 0.14))
+                        Text(errorMsg)
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(.white)
+                            .lineLimit(3)
+                        Spacer()
+                        Button(action: { withAnimation { submitErrorMessage = nil } }) {
+                            Image(systemName: "xmark")
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundColor(.gray)
+                        }
+                    }
+                    .padding(14)
+                    .background(Color(red: 0.14, green: 0.04, blue: 0.04))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color(red: 0.87, green: 0.22, blue: 0.14).opacity(0.5), lineWidth: 1)
+                    )
+                    .cornerRadius(12)
+                    .shadow(color: Color.black.opacity(0.4), radius: 8, x: 0, y: 4)
+                    .padding(.horizontal, 20)
+                    .padding(.top, 12)
+                    Spacer()
+                }
+                .transition(.move(edge: .top).combined(with: .opacity))
+                .zIndex(10)
+            }
+
+            // Success overlay
+            if submitSuccessMessage != nil {
+                Color.black.opacity(0.94)
+                    .ignoresSafeArea()
+                    .transition(.opacity)
+                    .zIndex(19)
+
+                VStack(spacing: 0) {
+                    Spacer()
+
+                    ZStack {
+                        Circle()
+                            .fill(Color.green.opacity(0.08))
+                            .frame(width: 130, height: 130)
+                        Circle()
+                            .stroke(Color.green.opacity(0.35), lineWidth: 1.5)
+                            .frame(width: 130, height: 130)
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 56, weight: .bold))
+                            .foregroundColor(.green)
+                    }
+
+                    Spacer().frame(height: 36)
+
+                    Text("SUBMITTED")
+                        .font(.system(size: 30, weight: .bold))
+                        .foregroundColor(.white)
+
+                    Spacer().frame(height: 12)
+
+                    if let msg = submitSuccessMessage {
+                        Text(msg)
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(Color.white.opacity(0.5))
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 48)
+                    }
+
+                    Spacer()
+
+                    Button(action: {
+                        withAnimation { submitSuccessMessage = nil }
+                        dismiss()
+                    }) {
+                        Text(NSLocalizedString("done_button", comment: "Done button"))
+                            .font(.system(size: 17, weight: .bold))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 56)
+                            .background(Color.green)
+                            .cornerRadius(14)
+                    }
+                    .padding(.horizontal, 32)
+                    .padding(.bottom, 48)
+                }
+                .transition(.opacity.combined(with: .scale(scale: 0.97)))
+                .zIndex(20)
             }
         }
     }
@@ -567,56 +683,6 @@ struct DrillSummaryView: View {
                     break
                 }
             }
-            .sheet(item: $editingSummary) { summary in
-                SummaryEditSheet(
-                    summary: summary,
-                    drillSetup: drillSetup,
-                    onSave: { updatedZones in
-                        // Find the index of the summary being edited
-                        if let index = summaries.firstIndex(where: { $0.id == summary.id }) {
-                            // Use the PE count from the edit sheet
-                            var finalZones = updatedZones
-                            
-                            summaries[index].adjustedHitZones = finalZones
-                            
-                            // Update penalty count state (subtract auto-calculated missed targets)
-                            penaltyCounts[summary.id] = (finalZones["PE"] ?? 0) - missedTargets(for: summaries[index])
-                            
-                            // Persist to Core Data
-                            if let drillResultId = summaries[index].drillResultId {
-                                let fetchRequest = NSFetchRequest<DrillResult>(entityName: "DrillResult")
-                                fetchRequest.predicate = NSPredicate(format: "id == %@", drillResultId as CVarArg)
-                                do {
-                                    let results = try viewContext.fetch(fetchRequest)
-                                    if let result = results.first {
-                                        if let jsonData = try? JSONEncoder().encode(finalZones),
-                                           let jsonString = String(data: jsonData, encoding: .utf8) {
-                                            result.adjustedHitZones = jsonString
-                                            try viewContext.save()
-                                        }
-                                    }
-                                } catch {
-                                    print("Failed to save adjusted hit zones: \(error)")
-                                }
-                            }
-                        }
-                        editingSummary = nil
-                    },
-                    onCancel: {
-                        editingSummary = nil
-                    }
-                )
-            }
-            .alert(NSLocalizedString("alert_title", comment: "Alert"), isPresented: $showSubmitAlert) {
-                Button(NSLocalizedString("ok_button", comment: "OK button")) {
-                    if submitError == nil {
-                        // Success - dismiss the view
-                        dismiss()
-                    }
-                }
-            } message: {
-                Text(submitAlertMessage)
-            }
     }
 
     private var navigationBar: some View {
@@ -650,22 +716,6 @@ struct DrillSummaryView: View {
                     .padding(.vertical, 4)
                     .background(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
                     .cornerRadius(4)
-            }
-
-            if let shooter = ipscContext?.shooter {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(shooter.name)
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(.white)
-                        .lineLimit(1)
-                    if !shooterDivisionLine.isEmpty {
-                        Text(shooterDivisionLine)
-                            .font(.system(size: 10, weight: .regular))
-                            .foregroundColor(.gray)
-                            .lineLimit(1)
-                    }
-                }
-                .padding(.horizontal, 8)
             }
 
             Spacer()
@@ -904,16 +954,37 @@ struct DrillSummaryView: View {
             groupedShots[key, default: []].append(shot)
         }
 
-        return targets.enumerated().map { idx, target in
-            let name = target.targetName?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() ?? "target_\(idx + 1)"
+        // For ipsc_mini_double, expand into 2 panel rows (P0 top, P1 bottom).
+        struct ExpandedTarget {
+            let target: DrillTargetsConfig
+            let key: String
+            let rowNoSuffix: Int  // 0 or 1 for panels, 0 otherwise
+            let isPanel: Bool
+        }
+
+        var expanded: [ExpandedTarget] = []
+        for target in targets {
+            let name = target.targetName?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() ?? ""
             let type = target.primaryTargetType().trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-            let key = "\(name)|\(type)"
-            let rowShots = groupedShots[key] ?? []
+            if type == "ipsc_mini_double" {
+                expanded.append(ExpandedTarget(target: target, key: "\(name)+p0|\(type)", rowNoSuffix: 0, isPanel: true))
+                expanded.append(ExpandedTarget(target: target, key: "\(name)+p1|\(type)", rowNoSuffix: 1, isPanel: true))
+            } else {
+                expanded.append(ExpandedTarget(target: target, key: "\(name)|\(type)", rowNoSuffix: 0, isPanel: false))
+            }
+        }
+
+        return expanded.enumerated().map { idx, entry in
+            let target = entry.target
+            let type = target.primaryTargetType().trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+            let rowShots = groupedShots[entry.key] ?? []
             let counts = calculateIpscRowCounts(rowShots: rowShots, targetType: type)
+            let baseSeq = Int(target.seqNo) > 0 ? Int(target.seqNo) : idx + 1
+            let rowNo = entry.isPanel ? (baseSeq * 10 + entry.rowNoSuffix) : baseSeq
 
             return IpscEditableTargetRow(
-                id: key,
-                rowNo: Int(target.seqNo) > 0 ? Int(target.seqNo) : idx + 1,
+                id: entry.key,
+                rowNo: rowNo,
                 a: counts.a,
                 c: counts.c,
                 d: counts.d,
@@ -1061,13 +1132,7 @@ struct DrillSummaryView: View {
             // Second row: Hit zone metrics
             HStack(spacing: 12) {
                 ForEach(hitZoneMetrics.indices, id: \.self) { metricIndex in
-                    let metric = hitZoneMetrics[metricIndex]
-                    Button(action: {
-                        editingSummary = summaries[summaryIndex]
-                    }) {
-                        metricView(metric)
-                    }
-                    .buttonStyle(PlainButtonStyle())
+                    metricView(hitZoneMetrics[metricIndex])
                 }
             }
         }
@@ -1285,155 +1350,5 @@ struct CircularActionButton: View {
     }
 }
 
-// MARK: - Summary Edit Sheet
-struct SummaryEditSheet: View {
-    let summary: DrillRepeatSummary
-    let drillSetup: DrillSetup?
-    let onSave: ([String: Int]) -> Void
-    let onCancel: () -> Void
+// SummaryEditSheet removed – hit zone editing is no longer available from the summary card.
 
-    @Environment(\.managedObjectContext) private var environmentContext
-
-    // Use the shared persistence controller's viewContext as a fallback to
-    // ensure we always point at a live store even if the environment is missing
-    private var viewContext: NSManagedObjectContext {
-        if let coordinator = environmentContext.persistentStoreCoordinator,
-           coordinator.persistentStores.isEmpty == false {
-            return environmentContext
-        }
-        return PersistenceController.shared.container.viewContext
-    }
-
-    @State private var showAthletePicker: Bool = false
-    @State private var showError: Bool = false
-    @State private var errorTitle: String = NSLocalizedString("error_title", comment: "Generic error title")
-    @State private var errorMessage: String = ""
-    
-    @State private var aCount: Int
-    @State private var cCount: Int
-    @State private var dCount: Int
-    @State private var nCount: Int
-    @State private var mCount: Int
-    @State private var peCount: Int
-    
-    init(summary: DrillRepeatSummary, drillSetup: DrillSetup? = nil, onSave: @escaping ([String: Int]) -> Void, onCancel: @escaping () -> Void) {
-        self.summary = summary
-        self.drillSetup = drillSetup
-        self.onSave = onSave
-        self.onCancel = onCancel
-        
-        let adjusted = summary.adjustedHitZones
-        let effectiveCounts = ScoringUtility.calculateEffectiveCounts(shots: summary.shots, drillSetup: drillSetup)
-        
-        _aCount = State(initialValue: adjusted?["A"] ?? effectiveCounts["A"] ?? 0)
-        _cCount = State(initialValue: adjusted?["C"] ?? effectiveCounts["C"] ?? 0)
-        _dCount = State(initialValue: adjusted?["D"] ?? effectiveCounts["D"] ?? 0)
-        _nCount = State(initialValue: adjusted?["N"] ?? effectiveCounts["N"] ?? 0)
-        _mCount = State(initialValue: adjusted?["M"] ?? effectiveCounts["M"] ?? 0)
-        _peCount = State(initialValue: adjusted?["PE"] ?? 0)
-    }
-    
-    var body: some View {
-        ZStack {
-            Color.black.ignoresSafeArea()
-            
-            VStack(spacing: 20) {
-                // Header with title and close button
-                HStack {
-                    Text(NSLocalizedString("edit_hit_zone_counts_title", comment: "Title for editing hit zone counts"))
-                        .font(.title)
-                        .foregroundColor(.white)
-                    
-                    Spacer()
-                    
-                    Button(action: {
-                        onCancel()
-                    }) {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundColor(.gray)
-                            .font(.title2)
-                    }
-                }
-                
-                VStack(spacing: 16) {
-                    zoneStepper(label: NSLocalizedString("a_zone_label", comment: "A zone label"), icon: "a.circle.fill", count: $aCount)
-                    zoneStepper(label: NSLocalizedString("c_zone_label", comment: "C zone label"), icon: "c.circle.fill", count: $cCount)
-                    zoneStepper(label: NSLocalizedString("d_zone_label", comment: "D zone label"), icon: "d.circle.fill", count: $dCount)
-                    zoneStepper(label: NSLocalizedString("no_shoot_label", comment: "No shoot zone label"), icon: "xmark.circle.fill", count: $nCount)
-                    zoneStepper(label: NSLocalizedString("miss_label", comment: "Miss zone label"), icon: "slash.circle.fill", count: $mCount)
-                    zoneStepper(label: NSLocalizedString("penalty_label", comment: "Penalty label"), icon: "minus.circle.fill", count: $peCount)
-                }
-                
-                Spacer()
-                
-                HStack(spacing: 20) {
-                    Button(NSLocalizedString("cancel_button", comment: "Cancel button text")) {
-                        onCancel()
-                    }
-                    .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.gray.opacity(0.2))
-                    .cornerRadius(8)
-                    
-                    Button(NSLocalizedString("save_button", comment: "Save button text")) {
-                        let updated = [
-                            "A": aCount,
-                            "C": cCount,
-                            "D": dCount,
-                            "N": nCount,
-                            "M": mCount,
-                            "PE": peCount
-                        ]
-                        onSave(updated)
-                    }
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.green)
-                    .cornerRadius(8)
-                }
-                .padding(.horizontal)
-            }
-            .padding()
-        }
-        .alert(isPresented: $showError) {
-            Alert(
-                title: Text(errorTitle),
-                message: Text(errorMessage),
-                dismissButton: .default(Text(NSLocalizedString("ok", comment: "OK button")))
-            )
-        }
-    }
-    
-    private func zoneStepper(label: String, icon: String, count: Binding<Int>) -> some View {
-        HStack {
-            Image(systemName: icon)
-                .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
-                .frame(width: 30)
-            
-            Text(label)
-                .foregroundColor(.white)
-                .frame(width: 80, alignment: .leading)
-            
-            Spacer()
-            
-            HStack {
-                Button(action: { if count.wrappedValue > 0 { count.wrappedValue -= 1 } }) {
-                    Image(systemName: "minus.circle")
-                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
-                }
-                
-                Text("\(count.wrappedValue)")
-                    .foregroundColor(.white)
-                    .frame(width: 40)
-                
-                Button(action: { count.wrappedValue += 1 }) {
-                    Image(systemName: "plus.circle")
-                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
-                }
-            }
-        }
-        .padding(.horizontal)
-    }
-}

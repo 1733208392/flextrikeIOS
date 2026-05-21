@@ -49,6 +49,7 @@ fun getDisplayNameForTargetType(type: String): String {
         id = when (type) {
             "hostage" -> R.string.hostage
             "ipsc" -> R.string.ipsc
+            "ipsc_mini_double" -> R.string.ipsc
             "special_1" -> R.string.special_1
             "special_2" -> R.string.special_2
             "paddle" -> R.string.paddle

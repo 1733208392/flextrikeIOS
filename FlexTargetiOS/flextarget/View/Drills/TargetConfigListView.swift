@@ -219,7 +219,7 @@ struct TargetConfigListViewV2: View {
     private var availableTargetTypes: [String] {
         switch drillMode {
         case "ipsc":
-            return ["ipsc", "hostage", "paddle", "popper", "special_1", "special_2"]
+            return ["ipsc", "ipsc_mini_double", "hostage", "paddle", "popper", "special_1", "special_2"]
         case "idpa":
             return ["idpa", "idpa_ns", "idpa_black_1", "idpa_black_2"]
         case "cqb":

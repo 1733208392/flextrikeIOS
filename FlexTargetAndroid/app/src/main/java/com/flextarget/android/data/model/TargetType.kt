@@ -14,6 +14,7 @@ value class TargetType(val value: String) {
     companion object {
         val VALID_TYPES = setOf(
             "ipsc", "hostage", "popper", "paddle",
+            "ipsc_mini_double",
             "special_1", "special_2",
             "cqb_front", "cqb_hostage", "cqb_swing",
             "idpa", "idpa_ns", "idpa-back-1", "idpa-back-2",

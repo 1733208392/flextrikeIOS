@@ -677,6 +677,7 @@ private fun getTargetIconResource(targetType: String): Any? {
     return when (targetType.lowercase()) {
         // IPSC targets (drawable resources)
         "ipsc" -> R.drawable.ipsc
+        "ipsc_mini_double" -> R.drawable.ipsc
         "hostage" -> R.drawable.hostage
         "special_1" -> R.drawable.ipsc_black_1
         "special_2" -> R.drawable.ipsc_black_2

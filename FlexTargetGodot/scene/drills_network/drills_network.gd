@@ -9,6 +9,7 @@ const QR_CODE_GENERATOR = preload("res://script/qrcode.gd")
 # Target type to scene mapping
 var target_type_to_scene = {
 	"ipsc": "res://scene/ipsc_mini.tscn",
+	"ipsc_mini_double": "res://scene/ipsc_mini_double.tscn",
 	"special_1": "res://scene/ipsc_mini_black_1.tscn",
 	"special_2": "res://scene/ipsc_mini_black_2.tscn",
 	"hostage": "res://scene/targets/hostage.tscn",
@@ -29,7 +30,7 @@ var target_type_to_scene = {
 
 # Valid target types for each game mode
 var valid_targets_by_mode = {
-	"ipsc": ["ipsc", "special_1", "special_2", "hostage", "rotation", "paddle", "popper", "final"],
+	"ipsc": ["ipsc", "ipsc_mini_double", "special_1", "special_2", "hostage", "rotation", "paddle", "popper", "final"],
 	"idpa": ["idpa", "idpa_black_1", "idpa_black_2", "idpa_ns", "hostage", "paddle", "popper", "final"],
 	"cqb": ["cqb_front", "cqb_move", "cqb_swing", "cqb_hostage", "disguised_enemy"]
 }

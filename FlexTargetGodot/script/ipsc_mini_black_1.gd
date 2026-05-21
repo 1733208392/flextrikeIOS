@@ -18,6 +18,9 @@ var shot_count: int = 0
 const BulletScene = preload("res://scene/bullet.tscn")
 const BulletHoleScene = preload("res://scene/bullet_hole.tscn")
 const ScoreUtils = preload("res://script/score_utils.gd")
+const IPSC_BULLET_HOLE_ALPHA: float = 0.75
+const IPSC_DEFAULT_BULLET_COLOR: Color = Color(0.06, 0.04, 0.04, 1.0)
+const IPSC_BLACK_ZONE_BULLET_COLOR: Color = Color(0.36, 0.24, 0.14, 1.0)
 
 # Bullet hole pool for performance optimization
 var bullet_hole_pool: Array[Node] = []
@@ -304,6 +307,10 @@ func initialize_bullet_hole_pool():
 		add_child(bullet_hole)
 		bullet_hole.visible = false  # Hide until needed
 		bullet_hole.z_index = 0
+		if bullet_hole.has_method("set_hole_alpha"):
+			bullet_hole.set_hole_alpha(IPSC_BULLET_HOLE_ALPHA)
+		if bullet_hole.has_method("set_hole_color"):
+			bullet_hole.set_hole_color(IPSC_DEFAULT_BULLET_COLOR)
 		bullet_hole_pool.append(bullet_hole)
 
 	# --- Initialize GPU instancing system (MultiMesh) ---
@@ -370,15 +377,19 @@ func get_bullet_hole_from_pool() -> Node:
 	var bullet_hole = BulletHoleScene.instantiate()
 	add_child(bullet_hole)
 	bullet_hole.z_index = 0
+	if bullet_hole.has_method("set_hole_alpha"):
+		bullet_hole.set_hole_alpha(IPSC_BULLET_HOLE_ALPHA)
+	if bullet_hole.has_method("set_hole_color"):
+		bullet_hole.set_hole_color(IPSC_DEFAULT_BULLET_COLOR)
 	active_bullet_holes.append(bullet_hole)
 	return bullet_hole
 
 
-func spawn_bullet_hole(local_position: Vector2):
+func spawn_bullet_hole(local_position: Vector2, use_brown_hole: bool = false):
 	"""Spawn a bullet hole at the specified local position on this target.
 	Uses GPU instanced MultiMesh if available, otherwise falls back to node pool.
 	"""
-	if bullet_hole_multimeshes.size() > 0 and bullet_hole_textures.size() > 0:
+	if not use_brown_hole and bullet_hole_multimeshes.size() > 0 and bullet_hole_textures.size() > 0:
 		# Choose a random texture index
 		var texture_index = randi() % bullet_hole_textures.size()
 		if texture_index >= bullet_hole_multimeshes.size():
@@ -410,6 +421,8 @@ func spawn_bullet_hole(local_position: Vector2):
 	# Fallback: legacy node pool
 	var bullet_hole = get_bullet_hole_from_pool()
 	if bullet_hole and bullet_hole.has_method("set_hole_position"):
+		if bullet_hole.has_method("set_hole_color"):
+			bullet_hole.set_hole_color(IPSC_BLACK_ZONE_BULLET_COLOR if use_brown_hole else IPSC_DEFAULT_BULLET_COLOR)
 		bullet_hole.set_hole_position(local_position)
 		bullet_hole.visible = true
 		if not DEBUG_DISABLE:
@@ -489,7 +502,8 @@ func handle_websocket_bullet_hit_fast(world_pos: Vector2, t: int = 0):
 	
 	# 2. CONDITIONAL: Only spawn bullet hole if target was actually hit
 	if is_target_hit:
-		spawn_bullet_hole(local_pos)
+		var use_brown_hole = (zone_hit == "BlackZoneLeft" or zone_hit == "BlackZoneRight")
+		spawn_bullet_hole(local_pos, use_brown_hole)
 		play_impact_sound_at_position_throttled(world_pos, Time.get_ticks_msec() / 1000.0)	
 	# 3. ALWAYS: Spawn bullet effects (impact/sound) but skip smoke for misses
 	else:
@@ -639,6 +653,7 @@ func create_bullet_hole_mesh(texture: Texture2D) -> QuadMesh:
 	if shader:
 		shader_material.shader = shader
 		shader_material.set_shader_parameter("texture_albedo", texture)
+		shader_material.set_shader_parameter("hole_alpha", IPSC_BULLET_HOLE_ALPHA)
 
 	mesh.material = shader_material
 	return mesh

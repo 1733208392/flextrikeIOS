@@ -15,11 +15,17 @@ class ScoringUtility {
             return "popperzone"
         case "azone", "a", "a-zone", "a_zone":
             return "azone"
+        case "azone1", "a1", "a-zone1", "a_zone1":
+            return "azone"
         case "apopper", "a_popper", "a-popper":
             return "apopper"
         case "czone", "c", "c-zone", "c_zone":
             return "czone"
+        case "czone1", "c1", "c-zone1", "c_zone1":
+            return "czone"
         case "dzone", "d", "d-zone", "d_zone":
+            return "dzone"
+        case "dzone1", "d1", "d-zone1", "d_zone1":
             return "dzone"
         case "whitezone", "white_zone", "white-zone":
             return "whitezone"
@@ -30,6 +36,27 @@ class ScoringUtility {
         default:
             return trimmed
         }
+    }
+
+    /// For ipsc_mini_double, expand a single configured target into 2 panel keys (+P0/+P1).
+    /// For all other types, returns the single combined key.
+    static func expandedExpectedKeys(forName name: String, type: String) -> [String] {
+        let n = name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let t = type.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard !n.isEmpty else { return [] }
+        if t == "ipsc_mini_double" {
+            return ["\(n)+p0|\(t)", "\(n)+p1|\(t)"]
+        }
+        return ["\(n)|\(t)"]
+    }
+
+    /// Strip +P0/+P1 panel suffix from a base name when looking up the config.
+    static func configBaseName(fromKeyBaseName baseName: String) -> String {
+        let lower = baseName.lowercased()
+        if lower.hasSuffix("+p0") || lower.hasSuffix("+p1") {
+            return String(lower.dropLast(3))
+        }
+        return lower
     }
 
     // Build a stable key for grouping shots by target/device with fallbacks
@@ -64,11 +91,11 @@ class ScoringUtility {
         let trimmed = hitArea.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).lowercased()
         
         switch trimmed {
-        case "azone", "a":
+        case "azone", "a", "azone1", "a1":
             return 5
-        case "czone", "c":
+        case "czone", "c", "czone1", "c1":
             return 3
-        case "dzone", "d":
+        case "dzone", "d", "dzone1", "d1":
             return 1
         case "miss", "m", "blackzone", "blackzoneleft", "blackzoneright":
             return -10
@@ -89,11 +116,12 @@ class ScoringUtility {
             return 0
         }
 
-        // Build expected targets as combined keys "name|type"
-        let expectedTargets = Set(targetsSet.compactMap { cfg -> String? in
-            guard let name = cfg.targetName?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty else { return nil }
+        // Build expected targets as combined keys "name|type".
+        // For ipsc_mini_double, expand each configured target into 2 panel keys.
+        let expectedTargets = Set(targetsSet.flatMap { cfg -> [String] in
+            guard let name = cfg.targetName?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty else { return [] }
             let ttype = cfg.primaryTargetType().trimmingCharacters(in: .whitespacesAndNewlines).lowercased() ?? "unknown"
-            return "\(name.lowercased())|\(ttype)"
+            return ScoringUtility.expandedExpectedKeys(forName: name, type: ttype)
         })
         
         // Group shots by target/device
@@ -111,7 +139,8 @@ class ScoringUtility {
             let parts = targetKey.split(separator: "|", maxSplits: 1, omittingEmptySubsequences: false)
             let baseName = parts.first.map { String($0) } ?? targetKey
             let baseTypeFromKey = parts.count > 1 ? String(parts[1]) : ""
-            let config = targetsSet.first { $0.targetName?.lowercased() == baseName }
+            let lookupName = ScoringUtility.configBaseName(fromKeyBaseName: baseName)
+            let config = targetsSet.first { $0.targetName?.lowercased() == lookupName }
             let configType = (config?.primaryTargetType())?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).lowercased()
             let shotType = (targetShots.first?.content.targetType)?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).lowercased() ?? baseTypeFromKey
             let targetType = (configType != nil && configType! != "") ? configType! : shotType
@@ -166,12 +195,13 @@ class ScoringUtility {
             shotsByTarget[device]?.append(shot)
         }
         
-        // Get all expected targets from setup and express as combined keys "name|type"
+        // Get all expected targets from setup and express as combined keys "name|type".
+        // For ipsc_mini_double, expand each configured target into 2 panel keys.
         let expectedTargets = (drillSetup?.targets as? Set<DrillTargetsConfig>) ?? []
-        let expectedTargetNames = Set(expectedTargets.compactMap { cfg -> String? in
-            guard let name = cfg.targetName?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty else { return nil }
+        let expectedTargetNames = Set(expectedTargets.flatMap { cfg -> [String] in
+            guard let name = cfg.targetName?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty else { return [] }
             let ttype = cfg.primaryTargetType().trimmingCharacters(in: .whitespacesAndNewlines).lowercased() ?? "unknown"
-            return "\(name.lowercased())|\(ttype)"
+            return ScoringUtility.expandedExpectedKeys(forName: name, type: ttype)
         })
 
         // Combine expected targets (combined keys) and targets that actually fired shots
@@ -185,8 +215,10 @@ class ScoringUtility {
             let baseName = parts.first.map { String($0) } ?? targetName
             let baseTypeFromKey = parts.count > 1 ? String(parts[1]) : ""
 
-            // Find target config to determine type (case-insensitive lookup by baseName)
-            let config = expectedTargets.first { $0.targetName?.lowercased() == baseName }
+            // Find target config to determine type (case-insensitive lookup by baseName,
+            // stripping +P0/+P1 panel suffix for ipsc_mini_double).
+            let lookupName = ScoringUtility.configBaseName(fromKeyBaseName: baseName)
+            let config = expectedTargets.first { $0.targetName?.lowercased() == lookupName }
             let configType = (config?.primaryTargetType())?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).lowercased()
             let shotType = (targetShots.first?.content.targetType)?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).lowercased() ?? baseTypeFromKey
             let targetType = (configType != nil && configType! != "") ? configType! : shotType

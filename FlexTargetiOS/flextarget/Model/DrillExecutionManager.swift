@@ -775,16 +775,22 @@ class DrillExecutionManager {
             let jsonData = try JSONSerialization.data(withJSONObject: shotDict, options: [])
             print("[DrillExecutionManager] JSON serialized successfully")
             
-            let shot = try JSONDecoder().decode(ShotData.self, from: jsonData)
+            let decodedShot = try JSONDecoder().decode(ShotData.self, from: jsonData)
+            let shot = panelizeDoubleIpscShot(decodedShot)
             print("[DrillExecutionManager] Shot decoded successfully - cmd: \(shot.content.command), ha: \(shot.content.hitArea), device: \(shot.device ?? "unknown")")
             
             // Filter shots by repeat number: only accept shots for the current repeat
             if let shotRepeatNumber = shot.content.`repeat` {
-                if shotRepeatNumber != currentRepeat {
+                let matchesCurrentRepeat = (shotRepeatNumber == currentRepeat) || ((shotRepeatNumber + 1) == currentRepeat)
+                if !matchesCurrentRepeat {
                     print("[DrillExecutionManager] Ignoring shot from repeat \(shotRepeatNumber), currently in repeat \(currentRepeat)")
                     return
                 }
-                print("[DrillExecutionManager] Shot repeat \(shotRepeatNumber) matches current repeat \(currentRepeat)")
+                if shotRepeatNumber == currentRepeat {
+                    print("[DrillExecutionManager] Shot repeat \(shotRepeatNumber) matches current repeat \(currentRepeat)")
+                } else {
+                    print("[DrillExecutionManager] Shot repeat \(shotRepeatNumber) accepted as 0-based for current repeat \(currentRepeat)")
+                }
             } else {
                 print("[DrillExecutionManager] Shot has no repeat number, accepting for current repeat \(currentRepeat)")
             }
@@ -804,6 +810,52 @@ class DrillExecutionManager {
             print("[DrillExecutionManager] Failed to decode shot: \(error)")
             print("[DrillExecutionManager] Error details: \(String(describing: error))")
         }
+    }
+
+    /// Splits ipsc_mini_double shots into two synthetic panels (P0=top, P1=bottom)
+    /// by appending +P0/+P1 to target/device identifiers. Downstream scoring and view
+    /// layers treat the two panels as independent paper targets.
+    private func panelizeDoubleIpscShot(_ shot: ShotData) -> ShotData {
+        let targetType = shot.content.targetType.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard targetType == "ipsc_mini_double" else { return shot }
+
+        let area = shot.content.hitArea.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let panelSuffix: String
+        switch area {
+        case "azone1", "a1", "a-zone1", "a_zone1", "czone1", "c1", "c-zone1", "c_zone1", "dzone1", "d1", "d-zone1", "d_zone1":
+            panelSuffix = "+P1"
+        default:
+            panelSuffix = "+P0"
+        }
+
+        func appendPanel(_ raw: String?) -> String? {
+            guard let raw, !raw.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
+            if raw.hasSuffix("+P0") || raw.hasSuffix("+P1") { return raw }
+            return raw + panelSuffix
+        }
+
+        let rewrittenDevice = appendPanel(shot.device) ?? appendPanel(shot.content.device)
+        let rewrittenTarget = appendPanel(shot.target) ?? rewrittenDevice
+
+        let rewrittenContent = Content(
+            command: shot.content.command,
+            hitArea: shot.content.hitArea,
+            hitPosition: shot.content.hitPosition,
+            rotationAngle: shot.content.rotationAngle,
+            targetType: shot.content.targetType,
+            timeDiff: shot.content.timeDiff,
+            device: appendPanel(shot.content.device) ?? rewrittenDevice,
+            targetPos: shot.content.targetPos,
+            repeat: shot.content.repeat
+        )
+
+        return ShotData(
+            target: rewrittenTarget,
+            content: rewrittenContent,
+            type: shot.type,
+            action: shot.action,
+            device: rewrittenDevice
+        )
     }
 
 
