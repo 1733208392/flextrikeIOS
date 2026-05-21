@@ -60,6 +60,7 @@ struct IpscShooter: Decodable, Identifiable {
     let powerFactor: String
     let stagesDone: Int
     let status: String  // "waiting" | "shooting" | "done"
+    let isDq: Bool
 
     enum CodingKeys: String, CodingKey {
         case id, name, status
@@ -69,6 +70,7 @@ struct IpscShooter: Decodable, Identifiable {
         case categoryAlias = "category"
         case powerFactor  = "power_factor"
         case stagesDone   = "stages_done"
+        case isDq         = "is_dq"
     }
 
     init(from decoder: Decoder) throws {
@@ -82,6 +84,7 @@ struct IpscShooter: Decodable, Identifiable {
         powerFactor = try container.decodeIfPresent(String.self, forKey: .powerFactor) ?? "Unknown"
         stagesDone = try container.decode(Int.self, forKey: .stagesDone)
         status = try container.decode(String.self, forKey: .status)
+        isDq = try container.decodeIfPresent(Bool.self, forKey: .isDq) ?? false
     }
 }
 
@@ -125,6 +128,11 @@ struct IpscScorePenalties: Encodable {
     let PE: Int
 }
 
+enum IpscScoreStatus: String, Encodable {
+    case normal
+    case dq
+}
+
 struct IpscScoreTargetRow: Encodable {
     let rowType: String
     let rowNo: Int
@@ -145,6 +153,7 @@ struct IpscScoreSubmitRequest: Encodable {
     let shooterBib: String
     let stageId: String
     let totalTime: Double
+    let status: IpscScoreStatus
     let hits: IpscScoreHits?
     let rows: [IpscScoreTargetRow]?
     let penalties: IpscScorePenalties
@@ -152,7 +161,7 @@ struct IpscScoreSubmitRequest: Encodable {
     let fastestSplit: Double?
 
     enum CodingKeys: String, CodingKey {
-        case hits, rows, penalties
+        case status, hits, rows, penalties
         case shooterBib   = "shooter_bib"
         case stageId      = "stage_id"
         case totalTime    = "total_time"

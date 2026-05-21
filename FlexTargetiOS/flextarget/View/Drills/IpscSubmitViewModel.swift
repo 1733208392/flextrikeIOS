@@ -66,7 +66,7 @@ final class IpscSubmitViewModel: ObservableObject {
     }
 
     /// Build and submit the score.
-    func submit(context: IpscLockedSelectionContext, summary: DrillRepeatSummary) {
+    func submit(context: IpscLockedSelectionContext, summary: DrillRepeatSummary, isDq: Bool = false) {
         let hitZones = summary.adjustedHitZones
             ?? ScoringUtility.calculateEffectiveCounts(shots: summary.shots, drillSetup: nil)
 
@@ -74,6 +74,7 @@ final class IpscSubmitViewModel: ObservableObject {
             shooterBib: context.shooter.bibNumber,
             stageId: String(context.stageId),
             totalTime: summary.totalTime,
+            status: isDq ? .dq : .normal,
             hits: IpscScoreHits(
                 A: hitZones["A"] ?? 0,
                 C: hitZones["C"] ?? 0,

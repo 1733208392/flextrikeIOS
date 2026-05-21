@@ -37,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.flextarget.android.data.local.entity.DrillSetupEntity
 import com.flextarget.android.data.local.entity.DrillTargetsConfigEntity
 import com.flextarget.android.data.local.entity.primaryTargetType
@@ -265,7 +266,7 @@ fun CompetitionTargetGridSummaryView(
 @Composable
 private fun HeaderRow() {
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text("T#", color = Color.Gray, modifier = Modifier.width(40.dp))
+        Text("Target", color = Color.Gray, modifier = Modifier.width(120.dp))
         HeaderCell("A")
         HeaderCell("C")
         HeaderCell("D")
@@ -283,7 +284,13 @@ private fun TargetRow(
     onCellLongPress: (CompetitionTargetColumn) -> Unit
 ) {
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text(row.rowNo.toString(), color = Color.Gray, modifier = Modifier.width(40.dp))
+        Text(
+            text = "${row.rowNo}. ${row.label}",
+            color = Color(0xFFDE3823),
+            fontSize = 16.sp,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.width(120.dp)
+        )
         ScoreCell(value = row.a, onTap = { onCellTap(CompetitionTargetColumn.A) }, onLongPress = { onCellLongPress(CompetitionTargetColumn.A) })
         ScoreCell(value = row.c, onTap = { onCellTap(CompetitionTargetColumn.C) }, onLongPress = { onCellLongPress(CompetitionTargetColumn.C) })
         ScoreCell(value = row.d, onTap = { onCellTap(CompetitionTargetColumn.D) }, onLongPress = { onCellLongPress(CompetitionTargetColumn.D) })
@@ -320,7 +327,11 @@ private fun buildRows(
     targets: List<DrillTargetsConfigEntity>,
     summary: DrillRepeatSummary?
 ): List<CompetitionTargetRowState> {
-    val targetList = targets.sortedWith(compareBy<DrillTargetsConfigEntity> { it.seqNo }.thenBy { it.targetName ?: "" })
+    val targetList = targets.sortedWith(
+        compareBy<DrillTargetsConfigEntity> { !isPopperTarget(it) }
+            .thenBy { it.seqNo }
+            .thenBy { it.targetName ?: "" }
+    )
     val groupedShots = mutableMapOf<String, MutableList<ShotData>>()
     (summary?.shots ?: emptyList()).forEach { shot ->
         val key = normalizedTargetKey(shot)
@@ -362,6 +373,12 @@ private fun buildRows(
             npm = 0
         )
     }
+}
+
+private fun isPopperTarget(target: DrillTargetsConfigEntity): Boolean {
+    val type = target.primaryTargetType().trim().lowercase()
+    val name = target.targetName?.trim()?.lowercase().orEmpty()
+    return type.contains("popper") || name.contains("popper") || type.contains("apopper") || name.contains("apopper")
 }
 
 private fun normalizedTargetKey(shot: ShotData): String {

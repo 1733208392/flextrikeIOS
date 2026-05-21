@@ -39,15 +39,23 @@ class ScoringUtility {
     }
 
     /// For ipsc_mini_double, expand a single configured target into 2 panel keys (+P0/+P1).
-    /// For all other types, returns the single combined key.
-    static func expandedExpectedKeys(forName name: String, type: String) -> [String] {
+    /// For targets with hasPhysicalPopper, append one synthetic popper key "|apopper".
+    static func expandedExpectedKeys(forName name: String, type: String, hasPhysicalPopper: Bool = false) -> [String] {
         let n = name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         let t = type.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         guard !n.isEmpty else { return [] }
+
+        var keys: [String]
         if t == "ipsc_mini_double" {
-            return ["\(n)+p0|\(t)", "\(n)+p1|\(t)"]
+            keys = ["\(n)+p0|\(t)", "\(n)+p1|\(t)"]
+        } else {
+            keys = ["\(n)|\(t)"]
         }
-        return ["\(n)|\(t)"]
+
+        if hasPhysicalPopper {
+            keys.append("\(n)|apopper")
+        }
+        return keys
     }
 
     /// Strip +P0/+P1 panel suffix from a base name when looking up the config.
@@ -85,6 +93,33 @@ class ScoringUtility {
         print("ScoringUtility: normalizedTargetKey could not determine key for shot; returning 'unknown'")
         return "unknown"
     }
+
+    private static func expectedKeyPeWeight(for key: String) -> Int {
+        let parts = key.split(separator: "|", maxSplits: 1, omittingEmptySubsequences: false)
+        let type = (parts.count > 1 ? String(parts[1]) : "").lowercased()
+        if type == "ipsc_mini_double" {
+            return 2
+        }
+        return 1
+    }
+
+    private static func scoringTargetKey(for shot: ShotData, targetsSet: Set<DrillTargetsConfig>) -> String {
+        let rawKey = normalizedTargetKey(for: shot)
+        let area = normalizeHitArea(shot.content.hitArea)
+        guard area == "apopper" else { return rawKey }
+
+        let parts = rawKey.split(separator: "|", maxSplits: 1, omittingEmptySubsequences: false)
+        let baseName = parts.first.map { String($0) } ?? rawKey
+        let lookupName = configBaseName(fromKeyBaseName: baseName)
+
+        guard targetsSet.contains(where: { cfg in
+            (cfg.targetName ?? "").trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == lookupName && cfg.hasPhysicalPopper
+        }) else {
+            return rawKey
+        }
+
+        return "\(lookupName)|apopper"
+    }
     
     /// Calculate score for a specific hit area
     static func scoreForHitArea(_ hitArea: String) -> Int {
@@ -110,24 +145,24 @@ class ScoringUtility {
         }
     }
     
-    /// Calculate the number of missed targets (targets with no valid hits)
+    /// Calculate penalty-equivalent missed targets (PE-weighted)
     static func calculateMissedTargets(shots: [ShotData], drillSetup: DrillSetup?) -> Int {
         guard let targetsSet = drillSetup?.targets as? Set<DrillTargetsConfig> else {
             return 0
         }
 
-        // Build expected targets as combined keys "name|type".
-        // For ipsc_mini_double, expand each configured target into 2 panel keys.
-        let expectedTargets = Set(targetsSet.flatMap { cfg -> [String] in
+        let expectedTargetWeights = Dictionary(uniqueKeysWithValues: targetsSet.flatMap { cfg -> [(String, Int)] in
             guard let name = cfg.targetName?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty else { return [] }
             let ttype = cfg.primaryTargetType().trimmingCharacters(in: .whitespacesAndNewlines).lowercased() ?? "unknown"
-            return ScoringUtility.expandedExpectedKeys(forName: name, type: ttype)
+            let keys = ScoringUtility.expandedExpectedKeys(forName: name, type: ttype, hasPhysicalPopper: cfg.hasPhysicalPopper)
+            return keys.map { ($0, ScoringUtility.expectedKeyPeWeight(for: $0)) }
         })
+        let expectedTargets = Set(expectedTargetWeights.keys)
         
         // Group shots by target/device
         var shotsByTarget: [String: [ShotData]] = [:]
         for shot in shots {
-            let device = ScoringUtility.normalizedTargetKey(for: shot)
+            let device = ScoringUtility.scoringTargetKey(for: shot, targetsSet: targetsSet)
             if shotsByTarget[device] == nil {
                 shotsByTarget[device] = []
             }
@@ -144,11 +179,15 @@ class ScoringUtility {
             let configType = (config?.primaryTargetType())?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).lowercased()
             let shotType = (targetShots.first?.content.targetType)?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).lowercased() ?? baseTypeFromKey
             let targetType = (configType != nil && configType! != "") ? configType! : shotType
-            let isPaddleOrPopper = targetType.contains("paddle") || targetType.contains("popper")
+            let isAPopperRow = baseTypeFromKey == "apopper"
+            let isPaddleOrPopper = isAPopperRow || targetType.contains("paddle") || targetType.contains("popper")
 
             let hasValidEngagementHit = targetShots.contains { shot in
                 let area = ScoringUtility.normalizeHitArea(shot.content.hitArea)
                 if ScoringUtility.scoreForHitArea(area) <= 0 { return false }
+                if isAPopperRow {
+                    return area == "apopper"
+                }
                 return isPaddleOrPopper || area != "apopper"
             }
             if hasValidEngagementHit {
@@ -157,7 +196,9 @@ class ScoringUtility {
         }
         
         let missedTargets = expectedTargets.subtracting(targetsWithValidHits)
-        return missedTargets.count
+        return missedTargets.reduce(0) { partial, key in
+            partial + (expectedTargetWeights[key] ?? 1)
+        }
     }
     
     /// Calculate total score with drill rules applied
@@ -184,24 +225,25 @@ class ScoringUtility {
         var dCount = 0
         var nCount = 0
         var mCount = 0
+
+        let expectedTargets = (drillSetup?.targets as? Set<DrillTargetsConfig>) ?? []
         
         // Group shots by target/device
         var shotsByTarget: [String: [ShotData]] = [:]
         for shot in shots {
-            let device = ScoringUtility.normalizedTargetKey(for: shot)
+            let device = ScoringUtility.scoringTargetKey(for: shot, targetsSet: expectedTargets)
             if shotsByTarget[device] == nil {
                 shotsByTarget[device] = []
             }
             shotsByTarget[device]?.append(shot)
         }
         
-        // Get all expected targets from setup and express as combined keys "name|type".
-        // For ipsc_mini_double, expand each configured target into 2 panel keys.
-        let expectedTargets = (drillSetup?.targets as? Set<DrillTargetsConfig>) ?? []
+        // Get all expected targets from setup and express as combined keys.
+        // Includes ipsc_mini_double panels and synthetic physical popper rows.
         let expectedTargetNames = Set(expectedTargets.flatMap { cfg -> [String] in
             guard let name = cfg.targetName?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty else { return [] }
             let ttype = cfg.primaryTargetType().trimmingCharacters(in: .whitespacesAndNewlines).lowercased() ?? "unknown"
-            return ScoringUtility.expandedExpectedKeys(forName: name, type: ttype)
+            return ScoringUtility.expandedExpectedKeys(forName: name, type: ttype, hasPhysicalPopper: cfg.hasPhysicalPopper)
         })
 
         // Combine expected targets (combined keys) and targets that actually fired shots
@@ -222,6 +264,7 @@ class ScoringUtility {
             let configType = (config?.primaryTargetType())?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).lowercased()
             let shotType = (targetShots.first?.content.targetType)?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).lowercased() ?? baseTypeFromKey
             let targetType = (configType != nil && configType! != "") ? configType! : shotType
+            let isAPopperRow = baseTypeFromKey == "apopper"
             let isPaddleOrPopper = targetType.contains("paddle") || targetType.contains("popper")
 
             let noShootZoneShots = targetShots.filter { shot in
@@ -248,6 +291,13 @@ class ScoringUtility {
 
             // Filter for valid hits from regular shots only
             let validHits = regularShots.filter { ScoringUtility.scoreForHitArea(ScoringUtility.normalizeHitArea($0.content.hitArea)) > 0 }
+
+            if isAPopperRow {
+                let requiredHits = 1
+                let deficit = max(0, requiredHits - validApopperHits)
+                mCount += deficit
+                continue
+            }
             
             if isPaddleOrPopper {
                 // Paddles/Poppers: 1 valid hit required

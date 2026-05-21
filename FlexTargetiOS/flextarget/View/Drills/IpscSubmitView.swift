@@ -39,7 +39,7 @@ struct IpscSubmitView: View {
                 context: context,
                 summaries: summaries,
                 onSubmit: { summary in
-                    viewModel.submit(context: context, summary: summary)
+                    viewModel.submit(context: context, summary: summary, isDq: false)
                 },
                 onBack: { viewModel.back() },
                 onDismiss: onDismiss

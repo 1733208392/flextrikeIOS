@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3 uid="uid://chsym5rlqsstp"]
+[gd_scene format=3 uid="uid://chsym5rlqsstp"]
 
 [ext_resource type="Texture2D" uid="uid://dve4iuyjc5x3u" path="res://asset/ipsc.png" id="1_tfsii"]
 [ext_resource type="Texture2D" uid="uid://cvudnr4qxxsw" path="res://asset/ipsc-white.png" id="2_ff3ss"]
@@ -48,31 +48,29 @@ _data = {
 &"disappear": SubResource("Animation_1")
 }
 
-[node name="Hostage" type="Area2D"]
+[node name="Hostage" type="Area2D" unique_id=877498838]
 scale = Vector2(0.9, 0.9)
 script = ExtResource("3_hostage")
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1847223426]
 texture = ExtResource("1_tfsii")
 
-[node name="Sprite2D2" type="Sprite2D" parent="."]
+[node name="Sprite2D2" type="Sprite2D" parent="." unique_id=1612681949]
 texture = ExtResource("2_ff3ss")
 offset = Vector2(0, 300)
 
-[node name="WhiteZone" type="CollisionPolygon2D" parent="."]
-position = Vector2(0, 300)
-polygon = PackedVector2Array(130, -483.33334, 402.22223, -136.66666, 402, 169, 140, 498.88892, -142.22223, 495.5556, -402.22223, 172.22226, -404.44446, -134.44444, -131.11111, -484.44446)
+[node name="WhiteZone" type="CollisionPolygon2D" parent="." unique_id=1570197941]
+position = Vector2(0, 296.66675)
+polygon = PackedVector2Array(133.33334, -492.22223, 400.00003, -154.44444, 402, 169, 140, 498.88892, -142.22223, 495.5556, -402.22223, 172.22226, -401.11115, -148.88889, -133.33334, -492.22223)
 
-[node name="AZone" type="CollisionPolygon2D" parent="."]
-polygon = PackedVector2Array(42, -452, 127.77779, -184.44446, -127.77779, -185.55556, -42, -452)
+[node name="AZone" type="CollisionPolygon2D" parent="." unique_id=160048443]
+polygon = PackedVector2Array(42, -452, 126.66667, -191.11111, -126.66667, -191.11111, -42, -452)
 
-[node name="CZone" type="CollisionPolygon2D" parent="."]
-polygon = PackedVector2Array(132, -485, 263, -152, 263.33334, -17.777779, 133.33334, -184.44446, -135.55556, -182.22223, -261.1111, -21.111113, -263, -152, -132, -485)
+[node name="CZone" type="CollisionPolygon2D" parent="." unique_id=1369926348]
+polygon = PackedVector2Array(132, -485, 263, -152, 263.33334, -17.777779, 131.11111, -191.11111, -132.22223, -192.22223, -261.1111, -21.111113, -263, -152, -132, -485)
 
-[node name="DZone" type="CollisionPolygon2D" parent="."]
-polygon = PackedVector2Array(135.55556, -501.11115, 397.7778, -170.00002, 402.22223, 167.77779, 134.44446, -184.44446, -132.22223, -182.22223, -402.22223, 163.33334, -400.00003, -167.77779, -135.55556, -502.22226)
+[node name="DZone" type="CollisionPolygon2D" parent="." unique_id=151543709]
+polygon = PackedVector2Array(135.55556, -501.11115, 397.7778, -170.00002, 402.22223, 167.77779, 132.22223, -190.00002, -133.33334, -191.11111, -402.22223, 163.33334, -400.00003, -167.77779, -135.55556, -502.22226)
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
-libraries = {
-&"": SubResource("AnimationLibrary_1")
-}
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=96053940]
+libraries/ = SubResource("AnimationLibrary_1")

@@ -71,6 +71,25 @@ func handle_websocket_bullet_hit_fast(world_pos: Vector2, t: int = 0):
 			play_disappearing_animation()
 
 func play_disappearing_animation():
+	# If this is the only target type configured on the device, reset instead of
+	# disappearing so it stays visible for continuous shooting.
+	var drills_network = get_node_or_null("/root/drills_network")
+	if drills_network and drills_network.target_sequence.size() <= 1:
+		# Reset state and visuals but intentionally skip reset_bullet_hole_pool()
+		# so existing holes remain visible for review until the next shot lands.
+		is_disappearing = false
+		shot_count = 0
+		modulate = Color.WHITE
+		rotation = 0.0
+		scale = Vector2.ONE
+		reset_score()
+		var sprite2 = get_node_or_null("TargetSprite2")
+		if sprite2:
+			sprite2.modulate = Color.WHITE
+			sprite2.rotation = 0.0
+			sprite2.scale = Vector2.ONE
+		return
+
 	is_disappearing = true
 
 	var animation_player = get_node_or_null("AnimationPlayer")

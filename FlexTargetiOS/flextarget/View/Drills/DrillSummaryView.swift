@@ -47,10 +47,8 @@ struct DrillSummaryView: View {
     @StateObject private var ipscSubmitViewModel = IpscSubmitViewModel()
 
     @State private var targetRows: [IpscEditableTargetRow] = []
-    @State private var originalTargetRows: [IpscEditableTargetRow] = []
     @State private var dqApplied = false
-    @State private var dnfApplied = false
-    @State private var ipscPeCount = 0
+    @State private var pendingIpscAction: IpscPendingAction?
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.managedObjectContext) private var environmentContext
@@ -93,6 +91,10 @@ struct DrillSummaryView: View {
         ipscContext != nil
     }
 
+    private var isRunningPreview: Bool {
+        ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
+    }
+
     /// True when this summary is being viewed as part of a competition session
     /// (either a generic competition or the IPSC locked-shooter flow). In that
     /// context we hide the DrillResultView/DrillReplayView navigations and the
@@ -111,6 +113,14 @@ struct DrillSummaryView: View {
             parts.append(category)
         }
         return parts.joined(separator: " • ")
+    }
+
+    private var shouldShowDqBadge: Bool {
+        dqApplied || (ipscContext?.shooter.isDq ?? false)
+    }
+
+    private var ipscRowPeTotal: Int {
+        targetRows.reduce(0) { $0 + $1.pe }
     }
 
     private func metrics(for summary: DrillRepeatSummary) -> [SummaryMetric] {
@@ -520,7 +530,7 @@ struct DrillSummaryView: View {
                                 }
                             }
 
-                            if isIpscContextFlow {
+                            if isIpscContextFlow || isRunningPreview {
                                 ipscInlineSubmitPanel
                                     .padding(.horizontal, 20)
                             }
@@ -660,6 +670,31 @@ struct DrillSummaryView: View {
     private var ipscDrillSummaryViewWithAllModifiers: some View {
         ipscDrillSummaryView
             .navigationBarHidden(true)
+            .alert(item: $pendingIpscAction) { action in
+                switch action {
+                case .addPenalty:
+                    return Alert(
+                        title: Text("Add PE"),
+                        message: Text("Increase PE by 1 on the first row?"),
+                        primaryButton: .destructive(Text("Confirm")) {
+                            guard targetRows.isEmpty == false else { return }
+                            targetRows[0].pe += 1
+                            dqApplied = false
+                            applyIpscGridToSummary()
+                        },
+                        secondaryButton: .cancel()
+                    )
+                case .disqualify:
+                    return Alert(
+                        title: Text("Apply DQ"),
+                        message: Text("This will set all hit counts to 0. Continue?"),
+                        primaryButton: .destructive(Text("Confirm")) {
+                            applyDq()
+                        },
+                        secondaryButton: .cancel()
+                    )
+                }
+            }
             .onAppear {
                 initializeOriginalScores()
                 initializeIpscEditableRowsIfNeeded()
@@ -758,22 +793,8 @@ struct DrillSummaryView: View {
                 ipscTargetGridRow(row: row, rowIndex: index)
             }
 
-            HStack(spacing: 12) {
-                Spacer()
-
-                PenaltyButton(action: {
-                    ipscPeCount += 1
-                    applyIpscGridToSummary()
-                }, penaltyCount: ipscPeCount)
-
-                CircularActionButton(title: "DNF", tint: .orange, action: applyDnf)
-                CircularActionButton(title: "DQ", tint: .orange, action: applyDq)
-
-                RestoreButton(action: resetIpscPenaltyAndFlags)
-            }
-
-            if dnfApplied || dqApplied {
-                Text(dqApplied ? "DQ applied: all hit counts set to 0" : "DNF applied: all hit counts set to 0")
+            if dqApplied {
+                Text("DQ applied: all hit counts set to 0")
                     .font(.system(size: 12))
                     .foregroundColor(.gray)
             }
@@ -789,14 +810,15 @@ struct DrillSummaryView: View {
 
     private var ipscTargetGridHeader: some View {
         HStack(spacing: 6) {
-            Text("T#")
+            Text("NAME")
                 .foregroundColor(.gray)
-                .frame(width: 44, alignment: .leading)
+                .frame(width: 108, alignment: .leading)
             Text("A").frame(maxWidth: .infinity)
             Text("C").frame(maxWidth: .infinity)
             Text("D").frame(maxWidth: .infinity)
             Text("NS").frame(maxWidth: .infinity)
             Text("M").frame(maxWidth: .infinity)
+            Text("PE").frame(maxWidth: .infinity)
         }
         .font(.system(size: 12, weight: .semibold))
         .foregroundColor(.gray)
@@ -804,16 +826,24 @@ struct DrillSummaryView: View {
 
     private func ipscTargetGridRow(row: IpscEditableTargetRow, rowIndex: Int) -> some View {
         HStack(spacing: 6) {
-            Text("\(row.rowNo)")
-                .foregroundColor(.gray)
-                .frame(width: 44, alignment: .leading)
+            Text(row.rowLabel)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+                .lineLimit(1)
+                .truncationMode(.tail)
+                .frame(width: 108, alignment: .leading)
 
             ipscCell(value: row.a, rowIndex: rowIndex, zone: .a)
             ipscCell(value: row.c, rowIndex: rowIndex, zone: .c)
             ipscCell(value: row.d, rowIndex: rowIndex, zone: .d)
             ipscCell(value: row.ns, rowIndex: rowIndex, zone: .ns)
             ipscCell(value: row.m, rowIndex: rowIndex, zone: .m)
+            ipscCell(value: row.pe, rowIndex: rowIndex, zone: .pe)
         }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 6)
+        .background(isIpscRowIncomplete(row) ? Color.red.opacity(0.28) : Color.clear)
+        .cornerRadius(8)
     }
 
     private func ipscCell(value: Int, rowIndex: Int, zone: IpscEditableZone) -> some View {
@@ -822,7 +852,7 @@ struct DrillSummaryView: View {
             .foregroundColor(.black)
             .frame(maxWidth: .infinity)
             .frame(height: 36)
-            .background(value > 0 ? Color.green : Color.red.opacity(0.85))
+            .background(ipscCellColor(value: value, zone: zone))
             .cornerRadius(6)
             .onTapGesture {
                 updateIpscCell(rowIndex: rowIndex, zone: zone, reset: false)
@@ -832,26 +862,40 @@ struct DrillSummaryView: View {
             }
     }
 
+    private func ipscCellColor(value: Int, zone: IpscEditableZone) -> Color {
+        guard value > 0 else {
+            return Color(red: 0.82, green: 0.82, blue: 0.82)
+        }
+
+        switch zone {
+        case .a, .c, .d:
+            return Color.green
+        case .ns, .m, .pe:
+            return Color.red.opacity(0.88)
+        }
+    }
+
+    private func isIpscRowIncomplete(_ row: IpscEditableTargetRow) -> Bool {
+        let requiredHits = requiredScoringHits(for: row)
+        let actualHits = row.a + row.c + row.d + row.m
+        return actualHits != requiredHits
+    }
+
+    private func requiredScoringHits(for row: IpscEditableTargetRow) -> Int {
+        row.rowKind.requiredScoringHits
+    }
+
     private func initializeIpscEditableRowsIfNeeded() {
-        guard isIpscContextFlow else { return }
+        guard isIpscContextFlow || isRunningPreview else { return }
         guard !targetRows.isEmpty || summaries.isEmpty else {
             targetRows = buildIpscEditableRows(summary: summaries.first)
-            originalTargetRows = targetRows
-            ipscPeCount = summaries.first?.adjustedHitZones?["PE"] ?? 0
             applyIpscGridToSummary()
             return
         }
     }
 
-    private func applyDnf() {
-        dnfApplied = true
-        dqApplied = false
-        zeroIpscRowsAndSummary()
-    }
-
     private func applyDq() {
         dqApplied = true
-        dnfApplied = false
         zeroIpscRowsAndSummary()
     }
 
@@ -863,19 +907,15 @@ struct DrillSummaryView: View {
             next.d = 0
             next.ns = 0
             next.m = 0
+            next.pe = 0
             return next
         }
-        ipscPeCount = 0
         applyIpscGridToSummary(forceZeroPenalties: true)
     }
 
     private func resetIpscPenaltyAndFlags() {
-        dnfApplied = false
         dqApplied = false
-        ipscPeCount = 0
-        if !originalTargetRows.isEmpty {
-            targetRows = originalTargetRows
-        }
+        targetRows = buildIpscEditableRows(summary: summaries.first)
         applyIpscGridToSummary()
     }
 
@@ -889,7 +929,7 @@ struct DrillSummaryView: View {
             return
         }
         applyIpscGridToSummary()
-        ipscSubmitViewModel.submit(context: context, summary: summaries[0])
+        ipscSubmitViewModel.submit(context: context, summary: summaries[0], isDq: dqApplied)
     }
 
     private func updateIpscCell(rowIndex: Int, zone: IpscEditableZone, reset: Bool) {
@@ -906,9 +946,10 @@ struct DrillSummaryView: View {
             targetRows[rowIndex].ns = reset ? 0 : targetRows[rowIndex].ns + 1
         case .m:
             targetRows[rowIndex].m = reset ? 0 : targetRows[rowIndex].m + 1
+        case .pe:
+            targetRows[rowIndex].pe = reset ? 0 : targetRows[rowIndex].pe + 1
         }
 
-        dnfApplied = false
         dqApplied = false
         applyIpscGridToSummary()
     }
@@ -916,26 +957,26 @@ struct DrillSummaryView: View {
     private func applyIpscGridToSummary(forceZeroPenalties: Bool = false) {
         guard !summaries.isEmpty else { return }
         let totals = aggregateIpscZones()
-        let existingPe = forceZeroPenalties ? 0 : ipscPeCount
         let zones: [String: Int] = [
             "A": totals.a,
             "C": totals.c,
             "D": totals.d,
             "N": totals.ns,
             "M": totals.m,
-            "PE": existingPe
+            "PE": forceZeroPenalties ? 0 : totals.pe
         ]
         summaries[0].adjustedHitZones = zones
         summaries[0].score = ScoringUtility.calculateScoreFromAdjustedHitZones(zones, drillSetup: drillSetup)
     }
 
-    private func aggregateIpscZones() -> (a: Int, c: Int, d: Int, ns: Int, m: Int) {
+    private func aggregateIpscZones() -> (a: Int, c: Int, d: Int, ns: Int, m: Int, pe: Int) {
         (
             a: targetRows.reduce(0) { $0 + $1.a },
             c: targetRows.reduce(0) { $0 + $1.c },
             d: targetRows.reduce(0) { $0 + $1.d },
             ns: targetRows.reduce(0) { $0 + $1.ns },
-            m: targetRows.reduce(0) { $0 + $1.m }
+            m: targetRows.reduce(0) { $0 + $1.m },
+            pe: targetRows.reduce(0) { $0 + $1.pe }
         )
     }
 
@@ -947,59 +988,123 @@ struct DrillSummaryView: View {
             return lhs.seqNo < rhs.seqNo
         }
 
-        let shots = summary?.shots ?? []
-        var groupedShots: [String: [ShotData]] = [:]
-        for shot in shots {
-            let key = ScoringUtility.normalizedTargetKey(for: shot)
-            groupedShots[key, default: []].append(shot)
-        }
-
         // For ipsc_mini_double, expand into 2 panel rows (P0 top, P1 bottom).
+        // For hasPhysicalPopper, append one synthetic popper row per host target.
         struct ExpandedTarget {
-            let target: DrillTargetsConfig
             let key: String
-            let rowNoSuffix: Int  // 0 or 1 for panels, 0 otherwise
-            let isPanel: Bool
+            let rowLabel: String
+            let rowKind: IpscRowKind
+            let targetType: String
+            let hostName: String
         }
 
         var expanded: [ExpandedTarget] = []
+        var popperIndex = 1
         for target in targets {
-            let name = target.targetName?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() ?? ""
+            let rawName = target.targetName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            let hostName = rawName.isEmpty ? "target_\(max(Int(target.seqNo), 1))" : rawName
+            let normalizedHostName = hostName.lowercased()
             let type = target.primaryTargetType().trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+
             if type == "ipsc_mini_double" {
-                expanded.append(ExpandedTarget(target: target, key: "\(name)+p0|\(type)", rowNoSuffix: 0, isPanel: true))
-                expanded.append(ExpandedTarget(target: target, key: "\(name)+p1|\(type)", rowNoSuffix: 1, isPanel: true))
+                expanded.append(ExpandedTarget(
+                    key: "\(normalizedHostName)+p0|\(type)",
+                    rowLabel: "\(hostName)-0",
+                    rowKind: .miniDoublePanel,
+                    targetType: type,
+                    hostName: normalizedHostName
+                ))
+                expanded.append(ExpandedTarget(
+                    key: "\(normalizedHostName)+p1|\(type)",
+                    rowLabel: "\(hostName)-1",
+                    rowKind: .miniDoublePanel,
+                    targetType: type,
+                    hostName: normalizedHostName
+                ))
             } else {
-                expanded.append(ExpandedTarget(target: target, key: "\(name)|\(type)", rowNoSuffix: 0, isPanel: false))
+                let rowKind: IpscRowKind = (type.contains("paddle") || type.contains("popper")) ? .steel : .paper
+                expanded.append(ExpandedTarget(
+                    key: "\(normalizedHostName)|\(type)",
+                    rowLabel: hostName,
+                    rowKind: rowKind,
+                    targetType: type,
+                    hostName: normalizedHostName
+                ))
+            }
+
+            if target.hasPhysicalPopper {
+                expanded.append(ExpandedTarget(
+                    key: "\(normalizedHostName)|apopper",
+                    rowLabel: "Popper #\(popperIndex)",
+                    rowKind: .apopper,
+                    targetType: "apopper",
+                    hostName: normalizedHostName
+                ))
+                popperIndex += 1
             }
         }
 
-        return expanded.enumerated().map { idx, entry in
-            let target = entry.target
-            let type = target.primaryTargetType().trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        expanded = expanded.sorted { lhs, rhs in
+            if lhs.rowKind == .apopper && rhs.rowKind != .apopper {
+                return true
+            }
+            if lhs.rowKind != .apopper && rhs.rowKind == .apopper {
+                return false
+            }
+            return false
+        }
+
+        let popperRowKeyByHost: [String: String] = Dictionary(uniqueKeysWithValues: expanded.compactMap { row in
+            row.rowKind == .apopper ? (row.hostName, row.key) : nil
+        })
+
+        let shots = summary?.shots ?? []
+        var groupedShots: [String: [ShotData]] = [:]
+        for shot in shots {
+            let normalizedKey = ScoringUtility.normalizedTargetKey(for: shot)
+            let hitArea = ScoringUtility.normalizeHitArea(shot.content.hitArea)
+
+            let key: String
+            if hitArea == "apopper" {
+                let parts = normalizedKey.split(separator: "|", maxSplits: 1, omittingEmptySubsequences: false)
+                let baseName = parts.first.map { String($0) } ?? normalizedKey
+                let hostBaseName = ScoringUtility.configBaseName(fromKeyBaseName: baseName)
+                key = popperRowKeyByHost[hostBaseName] ?? normalizedKey
+            } else {
+                key = normalizedKey
+            }
+            groupedShots[key, default: []].append(shot)
+        }
+
+        return expanded.map { entry in
             let rowShots = groupedShots[entry.key] ?? []
-            let counts = calculateIpscRowCounts(rowShots: rowShots, targetType: type)
-            let baseSeq = Int(target.seqNo) > 0 ? Int(target.seqNo) : idx + 1
-            let rowNo = entry.isPanel ? (baseSeq * 10 + entry.rowNoSuffix) : baseSeq
+            let counts = calculateIpscRowCounts(rowShots: rowShots, rowKind: entry.rowKind, targetType: entry.targetType)
 
             return IpscEditableTargetRow(
                 id: entry.key,
-                rowNo: rowNo,
+                rowLabel: entry.rowLabel,
+                rowKind: entry.rowKind,
                 a: counts.a,
                 c: counts.c,
                 d: counts.d,
                 ns: counts.ns,
-                m: counts.m
+                m: counts.m,
+                pe: counts.pe
             )
         }
     }
 
-    private func calculateIpscRowCounts(rowShots: [ShotData], targetType: String) -> (a: Int, c: Int, d: Int, ns: Int, m: Int) {
+    private func calculateIpscRowCounts(rowShots: [ShotData], rowKind: IpscRowKind, targetType: String) -> (a: Int, c: Int, d: Int, ns: Int, m: Int, pe: Int) {
         var a = 0
         var c = 0
         var d = 0
         var ns = 0
         var m = 0
+        var pe = 0
+
+        if rowShots.isEmpty {
+            return (a: 0, c: 0, d: 0, ns: 0, m: rowKind.defaultNoShotMisses, pe: rowKind.defaultNoShotPe)
+        }
 
         let isPaddleOrPopper = targetType.contains("paddle") || targetType.contains("popper")
 
@@ -1015,14 +1120,19 @@ struct DrillSummaryView: View {
         let regularShots = nonNoShootShots.filter { $0.area != "apopper" }
 
         let validApopperHits = apopperShots.filter { ScoringUtility.scoreForHitArea($0.area) > 0 }.count
-        a += validApopperHits
+        if rowKind == .apopper {
+            a += validApopperHits
+            m += max(0, rowKind.requiredScoringHits - validApopperHits)
+            return (a: a, c: c, d: d, ns: ns, m: m, pe: pe)
+        }
 
         let validRegularShots = regularShots.filter { ScoringUtility.scoreForHitArea($0.area) > 0 }
 
         if isPaddleOrPopper {
-            let requiredHits = 1
+            let requiredHits = rowKind.requiredScoringHits
             let totalSteelHits = validRegularShots.count + validApopperHits
             m += max(0, requiredHits - totalSteelHits)
+            a += validApopperHits
 
             for validShot in validRegularShots {
                 switch validShot.area {
@@ -1037,7 +1147,7 @@ struct DrillSummaryView: View {
                 }
             }
         } else {
-            let requiredHits = 2
+            let requiredHits = rowKind.requiredScoringHits
             m += max(0, requiredHits - validRegularShots.count)
 
             let scoringShots = validRegularShots
@@ -1058,7 +1168,7 @@ struct DrillSummaryView: View {
             }
         }
 
-        return (a: a, c: c, d: d, ns: ns, m: m)
+        return (a: a, c: c, d: d, ns: ns, m: m, pe: pe)
     }
 
     private func generateCSVFile() -> URL {
@@ -1108,15 +1218,41 @@ struct DrillSummaryView: View {
                 }
 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(title)
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundColor(.white)
-                        .lineLimit(1)
+                    HStack(spacing: 8) {
+                        Text(title)
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundColor(.white)
+                            .lineLimit(1)
+
+                        if shouldShowDqBadge {
+                            Text("DQ")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(Color.orange)
+                                .cornerRadius(4)
+                        }
+                    }
 
                     subtitle
                 }
 
                 Spacer()
+
+                if (isIpscContextFlow || isRunningPreview) && summaryIndex == 0 {
+                    HStack(spacing: 10) {
+                        PenaltyButton(action: {
+                            pendingIpscAction = .addPenalty
+                        }, penaltyCount: ipscRowPeTotal)
+
+                        CircularActionButton(title: "DQ", tint: .orange, action: {
+                            pendingIpscAction = .disqualify
+                        })
+
+                        RestoreButton(action: resetIpscPenaltyAndFlags)
+                    }
+                }
             }
 
             Divider()
@@ -1217,16 +1353,67 @@ private enum IpscEditableZone {
     case d
     case ns
     case m
+    case pe
+}
+
+private enum IpscRowKind {
+    case paper
+    case steel
+    case apopper
+    case miniDoublePanel
+
+    var requiredScoringHits: Int {
+        switch self {
+        case .paper, .miniDoublePanel:
+            return 2
+        case .steel, .apopper:
+            return 1
+        }
+    }
+
+    var defaultNoShotMisses: Int {
+        switch self {
+        case .paper, .miniDoublePanel:
+            return 2
+        case .steel, .apopper:
+            return 1
+        }
+    }
+
+    var defaultNoShotPe: Int {
+        switch self {
+        case .miniDoublePanel:
+            return 2
+        case .paper, .steel, .apopper:
+            return 1
+        }
+    }
+}
+
+private enum IpscPendingAction: Identifiable {
+    case addPenalty
+    case disqualify
+
+    var id: Int {
+        switch self {
+        case .addPenalty:
+            return 1
+        case .disqualify:
+            return 2
+        }
+    }
 }
 
 private struct IpscEditableTargetRow: Identifiable {
     let id: String
-    let rowNo: Int
+    let rowLabel: String
+    let rowKind: IpscRowKind
     var a: Int
     var c: Int
     var d: Int
     var ns: Int
     var m: Int
+    var pe: Int
 }
 
 private struct SummaryMetric: Identifiable {
@@ -1255,7 +1442,7 @@ struct PenaltyButton: View {
             ZStack {
                 Circle()
                     .fill(Color.black)
-                    .frame(width: 40, height: 40)
+                    .frame(width: 48, height: 48)
                     .overlay(
                         Circle()
                             .stroke(Color.orange, lineWidth: 2)
@@ -1263,12 +1450,12 @@ struct PenaltyButton: View {
 
                 VStack(spacing: 0) {
                     Text("PE")
-                        .font(.system(size: 10, weight: .bold))
+                        .font(.system(size: 11, weight: .bold))
                         .foregroundColor(.orange)
                     
                     if penaltyCount > 0 {
                         Text("\(penaltyCount)")
-                            .font(.system(size: 8, weight: .bold))
+                            .font(.system(size: 9, weight: .bold))
                             .foregroundColor(.orange)
                     }
                 }
@@ -1295,14 +1482,14 @@ struct RestoreButton: View {
             ZStack {
                 Circle()
                     .fill(Color.black)
-                    .frame(width: 40, height: 40)
+                    .frame(width: 48, height: 48)
                     .overlay(
                         Circle()
                             .stroke(Color.green, lineWidth: 2)
                     )
 
                 Image(systemName: "arrow.counterclockwise")
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(.green)
             }
             .shadow(color: Color.green.opacity(0.3), radius: 6, x: 0, y: 3)
@@ -1328,14 +1515,14 @@ struct CircularActionButton: View {
             ZStack {
                 Circle()
                     .fill(Color.black)
-                    .frame(width: 40, height: 40)
+                    .frame(width: 48, height: 48)
                     .overlay(
                         Circle()
                             .stroke(tint, lineWidth: 2)
                     )
 
                 Text(title)
-                    .font(.system(size: 10, weight: .bold))
+                    .font(.system(size: 11, weight: .bold))
                     .foregroundColor(tint)
             }
             .shadow(color: tint.opacity(0.3), radius: 6, x: 0, y: 3)
@@ -1351,4 +1538,166 @@ struct CircularActionButton: View {
 }
 
 // SummaryEditSheet removed – hit zone editing is no longer available from the summary card.
+
+#Preview("IPSC Summary Grid") {
+    let context = PersistenceController.preview.container.viewContext
+
+    let drillSetup = DrillSetup(context: context)
+    drillSetup.id = UUID()
+    drillSetup.name = "IPSC Preview Drill"
+    drillSetup.mode = "ipsc"
+
+    let paperTarget = DrillTargetsConfig(context: context)
+    paperTarget.id = UUID()
+    paperTarget.seqNo = 1
+    paperTarget.targetName = "T1"
+    paperTarget.targetType = "ipsc"
+    paperTarget.timeout = 3
+    paperTarget.countedShots = 2
+    paperTarget.drillSetup = drillSetup
+
+    let popperTarget = DrillTargetsConfig(context: context)
+    popperTarget.id = UUID()
+    popperTarget.seqNo = 2
+    popperTarget.targetName = "APopper-1"
+    popperTarget.targetType = "paddle"
+    popperTarget.timeout = 3
+    popperTarget.countedShots = 1
+    popperTarget.drillSetup = drillSetup
+
+    let popperTargetTwo = DrillTargetsConfig(context: context)
+    popperTargetTwo.id = UUID()
+    popperTargetTwo.seqNo = 3
+    popperTargetTwo.targetName = "APopper-2"
+    popperTargetTwo.targetType = "paddle"
+    popperTargetTwo.timeout = 3
+    popperTargetTwo.countedShots = 1
+    popperTargetTwo.drillSetup = drillSetup
+
+    let popperTargetThree = DrillTargetsConfig(context: context)
+    popperTargetThree.id = UUID()
+    popperTargetThree.seqNo = 4
+    popperTargetThree.targetName = "APopper-3"
+    popperTargetThree.targetType = "popper"
+    popperTargetThree.timeout = 3
+    popperTargetThree.countedShots = 1
+    popperTargetThree.drillSetup = drillSetup
+
+    drillSetup.addToTargets(paperTarget)
+    drillSetup.addToTargets(popperTarget)
+    drillSetup.addToTargets(popperTargetTwo)
+    drillSetup.addToTargets(popperTargetThree)
+
+    let mockShots: [ShotData] = [
+        ShotData(
+            target: "T1",
+            content: Content(
+                command: "hit",
+                hitArea: "azone",
+                hitPosition: Position(x: 0.52, y: 0.41),
+                targetType: "ipsc",
+                timeDiff: 0.64
+            ),
+            type: "shot",
+            action: nil,
+            device: "preview-device"
+        ),
+        ShotData(
+            target: "T1",
+            content: Content(
+                command: "hit",
+                hitArea: "czone",
+                hitPosition: Position(x: 0.48, y: 0.46),
+                targetType: "ipsc",
+                timeDiff: 1.08
+            ),
+            type: "shot",
+            action: nil,
+            device: "preview-device"
+        ),
+        ShotData(
+            target: "APopper-1",
+            content: Content(
+                command: "hit",
+                hitArea: "apopper",
+                hitPosition: Position(x: 0.49, y: 0.43),
+                targetType: "paddle",
+                timeDiff: 1.37
+            ),
+            type: "shot",
+            action: nil,
+            device: "preview-device"
+        ),
+        ShotData(
+            target: "APopper-2",
+            content: Content(
+                command: "hit",
+                hitArea: "apopper",
+                hitPosition: Position(x: 0.53, y: 0.42),
+                targetType: "paddle",
+                timeDiff: 1.62
+            ),
+            type: "shot",
+            action: nil,
+            device: "preview-device"
+        ),
+        ShotData(
+            target: "APopper-3",
+            content: Content(
+                command: "hit",
+                hitArea: "circlearea",
+                hitPosition: Position(x: 0.44, y: 0.39),
+                targetType: "popper",
+                timeDiff: 1.84
+            ),
+            type: "shot",
+            action: nil,
+            device: "preview-device"
+        )
+    ]
+
+    let mockShooter: IpscShooter = {
+        let json = """
+        {
+          "id": 101,
+          "name": "Kai Preview",
+          "bib_number": "0007",
+          "division_name": "OPTICS",
+          "category_name": "Senior",
+          "power_factor": "Minor",
+          "stages_done": 0,
+          "status": "shooting"
+        }
+        """
+        let data = Data(json.utf8)
+        return try! JSONDecoder().decode(IpscShooter.self, from: data)
+    }()
+
+    let previewContext = IpscLockedSelectionContext(
+        matchId: 1,
+        matchName: "Preview Match",
+        stageId: 1,
+        stageName: "Stage 1",
+        squadId: 1,
+        squadName: "Squad A",
+        shooter: mockShooter
+    )
+
+    let mockSummary = DrillRepeatSummary(
+        repeatIndex: 1,
+        totalTime: 3.18,
+        numShots: mockShots.count,
+        firstShot: 0.64,
+        fastest: 0.29,
+        score: 0,
+        shots: mockShots,
+        adjustedHitZones: ["A": 2, "C": 1, "D": 0, "N": 0, "M": 0, "PE": 1]
+    )
+
+    return NavigationStack {
+        DrillSummaryView(drillSetup: drillSetup, summaries: [mockSummary], ipscContext: previewContext)
+            .environment(\.managedObjectContext, context)
+            .environmentObject(BLEManager.shared)
+    }
+}
 

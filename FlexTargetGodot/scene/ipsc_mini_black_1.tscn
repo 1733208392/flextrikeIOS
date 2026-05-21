@@ -63,16 +63,17 @@ libraries/ = SubResource("AnimationLibrary_1")
 polygon = PackedVector2Array(46, -460, 140, -156, 140, -24, 46, 112, -46, 112, -140, -24, -140, -156, -46, -460)
 
 [node name="CZone" type="CollisionPolygon2D" parent="." unique_id=997335066]
-polygon = PackedVector2Array(139, -494, 141, -157, 142, 225, 88, 294, -88, 294, -142, 225, -141, -157, -139, -494)
+position = Vector2(1, 1)
+polygon = PackedVector2Array(145, -493, 145, 226, 88, 294, -88, 294, -145, 226, -145, -493)
 
 [node name="DZone" type="CollisionPolygon2D" parent="." unique_id=1604920774]
 position = Vector2(-5, 553)
-polygon = PackedVector2Array(86, -271, 144, -345, 142, -72, -136, -70, -133, -344, -79, -274)
+polygon = PackedVector2Array(86, -271, 149, -348, 151, -65, -144, -66, -139, -343, -83, -276)
 
 [node name="BlackZoneRight" type="CollisionPolygon2D" parent="." unique_id=481251510]
-position = Vector2(-18, -6)
-polygon = PackedVector2Array(-119, 495, -382, 168, -381, -160, -121, -481)
+position = Vector2(-7, 0)
+polygon = PackedVector2Array(-138, 487, -387, 162, -388, -164, -138, -486)
 
 [node name="BlackZoneLeft" type="CollisionPolygon2D" parent="." unique_id=312188677]
-position = Vector2(268, -8)
-polygon = PackedVector2Array(-127, 493, 124, 178, 126, -159, -132, -477)
+position = Vector2(9, 0)
+polygon = PackedVector2Array(138, 487, 387, 162, 388, -164, 138, -486)
