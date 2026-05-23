@@ -427,39 +427,43 @@ func handle_websocket_bullet_hit_fast(world_pos: Vector2, t: int = 0):
 		print("[hostage] World pos: ", world_pos, " -> Local pos: ", local_pos)
 	
 	# 1. FIRST: Determine hit zone and scoring
-	var zone_hit = ""
 	var points = 0
 	var is_target_hit = false
-	
-	# Check which zone was hit (highest score first, including WhiteZone penalty)
-	if is_point_in_zone("WhiteZone", local_pos):
-		zone_hit = "WhiteZone"
-		points = ScoreUtils.new().get_points_for_hit_area("WhiteZone", -5)
-		is_target_hit = true
+	var hit_events: Array = []
+
+	# Overlap behavior: score and emit both A/C/D and WhiteZone when both are hit.
+	# A/C/D are mutually exclusive, so keep their priority for the primary scoring zone.
+	var hit_a = is_point_in_zone("AZone", local_pos)
+	var hit_c = is_point_in_zone("CZone", local_pos)
+	var hit_d = is_point_in_zone("DZone", local_pos)
+	var hit_white = is_point_in_zone("WhiteZone", local_pos)
+
+	if hit_a:
+		hit_events.append({"zone": "AZone", "points": ScoreUtils.new().get_points_for_hit_area("AZone", 5)})
 		if not DEBUG_DISABLED:
-			print("[hostage] FAST: WhiteZone hit - -5 points!")
-	elif is_point_in_zone("AZone", local_pos):
-		zone_hit = "AZone"
-		points = ScoreUtils.new().get_points_for_hit_area("AZone", 5)
-		is_target_hit = true
+			print("[hostage] FAST: Zone A hit")
+	elif hit_c:
+		hit_events.append({"zone": "CZone", "points": ScoreUtils.new().get_points_for_hit_area("CZone", 3)})
 		if not DEBUG_DISABLED:
-			print("[hostage] FAST: Zone A hit - 5 points!")
-	elif is_point_in_zone("CZone", local_pos):
-		zone_hit = "CZone"
-		points = ScoreUtils.new().get_points_for_hit_area("CZone", 3)
-		is_target_hit = true
+			print("[hostage] FAST: Zone C hit")
+	elif hit_d:
+		hit_events.append({"zone": "DZone", "points": ScoreUtils.new().get_points_for_hit_area("DZone", 1)})
 		if not DEBUG_DISABLED:
-			print("[hostage] FAST: Zone C hit - 3 points!")
-	elif is_point_in_zone("DZone", local_pos):
-		zone_hit = "DZone"
-		points = ScoreUtils.new().get_points_for_hit_area("DZone", 1)
-		is_target_hit = true
+			print("[hostage] FAST: Zone D hit")
+
+	if hit_white:
+		hit_events.append({"zone": "WhiteZone", "points": ScoreUtils.new().get_points_for_hit_area("WhiteZone", -5)})
 		if not DEBUG_DISABLED:
-			print("[hostage] FAST: Zone D hit - 1 point!")
+			print("[hostage] FAST: WhiteZone hit")
+
+	if hit_events.size() > 0:
+		is_target_hit = true
+		for event_data in hit_events:
+			points += int(event_data["points"])
 	else:
-		zone_hit = "miss"
 		points = ScoreUtils.new().get_points_for_hit_area("miss", 0)
 		is_target_hit = false
+		hit_events.append({"zone": "miss", "points": points})
 		if not DEBUG_DISABLED:
 			print("[hostage] FAST: Bullet missed target - no bullet hole")
 	
@@ -477,11 +481,12 @@ func handle_websocket_bullet_hit_fast(world_pos: Vector2, t: int = 0):
 		# For misses: spawn impact particle and play sound
 		spawn_bullet_effects_at_position(world_pos, is_target_hit)
 	
-	# 4. Update score and emit signal
+	# 4. Update score and emit signal(s)
 	total_score += points
-	target_hit.emit(zone_hit, points, world_pos, t)
+	for event_data in hit_events:
+		target_hit.emit(event_data["zone"], int(event_data["points"]), world_pos, t)
 	if not DEBUG_DISABLED:
-		print("[hostage] FAST: Total score: ", total_score)
+		print("[hostage] FAST: Total score: ", total_score, " (events emitted: ", hit_events.size(), ")")
 	
 	# 5. Increment shot count and check for disappearing animation (only for hits)
 	if is_target_hit:

@@ -43,6 +43,7 @@ struct TimerSessionView: View {
     @State private var gracePeriodActive: Bool = false
     @State private var gracePeriodRemaining: TimeInterval = 0
     private let gracePeriodDuration: TimeInterval = 5.0
+    private let timerCueVolume: Float = 1.0
     
     // Drill execution properties
     @State private var executionManager: DrillExecutionManager?
@@ -568,6 +569,7 @@ struct TimerSessionView: View {
         do {
             prepareAudioSessionForCuePlayback()
             audioPlayer = try AVAudioPlayer(contentsOf: url)
+            audioPlayer?.volume = timerCueVolume
             audioPlayer?.prepareToPlay()
             audioPlayer?.play()
         } catch {
@@ -584,6 +586,7 @@ struct TimerSessionView: View {
         do {
             prepareAudioSessionForCuePlayback()
             audioPlayer = try AVAudioPlayer(contentsOf: url)
+            audioPlayer?.volume = timerCueVolume
             audioPlayer?.prepareToPlay()
             audioPlayer?.play()
         } catch {
@@ -600,6 +603,7 @@ struct TimerSessionView: View {
         do {
             prepareAudioSessionForCuePlayback()
             audioPlayer = try AVAudioPlayer(contentsOf: url)
+            audioPlayer?.volume = timerCueVolume
             audioPlayer?.prepareToPlay()
             audioPlayer?.play()
         } catch {

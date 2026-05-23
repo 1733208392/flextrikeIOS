@@ -3,12 +3,14 @@ extends Control
 const DEBUG_DISABLED = true
 const QR_CODE_GENERATOR = preload("res://script/qrcode.gd")
 const QR_URL_BASE = "https://grwolf.com/pages/app-redirect"
+const MENU_FOCUS_OWNER = "onboarding_skip"
 
 @onready var greeting_label = $CenterContainer/NormalState/GreetingContainer/GreetingLabel
 @onready var error_label = $ErroContainer/ErrorLabel
 @onready var qr_texture_rect = $CenterContainer/NormalState/QRContainer/QRTextureRect
 @onready var error_container = $ErroContainer
 @onready var normal_state = $CenterContainer/NormalState
+@onready var skip_button = get_node_or_null("SkipButton")
 
 var forward_timer: Timer
 var status_poll_timer: Timer
@@ -16,6 +18,7 @@ var typing_timer: Timer
 var blinking_timer: Timer
 var health_check_timer: Timer
 var ble_name: String = "..."
+var is_transitioning: bool = false
 
 func _ready():
 	# Set default locale to English for translations
@@ -54,6 +57,49 @@ func _ready():
 	var ws_listener = get_node_or_null("/root/WebSocketListener")
 	if ws_listener:
 		ws_listener.provision_step_received.connect(_on_provision_step_received)
+
+	# 5. Setup skip onboarding controls
+	if is_instance_valid(skip_button):
+		skip_button.pressed.connect(_on_skip_button_pressed)
+		skip_button.grab_focus()
+	_connect_menu_controller_signals()
+
+func _connect_menu_controller_signals():
+	var menu_controller = get_node_or_null("/root/MenuController")
+	if menu_controller:
+		if menu_controller.has_method("claim_focus"):
+			menu_controller.claim_focus(MENU_FOCUS_OWNER)
+		menu_controller.enter_pressed.connect(_on_remote_enter_pressed)
+		menu_controller.back_pressed.connect(_on_remote_skip_pressed)
+		if menu_controller.has_signal("homepage_pressed"):
+			menu_controller.homepage_pressed.connect(_on_remote_skip_pressed)
+		if menu_controller.has_signal("navigate"):
+			menu_controller.navigate.connect(_on_remote_navigate)
+		if menu_controller.has_signal("navigate_claimed"):
+			menu_controller.navigate_claimed.connect(_on_remote_navigate_claimed)
+
+func _exit_tree():
+	var menu_controller = get_node_or_null("/root/MenuController")
+	if menu_controller and menu_controller.has_method("release_focus"):
+		menu_controller.release_focus(MENU_FOCUS_OWNER)
+
+func _on_remote_navigate_claimed(focus_owner: String, _direction: String):
+	if focus_owner == MENU_FOCUS_OWNER and is_instance_valid(skip_button):
+		skip_button.grab_focus()
+
+func _on_remote_navigate(_direction: String):
+	if is_instance_valid(skip_button):
+		skip_button.grab_focus()
+
+func _on_remote_enter_pressed():
+	if not is_instance_valid(skip_button) or skip_button.has_focus():
+		_skip_onboarding_to_main_menu()
+
+func _on_remote_skip_pressed():
+	_skip_onboarding_to_main_menu()
+
+func _on_skip_button_pressed():
+	_skip_onboarding_to_main_menu()
 
 func _start_health_check():
 	# Display health check message in error container
@@ -180,13 +226,13 @@ func _on_typing_timer_timeout():
 			if not DEBUG_DISABLED:
 				print("[Onboarding] Typing animation completed, transitioning to WiFi networks scene immediately")
 
-func _generate_qr(ble_name: String = ""):
+func _generate_qr(device_ble_name: String = ""):
 	var qr_url = "https://grwolf.com/pages/app"
-	if not ble_name.is_empty():
+	if not device_ble_name.is_empty():
 		# Extract only the device ID (last part after space, e.g., "5F0430" from "GR-WOLF ET 5F0430")
-		var device_id = ble_name
-		if " " in ble_name:
-			var parts = ble_name.split(" ")
+		var device_id = device_ble_name
+		if " " in device_ble_name:
+			var parts = device_ble_name.split(" ")
 			device_id = parts[-1]  # Get the last part
 		qr_url = "%s?a=%s" % [qr_url, device_id]
 	
@@ -196,18 +242,14 @@ func _generate_qr(ble_name: String = ""):
 		qr_texture_rect.texture = ImageTexture.create_from_image(image)
 
 func _complete_onboarding():
-	# Mark as complete in GlobalData
-	var global_data = get_node_or_null("/root/GlobalData")
-	if global_data:
-		global_data.settings_dict["first_run_complete"] = true
-		
-		# Save settings to server
-		var settings_data = global_data.settings_dict.duplicate()
-		HttpService.save_game(Callable(), "settings", settings_data)
-	
+	if is_transitioning:
+		return
+	is_transitioning = true
+	_mark_onboarding_complete()
+
 	if not DEBUG_DISABLED:
 		print("[Onboarding] Onboarding complete, transitioning to main menu in 3 seconds")
-	
+
 	# Transition after a short delay
 	var complete_timer = Timer.new()
 	add_child(complete_timer)
@@ -218,6 +260,25 @@ func _complete_onboarding():
 		get_tree().change_scene_to_file("res://scene/main_menu/main_menu.tscn")
 	)
 	complete_timer.start()
+
+func _mark_onboarding_complete():
+	# Mark as complete in GlobalData
+	var global_data = get_node_or_null("/root/GlobalData")
+	if global_data:
+		global_data.settings_dict["first_run_complete"] = true
+		
+		# Save settings to server
+		var settings_data = global_data.settings_dict.duplicate()
+		HttpService.save_game(Callable(), "settings", settings_data)
+
+func _skip_onboarding_to_main_menu():
+	if is_transitioning:
+		return
+	is_transitioning = true
+	_mark_onboarding_complete()
+	if not DEBUG_DISABLED:
+		print("[Onboarding] Skip requested, transitioning to main menu")
+	get_tree().change_scene_to_file("res://scene/main_menu/main_menu.tscn")
 
 func _on_provision_step_received(step: String):
 	"""Handle provision step received from mobile app"""

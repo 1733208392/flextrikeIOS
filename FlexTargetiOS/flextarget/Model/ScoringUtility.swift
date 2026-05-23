@@ -95,11 +95,8 @@ class ScoringUtility {
     }
 
     private static func expectedKeyPeWeight(for key: String) -> Int {
-        let parts = key.split(separator: "|", maxSplits: 1, omittingEmptySubsequences: false)
-        let type = (parts.count > 1 ? String(parts[1]) : "").lowercased()
-        if type == "ipsc_mini_double" {
-            return 2
-        }
+        // PE is counted per expected row/panel and must remain < 2 for a single row.
+        // ipsc_mini_double is already expanded into two panel rows, so each row has weight 1.
         return 1
     }
 

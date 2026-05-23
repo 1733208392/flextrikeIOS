@@ -39,6 +39,12 @@ final class IpscSubmitViewModel: ObservableObject {
     var summaries: [DrillRepeatSummary] = []
     var lockedContext: IpscLockedSelectionContext?
 
+    /// Caller-provided row grid (e.g. from the on-screen IPSC editor in
+    /// `DrillSummaryView`). When set, this is sent verbatim to the backend so
+    /// the payload always carries one row per expected target — including
+    /// unengaged targets that default to M=2 — even when no shots were fired.
+    var prebuiltRows: [IpscScoreTargetRow]?
+
     // MARK: - Navigation
 
     func start() {
@@ -82,7 +88,7 @@ final class IpscSubmitViewModel: ObservableObject {
                 M: hitZones["M"] ?? 0,
                 N: hitZones["N"] ?? 0
             ),
-            rows: buildRows(from: summary),
+            rows: prebuiltRows ?? buildRows(from: summary),
             penalties: IpscScorePenalties(PE: hitZones["PE"] ?? 0),
             firstShot: summary.firstShot > 0 ? summary.firstShot : nil,
             fastestSplit: summary.fastest > 0 ? summary.fastest : nil
@@ -185,24 +191,23 @@ final class IpscSubmitViewModel: ObservableObject {
     }
 
     private func isAPopperHitArea(_ raw: String) -> Bool {
-        let normalized = raw.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        return normalized == "apopper" || normalized == "a_popper" || normalized == "a-popper"
+        return ScoringUtility.normalizeHitArea(raw) == "apopper"
     }
 
     private func normalizeHitArea(_ raw: String) -> String {
-        switch raw.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
-        case "a", "azone", "a_zone", "a-zone", "circlearea", "popperzone", "apopper":
+        switch ScoringUtility.normalizeHitArea(raw) {
+        case "azone", "circlearea", "popperzone", "apopper":
             return "a"
-        case "c", "czone", "c_zone", "c-zone":
+        case "czone":
             return "c"
-        case "d", "dzone", "d_zone", "d-zone":
+        case "dzone":
             return "d"
-        case "m", "miss":
-            return "m"
-        case "n", "ns", "whitezone", "no_shoot", "no-shoot", "noshoot":
+        case "whitezone":
             return "n"
-        case "blackzone", "blackzoneleft", "blackzoneright", "black_zone", "black-zone", "black_zone_left", "black-zone-left", "black_zone_right", "black-zone-right":
+        case "miss":
             return "m"
+        case "n", "ns", "no_shoot", "no-shoot", "noshoot":
+            return "n"
         default:
             return "unknown"
         }

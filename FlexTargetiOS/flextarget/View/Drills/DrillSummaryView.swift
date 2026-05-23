@@ -929,7 +929,45 @@ struct DrillSummaryView: View {
             return
         }
         applyIpscGridToSummary()
+        // The on-screen grid always contains one row per expected target
+        // (with default M for unengaged ones), so we hand it to the submit
+        // view-model verbatim instead of letting it rebuild from raw shots.
+        ipscSubmitViewModel.prebuiltRows = ipscScoreTargetRowsForSubmission()
         ipscSubmitViewModel.submit(context: context, summary: summaries[0], isDq: dqApplied)
+    }
+
+    /// Serialize the on-screen IPSC target grid into the API payload type,
+    /// numbering steel and paper rows independently (row_no starts at 1 per
+    /// row_type). Always returns at least the rows shown to the RO.
+    private func ipscScoreTargetRowsForSubmission() -> [IpscScoreTargetRow] {
+        var steelNo = 0
+        var paperNo = 0
+        return targetRows.map { row in
+            let isSteel = (row.rowKind == .steel || row.rowKind == .apopper)
+            if isSteel {
+                steelNo += 1
+                return IpscScoreTargetRow(
+                    rowType: "steel",
+                    rowNo: steelNo,
+                    A: row.a,
+                    C: row.c,
+                    D: row.d,
+                    M: row.m,
+                    N: row.ns
+                )
+            } else {
+                paperNo += 1
+                return IpscScoreTargetRow(
+                    rowType: "paper",
+                    rowNo: paperNo,
+                    A: row.a,
+                    C: row.c,
+                    D: row.d,
+                    M: row.m,
+                    N: row.ns
+                )
+            }
+        }
     }
 
     private func updateIpscCell(rowIndex: Int, zone: IpscEditableZone, reset: Bool) {
@@ -947,8 +985,10 @@ struct DrillSummaryView: View {
         case .m:
             targetRows[rowIndex].m = reset ? 0 : targetRows[rowIndex].m + 1
         case .pe:
-            targetRows[rowIndex].pe = reset ? 0 : targetRows[rowIndex].pe + 1
+            targetRows[rowIndex].pe = reset ? 0 : min(1, targetRows[rowIndex].pe + 1)
         }
+
+        targetRows[rowIndex].pe = min(1, max(0, targetRows[rowIndex].pe))
 
         dqApplied = false
         applyIpscGridToSummary()
@@ -976,7 +1016,7 @@ struct DrillSummaryView: View {
             d: targetRows.reduce(0) { $0 + $1.d },
             ns: targetRows.reduce(0) { $0 + $1.ns },
             m: targetRows.reduce(0) { $0 + $1.m },
-            pe: targetRows.reduce(0) { $0 + $1.pe }
+            pe: targetRows.reduce(0) { $0 + min(1, max(0, $1.pe)) }
         )
     }
 
@@ -1089,7 +1129,7 @@ struct DrillSummaryView: View {
                 d: counts.d,
                 ns: counts.ns,
                 m: counts.m,
-                pe: counts.pe
+                pe: min(1, max(0, counts.pe))
             )
         }
     }
@@ -1383,7 +1423,7 @@ private enum IpscRowKind {
     var defaultNoShotPe: Int {
         switch self {
         case .miniDoublePanel:
-            return 2
+            return 1
         case .paper, .steel, .apopper:
             return 1
         }

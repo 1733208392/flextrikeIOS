@@ -107,6 +107,10 @@ var _physical_popper_hit_registered: bool = false
 var target_sequence: Array = []  # Array of target types to cycle through
 var current_target_index: int = 0  # Index of current target in sequence
 var shots_on_current_target: int = 0  # Track shots on the current target
+var _last_shot_progress_frame: int = -1
+var _last_shot_progress_target: Node = null
+var _last_shot_progress_pos: Vector2 = Vector2.ZERO
+var _last_shot_progress_t: int = -1
 
 # Animation configuration for targets
 var current_animation_action: Dictionary = {}  # Dictionary holding single animation action (for future sequence support)
@@ -861,11 +865,29 @@ func _on_target_hit(zone_or_id, points_or_zone, hit_pos_or_points, target_pos_or
 	if DEBUG_ENABLED:
 		print("[DrillsNetwork] _on_target_hit: Emitting target_hit signal - target_type=", current_target_type, ", hit_area=", zone, ", hit_pos=", hit_position, ", t=", t)
 	emit_signal("target_hit", target_instance, current_target_type, hit_position, zone, rotation_angle, current_repeat, target_position, t)
-	
-	# Track shots on the current target for multi-target sequence support
-	shots_on_current_target += 1
-	if DEBUG_ENABLED:
-		print("[DrillsNetwork] Shots on current target: ", shots_on_current_target, "/2")
+
+	# Track shots on the current target for multi-target sequence support.
+	# Some targets intentionally emit multiple hit events for one physical shot (e.g., overlap zones).
+	# Deduplicate progression counting while still forwarding all hit events.
+	var should_count_progress_shot := true
+	var current_frame := Engine.get_process_frames()
+	if t > 0:
+		if target_instance == _last_shot_progress_target and t == _last_shot_progress_t:
+			should_count_progress_shot = false
+	else:
+		if target_instance == _last_shot_progress_target and current_frame == _last_shot_progress_frame and hit_position.distance_to(_last_shot_progress_pos) < 0.01:
+			should_count_progress_shot = false
+
+	if should_count_progress_shot:
+		shots_on_current_target += 1
+		_last_shot_progress_target = target_instance
+		_last_shot_progress_frame = current_frame
+		_last_shot_progress_pos = hit_position
+		_last_shot_progress_t = t
+		if DEBUG_ENABLED:
+			print("[DrillsNetwork] Shots on current target: ", shots_on_current_target, "/2")
+	elif DEBUG_ENABLED:
+		print("[DrillsNetwork] Duplicate hit event for same physical shot ignored for progression: zone=", zone, ", t=", t)
 	
 	# Check if we should transition to the next target in the sequence
 	# For paddle and popper targets, skip the 2-shot check and wait for target_disappeared signal

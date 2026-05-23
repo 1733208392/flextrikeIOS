@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://d30mq788le0nt"]
+[gd_scene format=3 uid="uid://d30mq788le0nt"]
 
 [ext_resource type="Script" uid="uid://dpv7hrojpq63x" path="res://script/onboarding.gd" id="1_iat7d"]
 [ext_resource type="Theme" uid="uid://cdynjfvdtavlt" path="res://scene/main_menu/main_menu_button_theme.tres" id="2_etyvi"]
@@ -14,7 +14,7 @@
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_rtuh2"]
 
-[node name="onboarding" type="Control"]
+[node name="onboarding" type="Control" unique_id=1360814030]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -23,7 +23,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_iat7d")
 
-[node name="back" type="Panel" parent="."]
+[node name="back" type="Panel" parent="." unique_id=374250928]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -31,7 +31,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="background" type="ColorRect" parent="back"]
+[node name="background" type="ColorRect" parent="back" unique_id=301655530]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -40,7 +40,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.03137255, 0.03137255, 0.03137255, 1)
 
-[node name="CenterContainer" type="CenterContainer" parent="."]
+[node name="CenterContainer" type="CenterContainer" parent="." unique_id=885301461]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -48,31 +48,31 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="NormalState" type="VBoxContainer" parent="CenterContainer"]
+[node name="NormalState" type="VBoxContainer" parent="CenterContainer" unique_id=514043355]
 layout_mode = 2
 theme = ExtResource("2_etyvi")
 alignment = 1
 
-[node name="QRContainer" type="PanelContainer" parent="CenterContainer/NormalState"]
+[node name="QRContainer" type="PanelContainer" parent="CenterContainer/NormalState" unique_id=343024387]
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxEmpty_ogpcl")
 
-[node name="QRTextureRect" type="TextureRect" parent="CenterContainer/NormalState/QRContainer"]
+[node name="QRTextureRect" type="TextureRect" parent="CenterContainer/NormalState/QRContainer" unique_id=403741549]
 custom_minimum_size = Vector2(300, 300)
 layout_mode = 2
 expand_mode = 1
 stretch_mode = 5
 
-[node name="space" type="Panel" parent="CenterContainer/NormalState"]
+[node name="space" type="Panel" parent="CenterContainer/NormalState" unique_id=173181462]
 custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxEmpty_iat7d")
 
-[node name="GreetingContainer" type="PanelContainer" parent="CenterContainer/NormalState"]
+[node name="GreetingContainer" type="PanelContainer" parent="CenterContainer/NormalState" unique_id=1383256427]
 custom_minimum_size = Vector2(600, 0)
 layout_mode = 2
 
-[node name="GreetingLabel" type="RichTextLabel" parent="CenterContainer/NormalState/GreetingContainer"]
+[node name="GreetingLabel" type="RichTextLabel" parent="CenterContainer/NormalState/GreetingContainer" unique_id=1697775789]
 layout_mode = 2
 theme_override_fonts/normal_font = ExtResource("8_vemtp")
 theme_override_font_sizes/normal_font_size = 28
@@ -82,7 +82,7 @@ fit_content = true
 visible_characters = 0
 visible_ratio = 0.0
 
-[node name="ErroContainer" type="PanelContainer" parent="."]
+[node name="ErroContainer" type="PanelContainer" parent="." unique_id=467036623]
 layout_mode = 0
 offset_left = 60.0
 offset_top = 1160.0
@@ -90,7 +90,7 @@ offset_right = 660.0
 offset_bottom = 1240.0
 theme_override_styles/panel = SubResource("StyleBoxEmpty_rtuh2")
 
-[node name="ErrorLabel" type="RichTextLabel" parent="ErroContainer"]
+[node name="ErrorLabel" type="RichTextLabel" parent="ErroContainer" unique_id=514359940]
 layout_mode = 2
 theme_override_colors/default_color = Color(1, 0.647059, 0, 1)
 theme_override_fonts/normal_font = ExtResource("8_vemtp")
@@ -101,7 +101,7 @@ fit_content = true
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Copywrite" type="Label" parent="."]
+[node name="Copywrite" type="Label" parent="." unique_id=1197986872]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.5
@@ -115,7 +115,21 @@ theme_override_fonts/font = ExtResource("11_inter")
 horizontal_alignment = 1
 vertical_alignment = 2
 
-[node name="VolumeControl" parent="." instance=ExtResource("9_volume")]
+[node name="SkipButton" type="Button" parent="." unique_id=2041532508]
+custom_minimum_size = Vector2(220, 64)
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -110.0
+offset_top = -160.0
+offset_right = 110.0
+offset_bottom = -96.0
+theme = ExtResource("2_etyvi")
+text = "Skip Onboarding"
+
+[node name="VolumeControl" parent="." unique_id=1110240393 instance=ExtResource("9_volume")]
 visible = false
 layout_mode = 1
 anchors_preset = 3
@@ -130,9 +144,9 @@ offset_bottom = -20.0
 grow_horizontal = 0
 grow_vertical = 0
 
-[node name="BackgroundMusic" type="AudioStreamPlayer" parent="."]
+[node name="BackgroundMusic" type="AudioStreamPlayer" parent="." unique_id=1915314031]
 stream = ExtResource("10_audio")
 autoplay = true
 
-[node name="TypewriterSound" type="AudioStreamPlayer" parent="."]
+[node name="TypewriterSound" type="AudioStreamPlayer" parent="." unique_id=1477900896]
 stream = ExtResource("12_cursor")
