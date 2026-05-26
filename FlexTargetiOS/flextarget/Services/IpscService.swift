@@ -308,6 +308,52 @@ struct IpscScoreSubmitData: Decodable {
     }
 }
 
+// MARK: - Drill Replay Upload
+
+/// Request payload for `POST /api/v1/matches/{matchId}/drill-replays`.
+/// `payload` is the full `DetailData` (one entry per shot — hit area, hit
+/// position, target type/name, timing) so the admin viewer can rewind
+/// what happened during the run.
+struct IpscDrillReplayUploadRequest: Encodable {
+    let shooterId: Int
+    let stageId: Int
+    let drillName: String?
+    let totalTime: Double
+    let numShots: Int
+    let score: Int?
+    let clientDrillResultId: String?
+    let deviceId: String?
+    let payload: DetailData
+
+    enum CodingKeys: String, CodingKey {
+        case shooterId            = "shooter_id"
+        case stageId              = "stage_id"
+        case drillName            = "drill_name"
+        case totalTime            = "total_time"
+        case numShots             = "num_shots"
+        case score
+        case clientDrillResultId  = "client_drill_result_id"
+        case deviceId             = "device_id"
+        case payload
+    }
+}
+
+struct IpscDrillReplayUploadData: Decodable {
+    let id: Int
+    let matchId: Int
+    let shooterId: Int
+    let stageId: Int
+    let numShots: Int
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case matchId  = "match_id"
+        case shooterId = "shooter_id"
+        case stageId  = "stage_id"
+        case numShots = "num_shots"
+    }
+}
+
 // MARK: - IpscService
 
 /// Stateless URLSession wrapper for the IPSC match server.
@@ -368,6 +414,23 @@ final class IpscService {
         let response: IpscApiResponse<IpscScoreSubmitData> = try await post(url, body: request)
         guard response.success, let data = response.data else {
             throw IpscError.serverError(response.error ?? "Submission failed")
+        }
+        return data
+    }
+
+    // MARK: Upload Drill Replay — POST /api/v1/matches/{matchId}/drill-replays
+    ///
+    /// Uploads the raw drill data (shots with hit area, hit position, target
+    /// type/name, timing) so the GCS admin can rewind/replay the run.
+    /// The full `DetailData` payload is sent verbatim under `payload`.
+    func uploadDrillReplay(
+        matchId: Int,
+        request: IpscDrillReplayUploadRequest
+    ) async throws -> IpscDrillReplayUploadData {
+        let url = try makeURL("api/v1/matches/\(matchId)/drill-replays")
+        let response: IpscApiResponse<IpscDrillReplayUploadData> = try await post(url, body: request)
+        guard response.success, let data = response.data else {
+            throw IpscError.serverError(response.error ?? "Replay upload failed")
         }
         return data
     }

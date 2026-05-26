@@ -1,6 +1,7 @@
 import SwiftUI
 import CoreData
 import Foundation
+import UIKit
 
 // MARK: - DetailData Codable Struct
 struct DetailData: Codable {
@@ -43,6 +44,10 @@ struct DrillSummaryView: View {
     @State private var isSubmitting = false
     @State private var submitSuccessMessage: String? = nil
     @State private var submitErrorMessage: String? = nil
+
+    // Drill-replay upload state (IPSC flow only)
+    @State private var isUploadingReplay = false
+    @State private var replayUploaded = false
 
     @StateObject private var ipscSubmitViewModel = IpscSubmitViewModel()
 
@@ -755,6 +760,22 @@ struct DrillSummaryView: View {
 
             Spacer()
 
+            if !summaries.isEmpty && isIpscContextFlow {
+                Button(action: { uploadDrillReplay() }) {
+                    if isUploadingReplay {
+                        ProgressView()
+                            .tint(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+                    } else {
+                        Image(systemName: replayUploaded ? "checkmark.icloud.fill" : "square.and.arrow.up.on.square")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+                    }
+                }
+                .disabled(isUploadingReplay || summaries.isEmpty)
+                .opacity(isUploadingReplay ? 0.5 : 1.0)
+                .accessibilityLabel(Text("Upload Replay"))
+            }
+
             if !summaries.isEmpty && (isIpscContextFlow || competition != nil) {
                 Button(action: {
                     if isIpscContextFlow {
@@ -934,6 +955,82 @@ struct DrillSummaryView: View {
         // view-model verbatim instead of letting it rebuild from raw shots.
         ipscSubmitViewModel.prebuiltRows = ipscScoreTargetRowsForSubmission()
         ipscSubmitViewModel.submit(context: context, summary: summaries[0], isDq: dqApplied)
+    }
+
+    /// Upload the raw shot data (hit area, hit position, target type/name,
+    /// shot timing, etc.) to the GCS backend so the admin can rewind the run.
+    /// IPSC-only: requires `ipscContext` to map to a real match/shooter/stage.
+    /// Idempotent: re-uploads with the same `clientDrillResultId` update the
+    /// existing row instead of creating duplicates.
+    private func uploadDrillReplay() {
+        guard let context = ipscContext else {
+            showSubmitError(title: NSLocalizedString("error_title", comment: "Error"), message: "Competition context missing.")
+            return
+        }
+        guard let firstSummary = summaries.first else {
+            showSubmitError(title: NSLocalizedString("error_title", comment: "Error"), message: "No summary data available.")
+            return
+        }
+
+        let hitZones: [String: Int] = firstSummary.adjustedHitZones
+            ?? ScoringUtility.calculateEffectiveCounts(shots: firstSummary.shots, drillSetup: drillSetup)
+        let finalScore = ScoringUtility.calculateScoreFromAdjustedHitZones(hitZones, drillSetup: drillSetup)
+        let factor = calculateFactor(score: finalScore, time: firstSummary.totalTime)
+
+        let detailData = DetailData(
+            drillName: drillSetup.name ?? "Unknown",
+            score: finalScore,
+            factor: factor,
+            totalTime: firstSummary.totalTime,
+            numShots: firstSummary.numShots,
+            fastest: firstSummary.fastest,
+            firstShot: firstSummary.firstShot,
+            shotData: firstSummary.shots,
+            hitZones: hitZones,
+            athleteName: context.shooter.name,
+            athleteClub: context.shooter.divisionName
+        )
+
+        let clientId = firstSummary.drillResultId?.uuidString
+        let deviceId = UIDevice.current.identifierForVendor?.uuidString
+
+        let request = IpscDrillReplayUploadRequest(
+            shooterId: context.shooter.id,
+            stageId: context.stageId,
+            drillName: drillSetup.name,
+            totalTime: firstSummary.totalTime,
+            numShots: firstSummary.numShots,
+            score: finalScore,
+            clientDrillResultId: clientId,
+            deviceId: deviceId,
+            payload: detailData
+        )
+
+        isUploadingReplay = true
+        Task {
+            do {
+                let data = try await IpscService.shared.uploadDrillReplay(
+                    matchId: context.matchId,
+                    request: request
+                )
+                await MainActor.run {
+                    isUploadingReplay = false
+                    replayUploaded = true
+                    showSubmitSuccess(
+                        title: NSLocalizedString("success_title", comment: "Success"),
+                        message: "Replay uploaded (id #\(data.id), \(data.numShots) shots)"
+                    )
+                }
+            } catch {
+                await MainActor.run {
+                    isUploadingReplay = false
+                    showSubmitError(
+                        title: NSLocalizedString("submit_failed_title", comment: "Submission Failed"),
+                        message: error.localizedDescription
+                    )
+                }
+            }
+        }
     }
 
     /// Serialize the on-screen IPSC target grid into the API payload type,
