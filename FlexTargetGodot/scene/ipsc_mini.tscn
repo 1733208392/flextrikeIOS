@@ -48,6 +48,7 @@ _data = {
 }
 
 [node name="IPSC" type="Area2D" unique_id=869404871]
+scale = Vector2(0.9, 0.9)
 collision_layer = 7
 collision_mask = 0
 script = ExtResource("1_11fyi")

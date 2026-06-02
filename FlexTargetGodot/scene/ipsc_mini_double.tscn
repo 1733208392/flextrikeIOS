@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://mc1mjjknsfdm"]
 
-[ext_resource type="Script" path="res://script/ipsc_mini_double.gd" id="1_ipsc_mini_double"]
+[ext_resource type="Script" uid="uid://cmhhs4b04o3fq" path="res://script/ipsc_mini_double.gd" id="1_ipsc_mini_double"]
 [ext_resource type="Texture2D" uid="uid://dve4iuyjc5x3u" path="res://asset/ipsc.png" id="2_uv8qi"]
 
 [sub_resource type="Animation" id="Animation_1"]
@@ -48,6 +48,7 @@ _data = {
 }
 
 [node name="IPSC" type="Area2D" unique_id=869404871]
+scale = Vector2(0.9, 0.9)
 collision_layer = 7
 collision_mask = 0
 script = ExtResource("1_ipsc_mini_double")
@@ -68,7 +69,7 @@ polygon = PackedVector2Array(136, -495, 273, -157, 273, 78, 90, 298, -90, 298, -
 polygon = PackedVector2Array(139, -498, 394, -163, 394, 169, 139, 490, -139, 490, -394, 169, -394, -163, -139, -498)
 
 [node name="TargetSprite2" type="Sprite2D" parent="." unique_id=139985072]
-position = Vector2(0, 349)
+position = Vector2(0, 380)
 texture = ExtResource("2_uv8qi")
 
 [node name="AnimationPlayer2" type="AnimationPlayer" parent="." unique_id=1356836550]
@@ -76,13 +77,13 @@ root_node = NodePath("../TargetSprite2")
 libraries/ = SubResource("AnimationLibrary_1")
 
 [node name="AZone2" type="CollisionPolygon2D" parent="." unique_id=1835653473]
-position = Vector2(0, 349)
+position = Vector2(0, 380)
 polygon = PackedVector2Array(47, -458, 140, -156, 140, -25, 47, 112, -47, 112, -140, -25, -140, -156, -47, -458)
 
 [node name="CZone2" type="CollisionPolygon2D" parent="." unique_id=508159759]
-position = Vector2(0, 349)
+position = Vector2(0, 380)
 polygon = PackedVector2Array(136, -495, 273, -157, 273, 78, 90, 298, -90, 298, -273, 78, -273, -157, -136, -495)
 
 [node name="DZone2" type="CollisionPolygon2D" parent="." unique_id=1667951649]
-position = Vector2(0, 349)
+position = Vector2(0, 380)
 polygon = PackedVector2Array(139, -498, 394, -163, 394, 169, 139, 490, -139, 490, -394, 169, -394, -163, -139, -498)

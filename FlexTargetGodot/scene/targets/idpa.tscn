@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://b6gm7b6lv1klv"]
+[gd_scene format=3 uid="uid://b6gm7b6lv1klv"]
 
 [ext_resource type="Script" uid="uid://b2c4e54ec4vkl" path="res://script/idpa.gd" id="1_5wlg2"]
 [ext_resource type="Texture2D" uid="uid://cane2y7sy4bht" path="res://asset/idpa.png" id="2_ijw1i"]
@@ -41,31 +41,29 @@ radius = 60.0
 [sub_resource type="CircleShape2D" id="CircleShape2D_jfwqr"]
 radius = 116.72617
 
-[node name="IDPA" type="Area2D"]
+[node name="IDPA" type="Area2D" unique_id=2144065860]
 collision_layer = 7
 collision_mask = 0
 script = ExtResource("1_5wlg2")
 drill_active = true
 
-[node name="TargetSprite" type="Sprite2D" parent="."]
+[node name="TargetSprite" type="Sprite2D" parent="." unique_id=285327569]
 scale = Vector2(1.5, 1.5)
 texture = ExtResource("2_ijw1i")
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
-libraries = {
-&"": SubResource("AnimationLibrary_1")
-}
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=2062707744]
+libraries/ = SubResource("AnimationLibrary_1")
 
-[node name="head-0" type="CollisionShape2D" parent="."]
+[node name="head-0" type="CollisionShape2D" parent="." unique_id=1863657180]
 position = Vector2(1, -342)
 shape = SubResource("CircleShape2D_knpln")
 
-[node name="heart-0" type="CollisionShape2D" parent="."]
+[node name="heart-0" type="CollisionShape2D" parent="." unique_id=1483758279]
 position = Vector2(0, -60)
 shape = SubResource("CircleShape2D_jfwqr")
 
-[node name="other-3" type="CollisionPolygon2D" parent="."]
+[node name="other-3" type="CollisionPolygon2D" parent="." unique_id=2130979245]
 polygon = PackedVector2Array(-200, -265, 200, -265, 270, -170, 265, 300, 190, 440, -190, 440, -270, 290, -270, -170)
 
-[node name="body-1" type="CollisionPolygon2D" parent="."]
+[node name="body-1" type="CollisionPolygon2D" parent="." unique_id=1400525640]
 polygon = PackedVector2Array(-90, -440, 90, -440, 90, -270, 180, -175, 180, 120, 90, 260, -90, 260, -180, 120, -170, -175, -90, -260)

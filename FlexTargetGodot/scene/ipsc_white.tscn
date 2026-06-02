@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3 uid="uid://ykv01kvvgiax"]
+[gd_scene format=3 uid="uid://ykv01kvvgiax"]
 
 [ext_resource type="Script" path="res://script/ipsc_white.gd" id="1_ipsc_white"]
 [ext_resource type="Texture2D" uid="uid://cvudnr4qxxsw" path="res://asset/ipsc-white.png" id="2_vcewe"]
@@ -62,18 +62,17 @@ _data = {
 &"disappear": SubResource("Animation_1")
 }
 
-[node name="IPSCWhite" type="Area2D"]
+[node name="IPSCWhite" type="Area2D" unique_id=767660453]
+scale = Vector2(0.9, 0.9)
 collision_layer = 7
 collision_mask = 0
 script = ExtResource("1_ipsc_white")
 
-[node name="TargetSprite" type="Sprite2D" parent="."]
+[node name="TargetSprite" type="Sprite2D" parent="." unique_id=1146547004]
 texture = ExtResource("2_vcewe")
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
-libraries = {
-&"": SubResource("AnimationLibrary_1")
-}
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=843539829]
+libraries/ = SubResource("AnimationLibrary_1")
 
-[node name="DZone" type="CollisionPolygon2D" parent="."]
+[node name="DZone" type="CollisionPolygon2D" parent="." unique_id=1902883766]
 polygon = PackedVector2Array(132, -485, 379, -164, 379, 162, 132, 471, -132, 471, -379, 162, -379, -164, -132, -485)

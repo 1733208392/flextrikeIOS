@@ -9,7 +9,7 @@ const HOLE_RADIUS_PX: float = 3.0 * DPM  # 6mm diameter
 
 @export var z_index_offset: int = 1
 @export var hole_alpha: float = 1.0
-@export var hole_color: Color = Color(0.06, 0.04, 0.04, 1.0)
+@export var hole_color: Color = Color(0.06, 0.04, 0.04, 0.6)
 
 func _ready():
 	z_index = z_index_offset
