@@ -51,6 +51,35 @@ struct CompetitionTabView: View {
                 .cornerRadius(8)
             }
             .frame(maxWidth: .infinity)
+
+            NavigationLink(destination: ShooterMatchSelectorView()) {
+                HStack {
+                    Image(systemName: "person.3.fill")
+                        .font(.title2)
+                        .foregroundColor(Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433))
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(NSLocalizedString("shooter_mgmt_nav_title", comment: ""))
+                            .font(.headline)
+                            .foregroundColor(.white)
+
+                        Text(NSLocalizedString("shooter_mgmt_entry_hint", comment: ""))
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                    }
+
+                    Spacer()
+
+                    Image(systemName: "chevron.right")
+                        .foregroundColor(.gray)
+                }
+                .padding()
+                .background(Color.gray.opacity(0.1))
+                .cornerRadius(8)
+            }
+            .frame(maxWidth: .infinity)
             
             Spacer()
         }

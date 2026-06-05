@@ -374,7 +374,7 @@ struct CompetitionSessionStartView: View {
         if includeBib {
             parts.append(shooter.bibNumber)
         }
-        parts.append(shooter.name)
+        parts.append(shooter.name ?? NSLocalizedString("unknown_athlete", comment: ""))
 
         var metadata: [String] = []
         if !shooter.divisionName.isEmpty {

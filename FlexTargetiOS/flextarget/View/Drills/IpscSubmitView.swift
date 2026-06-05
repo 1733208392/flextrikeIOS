@@ -116,7 +116,7 @@ private struct ConfirmStep: View {
                                     .font(.system(size: 11, weight: .bold))
                             }
                             VStack(alignment: .leading, spacing: 2) {
-                                Text(context.shooter.name)
+                                Text(context.shooter.name ?? NSLocalizedString("unknown_athlete", comment: ""))
                                     .foregroundColor(textPrimary)
                                     .font(.system(size: 16, weight: .semibold))
                                 Text(shooterMetadata(context.shooter))
