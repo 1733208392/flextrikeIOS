@@ -45,6 +45,7 @@ var reset_hidden_targets: Array[String] = ["2poppers", "3paddles", "dueling_tree
 @onready var canvas_layer_stats = $CanvasLayerStats
 @onready var stats_vbox = $CanvasLayerStats/Control/VBoxContainer
 @onready var shot_labels = []
+@onready var back_button = $CanvasLayerStats/Control/HBoxBottomBar/BackButton
 @onready var prev_button = $CanvasLayerStats/Control/HBoxBottomBar/PrevButton
 @onready var reset_button = $CanvasLayerStats/Control/HBoxBottomBar/ResetButton
 @onready var next_button = $CanvasLayerStats/Control/HBoxBottomBar/NextButton
@@ -114,8 +115,8 @@ func _ready():
 	
 	# Targets are spawned dynamically when drill starts
 	
-	# Connect clear button
-	reset_button.pressed.connect(_on_clear_pressed)
+	# Connect navigation buttons
+	back_button.pressed.connect(_on_back_button_pressed)
 	prev_button.pressed.connect(switch_to_previous_target)
 	reset_button.pressed.connect(_on_clear_pressed)
 	next_button.pressed.connect(switch_to_next_target)
@@ -484,6 +485,29 @@ func _flash_button(button: Button):
 	var tween = create_tween()
 	tween.tween_property(button, "modulate", orig_modulate, 0.15)
 
+func _on_back_button_pressed():
+	"""Handle back button press - navigate to main menu"""
+	if not DEBUG_DISABLED:
+		print("[Bootcamp] Back button pressed - navigating to main menu")
+	
+	# Set return source for focus management
+	var global_data = get_node_or_null("/root/GlobalData")
+	if global_data:
+		global_data.return_source = "bootcamp"
+		if not DEBUG_DISABLED:
+			print("[Bootcamp] Set return_source to bootcamp")
+	
+	# Deactivate current target before exiting
+	if current_target_instance and is_instance_valid(current_target_instance) and current_target_instance.has_method("set"):
+		current_target_instance.set("drill_active", false)
+		if not DEBUG_DISABLED:
+			print("[Bootcamp] Deactivated target before exiting")
+	
+	if is_inside_tree():
+		get_tree().change_scene_to_file("res://scene/main_menu/main_menu.tscn")
+	else:
+		if not DEBUG_DISABLED:
+			print("[Bootcamp] Warning: Node not in tree, cannot change scene")
 
 func _on_menu_control(directive: String):
 	if has_visible_power_off_dialog():

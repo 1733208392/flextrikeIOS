@@ -2,9 +2,7 @@
 
 [ext_resource type="Texture2D" uid="uid://be3d6krkhtcf2" path="res://asset/wifi.fill.idle.png" id="1"]
 [ext_resource type="Texture2D" uid="uid://b2xtcro40awy8" path="res://asset/connectivity.idle.png" id="2"]
-[ext_resource type="Theme" uid="uid://cdynjfvdtavlt" path="res://scene/main_menu/main_menu_button_theme.tres" id="2_y16xv"]
 [ext_resource type="Script" uid="uid://u33sfhovnmc6" path="res://script/status_bar.gd" id="3"]
-[ext_resource type="Texture2D" uid="uid://bdxjjcikqiige" path="res://Home.png" id="3_y16xv"]
 
 [node name="StatusBar" type="CanvasLayer" unique_id=2029870426]
 layer = 100
@@ -25,22 +23,10 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_bottom = -66.0
 grow_horizontal = 2
-grow_vertical = 0
-mouse_filter = 2
-
-[node name="Back" type="Button" parent="Root/Panel" unique_id=333324228]
-layout_mode = 1
-anchors_preset = 9
-anchor_bottom = 1.0
-offset_right = 135.0
-offset_bottom = 15.0
 grow_vertical = 2
-scale = Vector2(0.7, 0.7)
-pivot_offset_ratio = Vector2(0.2, 0.1)
-theme = ExtResource("2_y16xv")
-icon = ExtResource("3_y16xv")
-icon_alignment = 1
+mouse_filter = 2
 
 [node name="HBoxContainer" type="HBoxContainer" parent="Root/Panel" unique_id=908759231]
 layout_mode = 1

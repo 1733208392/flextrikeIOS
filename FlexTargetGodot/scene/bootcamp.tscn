@@ -4,6 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://gpyjow0hb5mh" path="res://asset/drills_back.jpg" id="2_6mmk4"]
 [ext_resource type="Script" uid="uid://du7pnc5woi148" path="res://script/bootcamp.gd" id="2_bootcamp"]
 [ext_resource type="Theme" uid="uid://cdynjfvdtavlt" path="res://scene/main_menu/main_menu_button_theme.tres" id="3_e58o0"]
+[ext_resource type="Texture2D" uid="uid://bdxjjcikqiige" path="res://Home.png" id="4_6mmk4"]
 
 [node name="Node2D" type="Node2D" unique_id=95513124]
 script = ExtResource("2_bootcamp")
@@ -124,15 +125,22 @@ grow_vertical = 0
 theme_override_constants/separation = 20
 alignment = 1
 
-[node name="PrevButton" type="Button" parent="CanvasLayerStats/Control/HBoxBottomBar" unique_id=1012722096]
+[node name="BackButton" type="Button" parent="CanvasLayerStats/Control/HBoxBottomBar" unique_id=1008936847]
 custom_minimum_size = Vector2(120, 0)
 layout_mode = 2
 theme = ExtResource("3_e58o0")
 theme_override_font_sizes/font_size = 40
+icon = ExtResource("4_6mmk4")
+
+[node name="PrevButton" type="Button" parent="CanvasLayerStats/Control/HBoxBottomBar" unique_id=1012722096]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+theme = ExtResource("3_e58o0")
+theme_override_font_sizes/font_size = 60
 text = "◀"
 
 [node name="ResetButton" type="Button" parent="CanvasLayerStats/Control/HBoxBottomBar" unique_id=1593824365]
-custom_minimum_size = Vector2(360, 120)
+custom_minimum_size = Vector2(280, 120)
 layout_mode = 2
 theme = ExtResource("3_e58o0")
 theme_override_font_sizes/font_size = 36
@@ -142,7 +150,7 @@ text = "RESET"
 custom_minimum_size = Vector2(120, 0)
 layout_mode = 2
 theme = ExtResource("3_e58o0")
-theme_override_font_sizes/font_size = 40
+theme_override_font_sizes/font_size = 60
 text = "▶"
 
 [node name="ScaleIndicator" type="HBoxContainer" parent="CanvasLayerStats/Control" unique_id=2139539179]
