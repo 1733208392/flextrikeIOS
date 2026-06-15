@@ -435,8 +435,7 @@ func _hide_stats_labels() -> void:
 			label.text = ""
 
 # --- Bottom button area detection via bullet_hit ---
-# Input.parse_input_event cannot trigger CanvasLayer buttons,
-# so we manually check if a bullet hit lands on a nav button rect.
+# we manually check if a bullet hit lands on a nav button rect.
 var _button_hit_cooldown: float = 0.0
 const BUTTON_HIT_COOLDOWN: float = 0.5
 
@@ -446,6 +445,11 @@ func _on_bullet_hit_for_buttons(pos: Vector2, _a, _t):
 		return
 
 	# Get global rect of each button
+	if _check_button_hit(back_button, pos):
+		_button_hit_cooldown = now
+		_flash_button(back_button)
+		_on_back_button_pressed()
+		return
 	if _check_button_hit(prev_button, pos):
 		_button_hit_cooldown = now
 		_flash_button(prev_button)
