@@ -169,19 +169,24 @@ func _ready():
 	_update_subtitle()
 	
 	# --- UI Click Test: start game + enable mouse click injection ---
-	var http_service = get_node_or_null("/root/HttpService")
-	if http_service:
-		http_service.start_game(func(_result, _response_code, _headers, _body):
-			if not DEBUG_DISABLED:
-				print("[Menu] Start game for UI click test: ", _response_code)
-		)
-		if not DEBUG_DISABLED:
-			print("[Menu] Sent start_game for UI click testing")
-	var ws = get_node_or_null("/root/WebSocketListener")
-	if ws:
-		ws.set_emit_click_for_ui(true)
-		if not DEBUG_DISABLED:
-			print("[Menu] Enabled emit_click_for_ui on main menu")
+	# NOTE: This test feature causes DOUBLE INPUT in bootcamp because:
+	# - Main Menu emits UI clicks via set_emit_click_for_ui(true)
+	# - Bootcamp detects bullet hits on buttons via _on_bullet_hit_for_buttons
+	# - Both paths call switch_to_next_target(), advancing twice per shot
+	# DISABLED: Use bootcamp's native button hit detection instead
+	#var http_service = get_node_or_null("/root/HttpService")
+	#if http_service:
+	#	http_service.start_game(func(_result, _response_code, _headers, _body):
+	#		if not DEBUG_DISABLED:
+	#			print("[Menu] Start game for UI click test: ", _response_code)
+	#	)
+	#	if not DEBUG_DISABLED:
+	#		print("[Menu] Sent start_game for UI click testing")
+	#var ws = get_node_or_null("/root/WebSocketListener")
+	#if ws:
+	#	ws.set_emit_click_for_ui(true)
+	#	if not DEBUG_DISABLED:
+	#		print("[Menu] Enabled emit_click_for_ui on main menu")
 	# --- End UI Click Test ---
 	
 	# Connect to SignalBus signals

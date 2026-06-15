@@ -147,8 +147,12 @@ func _ready():
 	var ws_listener = get_node_or_null("/root/WebSocketListener")
 	if ws_listener:
 		ws_listener.menu_control.connect(_on_menu_control)
+		# Disable UI click injection - bootcamp handles button clicks via _on_bullet_hit_for_buttons
+		# to prevent double-input when bullets hit next/prev buttons
+		ws_listener.set_emit_click_for_ui(false)
 		if not DEBUG_DISABLED:
 			print("[Bootcamp] Connecting to WebSocketListener.menu_control signal")
+			print("[Bootcamp] Disabled emit_click_for_ui to prevent double button inputs")
 	else:
 		if not DEBUG_DISABLED:
 			print("[Bootcamp] WebSocketListener singleton not found!")
