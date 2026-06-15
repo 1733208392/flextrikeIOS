@@ -142,3 +142,49 @@ if ws_listener:
 **提交记录**：
 - `Fix: Double-input on next/prev buttons in bootcamp` - 原始修复
 - `Re-enable: UI click injection in main_menu` - 恢复 main_menu 的 UI 注入，bootcamp 独立禁用
+
+### 架构原则: bootcamp UI 按钮处理
+
+**所有 bootcamp 中的 UI 按钮（back、prev、reset、next）必须使用手动弹着点检测，而不是合成鼠标事件注入。**
+
+**实现方式**：
+```gdscript
+# 在 _on_bullet_hit_for_buttons() 中为每个按钮检测弹着点
+func _on_bullet_hit_for_buttons(pos: Vector2, _a, _t):
+	var now = Time.get_ticks_msec() / 1000.0
+	if (now - _button_hit_cooldown) < BUTTON_HIT_COOLDOWN:
+		return
+	
+	# 检测每个按钮的矩形区域
+	if _check_button_hit(back_button, pos):
+		_button_hit_cooldown = now
+		_flash_button(back_button)
+		_on_back_button_pressed()
+		return
+	if _check_button_hit(prev_button, pos):
+		_button_hit_cooldown = now
+		_flash_button(prev_button)
+		_on_menu_control("left")
+		return
+	# ... 其他按钮
+```
+
+**为什么不使用合成鼠标事件**：
+- CanvasLayer 按钮不响应 Input.parse_input_event() 注入的合成事件
+- 手动弹着点检测直接基于实际硬件数据，无延迟且更可靠
+- 避免产生双信号路径（signal + injected click）
+
+**冷却时间**：
+- 所有按钮共享 `_button_hit_cooldown` 和 `BUTTON_HIT_COOLDOWN` 常量
+- 防止用户快速多次点击同一按钮或相邻按钮
+
+**视觉反馈**：
+- 每次检测到按钮被击中时，调用 `_flash_button()` 提供视觉反馈
+- 闪烁效果由 tween 控制，持续 0.15 秒
+
+**新增按钮的添加步骤**：
+1. 在 bootcamp.tscn 中的 HBoxBottomBar 内创建 Button 节点
+2. 在 bootcamp.gd 中添加 `@onready var button_name = $CanvasLayerStats/Control/HBoxBottomBar/ButtonName`
+3. 在 `_ready()` 中连接 pressed signal：`button_name.pressed.connect(callback)`
+4. 在 `_on_bullet_hit_for_buttons() 中添加检测逻辑**，在返回前加上冷却检查
+5. 实现相应的回调函数（如 `_on_button_name_pressed()`）
