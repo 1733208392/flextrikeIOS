@@ -103,3 +103,42 @@
 - **导出**：Linux ARM64，PCK embedded
 - **运行**：嵌入式 Linux + Node.js 后端
 - **OTA 目录**：`/srv/www/userapp/`
+
+## 已知缺陷与解决方案
+
+### 缺陷 1: bootcamp 中的双重输入
+
+**症状**：在 bootcamp（靶纸自由练习）中，每次点击下一个/上一个按钮都会触发两次前进。
+
+**根本原因**：WebSocketListener 的 `emit_click_for_ui` 标志在场景切换时持久化，导致两条信号路径同时触发：
+1. **直接路径**：button `pressed` signal → `switch_to_next_target()`
+2. **间接路径**：bullet_hit → `_on_bullet_hit_for_buttons()` → `_on_menu_control("right")` → `switch_to_next_target()`
+
+main_menu 中的 `set_emit_click_for_ui(true)` 调用不会在场景切换时立即清除，导致 bootcamp 继承了这个标志状态。
+
+**解决方案**：在 `bootcamp.gd` 的 `_ready()` 中明确禁用此标志：
+```gdscript
+var ws_listener = get_node_or_null("/root/WebSocketListener")
+if ws_listener:
+    ws_listener.menu_control.connect(_on_menu_control)
+    ws_listener.set_emit_click_for_ui(false)  # 禁用 UI 点击注入 - bootcamp 使用原生弹着点检测
+```
+
+**为什么 bootcamp 不需要 UI 点击注入**：
+- bootcamp 已经通过 `_on_bullet_hit_for_buttons()` 实现了高效的原生弹着点检测
+- 不需要合成鼠标事件，直接监听 WebSocketListener 的 bullet_hit 信号更可靠
+- 设备硬件弹着点数据比合成 UI 事件的延迟更低
+
+**为什么 main_menu 仍可使用 UI 注入**：
+- main_menu 启用 `emit_click_for_ui=true` 用于测试 UI 点击路径
+- bootcamp 的 `_ready()` 会显式禁用此标志，防止跨场景持久化
+- 每个场景对此标志的需求不同，需要主动管理
+
+**相关代码位置**：
+- `bootcamp.gd` 第 150-154 行：禁用 UI 点击注入
+- `main_menu.gd` 第 171-186 行：启用 UI 点击注入
+- `WebSocketListener.gd` 第 486-498 行：`set_emit_click_for_ui()` 实现
+
+**提交记录**：
+- `Fix: Double-input on next/prev buttons in bootcamp` - 原始修复
+- `Re-enable: UI click injection in main_menu` - 恢复 main_menu 的 UI 注入，bootcamp 独立禁用
