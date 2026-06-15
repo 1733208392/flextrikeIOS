@@ -324,7 +324,7 @@ func _update_shot_list(new_text: String):
 	# Shift the list
 	for i in range(shot_labels.size() - 1, 0, -1):
 		shot_labels[i].text = shot_labels[i-1].text
-	shot_labels[0].text = new_text
+	shot_labels[0].text = new_text.to_upper()
 
 func _on_clear_pressed():
 	# Clear shot list
@@ -685,12 +685,8 @@ func set_locale_from_language(language: String):
 func update_ui_texts():
 	# Update static UI elements with translations
 	var intervals_label = get_node_or_null("CanvasLayerStats/Control/ShotIntervalsOverlay/IntervalsLabel")
-	var background_instruction = get_node_or_null("Background/Label")
 	if intervals_label:
 		intervals_label.text = get_localized_shots_text()
-	
-	if background_instruction:
-		background_instruction.text = tr("switch_targets_instruction")
 	
 	# Update statistics labels with current translations
 	update_statistics_display()

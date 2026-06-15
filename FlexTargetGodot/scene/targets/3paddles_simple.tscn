@@ -16,7 +16,8 @@ radius = 120.416
 script = ExtResource("2_script")
 
 [node name="Paddle1Area" type="Area2D" parent="." unique_id=1572114342]
-position = Vector2(-2, -344)
+position = Vector2(200, -344)
+scale = Vector2(0.8, 0.8)
 
 [node name="Paddle1" parent="Paddle1Area" unique_id=1837924115 instance=ExtResource("2_jci2v")]
 
@@ -25,6 +26,8 @@ position = Vector2(4, 4)
 shape = SubResource("CircleShape2D_jci2v")
 
 [node name="Paddle2Area" type="Area2D" parent="." unique_id=506248095]
+position = Vector2(-200, 0)
+scale = Vector2(1.2, 1.2)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Paddle2Area" unique_id=163407110]
 position = Vector2(0, 197)

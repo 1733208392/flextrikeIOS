@@ -28,17 +28,14 @@ grow_vertical = 2
 mouse_filter = 2
 
 [node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayerStats/Control" unique_id=1419024523]
-layout_mode = 1
-anchors_preset = 10
-anchor_right = 1.0
-offset_top = 96.0
-offset_bottom = 166.0
-grow_horizontal = 2
-grow_vertical = 0
-mouse_filter = 2
+layout_mode = 0
+offset_top = 60.0
+offset_right = 720.0
+offset_bottom = 124.0
 
 [node name="HBoxContainerLine1" type="HBoxContainer" parent="CanvasLayerStats/Control/VBoxContainer" unique_id=1078198766]
 layout_mode = 2
+size_flags_horizontal = 4
 theme_override_constants/separation = 24
 alignment = 1
 
@@ -79,36 +76,29 @@ horizontal_alignment = 1
 
 [node name="HBoxContainerLine2" type="HBoxContainer" parent="CanvasLayerStats/Control/VBoxContainer" unique_id=1838289308]
 layout_mode = 2
-theme_override_constants/separation = 16
-
-[node name="space1" type="Control" parent="CanvasLayerStats/Control/VBoxContainer/HBoxContainerLine2" unique_id=204933647]
-custom_minimum_size = Vector2(144, 0)
-layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/separation = 24
 
 [node name="Count" type="Label" parent="CanvasLayerStats/Control/VBoxContainer/HBoxContainerLine2" unique_id=1071868387]
 custom_minimum_size = Vector2(144, 0)
 layout_mode = 2
 theme = ExtResource("3_e58o0")
-text = "Count: 1000"
+text = "COUNT: 1000"
 horizontal_alignment = 1
 
 [node name="Fastest" type="Label" parent="CanvasLayerStats/Control/VBoxContainer/HBoxContainerLine2" unique_id=1726358353]
 custom_minimum_size = Vector2(144, 0)
 layout_mode = 2
 theme = ExtResource("3_e58o0")
-text = "Fastest:100%"
+text = "BEST SPLIT:100%"
 horizontal_alignment = 1
 
 [node name="Average" type="Label" parent="CanvasLayerStats/Control/VBoxContainer/HBoxContainerLine2" unique_id=150612259]
 custom_minimum_size = Vector2(144, 0)
 layout_mode = 2
 theme = ExtResource("3_e58o0")
-text = "Average:100%"
+text = "AVG:100%"
 horizontal_alignment = 1
-
-[node name="space2" type="Control" parent="CanvasLayerStats/Control/VBoxContainer/HBoxContainerLine2" unique_id=2105472280]
-custom_minimum_size = Vector2(144, 0)
-layout_mode = 2
 
 [node name="HBoxBottomBar" type="HBoxContainer" parent="CanvasLayerStats/Control" unique_id=270878108]
 layout_mode = 1
