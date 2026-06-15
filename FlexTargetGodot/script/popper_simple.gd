@@ -7,6 +7,7 @@ const DEBUG_DISABLE = true
 
 var is_fallen = false
 var instance_id: String  # Unique identifier for this instance
+var _initialization_complete = false  # Guard against premature signal emission during setup
 
 signal popper_disappeared
 
@@ -18,11 +19,23 @@ func _ready():
 	if sprite and sprite.material:
 		sprite.material = sprite.material.duplicate()
 		if not DEBUG_DISABLE: print("[popper_simple ", instance_id, "] Material duplicated to avoid shader sharing")
+	
+	# Mark initialization complete to allow signal emission
+	call_deferred("_mark_initialization_complete")
+
+func _mark_initialization_complete():
+	_initialization_complete = true
+	if not DEBUG_DISABLE: print("[popper_simple ", instance_id, "] Initialization complete")
 
 func trigger_fall_animation():
 	"""Trigger the popper fall animation and disappearing"""
 	if is_fallen:
 		if not DEBUG_DISABLE: print("[popper_simple ", instance_id, "] Already fallen, ignoring trigger")
+		return
+	
+	# Guard: Do not trigger during initialization (device timing race condition)
+	if not _initialization_complete:
+		if not DEBUG_DISABLE: print("[popper_simple ", instance_id, "] Initialization not complete, ignoring premature trigger")
 		return
 		
 	if not DEBUG_DISABLE: print("[popper_simple ", instance_id, "] ⚠️  TRIGGERING FALL ANIMATION - WHO CALLED THIS?")
@@ -58,6 +71,7 @@ func reset_popper():
 	if not DEBUG_DISABLE: print("[popper_simple ", instance_id, "] Resetting popper")
 	is_fallen = false
 	visible = true
+	_initialization_complete = true  # Re-enable after reset
 	
 	# Reset shader parameters if they exist
 	if sprite and sprite.material:

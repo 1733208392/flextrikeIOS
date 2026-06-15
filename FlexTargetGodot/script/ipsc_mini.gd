@@ -4,6 +4,7 @@ var last_click_frame = -1
 
 # Animation state tracking
 var is_disappearing: bool = false
+var _initialization_complete = false  # Guard against premature signal emission during setup
 
 # Shot tracking for disappearing animation - only valid target hits count
 var shot_count: int = 0
@@ -82,6 +83,12 @@ func _ready():
 	var drills_network = get_node_or_null("/root/drills_network")
 	if drills_network:
 		max_shots = 1000
+	
+	# Mark initialization complete to allow signal emission (prevents device timing race)
+	call_deferred("_mark_initialization_complete")
+
+func _mark_initialization_complete():
+	_initialization_complete = true
 
 func is_point_in_zone(zone_name: String, point: Vector2) -> bool:
 	# Find the collision shape by name
@@ -118,6 +125,11 @@ func reset_score():
 
 func play_disappearing_animation():
 	"""Start the disappearing animation and disable collision detection"""
+	# Guard: Do not trigger during initialization (device timing race condition)
+	if not _initialization_complete:
+		print("[IPSC-Mini] Initialization not complete, ignoring premature disappear trigger")
+		return
+	
 	is_disappearing = true
 	
 	# Get the AnimationPlayer
@@ -152,6 +164,7 @@ func reset_target():
 	"""Reset the target to its original state (useful for restarting)"""
 	# Reset animation state
 	is_disappearing = false
+	_initialization_complete = true  # Re-enable after reset
 	
 	# Reset shot count
 	shot_count = 0
@@ -309,7 +322,7 @@ func spawn_bullet_hole(local_position: Vector2):
 	multimesh.visible_instance_count = current_count + 1
 	active_instances[texture_index] = current_count + 1
 		
-func _on_websocket_bullet_hit(pos: Vector2, a: int = 0, t: int = 0):
+func _on_websocket_bullet_hit(pos: Vector2, _a: int = 0, t: int = 0):
 	
 	# Ignore shots if drill is not active yet
 	if not drill_active:
@@ -387,7 +400,7 @@ func handle_websocket_bullet_hit_fast(world_pos: Vector2, t: int = 0):
 		if shot_count >= max_shots:
 			play_disappearing_animation()
 
-func spawn_bullet_effects_at_position(world_pos: Vector2, is_target_hit: bool = true):
+func spawn_bullet_effects_at_position(world_pos: Vector2, _is_target_hit: bool = true):
 	"""Spawn bullet smoke and impact effects with throttling for performance"""
 	
 	var time_stamp = Time.get_ticks_msec() / 1000.0  # Convert to seconds

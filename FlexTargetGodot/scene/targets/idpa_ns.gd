@@ -4,6 +4,7 @@ var last_click_frame = -1
 
 # Animation state tracking
 var is_disappearing: bool = false
+var _initialization_complete = false  # Guard against premature signal emission during setup
 
 # Shot tracking for disappearing animation - only valid target hits count
 var shot_count: int = 0
@@ -213,6 +214,7 @@ func reset_target():
 	"""Reset the target to its original state (useful for restarting)"""
 	# Reset animation state
 	is_disappearing = false
+	_initialization_complete = true  # Re-enable after reset
 
 	# Reset shot count
 	shot_count = 0
@@ -408,16 +410,16 @@ func spawn_bullet_hole(local_position: Vector2):
 	if current_count >= max_instances_per_texture:
 		return
 
-	var transform = Transform2D()
+	var transform2d = Transform2D()
 	var scale_factor = 1.0
-	transform = transform.scaled(Vector2(scale_factor, scale_factor))
-	transform.origin = local_position
+	transform2d = transform2d.scaled(Vector2(scale_factor, scale_factor))
+	transform2d.origin = local_position
 
-	multimesh.set_instance_transform_2d(current_count, transform)
+	multimesh.set_instance_transform_2d(current_count, transform2d)
 	multimesh.visible_instance_count = current_count + 1
 	active_instances[texture_index] = current_count + 1
 
-func _on_websocket_bullet_hit(pos: Vector2, a: int = 0, t: int = 0):
+func _on_websocket_bullet_hit(pos: Vector2, _a: int = 0, t: int = 0):
 
 	# Ignore shots if drill is not active yet
 	if not drill_active:

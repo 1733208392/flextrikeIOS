@@ -4,7 +4,9 @@ extends Node2D
 const DEBUG_DISABLED = false  # Set to true for verbose debugging
 
 # Target sequence for bootcamp cycling
-var target_sequence: Array[String] = ["bullseye", "ipsc_mini", "ipsc_mini_black_1", "ipsc_mini_black_2", "hostage", "2poppers", "3paddles", "uspsa", "idpa", "idpa_ns", "idpa_hard_cover_1", "idpa_hard_cover_2", "mozambique", "custom_target", "dueling_tree_composite", "texas_start_composite"]
+#var target_sequence: Array[String] = ["bullseye", "ipsc_mini", "ipsc_mini_black_1", "ipsc_mini_black_2", "hostage", "2poppers", "3paddles", "uspsa", "idpa", "idpa_ns", "idpa_hard_cover_1", "idpa_hard_cover_2", "mozambique", "custom_target", "dueling_tree_composite", "texas_start_composite"]
+var target_sequence: Array[String] = ["bullseye", "ipsc_mini", "ipsc_mini_black_1"]
+
 var current_target_index: int = 0
 var current_target_instance = null
 
@@ -340,6 +342,8 @@ func _on_clear_pressed():
 	if target_type in ["2poppers", "3paddles", "mozambique"]:
 		# For poppers, paddles, and specific drills, remove and respawn them
 		if current_target_instance and is_instance_valid(current_target_instance):
+			_disconnect_target_signals(current_target_instance)
+			current_target_instance.visible = false
 			current_target_instance.queue_free()
 			if not DEBUG_DISABLED:
 				print("Removed ", target_type, " for respawning")
@@ -768,6 +772,44 @@ func _on_target_disappeared(target_name: String):
 				print("[Bootcamp] No reset_scene method, respawning target: ", target_type)
 			_on_clear_pressed()
 
+func _disconnect_target_signals(target: Node) -> void:
+	"""Disconnect all signals from the old target to prevent stale handlers
+	from firing during the deferred queue_free window."""
+	if not target or not is_instance_valid(target):
+		return
+	
+	# Disconnect WebSocketListener.bullet_hit from the target's websocket handler
+	var ws_listener = get_node_or_null("/root/WebSocketListener")
+	if ws_listener:
+		# Check the composite child (e.g. TexasStar) first, then the target itself
+		var handler_node: Node = null
+		if target.has_node("TexasStar"):
+			handler_node = target.get_node("TexasStar")
+		elif target.has_method("websocket_bullet_hit"):
+			handler_node = target
+		if handler_node and handler_node.has_method("websocket_bullet_hit"):
+			var cb = Callable(handler_node, "websocket_bullet_hit")
+			if ws_listener.is_connected("bullet_hit", cb):
+				ws_listener.bullet_hit.disconnect(cb)
+		
+		# 2poppers/3paddles/mozambique connect bullet_hit to _on_websocket_bullet_hit internally
+		if target.has_method("_on_websocket_bullet_hit"):
+			var cb = Callable(target, "_on_websocket_bullet_hit")
+			if ws_listener.is_connected("bullet_hit", cb):
+				ws_listener.bullet_hit.disconnect(cb)
+	
+	# Disconnect target_hit signal
+	if target.has_signal("target_hit") and target.target_hit.is_connected(_on_target_hit):
+		target.target_hit.disconnect(_on_target_hit)
+	
+	# Disconnect shot_time_diff signal (bullseye)
+	if target.has_signal("shot_time_diff") and target.shot_time_diff.is_connected(_on_bullseye_time_diff):
+		target.shot_time_diff.disconnect(_on_bullseye_time_diff)
+	
+	# Disconnect target_disappeared signal
+	if target.has_signal("target_disappeared") and target.target_disappeared.is_connected(_on_target_disappeared):
+		target.target_disappeared.disconnect(_on_target_disappeared)
+
 func spawn_target_by_type(target_type: String):
 	"""Spawn a target of the specified type"""
 	# Clear shots from the overlay when switching targets
@@ -775,8 +817,12 @@ func spawn_target_by_type(target_type: String):
 		label.text = ""
 	shot_times.clear()
 	
-	# Clear current target
+	# Clear current target - hide immediately and disconnect signals
+	# to prevent the "flash" of both old and new targets being visible
+	# for one frame (queue_free is deferred, so the old node lingers)
 	if current_target_instance:
+		_disconnect_target_signals(current_target_instance)
+		current_target_instance.visible = false
 		current_target_instance.queue_free()
 	
 	var stats_visible = _should_show_stats(target_type)
@@ -840,6 +886,12 @@ func spawn_target_by_type(target_type: String):
 	
 	if target_scene:
 		var target = target_scene.instantiate()
+		
+		# Hide target BEFORE adding to tree to prevent "flash" during initialization.
+		# Complex targets (2poppers, idpa_ns, texas_star) play animations or create
+		# child nodes in _ready() which would be visible for 1+ frames if not hidden.
+		target.visible = false
+		
 		add_child(target)
 		current_target_instance = target
 		
@@ -909,6 +961,11 @@ func spawn_target_by_type(target_type: String):
 		
 		# Apply current zoom scale
 		apply_current_scale()
+		
+		# Now that all configuration is complete, make the target visible.
+		# This prevents the "flash" where targets were visible during their
+		# _ready() initialization (animations, child node creation, etc.)
+		target.visible = true
 		
 		if not DEBUG_DISABLED:
 			print("[Bootcamp] Spawned and activated target: ", target_type, " at position: ", target.position)

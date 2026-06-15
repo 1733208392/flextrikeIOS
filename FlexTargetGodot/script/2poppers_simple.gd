@@ -72,14 +72,22 @@ func connect_websocket():
 			websocket_listener.bullet_hit.connect(_on_websocket_bullet_hit)
 
 func connect_popper_signals():
-	"""Connect to popper disappeared signals"""
+	"""Connect to popper disappeared signals with safe reconnection"""
 	if popper1_simple:
-		popper1_simple.popper_disappeared.connect(func(): _on_popper_disappeared("Popper1"))
+		# Disconnect old signals to prevent stale connections (device timing race)
+		var cb1 = func(): _on_popper_disappeared("Popper1")
+		if popper1_simple.popper_disappeared.is_connected(cb1):
+			popper1_simple.popper_disappeared.disconnect(cb1)
+		popper1_simple.popper_disappeared.connect(cb1)
 		
 	if popper2_simple:
-		popper2_simple.popper_disappeared.connect(func(): _on_popper_disappeared("Popper2"))
+		# Disconnect old signals to prevent stale connections (device timing race)
+		var cb2 = func(): _on_popper_disappeared("Popper2")
+		if popper2_simple.popper_disappeared.is_connected(cb2):
+			popper2_simple.popper_disappeared.disconnect(cb2)
+		popper2_simple.popper_disappeared.connect(cb2)
 
-func _on_websocket_bullet_hit(world_pos: Vector2, a: int = 0, t: int = 0):
+func _on_websocket_bullet_hit(world_pos: Vector2, _a: int = 0, t: int = 0):
 	"""Handle bullet hits from WebSocket - check which area was hit"""
 	
 	# Ignore shots if drill is not active yet
