@@ -946,7 +946,7 @@ func update_statistics_display():
 	
 	# Update count label with total shots
 	if count_label:
-		count_label.text = tr("stats_count") % total_shots
+		count_label.text = (tr("stats_count") % total_shots).to_upper()
 		if not DEBUG_DISABLED:
 			print("[Bootcamp] Set Count label to:", count_label.text)
 	else:
@@ -964,7 +964,7 @@ func update_statistics_display():
 		
 		if a_label:
 			var a_label_text = "0: %.0f%%" % a_percent if is_idpa_target else tr("stats_a_zone") % a_percent
-			a_label.text = a_label_text
+			a_label.text = a_label_text.to_upper()
 			if not DEBUG_DISABLED:
 				print("[Bootcamp] Set A label to:", a_label.text)
 		else:
@@ -973,22 +973,22 @@ func update_statistics_display():
 				
 		if c_label:
 			var c_label_text = "-1: %.0f%%" % c_percent if is_idpa_target else tr("stats_c_zone") % c_percent
-			c_label.text = c_label_text
+			c_label.text = c_label_text.to_upper()
 			if not DEBUG_DISABLED:
 				print("[Bootcamp] Set C label to:", c_label.text)
 		if d_label:
 			var d_label_text = "-3: %.0f%%" % d_percent if is_idpa_target else tr("stats_d_zone") % d_percent
-			d_label.text = d_label_text
+			d_label.text = d_label_text.to_upper()
 			if not DEBUG_DISABLED:
 				print("[Bootcamp] Set D label to:", d_label.text)
 		if miss_label:
-			miss_label.text = tr("stats_miss") % miss_percent
+			miss_label.text = (tr("stats_miss") % miss_percent).to_upper()
 			if not DEBUG_DISABLED:
 				print("[Bootcamp] Set Miss label to:", miss_label.text)
 		if ns_label:
 			if show_ns_stat:
 				var ns_percent = (float(ns_zone_count) / total_shots) * 100
-				ns_label.text = "NS: %.0f%%" % ns_percent
+				ns_label.text = ("NS: %.0f%%" % ns_percent).to_upper()
 				if not DEBUG_DISABLED:
 					print("[Bootcamp] Set NS label to:", ns_label.text)
 			else:
@@ -997,44 +997,44 @@ func update_statistics_display():
 		# When no shots, show 0% for all zones
 		if a_label:
 			var a_label_text = "0: %.0f%%" % 0.0 if is_idpa_target else tr("stats_a_zone") % 0.0
-			a_label.text = a_label_text
+			a_label.text = a_label_text.to_upper()
 			if not DEBUG_DISABLED:
 				print("[Bootcamp] Set A label to: A:0.0%")
 		if c_label:
 			var c_label_text = "-1: %.0f%%" % 0.0 if is_idpa_target else tr("stats_c_zone") % 0.0
-			c_label.text = c_label_text
+			c_label.text = c_label_text.to_upper()
 			if not DEBUG_DISABLED:
 				print("[Bootcamp] Set C label to: C:0.0%")
 		if d_label:
 			var d_label_text = "-3: %.0f%%" % 0.0 if is_idpa_target else tr("stats_d_zone") % 0.0
-			d_label.text = d_label_text
+			d_label.text = d_label_text.to_upper()
 			if not DEBUG_DISABLED:
 				print("[Bootcamp] Set D label to: D:0.0%")
 		if miss_label:
-			miss_label.text = tr("stats_miss") % 0.0
+			miss_label.text = (tr("stats_miss") % 0.0).to_upper()
 			if not DEBUG_DISABLED:
 				print("[Bootcamp] Set Miss label to: Miss:0.0%")
 		if ns_label:
 			if show_ns_stat:
-				ns_label.text = "NS: 0.0%"
+				ns_label.text = "NS: 0.0%".to_upper()
 			else:
-				ns_label.text = "NS:--"
+				ns_label.text = "NS:--".to_upper()
 	
 	if shot_speeds.size() > 0:
 		var fastest = shot_speeds.min()
 		var average = shot_speeds.reduce(func(acc, val): return acc + val, 0.0) / shot_speeds.size()
 		
 		if fastest_label:
-			fastest_label.text = tr("stats_fastest") % fastest
+			fastest_label.text = (tr("stats_fastest") % fastest).to_upper()
 			if not DEBUG_DISABLED:
 				print("[Bootcamp] Set Fastest label to:", fastest_label.text)
 		if average_label:
-			average_label.text = tr("stats_average") % average
+			average_label.text = (tr("stats_average") % average).to_upper()
 			if not DEBUG_DISABLED:
 				print("[Bootcamp] Set Average label to:", average_label.text)
 	else:
 		# Reset labels when no shots
 		if fastest_label:
-			fastest_label.text = tr("stats_fastest_no_data")
+			fastest_label.text = tr("stats_fastest_no_data").to_upper()
 		if average_label:
-			average_label.text = tr("stats_average_no_data")
+			average_label.text = tr("stats_average_no_data").to_upper()
