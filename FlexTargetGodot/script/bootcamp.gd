@@ -4,7 +4,7 @@ extends Node2D
 const DEBUG_DISABLED = false  # Set to true for verbose debugging
 
 # Target sequence for bootcamp cycling
-var target_sequence: Array[String] = ["bullseye","dueling_tree_composite","texas_start_composite","ipsc_mini","ipsc_mini_black_1", "ipsc_mini_black_2", "hostage", "2poppers", "3paddles", "ipsc_mini_rotate", "uspsa", "idpa", "idpa_ns", "idpa_hard_cover_1", "idpa_hard_cover_2", "mozambique", "custom_target"]
+var target_sequence: Array[String] = ["bullseye", "ipsc_mini", "ipsc_mini_black_1", "ipsc_mini_black_2", "hostage", "2poppers", "3paddles", "uspsa", "idpa", "idpa_ns", "idpa_hard_cover_1", "idpa_hard_cover_2", "mozambique", "custom_target", "dueling_tree_composite", "texas_start_composite"]
 var current_target_index: int = 0
 var current_target_instance = null
 
@@ -13,7 +13,10 @@ var scales = [0.5, 0.7, 1.0]
 var current_scale_index: int = 2  # Default to 1x
 
 # Targets that don't support zoom
-var zoom_excluded_targets = ["ipsc_mini_rotate"]
+var zoom_excluded_targets = []
+
+# Targets that should hide the reset button in bootcamp
+var reset_hidden_targets: Array[String] = ["2poppers", "3paddles", "dueling_tree_composite", "texas_start_composite", "custom_target", "mozambique"]
 
 # Preload the scenes for bootcamp targets
 @onready var bullseye_scene: PackedScene = preload("res://scene/targets/bullseye.tscn")	
@@ -22,7 +25,6 @@ var zoom_excluded_targets = ["ipsc_mini_rotate"]
 @onready var ipsc_mini_black_1_scene: PackedScene = preload("res://scene/ipsc_mini_black_1.tscn")
 @onready var ipsc_mini_black_2_scene: PackedScene = preload("res://scene/ipsc_mini_black_2.tscn")
 @onready var hostage_scene: PackedScene = preload("res://scene/targets/hostage.tscn")
-@onready var ipsc_mini_rotate_scene: PackedScene = preload("res://scene/ipsc_mini_rotate.tscn")
 
 @onready var idpa_scene: PackedScene = preload("res://scene/targets/idpa.tscn")
 @onready var uspsa_scene: PackedScene = preload("res://scene/targets/uspsa.tscn")
@@ -40,16 +42,18 @@ var zoom_excluded_targets = ["ipsc_mini_rotate"]
 
 @onready var canvas_layer = $CanvasLayer
 @onready var canvas_layer_stats = $CanvasLayerStats
+@onready var stats_vbox = $CanvasLayerStats/Control/VBoxContainer
 @onready var shot_labels = []
-@onready var clear_button = $CanvasLayer/Control/BottomContainer/CustomButton
-@onready var clear_area = $ClearArea
+@onready var prev_button = $CanvasLayerStats/Control/HBoxBottomBar/PrevButton
+@onready var reset_button = $CanvasLayerStats/Control/HBoxBottomBar/ResetButton
+@onready var next_button = $CanvasLayerStats/Control/HBoxBottomBar/NextButton
 @onready var background_node = $Background
 
 const BACKGROUND_TEXTURE: Texture2D = preload("res://asset/drills_back.jpg")
 
 # Scale indicator
-@onready var scale_label = $ScaleIndicatorLayer/Control/ScaleIndicator/ScaleLabel
-@onready var scale_progress_bar = $ScaleIndicatorLayer/Control/ScaleIndicator/ScaleProgressBar
+@onready var scale_label = $CanvasLayerStats/Control/ScaleIndicator/ScaleLabel
+@onready var scale_progress_bar = $CanvasLayerStats/Control/ScaleIndicator/ScaleProgressBar
 
 # Statistics labels
 @onready var a_label = $CanvasLayerStats/Control/VBoxContainer/HBoxContainerLine1/A
@@ -110,15 +114,14 @@ func _ready():
 	# Targets are spawned dynamically when drill starts
 	
 	# Connect clear button
-	if clear_button:
-		clear_button.pressed.connect(_on_clear_pressed)
-	else:
-		if not DEBUG_DISABLED:
-			print("ERROR: ClearButton not found!")
+	reset_button.pressed.connect(_on_clear_pressed)
+	prev_button.pressed.connect(switch_to_previous_target)
+	reset_button.pressed.connect(_on_clear_pressed)
+	next_button.pressed.connect(switch_to_next_target)
 	
 	# Get all shot labels
 	for i in range(1, 11):
-		var label = get_node("CanvasLayer/Control/ShotIntervalsOverlay/Shot" + str(i))
+		var label = get_node("CanvasLayerStats/Control/ShotIntervalsOverlay/Shot" + str(i))
 		if label:
 			shot_labels.append(label)
 			label.text = ""
@@ -153,6 +156,11 @@ func _ready():
 		ws_listener.set_bullet_spawning_enabled(true)
 		if not DEBUG_DISABLED:
 			print("[Bootcamp] Enabled bullet spawning for bootcamp scene")
+		# Listen for bullet_hit to detect clicks on navigation buttons
+		# (Input.parse_input_event does not work on CanvasLayer buttons)
+		ws_listener.bullet_hit.connect(_on_bullet_hit_for_buttons)
+		if not DEBUG_DISABLED:
+			print("[Bootcamp] Connected bullet_hit for button area detection")
 
 	# Send HTTP request to start the game and wait for response
 	start_bootcamp_drill()
@@ -238,13 +246,6 @@ func _on_bullseye_time_diff(time_diff: float, hit_position: Vector2):
 			print("[Bootcamp] Bullseye time diff before drill started - ignoring")
 		return
 	
-	# Always check if hit is in the ClearArea
-	if hit_position and clear_area and clear_area.get_rect().has_point(hit_position):
-		if not DEBUG_DISABLED:
-			print("[Bootcamp] Bullseye hit detected in ClearArea at: ", hit_position)
-		_on_clear_pressed()
-		return
-	
 	# Only display time differences for actual target hits (time_diff >= 0)
 	if time_diff >= 0:
 		if time_diff > 0:
@@ -274,29 +275,15 @@ func _on_target_hit(_arg1, _arg2, _arg3, _arg4 = null, _arg5 = null, _arg6 = nul
 	
 	# Determine target type to extract arguments correctly
 	var current_target_type = target_sequence[current_target_index]
-	var hit_position
 	var zone
 	var track_stats = _should_show_stats(current_target_type)
 	
-	if current_target_type == "idpa_rotate":
-		# idpa Rotate: target_hit(position, score, area, is_hit, rotation, target_position)
-		hit_position = _arg1
-		zone = _arg3
-	elif current_target_type in ["2poppers", "3paddles"]:
+	if current_target_type in ["2poppers", "3paddles"]:
 		# Poppers/Paddles: target_hit(id, zone, points, hit_position)
-		hit_position = _arg4
 		zone = _arg2
 	else:
 		# IPSC Mini and idpa variants: target_hit(zone, points, hit_position)
-		hit_position = _arg3
 		zone = _arg1
-	
-	# Check if hit is in the ClearArea
-	if hit_position and clear_area and clear_area.get_rect().has_point(hit_position):
-		if not DEBUG_DISABLED:
-			print("[Bootcamp] Hit detected in ClearArea at: ", hit_position)
-		_on_clear_pressed()
-		return
 	
 	var current_time = Time.get_ticks_msec() / 1000.0
 	
@@ -358,7 +345,7 @@ func _on_clear_pressed():
 				print("Removed ", target_type, " for respawning")
 		# Respawn the target
 		spawn_target_by_type(target_type)
-	elif target_type in ["ipsc_mini","ipsc_mini_rotate", "ipsc_mini_black_1","ipsc_mini_black_2", "hostage","uspsa", "idpa", "idpa_ns", "idpa_hard_cover_1", "idpa_hard_cover_2", "bullseye", "custom_target"]:
+	elif target_type in ["ipsc_mini", "ipsc_mini_black_1","ipsc_mini_black_2", "hostage","uspsa", "idpa", "idpa_ns", "idpa_hard_cover_1", "idpa_hard_cover_2", "bullseye", "custom_target"]:
 		# For bullseye, just reset the target state if needed
 		if current_target_instance and is_instance_valid(current_target_instance):
 			# Call clear_all_bullet_holes if available on the target itself
@@ -401,19 +388,6 @@ func _collect_bullet_holes(node: Node, result: Array):
 
 func _normalize_zone_for_stats(zone: String, target_type: String) -> String:
 	"""Translate rotation-specific area names into the standard zones used by the stats UI"""
-	if target_type == "idpa_rotate":
-		match zone:
-			"head_heart":
-				return "AZone"
-			"body":
-				return "CZone"
-			"other":
-				return "DZone"
-			"cover", "paddle":
-				return "miss"
-			_: 
-				return zone
-	
 	# IDPA specific normalization
 	if _is_idpa_stats_target(target_type):
 		if zone.begins_with("ns"):
@@ -431,11 +405,11 @@ func _normalize_zone_for_stats(zone: String, target_type: String) -> String:
 	return zone
 
 func _is_idpa_stats_target(target_type: String) -> bool:
-	var idpa_targets = ["idpa", "idpa_ns", "idpa_rotate", "idpa_hard_cover_1", "idpa_hard_cover_2", "uspsa"]
+	var idpa_targets = ["idpa", "idpa_ns", "idpa_hard_cover_1", "idpa_hard_cover_2", "uspsa"]
 	return target_type in idpa_targets
 
 func _is_ipsc_stats_target(target_type: String) -> bool:
-	var ipsc_targets = ["ipsc_mini", "ipsc_mini_black_1", "ipsc_mini_black_2", "hostage", "ipsc_mini_rotate"]
+	var ipsc_targets = ["ipsc_mini", "ipsc_mini_black_1", "ipsc_mini_black_2", "hostage"]
 	return target_type in ipsc_targets
 
 func _is_ipsc_ns_stats_target(target_type: String) -> bool:
@@ -453,6 +427,58 @@ func _hide_stats_labels() -> void:
 	for label in [count_label, a_label, c_label, d_label, ns_label, miss_label, fastest_label, average_label]:
 		if label:
 			label.text = ""
+
+# --- Bottom button area detection via bullet_hit ---
+# Input.parse_input_event cannot trigger CanvasLayer buttons,
+# so we manually check if a bullet hit lands on a nav button rect.
+var _button_hit_cooldown: float = 0.0
+const BUTTON_HIT_COOLDOWN: float = 0.5
+
+func _on_bullet_hit_for_buttons(pos: Vector2, _a, _t):
+	var now = Time.get_ticks_msec() / 1000.0
+	if (now - _button_hit_cooldown) < BUTTON_HIT_COOLDOWN:
+		return
+
+	# Get global rect of each button
+	if _check_button_hit(prev_button, pos):
+		_button_hit_cooldown = now
+		_flash_button(prev_button)
+		_on_menu_control("left")
+		return
+	if _check_button_hit(reset_button, pos):
+		_button_hit_cooldown = now
+		_flash_button(reset_button)
+		_on_menu_control("enter")
+		return
+	if _check_button_hit(next_button, pos):
+		_button_hit_cooldown = now
+		_flash_button(next_button)
+		_on_menu_control("right")
+		return
+
+func _check_button_hit(button: Button, hit_pos: Vector2) -> bool:
+	if not button or not button.is_visible_in_tree() or button.disabled:
+		return false
+	var rect = button.get_global_rect()
+	return rect.has_point(hit_pos)
+
+func _update_reset_button_visibility(target_type: String) -> void:
+	if not reset_button:
+		return
+	var should_show = not (target_type in reset_hidden_targets)
+	# Keep button in layout so Prev/Next positions do not shift.
+	reset_button.disabled = not should_show
+	reset_button.modulate.a = 1.0 if should_show else 0.0
+	if not DEBUG_DISABLED:
+		print("[Bootcamp] Reset button ", "shown" if should_show else "hidden", " for target: ", target_type)
+
+func _flash_button(button: Button):
+	"""Brief visual feedback on button press"""
+	var orig_modulate = button.modulate
+	button.modulate = Color(1.5, 1.5, 1.5, 1.0)
+	var tween = create_tween()
+	tween.tween_property(button, "modulate", orig_modulate, 0.15)
+
 
 func _on_menu_control(directive: String):
 	if has_visible_power_off_dialog():
@@ -629,21 +655,13 @@ func set_locale_from_language(language: String):
 
 func update_ui_texts():
 	# Update static UI elements with translations
-	var intervals_label = get_node_or_null("CanvasLayer/Control/ShotIntervalsOverlay/IntervalsLabel")
+	var intervals_label = get_node_or_null("CanvasLayerStats/Control/ShotIntervalsOverlay/IntervalsLabel")
 	var background_instruction = get_node_or_null("Background/Label")
-	var clear_area_label = get_node_or_null("ClearArea/Label")
-	
 	if intervals_label:
 		intervals_label.text = get_localized_shots_text()
 	
 	if background_instruction:
 		background_instruction.text = tr("switch_targets_instruction")
-	
-	if clear_area_label:
-		clear_area_label.text = tr("shoot_to_reset")
-	
-	if clear_button:
-		clear_button.text = tr("clear")
 	
 	# Update statistics labels with current translations
 	update_statistics_display()
@@ -762,79 +780,19 @@ func spawn_target_by_type(target_type: String):
 		current_target_instance.queue_free()
 	
 	var stats_visible = _should_show_stats(target_type)
+	# Keep the overall UI layer visible so bottom navigation remains clickable.
 	if canvas_layer_stats:
-		canvas_layer_stats.visible = stats_visible
+		canvas_layer_stats.visible = true
+	if stats_vbox:
+		stats_vbox.visible = stats_visible
 		if not DEBUG_DISABLED:
 			if stats_visible:
 				print("[Bootcamp] Stats visible for target:", target_type)
 			else:
 				print("[Bootcamp] Stats hidden for target:", target_type)
-	# Hide/show canvas layers based on target type
-	if canvas_layer:
-		if target_type == "ipsc_mini_rotate":
-			canvas_layer.visible = false  # Hide shot intervals for rotation targets
-			if not DEBUG_DISABLED:
-				print("[Bootcamp] Hidden shot intervals but kept stats visible for rotation target")
-		elif target_type == "custom_target":
-			# Custom target may provide its own UI; hide shot interval overlay
-			canvas_layer.visible = false
-			if not DEBUG_DISABLED:
-				print("[Bootcamp] Hidden shot intervals for custom_target")
-		elif target_type == "ipsc_mini":
-			canvas_layer.visible = true  # Show shot intervals for IPSC mini
-			if not DEBUG_DISABLED:
-				print("[Bootcamp] Shown CanvasLayers and stats for IPSC mini target")
-		elif target_type == "idpa":
-			canvas_layer.visible = true  # Show shot intervals for idpa
-			if not DEBUG_DISABLED:
-				print("[Bootcamp] Shown CanvasLayers and stats for idpa target")
-		elif target_type == "uspsa":
-			canvas_layer.visible = true  # Show shot intervals for uspsa
-			if not DEBUG_DISABLED:
-				print("[Bootcamp] Shown CanvasLayers and stats for uspsa target")
-		elif target_type == "idpa_ns":
-			canvas_layer.visible = true  # Show shot intervals for idpa NS
-			if not DEBUG_DISABLED:
-				print("[Bootcamp] Shown CanvasLayers and stats for idpa NS target")
-		elif target_type == "idpa_rotate":
-			canvas_layer.visible = false  # Hide shot intervals for idpa rotation targets
-			if not DEBUG_DISABLED:
-				print("[Bootcamp] Hidden shot intervals but kept stats visible for idpa rotation target")
-		elif target_type == "idpa_hard_cover_1":
-			canvas_layer.visible = true  # Show shot intervals for idpa hard cover 1
-			if not DEBUG_DISABLED:
-				print("[Bootcamp] Shown CanvasLayers and stats for idpa hard cover 1 target")
-		elif target_type == "idpa_hard_cover_2":
-			canvas_layer.visible = true  # Show shot intervals for idpa hard cover 2
-			if not DEBUG_DISABLED:
-				print("[Bootcamp] Shown CanvasLayers and stats for idpa hard cover 2 target")
-		elif target_type == "mozambique":
-			canvas_layer.visible = false  # Hide shot intervals for mozambique
-			if not DEBUG_DISABLED:
-				print("[Bootcamp] Hidden CanvasLayers for mozambique (uses its own drill logic)")
-		elif target_type == "dueling_tree_composite" or target_type == "texas_start_composite":
-			canvas_layer.visible = false  # Hide shot intervals for dueling tree composite (and Texas composite)
-			if not DEBUG_DISABLED:
-				print("[Bootcamp] Hidden CanvasLayers for dueling_tree_composite")
-		else:
-			canvas_layer.visible = true  # Show shot intervals for other targets
-			if not DEBUG_DISABLED:
-				print("[Bootcamp] Shown shot intervals but hidden stats for non-IPSC target:", target_type)
-	
-	# Hide/show clear area based on target type
-	if clear_area:
-		if target_type == "mozambique":
-			clear_area.visible = false  # Hide clear area for mozambique and double tap
-			if not DEBUG_DISABLED:
-				print("[Bootcamp] Hidden clear area for ", target_type)
-		elif target_type == "dueling_tree_composite" or target_type == "texas_start_composite":
-			clear_area.visible = false  # Hide clear area for dueling tree composite (and Texas composite)
-			if not DEBUG_DISABLED:
-				print("[Bootcamp] Hidden clear area for dueling_tree_composite")
-		else:
-			clear_area.visible = true  # Restore clear area for other targets
-			if not DEBUG_DISABLED:
-				print("[Bootcamp] Restored clear area for target: ", target_type)
+
+	# Hide reset button for target types that manage their own reset behavior
+	_update_reset_button_visibility(target_type)
 	
 	# Update statistics display
 	update_statistics_display()
@@ -857,8 +815,6 @@ func spawn_target_by_type(target_type: String):
 			target_scene = uspsa_scene
 		"idpa_ns":
 			target_scene = idpa_ns_scene
-		# "idpa_rotate":
-		# 	target_scene = idpa_rotate_scene
 		"idpa_hard_cover_1":
 			target_scene = idpa_hard_cover_1_scene
 		"idpa_hard_cover_2":
@@ -869,8 +825,6 @@ func spawn_target_by_type(target_type: String):
 			target_scene = two_poppers_scene
 		"3paddles":
 			target_scene = three_paddles_scene
-		"ipsc_mini_rotate":
-			target_scene = ipsc_mini_rotate_scene
 		"custom_target":
 			target_scene = custom_target_scene
 		"mozambique":
@@ -903,23 +857,10 @@ func spawn_target_by_type(target_type: String):
 		if target.has_method("set"):
 			target.set("max_shots", 1000)
 		
-		# For composite targets, also set max_shots on child targets
-		if target_type == "ipsc_mini_rotate":
-			var inner_ipsc = target.get_node_or_null("RotationCenter/IPSCMini")
-			if inner_ipsc and inner_ipsc.has_method("set"):
-				inner_ipsc.set("max_shots", 1000)
-				if not DEBUG_DISABLED:
-					print("[Bootcamp] Set max_shots=1000 on inner IPSC mini for rotating target")
-		
 		# Reset any paddles in the newly spawned target
 		var paddles_reset = _reset_all_paddles(target)
 		if paddles_reset > 0 and not DEBUG_DISABLED:
 			print("[Bootcamp] Reset ", paddles_reset, " paddle(s) for target type ", target_type)
-		
-		# Special positioning for rotating target (offset from center)
-		if target_type == "ipsc_mini_rotate" || target_type == "idpa_rotate":
-			target.position = Vector2(160, 740)  # Center (360,640) + offset (-200,100)
-			# Z-index is set manually in the editor
 		
 		# Special scaling for bullseye target
 		if target_type == "bullseye":

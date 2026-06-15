@@ -56,21 +56,23 @@ script = ExtResource("3_hostage")
 texture = ExtResource("1_tfsii")
 
 [node name="Sprite2D2" type="Sprite2D" parent="." unique_id=1612681949]
+position = Vector2(0, 46.666668)
 texture = ExtResource("2_ff3ss")
 offset = Vector2(0, 300)
 
 [node name="WhiteZone" type="CollisionPolygon2D" parent="." unique_id=1570197941]
-position = Vector2(0, 296.66675)
-polygon = PackedVector2Array(143.33334, -493.33344, 402.22223, -164.44452, 402, 169, 140, 498.88892, -142.22223, 495.5556, -402.22223, 172.22226, -400.00003, -172.22229, -142.22223, -493.33344)
+position = Vector2(0, 342.22223)
+polygon = PackedVector2Array(151.11111, -483.33334, 402.22223, -164.44452, 402, 169, 140, 498.88892, -142.22223, 495.5556, -402.22223, 172.22226, -400.00003, -172.22229, -151.11111, -482.22223)
 
 [node name="AZone" type="CollisionPolygon2D" parent="." unique_id=160048443]
-polygon = PackedVector2Array(42, -452, 126.66667, -188.8889, -127.77779, -188.8889, -42, -452)
+polygon = PackedVector2Array(42, -452, 145.55556, -138.8889, -146.66667, -140, -42, -452)
 
 [node name="CZone" type="CollisionPolygon2D" parent="." unique_id=1369926348]
-polygon = PackedVector2Array(132, -485, 263, -152, 263.33334, -17.777779, 131.11111, -191.11111, -131.11111, -188.8889, -261.1111, -21.111113, -263, -152, -132, -485)
+polygon = PackedVector2Array(132, -485, 263, -152, 262.22223, 6.666667, 135.55556, -157.77779, -140, -156.66667, -261.1111, -5.555556, -263, -152, -132, -485)
 
 [node name="DZone" type="CollisionPolygon2D" parent="." unique_id=151543709]
-polygon = PackedVector2Array(135.55556, -501.11115, 397.7778, -170.00002, 402.22223, 167.77779, 132.22223, -190.00002, -133.33334, -191.11111, -402.22223, 163.33334, -400.00003, -167.77779, -135.55556, -502.22226)
+position = Vector2(0, 32.22222)
+polygon = PackedVector2Array(133.33334, -530, 398.88892, -212.22223, 402.22223, 167.77779, 134.44446, -190, -135.55556, -190, -402.22223, 174.44446, -397.7778, -206.66669, -136.66667, -532.2222)
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=96053940]
 libraries/ = SubResource("AnimationLibrary_1")

@@ -32,7 +32,7 @@ class UserAPIService {
     private let session = URLSession.shared
     lazy var serverConfig = ServerConfig()
     private let retryCoordinator = AuthorizedRetryCoordinator()
-    private let v1AuthBaseURL = "http://124.222.233.30"
+    private var v1AuthBaseURL: String { serverConfig.getServerUrl() }
     
     private var baseURL: String { serverConfig.getServerUrl() }
     
@@ -168,8 +168,8 @@ class UserAPIService {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
         let body = [
-            "mobile": username,
             "username": username,
+            "account": username,
             "password": password
         ]
         request.httpBody = try JSONEncoder().encode(body)
@@ -302,64 +302,9 @@ class UserAPIService {
     }
 
     func loginWithAccount(account: String, password: String) async throws -> LoginData {
-        let encodedPassword = base64Encoded(password)
-        let attempts: [(url: String, body: [String: String])] = [
-            (
-                "\(v1AuthBaseURL)/api/v1/auth/login",
-                [
-                    "mobile": account,
-                    "username": account,
-                    "account": account,
-                    "password": password
-                ]
-            ),
-            (
-                "\(v1AuthBaseURL)/api/v1/auth/login",
-                [
-                    "username": account,
-                    "password": password
-                ]
-            ),
-            (
-                "\(v1AuthBaseURL)/api/v1/auth/login",
-                [
-                    "mobile": account,
-                    "password": password
-                ]
-            ),
-            (
-                "\(baseURL)/user/login",
-                [
-                    "mobile": account,
-                    "username": account,
-                    "account": account,
-                    "password": encodedPassword
-                ]
-            ),
-            (
-                "\(baseURL)/user/login",
-                [
-                    "mobile": account,
-                    "password": encodedPassword
-                ]
-            ),
-            (
-                "\(baseURL)/user/login/username",
-                [
-                    "username": account,
-                    "password": password
-                ]
-            ),
-            (
-                "\(baseURL)/user/login",
-                [
-                    "username": account,
-                    "password": password
-                ]
-            )
-        ]
-
-        return try await loginWithAttempts(attempts)
+        // Keep one canonical auth path so v1/legacy fallback behavior is consistent
+        // and username logins do not end up surfacing legacy "missing mobile" format errors.
+        try await login(mobile: account, password: password)
     }
     
     func loginWithEmail(email: String, password: String) async throws -> LoginData {

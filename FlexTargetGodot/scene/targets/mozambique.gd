@@ -13,6 +13,7 @@ var _reusable_transform: Transform2D = Transform2D()
 
 # Bullet hole texture for Mozambique (blood splatter)
 const BULLET_HOLE_TEXTURE_PATH = "res://asset/blood-splatter.png"
+const MOZAMBIQUE_BULLET_HOLE_SIZE: float = 16.12
 
 # Bullet visual effect
 const BulletScene = preload("res://scene/bullet.tscn")
@@ -222,7 +223,7 @@ func _spawn_bullet_hole(local_position: Vector2):
 	
 	# Create transform with random rotation and scale
 	var t = _reusable_transform
-	var scale_factor = randf_range(0.5, 1.2)  # Same range as before
+	var scale_factor = randf_range(0.6, 0.9)
 	var rotation = randf() * 2 * PI  # Full 360° rotation
 	
 	# Build transform properly: rotation matrix with scale, then set origin
@@ -554,7 +555,8 @@ func initialize_bullet_hole_multimesh():
 func create_bullet_hole_mesh(texture: Texture2D) -> QuadMesh:
 	"""Create a QuadMesh with a shader material for the provided texture"""
 	var mesh = QuadMesh.new()
-	mesh.size = texture.get_size()
+	# Keep hole size consistent regardless of source texture resolution.
+	mesh.size = Vector2(MOZAMBIQUE_BULLET_HOLE_SIZE, MOZAMBIQUE_BULLET_HOLE_SIZE)
 	
 	var shader_material = ShaderMaterial.new()
 	var shader = load("res://shader/bullet_hole_instanced.gdshader")

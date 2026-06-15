@@ -84,13 +84,12 @@ func _ready():
 	# Play reset animation to ensure scene starts in clean state
 	reset_target_visual()
 
-func _input(event: InputEvent):
-	"""Handle mouse clicks to simulate websocket bullet hits for testing"""
+func _unhandled_input(event: InputEvent):
+	"""Handle non-UI mouse clicks to simulate websocket bullet hits for testing"""
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		var click_pos = event.position
 		if not DEBUG_DISABLED: print("[IDPA-NS] Mouse click at position: ", click_pos)
 		_on_websocket_bullet_hit(click_pos)
-		get_tree().root.set_input_as_handled()
 
 func _on_input_event(_viewport, event, _shape_idx):
 	# Don't process input events if target is disappearing

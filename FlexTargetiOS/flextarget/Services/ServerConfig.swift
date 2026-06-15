@@ -6,9 +6,9 @@ class ServerConfig {
 
     private let serverUrlKey = "serverUrl"
 
-    static let international = "https://app.etarget.grwolftactical.com"
+    static let international = "http://52.221.232.2"
 
-    static let china = "https://etarget.topoint-archery.cn"
+    static let china = "http://124.222.233.30"
 
     func getServerUrl() -> String {
 

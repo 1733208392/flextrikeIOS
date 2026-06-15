@@ -26,6 +26,7 @@ const SHOTS_TO_EXPLODE = 10
 var hit_count: int = 0
 var is_restoring: bool = false
 const ExplosionEffectScene = preload("res://scene/explosion_effect.tscn")
+const CUSTOM_BULLET_HOLE_SIZE: float = 16.12
 
 # Image transfer state
 var image_transfer_state = {
@@ -149,7 +150,8 @@ func load_bullet_hole_textures():
 func create_bullet_hole_mesh(texture: Texture2D) -> QuadMesh:
 	"""Create a QuadMesh with a shader material for the provided texture"""
 	var mesh = QuadMesh.new()
-	mesh.size = texture.get_size()
+	# Keep hole size consistent regardless of texture resolution.
+	mesh.size = Vector2(CUSTOM_BULLET_HOLE_SIZE, CUSTOM_BULLET_HOLE_SIZE)
 
 	var shader_material = ShaderMaterial.new()
 	var shader = load("res://shader/bullet_hole_instanced.gdshader")

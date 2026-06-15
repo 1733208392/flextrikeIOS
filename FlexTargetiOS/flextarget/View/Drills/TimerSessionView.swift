@@ -38,6 +38,7 @@ struct TimerSessionView: View {
     @State private var elapsedDuration: TimeInterval = 0
     @State private var updateTimer: Timer?
     @State private var audioPlayer: AVAudioPlayer?
+    @State private var highBeepPlayer: AVAudioPlayer?
     @State private var readyCuePlayed: Bool = false
     @State private var showEndDrillAlert: Bool = false
     @State private var gracePeriodActive: Bool = false
@@ -233,6 +234,7 @@ struct TimerSessionView: View {
             Text(NSLocalizedString("drill_in_progress", comment: "Drill in progress"))
         }
         .onAppear {
+            prepareHighBeepPlayer()
             initializeReadinessCheck()
         }
         .onDisappear {
@@ -390,7 +392,7 @@ struct TimerSessionView: View {
                 if now >= target {
                     delayTarget = nil
                     delayRemaining = 0
-                    transitionToRunning(at: now)
+                    transitionToRunning()
                 } else {
                     delayRemaining = min(randomDelay, target.timeIntervalSince(now))
 
@@ -461,11 +463,13 @@ struct TimerSessionView: View {
         updateTimer = nil
     }
 
-    private func transitionToRunning(at timestamp: Date) {
+    private func transitionToRunning() {
+        let beepStartTime = Date()
         timerState = .running
-        timerStartDate = timestamp
+        timerStartDate = beepStartTime
+        elapsedDuration = 0
+        executionManager?.setBeepTime(beepStartTime)
         playHighBeep()
-        executionManager?.setBeepTime(timestamp)
         executionManager?.startExecution()
         // Disable idle timer to prevent screen lock during drill
         UIApplication.shared.isIdleTimerDisabled = true
@@ -560,20 +564,41 @@ struct TimerSessionView: View {
         }
     }
 
-    private func playHighBeep() {
+    private func prepareHighBeepPlayer() {
+        guard highBeepPlayer == nil else { return }
         guard let url = Bundle.main.url(forResource: "synthetic-shot-timer", withExtension: "wav") else {
             print("Audio file not found")
             return
         }
-        
+
         do {
             prepareAudioSessionForCuePlayback()
-            audioPlayer = try AVAudioPlayer(contentsOf: url)
-            audioPlayer?.volume = timerCueVolume
-            audioPlayer?.prepareToPlay()
-            audioPlayer?.play()
+            let player = try AVAudioPlayer(contentsOf: url)
+            player.volume = timerCueVolume
+            player.prepareToPlay()
+            highBeepPlayer = player
         } catch {
-            print("Failed to play audio: \(error)")
+            print("Failed to prepare high beep audio: \(error)")
+        }
+    }
+
+    private func playHighBeep() {
+        if let player = highBeepPlayer {
+            prepareAudioSessionForCuePlayback()
+            player.currentTime = 0
+            player.volume = timerCueVolume
+            audioPlayer = player
+            player.play()
+            return
+        }
+
+        prepareHighBeepPlayer()
+        if let player = highBeepPlayer {
+            prepareAudioSessionForCuePlayback()
+            player.currentTime = 0
+            player.volume = timerCueVolume
+            audioPlayer = player
+            player.play()
         }
     }
 

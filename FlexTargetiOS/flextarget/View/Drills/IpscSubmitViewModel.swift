@@ -79,6 +79,7 @@ final class IpscSubmitViewModel: ObservableObject {
         let request = IpscScoreSubmitRequest(
             shooterBib: context.shooter.bibNumber,
             stageId: String(context.stageId),
+            squadId: context.squadId,
             totalTime: summary.totalTime,
             status: isDq ? .dq : .normal,
             hits: IpscScoreHits(

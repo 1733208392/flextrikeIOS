@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://cxd2xq70pq0ln"]
+[gd_scene format=3 uid="uid://cxd2xq70pq0ln"]
 
 [ext_resource type="Script" uid="uid://bywkb3gjgcap0" path="res://scene/targets/mozambique.gd" id="1_tqo6r"]
 [ext_resource type="Texture2D" uid="uid://bulikg7fe0w3h" path="res://asset/mosambique.png" id="2_tqo6r"]
@@ -85,13 +85,12 @@ radius = 123.32072
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_s8c5b"]
 size = Vector2(360, 541)
 
-[node name="Mosambique" type="Area2D"]
+[node name="Mosambique" type="Area2D" unique_id=2097403911]
 collision_layer = 7
 collision_mask = 0
 script = ExtResource("1_tqo6r")
 
-[node name="Label" type="Label" parent="."]
-custom_minimum_size = Vector2(720, 100)
+[node name="Label" type="Label" parent="." unique_id=2076812427]
 anchors_preset = 10
 anchor_right = 1.0
 offset_left = -360.0
@@ -100,32 +99,30 @@ offset_right = 360.0
 offset_bottom = 600.0
 grow_horizontal = 2
 theme = ExtResource("2_upr8q")
-theme_override_font_sizes/font_size = 60
-text = "MOZAMBIQUE DRILL"
+theme_override_font_sizes/font_size = 48
+text = "MOZAMBIQUE"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="TargetSprite" type="Sprite2D" parent="."]
+[node name="TargetSprite" type="Sprite2D" parent="." unique_id=801186716]
 scale = Vector2(1.7, 1.7)
 texture = ExtResource("2_tqo6r")
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
-libraries = {
-&"": SubResource("AnimationLibrary_1")
-}
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=1131598778]
+libraries/ = SubResource("AnimationLibrary_1")
 
-[node name="head" type="CollisionShape2D" parent="."]
+[node name="head" type="CollisionShape2D" parent="." unique_id=1338133980]
 position = Vector2(-41, -388)
 shape = SubResource("CircleShape2D_knpln")
 
-[node name="torso" type="CollisionShape2D" parent="."]
+[node name="torso" type="CollisionShape2D" parent="." unique_id=403565300]
 position = Vector2(-34, 25.5)
 shape = SubResource("RectangleShape2D_s8c5b")
 
-[node name="ShotTimer" parent="." instance=ExtResource("3_s8c5b")]
+[node name="ShotTimer" parent="." unique_id=1915875074 instance=ExtResource("3_s8c5b")]
 visible = false
 
-[node name="drill_complete_overlay" parent="." instance=ExtResource("4_u875l")]
+[node name="drill_complete_overlay" parent="." unique_id=383160782 instance=ExtResource("4_u875l")]
 offset_top = 300.0
 offset_right = 0.0
 offset_bottom = 300.0

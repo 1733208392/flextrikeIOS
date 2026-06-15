@@ -5,7 +5,7 @@ const BulletImpactScene = preload("res://scene/bullet_impact.tscn")
 var metal_sound = null
 
 @export var plate_count: int = 5
-@export var radius: float = 200.0
+@export var radius: float = 300.0
 @export var spin_decay: float = 0.97 # per frame multiplier approximation
 @export var gravity_strength: float = 900.0
 @export var max_angular_accel: float = 20.0

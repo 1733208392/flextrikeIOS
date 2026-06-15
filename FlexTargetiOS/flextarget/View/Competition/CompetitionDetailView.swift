@@ -18,6 +18,7 @@ struct CompetitionDetailView: View {
     @State private var isLoadingSyncResults = false
     @State private var lastSyncError: String?
     @State private var showSyncError = false
+    @State private var selectedSquadId: Int? = nil
     
     var body: some View {
         ZStack {
@@ -51,6 +52,35 @@ struct CompetitionDetailView: View {
                         .foregroundColor(.white)
                         .padding(.top, 5)
                     }
+
+                    HStack {
+                        Text(NSLocalizedString("competition_session_squad", comment: "Squad selector title"))
+                            .font(.headline)
+                            .foregroundColor(.white)
+
+                        Spacer()
+
+                        Menu {
+                            ForEach(1...20, id: \.self) { squad in
+                                Button(action: { selectedSquadId = squad }) {
+                                    Text("Squad \(squad)")
+                                }
+                            }
+                        } label: {
+                            HStack(spacing: 6) {
+                                Text(selectedSquadId.map { "Squad \($0)" } ?? NSLocalizedString("competition_session_select_squad", comment: "Select squad placeholder"))
+                                    .foregroundColor(selectedSquadId == nil ? .gray : .white)
+                                Image(systemName: "chevron.down")
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                            }
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(Color.white.opacity(0.08))
+                            .cornerRadius(8)
+                        }
+                    }
+                    .padding(.top, 6)
                 }
                 .padding()
                 .background(Color.white.opacity(0.1))
@@ -68,7 +98,8 @@ struct CompetitionDetailView: View {
                                                 drillSetup: drillSetup,
                                                 summaries: reconstructSummaries(from: result),
                                                 competition: competition,
-                                                ipscContext: nil
+                                                ipscContext: nil,
+                                                competitionSquadId: selectedSquadId
                                             )
                                         }
                                     }
@@ -96,10 +127,10 @@ struct CompetitionDetailView: View {
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(bleManager.isConnected ? Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433) : Color.gray)
+                        .background(canStartCompetitionDrill ? Color(red: 0.8705882352941177, green: 0.2196078431372549, blue: 0.13725490196078433) : Color.gray)
                         .cornerRadius(10)
                 }
-                .disabled(!bleManager.isConnected)
+                .disabled(!canStartCompetitionDrill)
                 .padding()
             }
             
@@ -138,7 +169,8 @@ struct CompetitionDetailView: View {
                         drillSetup: drillSetup,
                         summaries: drillRepeatSummaries,
                         competition: competition,
-                        ipscContext: nil
+                        ipscContext: nil,
+                        competitionSquadId: selectedSquadId
                     )
                 }
             } label: {
@@ -192,6 +224,10 @@ struct CompetitionDetailView: View {
                 await syncCompetitionResults()
             }
         }
+    }
+
+    private var canStartCompetitionDrill: Bool {
+        bleManager.isConnected && selectedSquadId != nil
     }
     
     private func syncCompetitionResults() async {

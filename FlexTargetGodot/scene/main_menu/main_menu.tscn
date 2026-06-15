@@ -74,13 +74,17 @@ offset_bottom = 300.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="GridContainer" type="GridContainer" parent="CenterContainer" unique_id=1900474216]
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer" unique_id=659510532]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="GridContainer" type="GridContainer" parent="CenterContainer/VBoxContainer" unique_id=1900474216]
 layout_mode = 2
 theme_override_constants/h_separation = 32
 theme_override_constants/v_separation = 32
 columns = 2
 
-[node name="TargetsButton" type="Button" parent="CenterContainer/GridContainer" unique_id=2118328526]
+[node name="TargetsButton" type="Button" parent="CenterContainer/VBoxContainer/GridContainer" unique_id=2118328526]
 custom_minimum_size = Vector2(300, 300)
 layout_mode = 2
 theme = ExtResource("2_kvq8n")
@@ -91,7 +95,7 @@ text = "
 icon = ExtResource("3_kvq8n")
 icon_alignment = 1
 
-[node name="Label" type="Label" parent="CenterContainer/GridContainer/TargetsButton" unique_id=1944940230]
+[node name="Label" type="Label" parent="CenterContainer/VBoxContainer/GridContainer/TargetsButton" unique_id=1944940230]
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
@@ -107,7 +111,7 @@ grow_vertical = 0
 theme = ExtResource("2_kvq8n")
 text = "TARGETS"
 
-[node name="StagesButton" type="Button" parent="CenterContainer/GridContainer" unique_id=1695152943]
+[node name="StagesButton" type="Button" parent="CenterContainer/VBoxContainer/GridContainer" unique_id=1695152943]
 custom_minimum_size = Vector2(300, 300)
 layout_mode = 2
 theme = ExtResource("2_kvq8n")
@@ -116,7 +120,7 @@ button_group = ExtResource("3_lt21p")
 icon = ExtResource("5_wbtty")
 icon_alignment = 1
 
-[node name="Label" type="Label" parent="CenterContainer/GridContainer/StagesButton" unique_id=660310302]
+[node name="Label" type="Label" parent="CenterContainer/VBoxContainer/GridContainer/StagesButton" unique_id=660310302]
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
@@ -132,7 +136,7 @@ grow_vertical = 0
 theme = ExtResource("2_kvq8n")
 text = "STAGES"
 
-[node name="GamesButton" type="Button" parent="CenterContainer/GridContainer" unique_id=1573443637]
+[node name="GamesButton" type="Button" parent="CenterContainer/VBoxContainer/GridContainer" unique_id=1573443637]
 custom_minimum_size = Vector2(300, 300)
 layout_mode = 2
 theme = ExtResource("2_kvq8n")
@@ -141,7 +145,7 @@ button_group = ExtResource("3_lt21p")
 icon = ExtResource("6_cta3x")
 icon_alignment = 1
 
-[node name="Label" type="Label" parent="CenterContainer/GridContainer/GamesButton" unique_id=230059525]
+[node name="Label" type="Label" parent="CenterContainer/VBoxContainer/GridContainer/GamesButton" unique_id=230059525]
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
@@ -157,7 +161,7 @@ grow_vertical = 0
 theme = ExtResource("2_kvq8n")
 text = "GAMES"
 
-[node name="OptionsButton" type="Button" parent="CenterContainer/GridContainer" unique_id=2035117441]
+[node name="OptionsButton" type="Button" parent="CenterContainer/VBoxContainer/GridContainer" unique_id=2035117441]
 custom_minimum_size = Vector2(300, 300)
 layout_mode = 2
 theme = ExtResource("2_kvq8n")
@@ -166,7 +170,7 @@ button_group = ExtResource("3_lt21p")
 icon = ExtResource("7_tm7m5")
 icon_alignment = 1
 
-[node name="Label" type="Label" parent="CenterContainer/GridContainer/OptionsButton" unique_id=1729290944]
+[node name="Label" type="Label" parent="CenterContainer/VBoxContainer/GridContainer/OptionsButton" unique_id=1729290944]
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
@@ -181,6 +185,13 @@ grow_horizontal = 2
 grow_vertical = 0
 theme = ExtResource("2_kvq8n")
 text = "OPTIONS"
+
+[node name="ToggleButton" type="CheckButton" parent="CenterContainer/VBoxContainer" unique_id=717040398]
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+theme = ExtResource("2_kvq8n")
+text = "TOGGLE TARGETLINK"
+alignment = 1
 
 [node name="Label" type="Label" parent="." unique_id=527764537]
 layout_mode = 1

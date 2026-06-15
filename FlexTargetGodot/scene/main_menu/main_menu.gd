@@ -2,13 +2,14 @@ extends Control
 
 const DEBUG_DISABLED = true  # Set to true to disable debug prints for production
 
-@onready var stages_button = $CenterContainer/GridContainer/StagesButton
-@onready var targets_button = $CenterContainer/GridContainer/TargetsButton
-@onready var games_button = $CenterContainer/GridContainer/GamesButton
-@onready var option_button = $CenterContainer/GridContainer/OptionsButton
+@onready var stages_button = $CenterContainer/VBoxContainer/GridContainer/StagesButton
+@onready var targets_button = $CenterContainer/VBoxContainer/GridContainer/TargetsButton
+@onready var games_button = $CenterContainer/VBoxContainer/GridContainer/GamesButton
+@onready var option_button = $CenterContainer/VBoxContainer/GridContainer/OptionsButton
 @onready var copyright_label = $Label
 @onready var background_music = $BackgroundMusic
 @onready var subtitle_label = $background/SubTitle
+@onready var targetlink_button = $CenterContainer/VBoxContainer/ToggleButton
 
 var focused_index
 var buttons = []
@@ -157,8 +158,31 @@ func _ready():
 		if not DEBUG_DISABLED:
 			print("[Menu] GlobalData not found!")
 	
+	# Initialize TargetLink button (hidden until netlink status is known)
+	if targetlink_button:
+		targetlink_button.visible = false
+		targetlink_button.toggled.connect(_on_targetlink_toggled)
+		if not DEBUG_DISABLED:
+			print("[Menu] TargetLink button initialized (hidden)")
+	
 	# Update subtitle with current netlink status if available
 	_update_subtitle()
+	
+	# --- UI Click Test: start game + enable mouse click injection ---
+	var http_service = get_node_or_null("/root/HttpService")
+	if http_service:
+		http_service.start_game(func(_result, _response_code, _headers, _body):
+			if not DEBUG_DISABLED:
+				print("[Menu] Start game for UI click test: ", _response_code)
+		)
+		if not DEBUG_DISABLED:
+			print("[Menu] Sent start_game for UI click testing")
+	var ws = get_node_or_null("/root/WebSocketListener")
+	if ws:
+		ws.set_emit_click_for_ui(true)
+		if not DEBUG_DISABLED:
+			print("[Menu] Enabled emit_click_for_ui on main menu")
+	# --- End UI Click Test ---
 	
 	# Connect to SignalBus signals
 	stages_button.pressed.connect(_on_drills_pressed)
@@ -178,7 +202,7 @@ func _ready():
 	# Send version info only in normal mode (not OTA mode) via HttpService.forward_data_to_app
 	# This allows mobile app to verify upgrade success
 	if gd:
-		var http_service = get_node_or_null("/root/HttpService")
+		http_service = get_node_or_null("/root/HttpService")
 		if http_service:
 			var version_message = {
 				"type": "forward",
@@ -556,6 +580,74 @@ func _apply_sfx_volume(volume: int):
 func _on_netlink_status_loaded():
 	"""Update subtitle when netlink status is loaded"""
 	_update_subtitle()
+	_update_targetlink_button()
+
+func _update_targetlink_button():
+	"""Show/hide TargetLink button and sync toggle state with netlink status"""
+	if not targetlink_button:
+		return
+	var gd = get_node_or_null("/root/GlobalData")
+	if not gd or gd.netlink_status.is_empty():
+		targetlink_button.visible = false
+		return
+	# Check if all required config fields are present
+	var required = ["bluetooth_name", "device_name", "channel", "wifi_ip", "work_mode"]
+	var configured = true
+	for f in required:
+		if not gd.netlink_status.has(f) or str(gd.netlink_status[f]).strip_edges().is_empty():
+			configured = false
+			break
+	targetlink_button.visible = configured
+	if configured:
+		# Restore text and re-enable interaction (was disabled during toggle)
+		targetlink_button.text = "TOGGLE TARGETLINK"
+		targetlink_button.mouse_filter = Control.MOUSE_FILTER_STOP
+		targetlink_button.set_block_signals(true)
+		targetlink_button.button_pressed = gd.netlink_status.get("started", false)
+		targetlink_button.set_block_signals(false)
+	if not DEBUG_DISABLED:
+		print("[Menu] TargetLink button: visible=", configured, ", started=", gd.netlink_status.get("started", false))
+
+func _on_targetlink_toggled(pressed: bool):
+	"""Handle TargetLink toggle button press — does NOT change state until HTTP confirms"""
+	if not targetlink_button:
+		return
+	if not DEBUG_DISABLED:
+		print("[Menu] TargetLink toggle requested: ", pressed)
+	# Revert toggle state immediately — CheckButton already flipped it automatically
+	# We"ll apply the real state only after HTTP confirmation
+	targetlink_button.set_block_signals(true)
+	targetlink_button.button_pressed = not pressed
+	targetlink_button.set_block_signals(false)
+	# Disable interaction and show progress text
+	targetlink_button.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	targetlink_button.text = "Starting..." if pressed else "Stopping..."
+	var http = get_node_or_null("/root/HttpService")
+	if not http:
+		_reset_targetlink_button()
+		return
+	if pressed:
+		http.netlink_start(Callable(self, "_on_netlink_toggle_response"))
+	else:
+		http.netlink_stop(Callable(self, "_on_netlink_toggle_response"))
+
+func _reset_targetlink_button():
+	"""Restore button text and re-enable interaction after failed toggle"""
+	if not targetlink_button:
+		return
+	targetlink_button.mouse_filter = Control.MOUSE_FILTER_STOP
+	targetlink_button.text = "TOGGLE TARGETLINK"
+
+func _on_netlink_toggle_response(result, code, _headers, _body):
+	"""Handle netlink start/stop response — request immediate status refresh via GlobalData"""
+	if not DEBUG_DISABLED:
+		print("[Menu] Netlink toggle response: result=", result, ", code=", code)
+	# Use GlobalData to refresh status (boosts to 3s polling temporarily)
+	var gd = get_node_or_null("/root/GlobalData")
+	if gd:
+		gd.request_netlink_status_now(3.0)
+
+# Removed _on_netlink_toggle_status_refresh — no longer needed
 
 func _update_subtitle():
 	"""Update the subtitle label with device name/device id + work mode"""

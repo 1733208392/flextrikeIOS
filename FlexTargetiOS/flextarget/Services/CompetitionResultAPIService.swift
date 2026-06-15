@@ -148,6 +148,7 @@ class CompetitionResultAPIService {
     ///   - score: Game score (required)
     ///   - detail: Game details as JSON (shot data, metrics, etc.)
     ///   - playTime: Time of play in format "2025-12-12 12:23:35" (required)
+    ///   - squadId: Squad number/id for competition context (optional)
     ///   - playerMobile: Player's mobile number (optional)
     ///   - playerNickname: Player's nickname (optional)
     ///   - isPublic: Whether the competition result is public (default: true)
@@ -159,6 +160,7 @@ class CompetitionResultAPIService {
         score: Float,
         detail: [String: Any],
         playTime: String,
+        squadId: Int? = nil,
         playerMobile: String?,
         playerNickname: String?,
         isPublic: Bool = true,
@@ -175,6 +177,10 @@ class CompetitionResultAPIService {
             "is_public": isPublic,
             "namespace": namespace
         ]
+
+        if let squadId {
+            body["squad_id"] = squadId
+        }
 
         let data = try await UserAPIService.shared.performAuthorizedRequest(
             path: "/game/play/add",

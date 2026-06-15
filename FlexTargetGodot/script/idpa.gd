@@ -115,13 +115,12 @@ func _on_websocket_bullet_hit(pos: Vector2, a: int = 0, t: int = 0) -> void:
 	# FAST PATH: Direct bullet hole spawning for WebSocket hits (non-rotating targets only)
 	handle_websocket_bullet_hit_fast(pos, t)
 
-func _input(event: InputEvent):
-	"""Handle mouse clicks to simulate websocket bullet hits for testing"""
+func _unhandled_input(event: InputEvent):
+	"""Handle non-UI mouse clicks to simulate websocket bullet hits for testing."""
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		var click_pos = event.position
 		if not DEBUG_DISABLED: print("[IDPA] Mouse click at position: ", click_pos)
 		_on_websocket_bullet_hit(click_pos)
-		get_tree().root.set_input_as_handled()
 
 func _on_input_event(_viewport, event, _shape_idx):
 	# Don't process input events if target is disappearing

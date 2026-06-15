@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://b1o8o233dwg3s"]
+[gd_scene format=3 uid="uid://b1o8o233dwg3s"]
 
 [ext_resource type="Script" uid="uid://ccuwqywqufuoy" path="res://script/paddle_simple.gd" id="1_script"]
 [ext_resource type="Texture2D" uid="uid://cs6gxkhjacg2u" path="res://asset/paddle.png" id="2_idco4"]
@@ -50,21 +50,19 @@ _data = {
 }
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_45kxt"]
-radius = 250.0
+radius = 214.08409
 
-[node name="Paddle" type="Area2D"]
+[node name="Paddle" type="Area2D" unique_id=691930832]
 scale = Vector2(0.5, 0.5)
 script = ExtResource("1_script")
 
-[node name="PopperSprite" type="Sprite2D" parent="."]
+[node name="PopperSprite" type="Sprite2D" parent="." unique_id=1792333435]
 material = ExtResource("3_fall_material")
 texture = ExtResource("2_idco4")
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
-libraries = {
-&"": SubResource("AnimationLibrary_paddle")
-}
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=1318866231]
+libraries/ = SubResource("AnimationLibrary_paddle")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(0, -200)
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1144713372]
+position = Vector2(0, -4)
 shape = SubResource("CircleShape2D_45kxt")

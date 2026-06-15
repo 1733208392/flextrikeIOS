@@ -1,11 +1,11 @@
-[gd_scene load_steps=7 format=3 uid="uid://dqwy2uf6beqmw"]
+[gd_scene format=3 uid="uid://dqwy2uf6beqmw"]
 
 [ext_resource type="Script" uid="uid://c2hqne4qktyv5" path="res://script/popper.gd" id="1_popper_script"]
 [ext_resource type="Texture2D" uid="uid://qam0rhd4anvf" path="res://asset/popper.png" id="2_faqlu"]
 [ext_resource type="Material" uid="uid://b4jaexsu8ynms" path="res://shader/popper_fall_material.tres" id="3_fall_material"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_nmotk"]
-radius = 66.1211
+radius = 128.39003
 
 [sub_resource type="Animation" id="Animation_fall"]
 resource_name = "fall_down"
@@ -52,18 +52,16 @@ _data = {
 &"fall_down": SubResource("Animation_fall")
 }
 
-[node name="Popper" type="Area2D"]
+[node name="Popper" type="Area2D" unique_id=1122730617]
 script = ExtResource("1_popper_script")
 
-[node name="PopperSprite" type="Sprite2D" parent="."]
+[node name="PopperSprite" type="Sprite2D" parent="." unique_id=1518176189]
 material = ExtResource("3_fall_material")
 texture = ExtResource("2_faqlu")
 
-[node name="HeadArea" type="CollisionShape2D" parent="."]
-position = Vector2(0, -301)
+[node name="HeadArea" type="CollisionShape2D" parent="." unique_id=1498585677]
+position = Vector2(-2, -163)
 shape = SubResource("CircleShape2D_nmotk")
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
-libraries = {
-&"": SubResource("AnimationLibrary_popper")
-}
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=1259061840]
+libraries/ = SubResource("AnimationLibrary_popper")

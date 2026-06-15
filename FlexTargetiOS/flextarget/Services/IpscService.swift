@@ -1,8 +1,8 @@
 import Foundation
 
 // MARK: - IPSC Server Base URL
-//private let ipscBaseURL = "http://124.222.233.30"
-private let ipscBaseURL = "http://52.221.232.2"
+// Uses the same login/server selection for competition endpoints.
+// China uses a direct IP endpoint; international uses the AWS host from ServerConfig.
 
 
 // MARK: - Response Wrapper
@@ -105,35 +105,38 @@ struct IpscShooter: Decodable, Identifiable {
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        id = try container.decode(Int.self, forKey: .id)
-        match_id = try container.decodeIfPresent(Int.self, forKey: .match_id)
-        squad_id = try container.decodeIfPresent(Int.self, forKey: .squad_id)
-        division_id = try container.decodeIfPresent(Int.self, forKey: .division_id)
-        name = try container.decodeIfPresent(String.self, forKey: .name)
-        gender = try container.decodeIfPresent(String.self, forKey: .gender)
-        age = try container.decodeIfPresent(Int.self, forKey: .age)
-        category_code = try container.decodeIfPresent(String.self, forKey: .category_code)
-        region = try container.decodeIfPresent(String.self, forKey: .region)
-        club = try container.decodeIfPresent(String.self, forKey: .club)
-        club_id = try container.decodeIfPresent(Int.self, forKey: .club_id)
-        shooter_uid = try container.decodeIfPresent(String.self, forKey: .shooter_uid)
-        bib_number = try container.decodeIfPresent(String.self, forKey: .bib_number)
-        division_name = try container.decodeIfPresent(String.self, forKey: .division_name)
-        squad_name = try container.decodeIfPresent(String.self, forKey: .squad_name)
-        category_name = try container.decodeIfPresent(String.self, forKey: .category_name)
-            ?? container.decodeIfPresent(String.self, forKey: .category)
-        power_factor = try container.decodeIfPresent(String.self, forKey: .power_factor)
-        stages_done = try container.decodeIfPresent(Int.self, forKey: .stages_done)
-        status = try container.decodeIfPresent(String.self, forKey: .status)
-        if let dq_int = try container.decodeIfPresent(Int.self, forKey: .is_dq) {
+        id = container.decodeFlexibleInt(forKey: .id) ?? 0
+        match_id = container.decodeFlexibleInt(forKey: .match_id)
+        squad_id = container.decodeFlexibleInt(forKey: .squad_id)
+        division_id = container.decodeFlexibleInt(forKey: .division_id)
+        name = container.decodeFlexibleString(forKey: .name)
+        gender = container.decodeFlexibleString(forKey: .gender)
+        age = container.decodeFlexibleInt(forKey: .age)
+        category_code = container.decodeFlexibleString(forKey: .category_code)
+        region = container.decodeFlexibleString(forKey: .region)
+        club = container.decodeFlexibleString(forKey: .club)
+        club_id = container.decodeFlexibleInt(forKey: .club_id)
+        shooter_uid = container.decodeFlexibleString(forKey: .shooter_uid)
+        bib_number = container.decodeFlexibleString(forKey: .bib_number)
+        division_name = container.decodeFlexibleString(forKey: .division_name)
+        squad_name = container.decodeFlexibleString(forKey: .squad_name)
+        category_name = container.decodeFlexibleString(forKey: .category_name)
+            ?? container.decodeFlexibleString(forKey: .category)
+        power_factor = container.decodeFlexibleString(forKey: .power_factor)
+        stages_done = container.decodeFlexibleInt(forKey: .stages_done)
+        status = container.decodeFlexibleString(forKey: .status)
+        if let dq_int = try? container.decodeIfPresent(Int.self, forKey: .is_dq) {
             is_dq = dq_int
-        } else if let dq_bool = try container.decodeIfPresent(Bool.self, forKey: .is_dq) {
+        } else if let dq_bool = try? container.decodeIfPresent(Bool.self, forKey: .is_dq) {
             is_dq = dq_bool ? 1 : 0
+        } else if let dq_string = try? container.decodeIfPresent(String.self, forKey: .is_dq),
+                  let dq_int = Int(dq_string.trimmingCharacters(in: .whitespacesAndNewlines)) {
+            is_dq = dq_int
         } else {
             is_dq = nil
         }
-        created_at = try container.decodeIfPresent(String.self, forKey: .created_at)
-        updated_at = try container.decodeIfPresent(String.self, forKey: .updated_at)
+        created_at = container.decodeFlexibleString(forKey: .created_at)
+        updated_at = container.decodeFlexibleString(forKey: .updated_at)
     }
 
     var bibNumber: String { bib_number ?? "" }
@@ -200,12 +203,46 @@ struct IpscSquad: Decodable, Identifiable {
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        id = try container.decode(Int.self, forKey: .id)
-        name = try container.decodeIfPresent(String.self, forKey: .name) ?? ""
-        sortOrder = try container.decodeIfPresent(Int.self, forKey: .sortOrder) ?? 0
-        shooterCount = try container.decodeIfPresent(Int.self, forKey: .shooterCount) ?? 0
-        stagesTotal = try container.decodeIfPresent(Int.self, forKey: .stagesTotal) ?? 0
+        id = container.decodeFlexibleInt(forKey: .id) ?? 0
+        name = container.decodeFlexibleString(forKey: .name) ?? ""
+        sortOrder = container.decodeFlexibleInt(forKey: .sortOrder) ?? 0
+        shooterCount = container.decodeFlexibleInt(forKey: .shooterCount) ?? 0
+        stagesTotal = container.decodeFlexibleInt(forKey: .stagesTotal) ?? 0
         shooters = try container.decodeIfPresent([IpscShooter].self, forKey: .shooters) ?? []
+    }
+}
+
+private extension KeyedDecodingContainer {
+    func decodeFlexibleString(forKey key: K) -> String? {
+        if let value = try? decodeIfPresent(String.self, forKey: key) {
+            return value
+        }
+        if let value = try? decodeIfPresent(Int.self, forKey: key) {
+            return String(value)
+        }
+        if let value = try? decodeIfPresent(Double.self, forKey: key) {
+            return String(value)
+        }
+        if let value = try? decodeIfPresent(Bool.self, forKey: key) {
+            return value ? "true" : "false"
+        }
+        return nil
+    }
+
+    func decodeFlexibleInt(forKey key: K) -> Int? {
+        if let value = try? decodeIfPresent(Int.self, forKey: key) {
+            return value
+        }
+        if let value = try? decodeIfPresent(String.self, forKey: key) {
+            return Int(value.trimmingCharacters(in: .whitespacesAndNewlines))
+        }
+        if let value = try? decodeIfPresent(Double.self, forKey: key) {
+            return Int(value)
+        }
+        if let value = try? decodeIfPresent(Bool.self, forKey: key) {
+            return value ? 1 : 0
+        }
+        return nil
     }
 }
 
@@ -257,6 +294,7 @@ struct IpscScoreTargetRow: Encodable {
 struct IpscScoreSubmitRequest: Encodable {
     let shooterBib: String
     let stageId: String
+    let squadId: Int?
     let totalTime: Double
     let status: IpscScoreStatus
     let hits: IpscScoreHits?
@@ -269,6 +307,7 @@ struct IpscScoreSubmitRequest: Encodable {
         case status, hits, rows, penalties
         case shooterBib   = "shooter_bib"
         case stageId      = "stage_id"
+        case squadId      = "squad_id"
         case totalTime    = "total_time"
         case firstShot    = "first_shot"
         case fastestSplit = "fastest_split"
@@ -465,8 +504,19 @@ struct IpscDrillReplayUploadData: Decodable {
 /// All requests go to the configured IPSC server at `ipscBaseURL`.
 final class IpscService {
 
+    private struct IpscSquadQueuePayload: Decodable {
+        let squads: [IpscSquad]?
+        let rows: [IpscSquad]?
+        let items: [IpscSquad]?
+        let list: [IpscSquad]?
+        let data: [IpscSquad]?
+    }
+
     static let shared = IpscService()
     private init() {}
+
+    private lazy var serverConfig = ServerConfig()
+    private var ipscBaseURL: String { serverConfig.getServerUrl() }
 
     private let session: URLSession = {
         let config = URLSessionConfiguration.default
@@ -496,11 +546,38 @@ final class IpscService {
     // MARK: Squad Queue — GET /api/v1/matches/{matchId}/squads/queue
     func getSquadQueue(matchId: Int) async throws -> [IpscSquad] {
         let url = try makeURL("api/v1/matches/\(matchId)/squads/queue")
-        let response: IpscApiResponse<[IpscSquad]> = try await get(url)
-        guard response.success, let data = response.data else {
-            throw IpscError.serverError(response.error ?? "Failed to load squads")
+
+        let rawData = try await makeRawRequest(url: url, method: "GET")
+
+        if let response = try? decoder.decode(IpscApiResponse<[IpscSquad]>.self, from: rawData) {
+            guard response.success, let data = response.data else {
+                throw IpscError.serverError(response.error ?? "Failed to load squads")
+            }
+            return data
         }
-        return data
+
+        if let response = try? decoder.decode(IpscApiResponse<IpscSquadQueuePayload>.self, from: rawData) {
+            guard response.success else {
+                throw IpscError.serverError(response.error ?? "Failed to load squads")
+            }
+
+            if let data = extractSquads(from: response.data) {
+                return data
+            }
+
+            return []
+        }
+
+        if let direct = try? decoder.decode([IpscSquad].self, from: rawData) {
+            return direct
+        }
+
+        if let payload = try? decoder.decode(IpscSquadQueuePayload.self, from: rawData),
+           let squads = extractSquads(from: payload) {
+            return squads
+        }
+
+        throw IpscError.serverError("Failed to load squads: invalid response format")
     }
 
     // MARK: Stages — GET /api/v1/matches/{matchId}/stages
@@ -660,6 +737,19 @@ final class IpscService {
 
         let (data, _) = try await session.data(for: request)
         return try decoder.decode(T.self, from: data)
+    }
+
+    private func makeRawRequest(url: URL, method: String) async throws -> Data {
+        var request = URLRequest(url: url)
+        request.httpMethod = method
+        request.setValue(try authHeaderValue(), forHTTPHeaderField: "Authorization")
+        let (data, _) = try await session.data(for: request)
+        return data
+    }
+
+    private func extractSquads(from payload: IpscSquadQueuePayload?) -> [IpscSquad]? {
+        guard let payload else { return nil }
+        return payload.squads ?? payload.rows ?? payload.items ?? payload.list ?? payload.data
     }
 
     private func updateShooterAtPath(_ path: String, request: IpscShooterUpdateRequest) async throws -> IpscShooter {

@@ -1,25 +1,26 @@
-[gd_scene load_steps=3 format=3 uid="uid://xjeojreh01hf"]
+[gd_scene format=3 uid="uid://xjeojreh01hf"]
 
 [ext_resource type="PackedScene" uid="uid://yyr3sp3rr4h1" path="res://scene/popper_simple.tscn" id="1_popper_simple"]
 [ext_resource type="Script" uid="uid://dl3s306a1st46" path="res://script/2poppers_simple.gd" id="2_script"]
 
-[node name="2PoppersSimple" type="Node2D"]
+[node name="2PoppersSimple" type="Node2D" unique_id=1046498906]
 script = ExtResource("2_script")
 
-[node name="Popper1Area" type="Area2D" parent="."]
+[node name="Popper1Area" type="Area2D" parent="." unique_id=1086729732]
 position = Vector2(-100, 0)
 
-[node name="Popper1_simple" parent="Popper1Area" instance=ExtResource("1_popper_simple")]
+[node name="Popper1_simple" parent="Popper1Area" unique_id=1834534889 instance=ExtResource("1_popper_simple")]
 
-[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Popper1Area"]
-polygon = PackedVector2Array(-66, 265, -77, 17, -111, -30, -124, -89, -106, -145, -63, -188, -63, -311, -38, -353, -1, -367, 37, -352, 61, -323, 64, -187, 103, -145, 123, -85, 107, -28, 76, 18, 64, 268, 64, 268)
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Popper1Area" unique_id=528251974]
+position = Vector2(1, -80)
+polygon = PackedVector2Array(-66, 265, -77, 17, -111, -30, -124, -89, -106, -145, -63, -188, 2, -209, 65, -187, 103, -145, 123, -85, 107, -28, 76, 18, 64, 268, 64, 268)
 
-[node name="Popper2Area" type="Area2D" parent="."]
+[node name="Popper2Area" type="Area2D" parent="." unique_id=492875685]
 position = Vector2(200, 200)
 
-[node name="Popper2_simple" parent="Popper2Area" instance=ExtResource("1_popper_simple")]
+[node name="Popper2_simple" parent="Popper2Area" unique_id=139805830 instance=ExtResource("1_popper_simple")]
 
-[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Popper2Area"]
-position = Vector2(0, 0.554138)
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Popper2Area" unique_id=451664460]
+position = Vector2(2, -80)
 scale = Vector2(1, 0.998853)
-polygon = PackedVector2Array(-62, 287, 64, 287, 76, 9, 108, -33, 124, -90, 109, -141, 68, -185, 64, -313, 43, -350, 6, -367, -38, -354, -61, -318, -67, -190, -109, -132, -125, -81, -111, -27, -83, 12)
+polygon = PackedVector2Array(-62, 287, 64, 287, 76, 9, 109, -30.034454, 124, -90, 109, -141, 68, -185, 2, -211.79707, -67, -190, -111, -142.16307, -125, -81, -111, -27, -83, 12)

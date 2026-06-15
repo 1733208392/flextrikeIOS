@@ -43,7 +43,9 @@ var last_focused_networking_button: Node = null
 
 # Timer for periodic netlink status updates
 var netlink_timer: Timer = null
-const NETLINK_UPDATE_INTERVAL = 60.0  # Request every 60 seconds
+const NETLINK_UPDATE_INTERVAL_FAST = 10.0  # Fast polling until first successful connection
+const NETLINK_UPDATE_INTERVAL_NORMAL = 60.0  # Normal polling after connection established
+var netlink_timer_interval: float = NETLINK_UPDATE_INTERVAL_FAST  # Current interval
 
 # OTA mode tracking
 var ota_mode: bool = false  # True if system is in OTA mode (can write to /srv/www/userapp)
@@ -60,6 +62,8 @@ func _ready():
 	# print("GlobalData singleton initialized")
 	_detect_ota_mode()
 	load_settings_from_http()
+	# Request initial netlink status (button visibility depends on it)
+	HttpService.netlink_status(Callable(self, "update_netlink_status_from_response"))
 
 func _detect_ota_mode():
 	"""Check if system is in OTA mode by testing if OTA_USERAPP_DIR is writable"""
@@ -79,15 +83,40 @@ func _detect_ota_mode():
 			print("[GlobalData] OTA mode not detected: system is read-only")
 
 func _setup_netlink_timer():
-	"""Setup periodic netlink status updates (called after first successful response)"""
+	"""Setup periodic netlink status updates (called on every response)"""
 	if netlink_timer:
-		return  # Timer already started
+		return  # Timer already running
 	netlink_timer = Timer.new()
 	add_child(netlink_timer)
-	netlink_timer.wait_time = NETLINK_UPDATE_INTERVAL
+	netlink_timer.wait_time = netlink_timer_interval
 	netlink_timer.timeout.connect(_on_netlink_timer_timeout)
 	netlink_timer.start()
-	# print("GlobalData: Netlink status timer started with interval: ", NETLINK_UPDATE_INTERVAL)
+	if not DEBUG_DISABLED:
+		print("[GlobalData] Netlink timer started at ", netlink_timer_interval, "s")
+
+func _switch_netlink_timer_to_normal():
+	"""Switch from fast polling (10s) to normal (60s) after successful connection"""
+	if netlink_timer and netlink_timer_interval != NETLINK_UPDATE_INTERVAL_NORMAL:
+		netlink_timer_interval = NETLINK_UPDATE_INTERVAL_NORMAL
+		netlink_timer.wait_time = NETLINK_UPDATE_INTERVAL_NORMAL
+		if not DEBUG_DISABLED:
+			print("[GlobalData] Netlink timer switched to ", NETLINK_UPDATE_INTERVAL_NORMAL, "s (connected)")
+
+func request_netlink_status_now(fast_interval: float = 3.0):
+	"""Request netlink status immediately and temporarily boost polling speed.
+	Call this after user-initiated actions (e.g. toggle netlink start/stop) to get quick feedback.
+	After receiving a successful response, timer reverts to normal interval."""
+	# Temporarily switch to fast interval for quick feedback
+	if netlink_timer and netlink_timer_interval != fast_interval:
+		netlink_timer_interval = fast_interval
+		netlink_timer.wait_time = fast_interval
+		# Restart timer to apply new interval immediately
+		netlink_timer.stop()
+		netlink_timer.start()
+		if not DEBUG_DISABLED:
+			print("[GlobalData] Netlink timer boosted to ", fast_interval, "s (user action)")
+	# Fire immediate request
+	HttpService.netlink_status(Callable(self, "update_netlink_status_from_response"))
 
 func _on_netlink_timer_timeout():
 	"""Periodic callback to request netlink status"""
@@ -220,8 +249,10 @@ func update_netlink_status_from_response(_result, response_code, _headers, body)
 				# print("GlobalData: netlink_status updated: ", netlink_status)
 				# Emit signal to notify listeners that netlink status is available
 				netlink_status_loaded.emit()
-				# Start periodic timer on first successful response
+				# Start periodic timer (first call) or switch to normal interval
 				_setup_netlink_timer()
+				if not netlink_status.is_empty():
+					_switch_netlink_timer_to_normal()
 			else:
 				# print("GlobalData: netlink_status response missing data field or failed to parse")
 				netlink_status = {}

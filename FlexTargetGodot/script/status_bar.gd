@@ -6,10 +6,12 @@ const WIFI_IDLE := preload("res://asset/wifi.fill.idle.png")
 const WIFI_CONNECTED := preload("res://asset/wifi.fill.connect.png")
 const NET_IDLE := preload("res://asset/connectivity.idle.png")
 const NET_CONNECTED := preload("res://asset/connectivity.active.png")
+const MAIN_MENU_SCENE_PATH := "res://scene/main_menu/main_menu.tscn"
 
 @onready var wifi_icon: TextureRect = get_node_or_null("Root/Panel/HBoxContainer/WifiIcon")
 @onready var network_icon: TextureRect = get_node_or_null("Root/Panel/HBoxContainer/ConnectivityIcon")
 @onready var root_control: Control = get_node_or_null("Root")
+@onready var back_button: Button = get_node_or_null("Root/Panel/Back")
 
 func _ready() -> void:
 	# print("StatusBar: _ready() called")
@@ -34,27 +36,21 @@ func _ready() -> void:
 	# Update size after frame
 	call_deferred("_update_size")
 	get_viewport().size_changed.connect(_on_viewport_size_changed)
+	if not get_tree().scene_changed.is_connected(_on_scene_changed):
+		get_tree().scene_changed.connect(_on_scene_changed)
+
+	# Handle explicit UI click from status bar back button
+	if back_button and not back_button.pressed.is_connected(_on_back_pressed):
+		back_button.pressed.connect(_on_back_pressed)
+	_update_back_button_visibility()
 
 	# Listen for netlink status updates so UI can reflect started state
+	# (GlobalData handles all netlink_status requests — we just react to signals)
 	var global_data = get_node_or_null("/root/GlobalData")
 	if global_data:
 		var cb = Callable(self, "_on_netlink_status_loaded")
 		if not global_data.is_connected("netlink_status_loaded", cb):
 			global_data.connect("netlink_status_loaded", cb)
-			# print("StatusBar: Connected to GlobalData.netlink_status_loaded signal")
-
-	# Request netlink status after signal connections are established
-	# print("StatusBar: Requesting netlink status from HttpService")
-	HttpService.netlink_status(Callable(self, "_on_netlink_status_response"))
-
-	# Update size after frame
-	call_deferred("_update_size")
-	get_viewport().size_changed.connect(_on_viewport_size_changed)
-
-func _enter_tree() -> void:
-	# Called earlier than _ready, but we'll request netlink status in _ready instead
-	# to ensure signal bus connections are established first
-	pass
 
 func _exit_tree() -> void:
 	var signal_bus = get_node_or_null("/root/SignalBus")
@@ -74,6 +70,9 @@ func _exit_tree() -> void:
 		var cb = Callable(self, "_on_netlink_status_loaded")
 		if global_data.is_connected("netlink_status_loaded", cb):
 			global_data.disconnect("netlink_status_loaded", cb)
+
+	if get_tree().scene_changed.is_connected(_on_scene_changed):
+		get_tree().scene_changed.disconnect(_on_scene_changed)
 
 func _on_viewport_size_changed() -> void:
 	_update_size()
@@ -105,12 +104,6 @@ func _set_network_started(connected: bool) -> void:
 	if network_icon:
 		network_icon.texture = NET_CONNECTED if connected else NET_IDLE
 
-func _on_netlink_status_response(result, response_code, headers, body):
-	# print("StatusBar: netlink_status response - code:", response_code)
-	# Forward to GlobalData to parse and store
-	if has_node("/root/GlobalData"):
-		GlobalData.update_netlink_status_from_response(result, response_code, headers, body)
-
 func _on_netlink_status_loaded():
 	# print("StatusBar: Received GlobalData.netlink_status_loaded signal")
 	var gd = get_node_or_null("/root/GlobalData")
@@ -129,4 +122,24 @@ func _on_netlink_status_loaded():
 		var started = bool(s.get("started", false))
 		_set_network_started(started)
 		# print("StatusBar: netlink started=", started)
+
+func _on_scene_changed() -> void:
+	_update_back_button_visibility()
+
+func _update_back_button_visibility() -> void:
+	if not back_button:
+		return
+
+	var current_scene = get_tree().current_scene
+	if current_scene and current_scene.has_method("get_scene_file_path"):
+		back_button.visible = current_scene.scene_file_path != MAIN_MENU_SCENE_PATH
+		return
+
+	back_button.visible = true
+
+func _on_back_pressed() -> void:
+	# Triggered only when the button receives GUI click input.
+	var err = get_tree().change_scene_to_file(MAIN_MENU_SCENE_PATH)
+	if err != OK and not DEBUG_DISABLED:
+		print("StatusBar: Failed to change scene to main_menu.tscn, error=", err)
 		

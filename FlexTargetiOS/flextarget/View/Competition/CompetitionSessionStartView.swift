@@ -445,6 +445,7 @@ struct CompetitionTargetGridSummaryView: View {
     let drillSetup: DrillSetup
     let competition: Competition?
     let ipscContext: IpscLockedSelectionContext?
+    let competitionSquadId: Int?
 
     @State private var workingSummaries: [DrillRepeatSummary]
     @State private var rows: [CompetitionTargetRowState]
@@ -457,11 +458,13 @@ struct CompetitionTargetGridSummaryView: View {
         drillSetup: DrillSetup,
         summaries: [DrillRepeatSummary],
         competition: Competition?,
-        ipscContext: IpscLockedSelectionContext?
+        ipscContext: IpscLockedSelectionContext?,
+        competitionSquadId: Int? = nil
     ) {
         self.drillSetup = drillSetup
         self.competition = competition
         self.ipscContext = ipscContext
+        self.competitionSquadId = competitionSquadId
 
         let baseSummary = summaries.first
         let initialRows = CompetitionTargetGridSummaryView.buildRows(
@@ -540,7 +543,8 @@ struct CompetitionTargetGridSummaryView: View {
                         drillSetup: drillSetup,
                         summaries: workingSummaries,
                         competition: competition,
-                        ipscContext: ipscContext
+                        ipscContext: ipscContext,
+                        competitionSquadId: competitionSquadId
                     )
                 } label: {
                     EmptyView()

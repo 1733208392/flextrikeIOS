@@ -2,7 +2,7 @@ extends Node
 
 const DEBUG_DISABLED = true
 const WEBSOCKET_URL = "ws://127.0.0.1/websocket"
-#const WEBSOCKET_URL = "ws://192.168.43.2/websocket"
+#const WEBSOCKET_URL = "ws://192.168.0.107/websocket"
 
 signal data_received(data)
 signal netlink_forward(data: Dictionary)
@@ -19,6 +19,12 @@ signal greeting_received()
 
 var socket: WebSocketPeer
 var bullet_spawning_enabled: bool = true
+
+# UI click emission: injects InputEventMouseButton into Godot input pipeline
+# Only enable in scenes that have clickable UI elements (buttons, menus, etc.)
+var emit_click_for_ui: bool = false
+var ui_click_cooldown: float = 0.3  # 300ms minimum between UI clicks to prevent rapid-fire flooding
+var last_ui_click_time: float = 0.0
 var prev_socket_state: int = -1
 var global_data: Node
 
@@ -222,6 +228,26 @@ func _process_websocket_json(json_string):
 					if a != null and t != null:
 						bullet_hit.emit(transformed_pos, a, t)
 						# bullet_hit.emit(transformed_pos)						
+						# Inject mouse click event for UI interaction (when enabled)
+						if emit_click_for_ui:
+							var now = Time.get_ticks_msec() / 1000.0
+							if (now - last_ui_click_time) >= ui_click_cooldown:
+								last_ui_click_time = now
+								var mouse_press = InputEventMouseButton.new()
+								mouse_press.button_index = MOUSE_BUTTON_LEFT
+								mouse_press.position = transformed_pos
+								mouse_press.global_position = transformed_pos
+								mouse_press.pressed = true
+								Input.parse_input_event(mouse_press)
+								var mouse_release = InputEventMouseButton.new()
+								mouse_release.button_index = MOUSE_BUTTON_LEFT
+								mouse_release.position = transformed_pos
+								mouse_release.global_position = transformed_pos
+								mouse_release.pressed = false
+								Input.parse_input_event(mouse_release)
+								if not DEBUG_DISABLED:
+									print("[WebSocket] UI click injected at: ", transformed_pos)
+
 				else:
 					# When disabled, don't add to pending queue - just ignore
 					pass
@@ -456,6 +482,19 @@ func set_bullet_spawning_enabled(enabled: bool):
 func get_bullet_spawning_enabled() -> bool:
 	"""Get current bullet spawning enabled state"""
 	return bullet_spawning_enabled
+
+func set_emit_click_for_ui(enabled: bool) -> void:
+	"""Enable/disable mouse click injection for UI interaction.
+	Only call this in scenes that need clickable UI elements to respond to bullet hits."""
+	emit_click_for_ui = enabled
+	if enabled:
+		last_ui_click_time = 0.0
+	if not DEBUG_DISABLED:
+		print("[WebSocket] emit_click_for_ui set to: ", enabled)
+
+func get_emit_click_for_ui() -> bool:
+	"""Get current UI click emission state"""
+	return emit_click_for_ui
 
 func _attempt_reconnect() -> void:
 	"""Try to reopen the websocket connection immediately. If it fails, schedule the reconnect timer."""

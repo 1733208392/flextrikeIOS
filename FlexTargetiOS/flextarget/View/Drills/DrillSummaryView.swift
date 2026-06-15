@@ -37,6 +37,7 @@ struct DrillSummaryView: View {
     @State var summaries: [DrillRepeatSummary]
     var competition: Competition? = nil
     var ipscContext: IpscLockedSelectionContext? = nil
+    var competitionSquadId: Int? = nil
     @State private var originalScores: [UUID: Int] = [:]
     @State private var penaltyCounts: [UUID: Int] = [:]
     
@@ -415,6 +416,7 @@ struct DrillSummaryView: View {
                     score: Float(rankingScore),
                     detail: detail,
                     playTime: playTime,
+                    squadId: competitionSquadId ?? ipscContext?.squadId,
                     playerMobile: AuthManager.shared.currentUser?.mobile,
                     playerNickname: AuthManager.shared.currentUser?.username,
                     isPublic: true
