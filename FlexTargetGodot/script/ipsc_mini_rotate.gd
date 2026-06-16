@@ -403,24 +403,9 @@ func play_paddle_hit_sound(world_pos: Vector2):
 		)
 
 func play_disappearing_animation():
-	"""Start the disappearing animation and disable collision detection"""
+	"""Complete rotating target immediately without playing disappear animation"""
 	is_disappearing = true
-	
-	# Get the IPSCMini child node
-	var ipsc_mini = get_node_or_null("IPSCMini")
-	if not ipsc_mini:
-		if not DEBUG_DISABLE: print("[ipsc_mini_rotate] IPSCMini child not found for disappearing animation")
-		return
-	
-	# Get the AnimationPlayer from the child
-	var animation_player = ipsc_mini.get_node("AnimationPlayer")
-	if animation_player:
-		# Connect to the animation finished signal if not already connected
-		if not animation_player.animation_finished.is_connected(_on_animation_finished):
-			animation_player.animation_finished.connect(_on_animation_finished)
-		
-		# Play the disappear animation
-		animation_player.play("disappear")
+	_on_disappear_animation_finished()
 
 func _on_animation_finished(animation_name: String):
 	"""Called when any animation finishes"""

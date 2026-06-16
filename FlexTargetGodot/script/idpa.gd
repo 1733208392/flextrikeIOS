@@ -186,34 +186,10 @@ func reset_score():
 	total_score = 0
 
 func play_disappearing_animation():
-	"""Start the disappearing animation and disable collision detection"""
+	"""Immediately emit disappeared signal (animation removed)"""
 	is_disappearing = true
-
-	# Get the AnimationPlayer
-	var animation_player = get_node("AnimationPlayer")
-	if animation_player:
-		# Connect to the animation finished signal if not already connected
-		if not animation_player.animation_finished.is_connected(_on_animation_finished):
-			animation_player.animation_finished.connect(_on_animation_finished)
-
-		# Play the disappear animation
-		animation_player.play("disappear")
-func _on_animation_finished(animation_name: String):
-	"""Called when any animation finishes"""
-	if animation_name == "disappear":
-		_on_disappear_animation_finished()
-
-func _on_disappear_animation_finished():
-	"""Called when the disappearing animation completes"""
-
-	# Disable collision detection completely
-	# NOTE: Collision detection was already obsolete due to WebSocket fast path
-
 	# Emit signal to notify the drills system that the target has disappeared
 	target_disappeared.emit()
-
-	# Keep the disappearing state active to prevent any further interactions
-	# is_disappearing remains true
 
 func reset_target():
 	"""Reset the target to its original state (useful for restarting)"""
@@ -435,13 +411,14 @@ func handle_websocket_bullet_hit_fast(world_pos: Vector2, t: int = 0):
 	total_score += points
 	target_hit.emit(zone_hit, points, world_pos, t)
 
-	# 5. Increment shot count and check for disappearing animation (only for valid target hits)
+	# 5. Increment shot count and emit disappeared signal when max shots reached
 	if is_target_hit:
 		shot_count += 1
 
 		# Check if we've reached the maximum valid target hits
 		if shot_count >= max_shots:
-			play_disappearing_animation()
+			# Emit signal immediately without animation
+			target_disappeared.emit()
 
 func spawn_bullet_effects_at_position(world_pos: Vector2, _is_target_hit: bool = true):
 	"""Spawn bullet smoke and impact effects with throttling for performance"""

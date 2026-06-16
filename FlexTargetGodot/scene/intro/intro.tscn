@@ -1,7 +1,8 @@
-[gd_scene load_steps=8 format=3 uid="uid://rtls33j2jr4q"]
+[gd_scene format=3 uid="uid://rtls33j2jr4q"]
 
 [ext_resource type="Script" uid="uid://bhvruqf68yix4" path="res://scene/intro/intro.gd" id="1_y6sgv"]
 [ext_resource type="FontFile" uid="uid://w674bdq23bld" path="res://font/Inter/static/Inter_24pt-Bold.ttf" id="2_1kmu5"]
+[ext_resource type="Texture2D" uid="uid://cqkwytntfgrv" path="res://asset/back-icon.png" id="3_y6sgv"]
 [ext_resource type="Theme" uid="uid://cdynjfvdtavlt" path="res://scene/main_menu/main_menu_button_theme.tres" id="5_48x57"]
 [ext_resource type="PackedScene" uid="uid://bgnvqj8xi6u7e" path="res://scene/volumn.tscn" id="6_ncd3m"]
 [ext_resource type="AudioStream" uid="uid://cc4026ptu87nx" path="res://audio/13 - Decisive Battle 1 - Don't Be Afraid.ogg" id="7_1kmu5"]
@@ -13,7 +14,7 @@ Label/colors/font_color = Color(0.87058824, 0.21960784, 0.13725491, 1)
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_6sytt"]
 
-[node name="intro" type="Control"]
+[node name="intro" type="Control" unique_id=11658724]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -22,7 +23,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_y6sgv")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="ColorRect" parent="." unique_id=112121636]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -31,21 +32,29 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.03529412, 0.03529412, 0.03529412, 1)
 
-[node name="Title" type="Label" parent="."]
+[node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=1505436658]
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -265.0
-offset_top = 80.0
-offset_right = 265.0
-offset_bottom = 178.0
+offset_left = -218.0
+offset_top = 70.0
+offset_right = 218.0
+offset_bottom = 212.0
 grow_horizontal = 2
+
+[node name="BackButton" type="Button" parent="HBoxContainer" unique_id=227844512]
+layout_mode = 2
+theme = ExtResource("5_48x57")
+icon = ExtResource("3_y6sgv")
+
+[node name="Title" type="Label" parent="HBoxContainer" unique_id=509955089]
+layout_mode = 2
 theme = SubResource("Theme_48x57")
 text = " INTRO"
 horizontal_alignment = 1
 
-[node name="CenterContainer" type="CenterContainer" parent="."]
+[node name="CenterContainer" type="CenterContainer" parent="." unique_id=741670058]
 clip_contents = true
 layout_mode = 1
 anchors_preset = 8
@@ -60,16 +69,16 @@ offset_bottom = 322.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="ContentVBox" type="VBoxContainer" parent="CenterContainer"]
+[node name="ContentVBox" type="VBoxContainer" parent="CenterContainer" unique_id=1562665872]
 custom_minimum_size = Vector2(500, 0)
 layout_mode = 2
 
-[node name="Panel" type="Panel" parent="CenterContainer/ContentVBox"]
+[node name="Panel" type="Panel" parent="CenterContainer/ContentVBox" unique_id=1952834947]
 custom_minimum_size = Vector2(600, 600)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxEmpty_6sytt")
 
-[node name="MainText" type="RichTextLabel" parent="CenterContainer/ContentVBox/Panel"]
+[node name="MainText" type="RichTextLabel" parent="CenterContainer/ContentVBox/Panel" unique_id=88492654]
 layout_mode = 0
 offset_right = 600.0
 offset_bottom = 600.0
@@ -92,27 +101,27 @@ fit_content = true
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="NavigationContainer" type="HBoxContainer" parent="CenterContainer/ContentVBox"]
+[node name="NavigationContainer" type="HBoxContainer" parent="CenterContainer/ContentVBox" unique_id=288713755]
 layout_mode = 2
 alignment = 1
 
-[node name="PrevButton" type="Button" parent="CenterContainer/ContentVBox/NavigationContainer"]
+[node name="PrevButton" type="Button" parent="CenterContainer/ContentVBox/NavigationContainer" unique_id=428049090]
 custom_minimum_size = Vector2(100, 40)
 layout_mode = 2
 theme = ExtResource("5_48x57")
 disabled = true
 
-[node name="PageIndicator" type="Label" parent="CenterContainer/ContentVBox/NavigationContainer"]
+[node name="PageIndicator" type="Label" parent="CenterContainer/ContentVBox/NavigationContainer" unique_id=974890396]
 layout_mode = 2
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="NextButton" type="Button" parent="CenterContainer/ContentVBox/NavigationContainer"]
+[node name="NextButton" type="Button" parent="CenterContainer/ContentVBox/NavigationContainer" unique_id=188129217]
 custom_minimum_size = Vector2(100, 40)
 layout_mode = 2
 theme = ExtResource("5_48x57")
 
-[node name="StartButton" type="Button" parent="."]
+[node name="StartButton" type="Button" parent="." unique_id=317242539]
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
@@ -130,7 +139,7 @@ size_flags_vertical = 3
 theme = ExtResource("5_48x57")
 theme_override_font_sizes/font_size = 36
 
-[node name="Volume" parent="." instance=ExtResource("6_ncd3m")]
+[node name="Volume" parent="." unique_id=64496998 instance=ExtResource("6_ncd3m")]
 visible = false
 layout_mode = 1
 anchors_preset = 3
@@ -145,5 +154,5 @@ offset_bottom = -20.0
 grow_horizontal = 0
 grow_vertical = 0
 
-[node name="BackgroundMusic" type="AudioStreamPlayer" parent="."]
+[node name="BackgroundMusic" type="AudioStreamPlayer" parent="." unique_id=475442958]
 stream = ExtResource("7_1kmu5")

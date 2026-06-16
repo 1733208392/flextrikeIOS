@@ -8,6 +8,7 @@ const DEBUG_DISABLED = false  # Set to true to disable debug prints for producti
 @onready var idpa_button = $CenterContainer/GridContainer/IDPAButton
 @onready var history_ipsc_button = $CenterContainer/GridContainer/HistoryIPSCButton
 @onready var history_idpa_button = $CenterContainer/GridContainer/HistoryIDPAButton
+@onready var home_button = $HBoxContainer/HomeButton
 
 var focused_index
 var buttons = []
@@ -104,6 +105,7 @@ func _ready():
 	idpa_button.pressed.connect(_on_idpa_pressed)
 	history_ipsc_button.pressed.connect(_on_history_ipsc_pressed)
 	history_idpa_button.pressed.connect(_on_history_idpa_pressed)
+	home_button.pressed.connect(_on_home_pressed)
 
 	# Set initial focus on top-left button (index 0 - IPSC button)
 	focused_index = 0
@@ -211,6 +213,15 @@ func _on_history_idpa_pressed():
 		print("[SubMenu] History IDPA button pressed")
 	if is_inside_tree():
 		get_tree().change_scene_to_file("res://scene/history_idpa.tscn")
+	else:
+		if not DEBUG_DISABLED:
+			print("[SubMenu] Warning: Node not in tree, cannot change scene")
+
+func _on_home_pressed():
+	if not DEBUG_DISABLED:
+		print("[SubMenu] Home button pressed")
+	if is_inside_tree():
+		get_tree().change_scene_to_file("res://scene/main_menu/main_menu.tscn")
 	else:
 		if not DEBUG_DISABLED:
 			print("[SubMenu] Warning: Node not in tree, cannot change scene")

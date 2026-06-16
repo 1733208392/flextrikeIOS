@@ -167,7 +167,8 @@ func process_bullet_hit(pos: Vector2) -> void:
 		shot_count += 1
 		# Check if we've reached the maximum valid target hits
 		if shot_count >= max_shots:
-			play_disappearing_animation()
+			# Emit signal immediately without animation
+			target_disappeared.emit()
 
 func get_collision_shapes(area: Area2D) -> Array:
 	var shapes = []
@@ -288,23 +289,7 @@ func spawn_bullet_effects_at_position(world_pos: Vector2, _is_target_hit: bool =
 		last_impact_time = time_stamp
 
 func play_disappearing_animation():
-	"""Start the disappearing animation and disable collision detection"""
-	# Get the AnimationPlayer
-	if animation_player:
-		# Connect to the animation finished signal if not already connected
-		if not animation_player.animation_finished.is_connected(_on_animation_finished):
-			animation_player.animation_finished.connect(_on_animation_finished)
-
-		# Play the disappear animation
-		animation_player.play("disappear")
-
-func _on_animation_finished(animation_name: String):
-	"""Called when any animation finishes"""
-	if animation_name == "disappear":
-		_on_disappear_animation_finished()
-
-func _on_disappear_animation_finished():
-	"""Called when the disappearing animation completes"""
+	"""Immediately emit disappeared signal (animation removed)"""
 	# Emit signal to notify the drills system that the target has disappeared
 	target_disappeared.emit()
 

@@ -1,8 +1,8 @@
 extends Node
 
 const DEBUG_DISABLED = true
-const WEBSOCKET_URL = "ws://127.0.0.1/websocket"
-#const WEBSOCKET_URL = "ws://192.168.0.107/websocket"
+#const WEBSOCKET_URL = "ws://127.0.0.1/websocket"
+const WEBSOCKET_URL = "ws://192.168.0.110/websocket"
 
 signal data_received(data)
 signal netlink_forward(data: Dictionary)
@@ -220,6 +220,26 @@ func _process_websocket_json(json_string):
 				var x_new = x * (game_width / ws_width)
 				var y_new = game_height - (y * (game_height / ws_height))
 				var transformed_pos = Vector2(x_new, y_new)
+
+				# Inject mouse click events for UI interaction independently from gameplay bullet gating.
+				if emit_click_for_ui:
+					var now = Time.get_ticks_msec() / 1000.0
+					if (now - last_ui_click_time) >= ui_click_cooldown:
+						last_ui_click_time = now
+						var mouse_press = InputEventMouseButton.new()
+						mouse_press.button_index = MOUSE_BUTTON_LEFT
+						mouse_press.position = transformed_pos
+						mouse_press.global_position = transformed_pos
+						mouse_press.pressed = true
+						Input.parse_input_event(mouse_press)
+						var mouse_release = InputEventMouseButton.new()
+						mouse_release.button_index = MOUSE_BUTTON_LEFT
+						mouse_release.position = transformed_pos
+						mouse_release.global_position = transformed_pos
+						mouse_release.pressed = false
+						Input.parse_input_event(mouse_release)
+						if not DEBUG_DISABLED:
+							print("[WebSocket] UI click injected at: ", transformed_pos)
 				
 				if bullet_spawning_enabled:
 					# Emit immediately when enabled
@@ -227,26 +247,7 @@ func _process_websocket_json(json_string):
 					# Emit bullet_hit signal with additional data (a and t)
 					if a != null and t != null:
 						bullet_hit.emit(transformed_pos, a, t)
-						# bullet_hit.emit(transformed_pos)						
-						# Inject mouse click event for UI interaction (when enabled)
-						if emit_click_for_ui:
-							var now = Time.get_ticks_msec() / 1000.0
-							if (now - last_ui_click_time) >= ui_click_cooldown:
-								last_ui_click_time = now
-								var mouse_press = InputEventMouseButton.new()
-								mouse_press.button_index = MOUSE_BUTTON_LEFT
-								mouse_press.position = transformed_pos
-								mouse_press.global_position = transformed_pos
-								mouse_press.pressed = true
-								Input.parse_input_event(mouse_press)
-								var mouse_release = InputEventMouseButton.new()
-								mouse_release.button_index = MOUSE_BUTTON_LEFT
-								mouse_release.position = transformed_pos
-								mouse_release.global_position = transformed_pos
-								mouse_release.pressed = false
-								Input.parse_input_event(mouse_release)
-								if not DEBUG_DISABLED:
-									print("[WebSocket] UI click injected at: ", transformed_pos)
+						# bullet_hit.emit(transformed_pos)
 
 				else:
 					# When disabled, don't add to pending queue - just ignore

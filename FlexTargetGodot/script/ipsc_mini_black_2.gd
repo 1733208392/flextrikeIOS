@@ -235,25 +235,11 @@ func reset_score():
 		print("Score reset to 0")
 
 func play_disappearing_animation():
-	"""Start the disappearing animation and disable collision detection"""
+	"""Complete target immediately without playing disappear animation"""
 	if DEBUG_DISABLED:
-		print("Starting disappearing animation for ipsc_mini_black_2")
+		print("Completing ipsc_mini_black_2 target immediately (no disappear animation)")
 	is_disappearing = true
-	
-	# Get the AnimationPlayer
-	var animation_player = get_node("AnimationPlayer")
-	if animation_player:
-		# Connect to the animation finished signal if not already connected
-		if not animation_player.animation_finished.is_connected(_on_animation_finished):
-			animation_player.animation_finished.connect(_on_animation_finished)
-		
-		# Start the disappearing animation
-		animation_player.play("disappear")
-		if DEBUG_DISABLED:
-			print("Disappearing animation started")
-	else:
-		if DEBUG_DISABLED:
-			print("ERROR: AnimationPlayer not found!")
+	target_disappeared.emit()
 	
 	# Disable collision detection immediately
 	# NOTE: Collision detection disabled as it's obsolete due to WebSocket fast path

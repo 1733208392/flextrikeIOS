@@ -1,7 +1,8 @@
-[gd_scene load_steps=9 format=3 uid="uid://cuok70cwj1ush"]
+[gd_scene format=3 uid="uid://cuok70cwj1ush"]
 
 [ext_resource type="Theme" uid="uid://cdynjfvdtavlt" path="res://scene/main_menu/main_menu_button_theme.tres" id="1_q5rio"]
 [ext_resource type="Texture2D" uid="uid://coj4of2ebqmso" path="res://asset/play-icon.png" id="2_ox3d0"]
+[ext_resource type="Texture2D" uid="uid://cqkwytntfgrv" path="res://asset/back-icon.png" id="3_8xwd7"]
 [ext_resource type="Texture2D" uid="uid://dw8n5kwgpkbtl" path="res://asset/restart-icon.png" id="3_cy33c"]
 [ext_resource type="Script" uid="uid://cyt4hlr5baxbu" path="res://script/drill_complete_overlay_new.gd" id="4_script"]
 
@@ -20,13 +21,10 @@ corner_radius_bottom_left = 32
 
 [sub_resource type="ButtonGroup" id="ButtonGroup_cy33c"]
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_ox3d0"]
-radius = 130.0
-
-[node name="complete_overlay" type="Node2D"]
+[node name="complete_overlay" type="Node2D" unique_id=700875052]
 script = ExtResource("4_script")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="ColorRect" parent="." unique_id=256713568]
 custom_minimum_size = Vector2(720, 1280)
 anchors_preset = 15
 anchor_right = 1.0
@@ -35,22 +33,33 @@ offset_right = 720.0
 offset_bottom = 1280.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.03137255, 0.03137255, 0.03137255, 1)
+color = Color(0.03137255, 0.03137255, 0.03137255, 0.6)
 
-[node name="Title" type="Label" parent="Background"]
-custom_minimum_size = Vector2(720, 0)
+[node name="HBoxContainerTitle" type="HBoxContainer" parent="Background" unique_id=353833661]
 layout_mode = 1
-anchors_preset = 10
-anchor_right = 1.0
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -314.5
 offset_top = 100.0
-offset_bottom = 183.0
+offset_right = 314.5
+offset_bottom = 242.0
 grow_horizontal = 2
+
+[node name="BackButton" type="Button" parent="Background/HBoxContainerTitle" unique_id=1638666253]
+layout_mode = 2
+theme = ExtResource("1_q5rio")
+icon = ExtResource("3_8xwd7")
+
+[node name="Title" type="Label" parent="Background/HBoxContainerTitle" unique_id=1036729914]
+layout_mode = 2
 theme = ExtResource("1_q5rio")
 theme_override_font_sizes/font_size = 80
-text = "DRILL COMPLETE"
+text = "COMPLETE"
 horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="CountdownLabel" type="Label" parent="Background"]
+[node name="CountdownLabel" type="Label" parent="Background" unique_id=747067310]
 visible = false
 layout_mode = 1
 anchors_preset = 5
@@ -67,7 +76,7 @@ text = "5"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="CenterContainer" type="PanelContainer" parent="Background"]
+[node name="CenterContainer" type="PanelContainer" parent="Background" unique_id=488435528]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -82,7 +91,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_q5rio")
 
-[node name="GridContainer" type="GridContainer" parent="Background/CenterContainer"]
+[node name="GridContainer" type="GridContainer" parent="Background/CenterContainer" unique_id=1270766292]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
@@ -90,43 +99,43 @@ theme_override_constants/h_separation = 100
 theme_override_constants/v_separation = 60
 columns = 2
 
-[node name="Score" type="Label" parent="Background/CenterContainer/GridContainer"]
+[node name="Score" type="Label" parent="Background/CenterContainer/GridContainer" unique_id=881530375]
 layout_mode = 2
 theme = ExtResource("1_q5rio")
 theme_override_font_sizes/font_size = 60
 text = "SCORE:"
 
-[node name="ScoreValue" type="Label" parent="Background/CenterContainer/GridContainer"]
+[node name="ScoreValue" type="Label" parent="Background/CenterContainer/GridContainer" unique_id=83608674]
 layout_mode = 2
 theme = ExtResource("1_q5rio")
 theme_override_font_sizes/font_size = 60
 text = "120"
 
-[node name="Factor" type="Label" parent="Background/CenterContainer/GridContainer"]
+[node name="Factor" type="Label" parent="Background/CenterContainer/GridContainer" unique_id=1091656381]
 layout_mode = 2
 theme = ExtResource("1_q5rio")
 theme_override_font_sizes/font_size = 60
 text = "FACTOR:"
 
-[node name="FactorValue" type="Label" parent="Background/CenterContainer/GridContainer"]
+[node name="FactorValue" type="Label" parent="Background/CenterContainer/GridContainer" unique_id=1913451714]
 layout_mode = 2
 theme = ExtResource("1_q5rio")
 theme_override_font_sizes/font_size = 60
 text = "18.8"
 
-[node name="Split" type="Label" parent="Background/CenterContainer/GridContainer"]
+[node name="Split" type="Label" parent="Background/CenterContainer/GridContainer" unique_id=2145693110]
 layout_mode = 2
 theme = ExtResource("1_q5rio")
 theme_override_font_sizes/font_size = 60
 text = "FAST SPLIT:"
 
-[node name="SplitValue" type="Label" parent="Background/CenterContainer/GridContainer"]
+[node name="SplitValue" type="Label" parent="Background/CenterContainer/GridContainer" unique_id=891757738]
 layout_mode = 2
 theme = ExtResource("1_q5rio")
 theme_override_font_sizes/font_size = 60
 text = "0.4"
 
-[node name="HBoxContainer" type="HBoxContainer" parent="Background"]
+[node name="HBoxContainer" type="HBoxContainer" parent="Background" unique_id=168741955]
 layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0
@@ -139,7 +148,7 @@ grow_vertical = 0
 theme_override_constants/separation = 48
 alignment = 1
 
-[node name="ReplayButton" type="Button" parent="Background/HBoxContainer"]
+[node name="ReplayButton" type="Button" parent="Background/HBoxContainer" unique_id=1212139734]
 custom_minimum_size = Vector2(240, 0)
 layout_mode = 2
 theme = ExtResource("1_q5rio")
@@ -153,7 +162,7 @@ text = "
 REPLAY"
 icon_alignment = 1
 
-[node name="RestartButton" type="Button" parent="Background/HBoxContainer"]
+[node name="RestartButton" type="Button" parent="Background/HBoxContainer" unique_id=1941973058]
 custom_minimum_size = Vector2(240, 0)
 layout_mode = 2
 theme = ExtResource("1_q5rio")
@@ -166,17 +175,3 @@ text = "
 RESTART"
 icon = ExtResource("3_cy33c")
 icon_alignment = 1
-
-[node name="Area2DReplay2" type="Area2D" parent="."]
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2DReplay2"]
-position = Vector2(216, 1090)
-shape = SubResource("CircleShape2D_ox3d0")
-
-[node name="Area2DRestart" type="Area2D" parent="."]
-visible = false
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2DRestart"]
-visible = false
-position = Vector2(497, 1092)
-shape = SubResource("CircleShape2D_ox3d0")

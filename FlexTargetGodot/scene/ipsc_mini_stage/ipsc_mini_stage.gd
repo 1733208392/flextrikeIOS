@@ -7,12 +7,12 @@ extends Control
 @export var hostage_scene: PackedScene = preload("res://scene/targets/hostage.tscn")
 @export var two_poppers_scene: PackedScene = preload("res://scene/targets/2poppers_simple.tscn")
 @export var three_paddles_scene: PackedScene = preload("res://scene/targets/3paddles_simple.tscn")
-@export var ipsc_mini_rotate_scene: PackedScene = preload("res://scene/ipsc_mini_rotate.tscn")
+@export var ipsc_mini_double_scene: PackedScene = preload("res://scene/ipsc_mini_double.tscn")
 @export var footsteps_scene: PackedScene = preload("res://scene/footsteps.tscn")
 
 # Drill sequence and progress tracking
-var base_target_sequence: Array[String] = ["ipsc_mini","ipsc_mini_black_1", "ipsc_mini_black_2", "hostage", "2poppers", "3paddles", "ipsc_mini_rotate"]
-#var base_target_sequence: Array[String] = ["3paddles","ipsc_mini_rotate"]
+var base_target_sequence: Array[String] = ["ipsc_mini","ipsc_mini_black_1", "ipsc_mini_black_2", "hostage", "2poppers", "3paddles", "ipsc_mini_double"]
+#var base_target_sequence: Array[String] = ["3paddles","ipsc_mini_double"]
 
 var target_sequence: Array[String] = []  # This will hold the actual sequence (potentially randomized)
 var current_target_index: int = 0
@@ -22,6 +22,8 @@ var total_drill_score: int = 0
 var drill_completed: bool = false
 var bullets_allowed: bool = false  # Track if bullet spawning is allowed
 var rotating_target_hits: int = 0  # Track hits on the rotating target
+var preserve_completion_target_visual: bool = false
+@export var enable_footsteps_transition: bool = false
 
 # Randomization settings
 # When enabled, target sequence will be randomized at the start of each drill
@@ -72,6 +74,12 @@ func get_performance_tracker():
 
 func _ready():
 	"""Initialize the drill with the first target"""
+	if footsteps_node:
+		footsteps_node.visible = false
+		var footsteps_animation_player = footsteps_node.get_node_or_null("AnimationPlayer")
+		if footsteps_animation_player:
+			footsteps_animation_player.stop()
+
 	# Set initial randomization based on current drill sequence setting
 	var current_sequence = "Fixed"  # Default
 	
@@ -378,8 +386,8 @@ func spawn_next_target():
 			spawn_2poppers_simple()
 		"3paddles":
 			spawn_3paddles()
-		"ipsc_mini_rotate":
-			await spawn_ipsc_mini_rotate()
+		"ipsc_mini_double":
+			await spawn_ipsc_mini_double()
 		_:
 			if not DEBUG_DISABLED:
 				print("ERROR: Unknown target type: ", target_type)
@@ -476,24 +484,17 @@ func spawn_3paddles():
 	if not DEBUG_DISABLED:
 		print("3paddles target spawned")
 
-func spawn_ipsc_mini_rotate():
-	"""Spawn an IPSC mini rotating target"""
-	var target = ipsc_mini_rotate_scene.instantiate()
+func spawn_ipsc_mini_double():
+	"""Spawn an IPSC mini double target"""
+	var target = ipsc_mini_double_scene.instantiate()
 	center_container.add_child(target)
 	current_target_instance = target
-	
-	target.position = Vector2(-200, 200)
-	
-	# Reset rotating target hit counter
-	rotating_target_hits = 0
-	if not DEBUG_DISABLED:
-		print("Rotating target hit counter reset to 0")
-	
+
 	# Wait for the node to be fully added to the scene
 	await get_tree().process_frame
-	
+
 	if not DEBUG_DISABLED:
-		print("IPSC Mini Rotate target spawned and positioned")
+		print("IPSC Mini Double target spawned")
 
 func spawn_footsteps():
 	"""Spawn the footsteps transition scene"""
@@ -537,6 +538,12 @@ func connect_footsteps_signals():
 
 func show_footsteps_transition():
 	"""Show footsteps as a transition between targets"""
+	if not enable_footsteps_transition:
+		if not DEBUG_DISABLED:
+			print("Footsteps transition disabled, spawning next target immediately")
+		spawn_next_target()
+		return
+
 	if not DEBUG_DISABLED:
 		print("=== SHOWING FOOTSTEPS TRANSITION ===")
 	
@@ -629,8 +636,8 @@ func connect_target_signals():
 			connect_2poppers_signals()
 		"3paddles":
 			connect_paddle_signals()
-		"ipsc_mini_rotate":
-			connect_ipsc_mini_rotate_signals()
+		"ipsc_mini_double":
+			connect_ipsc_mini_double_signals()
 		_:
 			connect_simple_target_signals()
 
@@ -695,6 +702,10 @@ func _on_target_disappeared(target_id: String = ""):
 		print("Target ID: ", target_id)
 		print("Target index: ", current_target_index)
 		print("Moving to next target...")
+
+	# Preserve the final IPSC mini double target visual on completion.
+	if current_target_type == "ipsc_mini_double" and current_target_index == target_sequence.size() - 1:
+		preserve_completion_target_visual = true
 	
 	# Disable bullet spawning during target transition
 	bullets_allowed = false
@@ -709,36 +720,40 @@ func _on_target_disappeared(target_id: String = ""):
 	# Update progress bar - current_target_index now represents completed targets
 	emit_signal("ui_progress_update", current_target_index)
 	
-	# Check if there are more targets - if so, show footsteps transition first
-	if current_target_index < target_sequence.size():
+	# Check if there are more targets.
+	if current_target_index < target_sequence.size() and enable_footsteps_transition:
 		if not DEBUG_DISABLED:
 			print("More targets remaining - showing footsteps transition")
 		show_footsteps_transition()
+	elif current_target_index < target_sequence.size():
+		if not DEBUG_DISABLED:
+			print("More targets remaining - transition disabled, spawning next target immediately")
+		spawn_next_target()
 	else:
 		if not DEBUG_DISABLED:
 			print("No more targets - proceeding to completion")
 		spawn_next_target()
 
-func connect_ipsc_mini_rotate_signals():
-	"""Connect signals for ipsc_mini_rotate target (logic now in parent)"""
-	# Connect to the parent ipsc_mini_rotate's target_hit signal
+func connect_ipsc_mini_double_signals():
+	"""Connect signals for ipsc_mini_double target"""
+	# Connect to the target's target_hit signal
 	if current_target_instance.has_signal("target_hit"):
 		if current_target_instance.target_hit.is_connected(_on_target_hit):
 			current_target_instance.target_hit.disconnect(_on_target_hit)
 		current_target_instance.target_hit.connect(_on_target_hit)
 		if not DEBUG_DISABLED:
-			print("Connected to ipsc_mini_rotate target_hit signal")
+			print("Connected to ipsc_mini_double target_hit signal")
 	
-	# Connect to the parent ipsc_mini_rotate's target_disappeared signal
+	# Connect to target_disappeared signal
 	if current_target_instance.has_signal("target_disappeared"):
 		if current_target_instance.target_disappeared.is_connected(_on_target_disappeared):
 			current_target_instance.target_disappeared.disconnect(_on_target_disappeared)
 		current_target_instance.target_disappeared.connect(_on_target_disappeared)
 		if not DEBUG_DISABLED:
-			print("Connected to ipsc_mini_rotate target_disappeared signal")
+			print("Connected to ipsc_mini_double target_disappeared signal")
 	else:
 		if not DEBUG_DISABLED:
-			print("WARNING: ipsc_mini_rotate target_disappeared signal not found!")
+			print("WARNING: ipsc_mini_double target_disappeared signal not found!")
 
 func connect_paddle_signals():
 	"""Connect signals for paddle targets (3paddles composite target)"""
@@ -784,7 +799,7 @@ func connect_2poppers_signals():
 		if not DEBUG_DISABLED:
 			print("WARNING: 2poppers target doesn't have expected signals!")
 
-func _on_target_hit(param1, param2 = null, param3 = null, param4 = null, param5 = null):
+func _on_target_hit(param1, param2 = null, param3 = null, param4 = null, _param5 = null):
 	"""Handle when a target is hit - supports both simple targets and composite targets"""
 	# Check bounds before accessing target_sequence
 	if current_target_index >= target_sequence.size():
@@ -825,18 +840,6 @@ func _on_target_hit(param1, param2 = null, param3 = null, param4 = null, param5 
 				print("Target hit: ", current_target_type, " popper: ", popper_id, " in zone: ", zone, " for ", actual_points, " points at ", hit_position)
 		
 		total_drill_score += int(actual_points)
-	elif current_target_type == "ipsc_mini_rotate":
-		# ipsc_mini_rotate sends: zone, points, hit_position, target_position, target_rotation
-		var zone = param1
-		var actual_points = param2
-		hit_position = param3
-		var target_position = param4
-		var target_rotation = param5
-		hit_area = zone
-		if not DEBUG_DISABLED:
-			print("Target hit: ", current_target_type, " in zone: ", zone, " for ", actual_points, " points at ", hit_position)
-			print("Target was at position: ", target_position, " with rotation: ", target_rotation, " radians (", rad_to_deg(target_rotation), " degrees)")
-		total_drill_score += int(actual_points)
 	else:
 		# Simple targets send: zone, points, hit_position
 		var zone = param1
@@ -854,68 +857,15 @@ func _on_target_hit(param1, param2 = null, param3 = null, param4 = null, param5 
 	# Get rotation angle and position for rotating targets
 	var rotation_angle = 0.0
 	var captured_target_position = Vector2.ZERO
-	if current_target_type == "ipsc_mini_rotate":
-		# For ipsc_mini_rotate, use the position and rotation passed in the signal
-		if param5 != null:
-			rotation_angle = param5
+	if current_target_instance:
+		var rotation_center = current_target_instance.get_node_or_null("RotationCenter")
+		if rotation_center:
+			rotation_angle = rotation_center.rotation
 			if not DEBUG_DISABLED:
 				print("Rotating target hit at rotation angle: ", rotation_angle, " radians (", rad_to_deg(rotation_angle), " degrees)")
-		if param4 != null:
-			captured_target_position = param4
-			if not DEBUG_DISABLED:
-				print("Rotating target was at position: ", captured_target_position)
-	else:
-		# For other rotating targets, get from RotationCenter node
-		if current_target_instance:
-			var rotation_center = current_target_instance.get_node("RotationCenter")
-			if rotation_center:
-				rotation_angle = rotation_center.rotation
-				if not DEBUG_DISABLED:
-					print("Rotating target hit at rotation angle: ", rotation_angle, " radians (", rad_to_deg(rotation_angle), " degrees)")
 	
 	# Emit the enhanced target_hit signal for performance tracking
 	emit_signal("target_hit", current_target_type, hit_position, hit_area, rotation_angle, captured_target_position)
-	
-	# Special handling for rotating target - only count valid target hits (not misses or barrel hits)
-	if current_target_type == "ipsc_mini_rotate":
-		# Check if this is a valid target hit (not a miss or barrel_miss)
-		var zone = hit_area  # hit_area was set above to the zone value
-		var actual_points = param2 if current_target_type != "3paddles" else param3
-		
-		if zone != "miss" and zone != "barrel_miss" and actual_points > 0:
-			rotating_target_hits += 1
-			if not DEBUG_DISABLED:
-				print("Rotating target VALID hit count: ", rotating_target_hits, " (zone: ", zone, ", points: ", actual_points, ")")
-		else:
-			if not DEBUG_DISABLED:
-				print("Rotating target miss/barrel hit - not counted (zone: ", zone, ", points: ", actual_points, ")")
-		
-		# Check if we've reached 2 VALID hits on the rotating target
-		if rotating_target_hits >= 2:
-			if not DEBUG_DISABLED:
-				print("2 VALID hits on rotating target reached! Moving to next target.")
-			
-			# Reset the counter for potential future rotating targets
-			rotating_target_hits = 0
-			
-			# Check if this is the last target in the sequence
-			if current_target_index >= target_sequence.size() - 1:
-				# This is the last target - complete the drill
-				current_target_index += 1  # Mark this target as completed
-				emit_signal("ui_progress_update", current_target_index)
-				complete_drill()
-				if not DEBUG_DISABLED:
-					print("Rotating target was the last target - drill completed!")
-			else:
-				# Not the last target - proceed to next target normally
-				current_target_index += 1
-				emit_signal("ui_progress_update", current_target_index)
-				spawn_next_target()
-				if not DEBUG_DISABLED:
-					print("Rotating target completed - moving to next target in sequence")
-			
-			# Don't continue processing this hit since we're transitioning
-			return
 	
 	# Update the fastest interval display
 	var fastest_time = performance_tracker.get_fastest_time_diff()
@@ -998,8 +948,12 @@ func complete_drill():
 		restart_drill()
 		return
 	
-	# Clear the current target to prevent further interactions
-	clear_current_target()
+	# Clear the current target unless we intentionally keep the last IPSC mini double visible.
+	if not preserve_completion_target_visual:
+		clear_current_target()
+	else:
+		if not DEBUG_DISABLED:
+			print("Preserving last ipsc_mini_double target visual on completion")
 	
 	# Hide footsteps when drill completes
 	if footsteps_node:
@@ -1017,6 +971,7 @@ func complete_drill():
 	drill_completed = false
 	drill_timed_out = false
 	rotating_target_hits = 0
+	preserve_completion_target_visual = false
 	
 	# DON'T reset progress bar, timer, or fastest time - keep them displayed
 	# elapsed_seconds = 0.0  # Keep final time displayed
@@ -1128,6 +1083,7 @@ func restart_drill():
 	drill_completed = false
 	drill_timed_out = false
 	rotating_target_hits = 0
+	preserve_completion_target_visual = false
 	last_beep_second = -1  # Reset beep tracking
 	
 	# Stop any running timers

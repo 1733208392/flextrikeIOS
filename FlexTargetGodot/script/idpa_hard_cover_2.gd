@@ -422,20 +422,12 @@ func play_impact_sound_at_position_throttled(world_pos: Vector2, current_time: f
 		last_sound_time = current_time
 
 func play_disappearing_animation():
-	"""Play the disappearing animation when target is fully hit"""
+	"""Immediately emit disappeared signal (animation removed)"""
 	if is_disappearing:
 		return
 
 	is_disappearing = true
-
-	# Get the animation player
-	var animation_player = get_node_or_null("AnimationPlayer")
-	if animation_player:
-		animation_player.play("disappear")
-		# Wait for animation to finish, then emit signal
-		await animation_player.animation_finished
-
-	# Emit the disappeared signal
+	# Emit signal immediately without animation
 	target_disappeared.emit()
 
 func set_drill_active(active: bool):

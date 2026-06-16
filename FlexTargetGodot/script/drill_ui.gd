@@ -335,8 +335,8 @@ func _on_show_completion_with_timeout(final_time: float, fastest_time: float, fi
 
 func connect_completion_overlay_buttons():
 	"""Connect the completion overlay button signals"""
-	var restart_button = drill_complete_overlay.get_node("VBoxContainer/RestartButton")
-	var review_replay_button = drill_complete_overlay.get_node("VBoxContainer/ReviewReplayButton")
+	var restart_button = drill_complete_overlay.get_node_or_null("Background/HBoxContainer/RestartButton")
+	var review_replay_button = drill_complete_overlay.get_node_or_null("Background/HBoxContainer/ReplayButton")
 	
 	if restart_button:
 		# Disconnect any existing connections to avoid duplicates
@@ -422,8 +422,8 @@ func _on_hide_shot_timer():
 
 func setup_overlay_focus():
 	"""Set up focus for the overlay buttons"""
-	var restart_button = drill_complete_overlay.get_node_or_null("VBoxContainer/RestartButton")
-	var replay_button = drill_complete_overlay.get_node_or_null("VBoxContainer/ReviewReplayButton")
+	var restart_button = drill_complete_overlay.get_node_or_null("Background/HBoxContainer/RestartButton")
+	var replay_button = drill_complete_overlay.get_node_or_null("Background/HBoxContainer/ReplayButton")
 	
 	if restart_button:
 		restart_button.focus_mode = Control.FOCUS_ALL

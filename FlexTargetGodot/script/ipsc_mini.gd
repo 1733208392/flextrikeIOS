@@ -124,23 +124,14 @@ func reset_score():
 	total_score = 0
 
 func play_disappearing_animation():
-	"""Start the disappearing animation and disable collision detection"""
+	"""Complete target immediately without playing disappear animation"""
 	# Guard: Do not trigger during initialization (device timing race condition)
 	if not _initialization_complete:
 		print("[IPSC-Mini] Initialization not complete, ignoring premature disappear trigger")
 		return
 	
 	is_disappearing = true
-	
-	# Get the AnimationPlayer
-	var animation_player = get_node("AnimationPlayer")
-	if animation_player:
-		# Connect to the animation finished signal if not already connected
-		if not animation_player.animation_finished.is_connected(_on_animation_finished):
-			animation_player.animation_finished.connect(_on_animation_finished)
-		
-		# Play the disappear animation
-		animation_player.play("disappear")
+	_on_disappear_animation_finished()
 func _on_animation_finished(animation_name: String):
 	"""Called when any animation finishes"""
 	if animation_name == "disappear":

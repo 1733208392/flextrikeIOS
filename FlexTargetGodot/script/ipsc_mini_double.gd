@@ -70,6 +70,24 @@ func handle_websocket_bullet_hit_fast(world_pos: Vector2, t: int = 0):
 		if shot_count >= max_shots:
 			play_disappearing_animation()
 
+func _is_last_stage_target() -> bool:
+	var node: Node = self
+	while node:
+		var has_sequence := false
+		var has_index := false
+		for prop in node.get_property_list():
+			if prop.name == "target_sequence":
+				has_sequence = true
+			elif prop.name == "current_target_index":
+				has_index = true
+		if has_sequence and has_index:
+			var sequence = node.get("target_sequence")
+			var index = node.get("current_target_index")
+			if sequence is Array and index is int:
+				return index >= sequence.size() - 1
+		node = node.get_parent()
+	return false
+
 func play_disappearing_animation():
 	# If this is the only target type configured on the device, reset instead of
 	# disappearing so it stays visible for continuous shooting.
@@ -90,18 +108,15 @@ func play_disappearing_animation():
 			sprite2.scale = Vector2.ONE
 		return
 
+	# No post-complete disappear animation for mini double.
+	# If this is the last stage target, keep visuals visible and complete immediately.
 	is_disappearing = true
+	if _is_last_stage_target():
+		target_disappeared.emit()
+		return
 
-	var animation_player = get_node_or_null("AnimationPlayer")
-	if animation_player:
-		if not animation_player.animation_finished.is_connected(_on_animation_finished):
-			animation_player.animation_finished.connect(_on_animation_finished)
-		animation_player.play("disappear")
-
-	# Fade second panel as well.
-	var animation_player_2 = get_node_or_null("AnimationPlayer2")
-	if animation_player_2:
-		animation_player_2.play("disappear")
+	# For non-last targets, also complete immediately without animation.
+	target_disappeared.emit()
 
 func reset_target():
 	super.reset_target()

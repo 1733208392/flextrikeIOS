@@ -1,24 +1,32 @@
 extends Control
 
-# Preload the IDPA mini scene
+# Preload the scenes for the drill sequence
 @export var idpa_mini_scene: PackedScene = preload("res://scene/targets/idpa.tscn")
 @export var idpa_ns_scene: PackedScene = preload("res://scene/targets/idpa_ns.tscn")
 @export var idpa_hard_cover_1_scene: PackedScene = preload("res://scene/targets/idpa_hard_cover_1.tscn")
 @export var idpa_hard_cover_2_scene: PackedScene = preload("res://scene/targets/idpa_hard_cover_2.tscn")
-#@export var idpa_mini_rotate_scene: PackedScene = preload("res://scene/targets/idpa_rotation.tscn")
 @export var idpa_mini_rotate_scene: PackedScene = preload("res://scene/idpa_mini_rotation.tscn")
+@export var footsteps_scene: PackedScene = preload("res://scene/footsteps.tscn")
+
 # Drill sequence and progress tracking
 var base_target_sequence: Array[String] = ["idpa", "idpa-ns", "idpa-hard-cover-1", "idpa-hard-cover-2"]
 #var base_target_sequence: Array[String] = ["idpa-mini-rotate"]
-var target_sequence: Array[String] = []
+
+var target_sequence: Array[String] = []  # This will hold the actual sequence (potentially randomized)
 var current_target_index: int = 0
 var current_target_instance: Node = null
+var footsteps_instance: Node = null  # Reference to the footsteps transition scene
 var total_drill_score: int = 0
 var drill_completed: bool = false
-var bullets_allowed: bool = false
-var connected_hit_nodes: Array[Node] = []
-var connected_disappear_nodes: Array[Node] = []
-var observed_target_node: Node = null
+var bullets_allowed: bool = false  # Track if bullet spawning is allowed
+var rotating_target_hits: int = 0  # Track hits on the rotating target
+var preserve_completion_target_visual: bool = false
+@export var enable_footsteps_transition: bool = false
+
+# Randomization settings
+# When enabled, target sequence will be randomized at the start of each drill
+# This adds unpredictability while maintaining the same target types and counts
+@export var randomize_sequence: bool = true  # Enable/disable sequence randomization
 
 # Elapsed time tracking
 var elapsed_seconds: float = 0.0
@@ -29,7 +37,7 @@ var timeout_timer: Timer = null
 var timeout_seconds: float = 40.0
 var drill_timed_out: bool = false
 var timeout_beep_player: AudioStreamPlayer = null
-var last_beep_second: int = -1
+var last_beep_second: int = -1  # Track last second we beeped
 
 # Node references
 @onready var center_container = $CenterContainer
@@ -37,17 +45,18 @@ var last_beep_second: int = -1
 @onready var footsteps_node = $Footsteps
 
 # Performance tracking
-signal target_hit(target_type: String, hit_position: Vector2, hit_area: String, score: int, rotation_angle: float)
+signal target_hit(target_type: String, hit_position: Vector2, hit_area: String, score: int, rotation_angle: float, target_position: Vector2)
 signal drills_finished
 
 # Performance optimization
-const DEBUG_DISABLED = false
+# NOTE: temporarily enable debug prints to diagnose overlay visibility issues
+const DEBUG_DISABLED = false  # Set to true to silence verbose debugging
 
 # UI update signals
 signal ui_timer_update(elapsed_seconds: float)
 signal ui_target_title_update(target_index: int, total_targets: int)
 signal ui_fastest_time_update(fastest_time: float)
-signal ui_show_completion(final_time: float, fastest_time: float, final_score: int, show_hit_factor: bool)
+signal ui_show_completion(final_time: float, fastest_time: float, final_score: int)
 signal ui_show_completion_with_timeout(final_time: float, fastest_time: float, final_score: int, timed_out: bool, show_hit_factor: bool)
 signal ui_hide_completion()
 signal ui_show_shot_timer()
@@ -62,15 +71,43 @@ func get_performance_tracker():
 	return performance_tracker
 
 func _ready():
-	"""Initialize the drill"""
-	# Initialize the target sequence
+	"""Initialize the drill with the first target"""
+	if footsteps_node:
+		footsteps_node.visible = false
+		var footsteps_animation_player = footsteps_node.get_node_or_null("AnimationPlayer")
+		if footsteps_animation_player:
+			footsteps_animation_player.stop()
+
+	# Set initial randomization based on current drill sequence setting
+	var current_sequence = "Fixed"  # Default
+	
+	# Fallback: Try to load from GlobalData
+	var global_data = get_node_or_null("/root/GlobalData")
+	if global_data and global_data.settings_dict.has("drill_sequence"):
+		current_sequence = global_data.settings_dict.get("drill_sequence", "Fixed")
+		if not DEBUG_DISABLED:
+			print("[IDPA] Loaded drill sequence from GlobalData: ", current_sequence)
+			print("[IDPA] Full GlobalData.settings_dict: ", global_data.settings_dict)
+	else:
+		if not DEBUG_DISABLED:
+			print("[IDPA] No drill sequence setting found, using default Fixed")
+			if global_data:
+				print("[IDPA] GlobalData exists but no drill_sequence key. Available keys: ", global_data.settings_dict.keys())
+			else:
+				print("[IDPA] GlobalData is null")
+	
+	randomize_sequence = (current_sequence == "Random")
+	if not DEBUG_DISABLED:
+		print("[IDPA] Initial randomization setting: ", randomize_sequence, " (from sequence: ", current_sequence, ")")
+	
+	# Initialize the target sequence (randomized or not)
 	initialize_target_sequence()
 	
 	if not DEBUG_DISABLED:
-		print("=== STARTING IDPA MINI DRILL ===")
-	emit_signal("ui_progress_update", 0)
+		print("=== STARTING IDPA DRILL ===")
+	emit_signal("ui_progress_update", 0)  # Initialize progress bar
 	
-	# Clear any existing targets
+	# Clear any existing targets in the center container
 	clear_current_target()
 	
 	# Ensure the center container doesn't block mouse input
@@ -110,7 +147,7 @@ func _ready():
 	if ws_listener:
 		ws_listener.menu_control.connect(_on_menu_control)
 		if not DEBUG_DISABLED:
-			print("[IDPA] Connected to WebSocketListener.menu_control signal")
+			print("[IDPA] Connecting to WebSocketListener.menu_control signal")
 	else:
 		if not DEBUG_DISABLED:
 			print("[IDPA] WebSocketListener singleton not found!")
@@ -119,6 +156,8 @@ func _ready():
 	var status_bars = get_tree().get_nodes_in_group("status_bar")
 	for status_bar in status_bars:
 		status_bar.visible = false
+		if not DEBUG_DISABLED:
+			print("[IDPA] Hidden status bar: ", status_bar.name)
 	
 	# Show shot timer overlay before starting drill
 	show_shot_timer()
@@ -150,6 +189,9 @@ func set_target_drill_active(target: Node, active: bool):
 		target.set("drill_active", active)
 		if not DEBUG_DISABLED:
 			print("Set drill_active to ", active, " on target: ", target.name)
+	else:
+		if not DEBUG_DISABLED:
+			print("WARNING: Could not set drill_active on target - has_method('set') returned false")
 
 func _on_shot_timer_ready(delay: float):
 	"""Handle when shot timer beep occurs - start the drill"""
@@ -162,26 +204,23 @@ func _on_shot_timer_ready(delay: float):
 	# Pass the delay to performance tracker
 	performance_tracker.set_shot_timer_delay(delay)
 	
-	# Wait for the beep to finish
+	# Wait for the beep to finish and "Ready" text to disappear
 	await get_tree().create_timer(0.5).timeout
 	# Start the drill timer
 	start_drill_timer()
-	# Now spawn the first target
+	# Now spawn the first target directly (no footsteps at the beginning)
 	await spawn_next_target()
 	# Hide the shot timer overlay after target is spawned
 	hide_shot_timer()
 	# Activate drill on the spawned target
 	if current_target_instance:
 		set_target_drill_active(current_target_instance, true)
-		# Also ensure the IDPA child has drill_active set
-		if current_target_instance.has_node("RotationCenter/IDPA"):
-			var idpa = current_target_instance.get_node("RotationCenter/IDPA")
-			set_target_drill_active(idpa, true)
 
 func _on_shot_timer_reset():
 	"""Handle when shot timer is reset"""
 	if not DEBUG_DISABLED:
 		print("=== SHOT TIMER RESET ===")
+	# Could add additional logic here if needed
 
 func _on_drill_timer_timeout():
 	"""Handle drill timer timeout - update elapsed time display"""
@@ -207,17 +246,19 @@ func start_drill_timer():
 	elapsed_seconds = 0.0
 	drill_start_time = Time.get_unix_time_from_system()
 	drill_timed_out = false
-	last_beep_second = -1
+	last_beep_second = -1  # Reset beep tracking
 	emit_signal("ui_timer_update", elapsed_seconds)
 	drill_timer.start()
 	
 	# Start the timeout timer
 	timeout_timer.start()
 	
-	# Reset performance tracker timing
+	# Reset performance tracker timing for accurate first shot measurement
 	performance_tracker.reset_shot_timer()
+	
+	# Reset fastest time for the new drill
 	performance_tracker.reset_fastest_time()
-	emit_signal("ui_fastest_time_update", 999.0)
+	emit_signal("ui_fastest_time_update", 999.0)  # Reset to show "--"
 	
 	if not DEBUG_DISABLED:
 		print("=== DRILL TIMER STARTED ===")
@@ -230,23 +271,65 @@ func _on_timeout_timer_timeout():
 	drill_timed_out = true
 	complete_drill_with_timeout()
 
-func initialize_target_sequence():
-	"""Initialize the target sequence"""
+func randomize_target_sequence():
+	"""Randomize the target sequence using Fisher-Yates shuffle algorithm"""
+	# Start with a copy of the base sequence
 	target_sequence = base_target_sequence.duplicate()
-	print("\n[INIT DEBUG] === TARGET SEQUENCE INITIALIZED ===")
-	print("[INIT DEBUG] Base target sequence: ", base_target_sequence)
-	print("[INIT DEBUG] Target sequence: ", target_sequence)
-	print("[INIT DEBUG] Sequence size: ", target_sequence.size())
-	for i in range(target_sequence.size()):
-		print("[INIT DEBUG] Target[", i, "]: ", target_sequence[i])
-	print("[INIT DEBUG] === CHECKING SCENE PRELOADS ===")
-	print("[INIT DEBUG] idpa_mini_scene: ", idpa_mini_scene)
-	print("[INIT DEBUG] idpa_ns_scene: ", idpa_ns_scene)
-	print("[INIT DEBUG] idpa_hard_cover_1_scene: ", idpa_hard_cover_1_scene)
-	print("[INIT DEBUG] idpa_hard_cover_2_scene: ", idpa_hard_cover_2_scene)
+	
+	# Fisher-Yates shuffle for true randomness
+	for i in range(target_sequence.size() - 1, 0, -1):
+		var j = randi() % (i + 1)
+		var temp = target_sequence[i]
+		target_sequence[i] = target_sequence[j]
+		target_sequence[j] = temp
+	
 	if not DEBUG_DISABLED:
-		print("=== TARGET SEQUENCE INITIALIZED ===")
-		print("Sequence: ", target_sequence)
+		print("=== IDPA TARGET SEQUENCE RANDOMIZED ===")
+		print("Original: ", base_target_sequence)
+		print("Randomized: ", target_sequence)
+
+func toggle_randomization():
+	"""Toggle sequence randomization on/off"""
+	randomize_sequence = !randomize_sequence
+	# Re-initialize sequence with new setting
+	initialize_target_sequence()
+	
+	if not DEBUG_DISABLED:
+		print("=== RANDOMIZATION TOGGLED ===")
+		print("Randomization now: ", "ENABLED" if randomize_sequence else "DISABLED")
+		print("Current sequence: ", target_sequence)
+
+func set_randomization(enabled: bool):
+	"""Set randomization state and reinitialize sequence"""
+	randomize_sequence = enabled
+	initialize_target_sequence()
+	
+	if not DEBUG_DISABLED:
+		print("=== RANDOMIZATION SET TO: ", "ENABLED" if enabled else "DISABLED", " ===")
+		print("Current sequence: ", target_sequence)
+
+func initialize_target_sequence():
+	"""Initialize the target sequence based on randomization setting"""
+	if randomize_sequence:
+		randomize_target_sequence()
+	else:
+		# Use fixed sequence
+		target_sequence = base_target_sequence.duplicate()
+		if not DEBUG_DISABLED:
+			print("=== IDPA TARGET SEQUENCE INITIALIZED (FIXED) ===")
+			print("Sequence: ", target_sequence)
+
+func find_option_node(node: Node) -> Node:
+	"""Recursively search for an option node in the scene tree"""
+	if node.name == "Option" or node.get_script() and str(node.get_script()).contains("option.gd"):
+		return node
+	
+	for child in node.get_children():
+		var result = find_option_node(child)
+		if result:
+			return result
+	
+	return null
 
 func stop_drill_timer():
 	"""Stop the drill elapsed time timer"""
@@ -257,32 +340,18 @@ func stop_drill_timer():
 		print("=== TIMEOUT TIMER STOPPED ===")
 
 func _process(_delta):
-	"""Main process loop"""
+	"""Main process loop - UI updates are handled by drill_ui.gd"""
 	pass
 
 func update_target_title():
-	"""Update the target title"""
+	"""Update the target title based on the current target number"""
 	emit_signal("ui_target_title_update", current_target_index, target_sequence.size())
 	if not DEBUG_DISABLED:
 		print("Updated title to: Target ", current_target_index + 1, "/", target_sequence.size())
 
-func _find_nodes_with_signal(parent_node: Node, signal_name: String, results: Array) -> void:
-	if parent_node == null:
-		return
-	if parent_node.has_signal(signal_name):
-		results.append(parent_node)
-	for child in parent_node.get_children():
-		if child is Node:
-			_find_nodes_with_signal(child, signal_name, results)
-
 func spawn_next_target():
 	"""Spawn the next target in the sequence"""
-	print("[SPAWN_NEXT] Current target index: ", current_target_index)
-	print("[SPAWN_NEXT] Target sequence size: ", target_sequence.size())
-	print("[SPAWN_NEXT] Full sequence: ", target_sequence)
-	
 	if current_target_index >= target_sequence.size():
-		print("[SPAWN_NEXT] Index out of bounds - completing drill")
 		complete_drill()
 		return
 	
@@ -296,12 +365,27 @@ func spawn_next_target():
 	# Hide footsteps when target appears
 	if footsteps_node:
 		footsteps_node.visible = false
+		# Stop animation when hiding
 		var animation_player = footsteps_node.get_node_or_null("AnimationPlayer")
 		if animation_player:
 			animation_player.stop()
 	
-	# Spawn the IDPA target
-	spawn_idpa_mini()
+	# Create the new target based on type
+	match target_type:
+		"idpa":
+			spawn_idpa_mini()
+		"idpa-ns":
+			spawn_idpa_ns()
+		"idpa-hard-cover-1":
+			spawn_idpa_hard_cover_1()
+		"idpa-hard-cover-2":
+			spawn_idpa_hard_cover_2()
+		"idpa-mini-rotate":
+			await spawn_idpa_mini_rotate()
+		_:
+			if not DEBUG_DISABLED:
+				print("ERROR: Unknown target type: ", target_type)
+			return
 	
 	# Update the title
 	update_target_title()
@@ -312,13 +396,9 @@ func spawn_next_target():
 	# Activate drill on the spawned target
 	if current_target_instance:
 		set_target_drill_active(current_target_instance, true)
-		# Also ensure the IDPA child has drill_active set
-		if current_target_instance.has_node("RotationCenter/IDPA"):
-			var idpa = current_target_instance.get_node("RotationCenter/IDPA")
-			set_target_drill_active(idpa, true)
 	
 	# Re-enable bullet spawning after target is fully ready
-	await get_tree().process_frame
+	await get_tree().process_frame  # Ensure target is fully initialized
 	bullets_allowed = true
 	var ws_listener = get_node_or_null("/root/WebSocketListener")
 	if ws_listener:
@@ -328,22 +408,9 @@ func spawn_next_target():
 
 func clear_current_target():
 	"""Remove the current target from the scene"""
-	# Disconnect and clear any connected signals from previous target
-	for n in connected_hit_nodes:
-		if is_instance_valid(n) and n.has_signal("target_hit") and n.target_hit.is_connected(_on_target_hit):
-			n.target_hit.disconnect(_on_target_hit)
-	connected_hit_nodes.clear()
-
-	for n in connected_disappear_nodes:
-		if is_instance_valid(n):
-			if n.has_signal("target_disappeared") and n.target_disappeared.is_connected(_on_target_disappeared):
-				n.target_disappeared.disconnect(_on_target_disappeared)
-	connected_disappear_nodes.clear()
-
-	# Deactivate drill on observed node if any
-	if observed_target_node:
-		set_target_drill_active(observed_target_node, false)
-	observed_target_node = null
+	# Deactivate the current target before clearing it
+	if current_target_instance:
+		set_target_drill_active(current_target_instance, false)
 	
 	for child in center_container.get_children():
 		center_container.remove_child(child)
@@ -352,143 +419,278 @@ func clear_current_target():
 	current_target_instance = null
 
 func spawn_idpa_mini():
-	"""Spawn an IDPA mini target based on current target type"""
-	var target_type = target_sequence[current_target_index]
-	var target: Node = null
-	
-	print("[SPAWN DEBUG] Target type requested: ", target_type)
-	print("[SPAWN DEBUG] idpa_hard_cover_1_scene: ", idpa_hard_cover_1_scene)
-	print("[SPAWN DEBUG] idpa_hard_cover_2_scene: ", idpa_hard_cover_2_scene)
-	print("[SPAWN DEBUG] Entering spawn_idpa_mini - target_type is: '", target_type, "'")
-	
-	if target_type == "idpa":
-		print("[SPAWN DEBUG] Match: idpa")
-		target = idpa_mini_scene.instantiate()
-		print("[SPAWN DEBUG] Instantiated idpa")
-	elif target_type == "idpa-ns":
-		print("[SPAWN DEBUG] Match: idpa-ns")
-		target = idpa_ns_scene.instantiate()
-		print("[SPAWN DEBUG] Instantiated idpa-ns")
-	elif target_type == "idpa-hard-cover-1":
-		print("[SPAWN DEBUG] Match: idpa-hard-cover-1")
-		print("[SPAWN DEBUG] About to instantiate idpa-hard-cover-1")
-		target = idpa_hard_cover_1_scene.instantiate()
-		print("[SPAWN DEBUG] Instantiated idpa-hard-cover-1, target is: ", target)
-	elif target_type == "idpa-hard-cover-2":
-		print("[SPAWN DEBUG] Match: idpa-hard-cover-2")
-		print("[SPAWN DEBUG] About to instantiate idpa-hard-cover-2")
-		target = idpa_hard_cover_2_scene.instantiate()
-		print("[SPAWN DEBUG] Instantiated idpa-hard-cover-2, target is: ", target)
-	elif target_type == "idpa-mini-rotate":
-		print("[SPAWN DEBUG] Match: idpa-mini-rotate")
-		target = idpa_mini_rotate_scene.instantiate()
-		print("[SPAWN DEBUG] Instantiated idpa-mini-rotate")
-	else:
-		print("ERROR: Unknown target type: ", target_type)
-		return
-	
-	print("[SPAWN DEBUG] After spawn logic, target is: ", target)
-	if target == null:
-		print("ERROR: Failed to instantiate target! target_type was: ", target_type)
-		return
-	
+	"""Spawn an IDPA mini target"""
+	var target = idpa_mini_scene.instantiate()
 	center_container.add_child(target)
 	current_target_instance = target
+	if not DEBUG_DISABLED:
+		print("IDPA Mini target spawned")
+
+func spawn_idpa_ns():
+	"""Spawn an IDPA NS target"""
+	var target = idpa_ns_scene.instantiate()
+	center_container.add_child(target)
+	current_target_instance = target
+	if not DEBUG_DISABLED:
+		print("IDPA NS target spawned")
+
+func spawn_idpa_hard_cover_1():
+	"""Spawn an IDPA hard cover 1 target"""
+	var target = idpa_hard_cover_1_scene.instantiate()
+	center_container.add_child(target)
+	current_target_instance = target
+	if not DEBUG_DISABLED:
+		print("IDPA Hard Cover 1 target spawned")
+
+func spawn_idpa_hard_cover_2():
+	"""Spawn an IDPA hard cover 2 target"""
+	var target = idpa_hard_cover_2_scene.instantiate()
+	center_container.add_child(target)
+	current_target_instance = target
+	if not DEBUG_DISABLED:
+		print("IDPA Hard Cover 2 target spawned")
+
+func spawn_idpa_mini_rotate():
+	"""Spawn an IDPA rotating target"""
+	var target = idpa_mini_rotate_scene.instantiate()
+	target.position = Vector2(-200, 200)
+	center_container.add_child(target)
+	current_target_instance = target
+	await get_tree().process_frame
+	if not DEBUG_DISABLED:
+		print("IDPA rotating target spawned")
+
+func spawn_footsteps():
+	"""Spawn the footsteps transition scene"""
+	if footsteps_instance:
+		# Remove existing footsteps if any
+		if footsteps_instance.get_parent():
+			footsteps_instance.get_parent().remove_child(footsteps_instance)
+		footsteps_instance.queue_free()
 	
-	# Offset the rotating target position
-	if target_type == "idpa-mini-rotate":
-		target.position = Vector2(-200, 200)
+	footsteps_instance = footsteps_scene.instantiate()
+	center_container.add_child(footsteps_instance)
+	current_target_instance = footsteps_instance
 	
 	if not DEBUG_DISABLED:
-		print("IDPA target spawned - Type: ", target_type)
+		print("Footsteps transition scene spawned")
+
+func connect_footsteps_signals():
+	"""Connect signals for footsteps transition scene"""
+	if not DEBUG_DISABLED:
+		print("=== CONNECTING FOOTSTEPS SIGNALS ===")
+	
+	# Footsteps is a transition scene, so we'll auto-advance after the animation completes
+	# Get the animation player and connect to animation_finished signal
+	if footsteps_node:
+		var animation_player = footsteps_node.get_node_or_null("AnimationPlayer")
+		if animation_player:
+			# Disconnect any existing connections first
+			if animation_player.animation_finished.is_connected(_on_footsteps_animation_finished):
+				animation_player.animation_finished.disconnect(_on_footsteps_animation_finished)
+			
+			# Connect the signal
+			animation_player.animation_finished.connect(_on_footsteps_animation_finished)
+			if not DEBUG_DISABLED:
+				print("Connected to footsteps animation_finished signal")
+		else:
+			if not DEBUG_DISABLED:
+				print("ERROR: AnimationPlayer not found in footsteps node")
+	else:
+		if not DEBUG_DISABLED:
+			print("ERROR: Footsteps node not available for signal connection")
+
+func show_footsteps_transition():
+	"""Show footsteps as a transition between targets"""
+	if not enable_footsteps_transition:
+		if not DEBUG_DISABLED:
+			print("Footsteps transition disabled, spawning next target immediately")
+		spawn_next_target()
+		return
+
+	if not DEBUG_DISABLED:
+		print("=== SHOWING FOOTSTEPS TRANSITION ===")
+	
+	# Clear current target
+	clear_current_target()
+	
+	# Show the footsteps node and start animation
+	if footsteps_node:
+		footsteps_node.visible = true
+		current_target_instance = footsteps_node
+		
+		# Reset the sprite region to initial state for animation
+		var sprite = footsteps_node.get_node_or_null("Sprite2D")
+		if sprite:
+			sprite.region_rect = Rect2(0, 0, 0, 300)  # Reset to initial state
+		
+		# Reset animation to beginning and play
+		var animation_player = footsteps_node.get_node_or_null("AnimationPlayer")
+		if animation_player:
+			animation_player.stop()  # Stop any current animation
+			animation_player.play("footstep_reveal")  # Start from beginning
+			if not DEBUG_DISABLED:
+				print("Started footsteps animation")
+		
+		# Connect to footsteps animation completion to advance to next target
+		connect_footsteps_signals()
+		
+		if not DEBUG_DISABLED:
+			print("Footsteps transition shown")
+	else:
+		if not DEBUG_DISABLED:
+			print("ERROR: Footsteps node not found!")
+
+func _on_footsteps_animation_finished(_anim_name: String):
+	"""Handle footsteps animation completion - auto-advance to next target"""
+	if not DEBUG_DISABLED:
+		print("=== FOOTSTEPS ANIMATION FINISHED ===")
+		print("Animation name: ", _anim_name)
+	
+	# Hide footsteps immediately when animation finishes
+	if footsteps_node:
+		footsteps_node.visible = false
+		# Stop animation
+		var animation_player = footsteps_node.get_node_or_null("AnimationPlayer")
+		if animation_player:
+			animation_player.stop()
+		if not DEBUG_DISABLED:
+			print("Footsteps hidden after animation completion")
+	
+	# Proceed to spawn the next actual target
+	await spawn_next_target()
+
+func hide_footsteps():
+	"""Hide the footsteps transition scene"""
+	if footsteps_node:
+		footsteps_node.visible = false
+		# Stop animation when hiding
+		var animation_player = footsteps_node.get_node_or_null("AnimationPlayer")
+		if animation_player:
+			animation_player.stop()
+		if not DEBUG_DISABLED:
+			print("Footsteps transition scene hidden")
+
+func show_footsteps():
+	"""Show the footsteps transition scene"""
+	if footsteps_node:
+		footsteps_node.visible = true
+		if not DEBUG_DISABLED:
+			print("Footsteps transition scene shown")
 
 func connect_target_signals():
-	# Find and connect all target_hit signals in the instance or its children
-	var hit_nodes: Array = []
-	_find_nodes_with_signal(current_target_instance, "target_hit", hit_nodes)
+	"""Connect to the current target's signals"""
+	if not current_target_instance:
+		if not DEBUG_DISABLED:
+			print("WARNING: No current target instance to connect signals")
+		return
 	
-	if hit_nodes.size() > 0:
-		for n in hit_nodes:
-			# Skip paddle nodes - only connect to actual targets for scoring
-			if n.name == "Paddle":
-				continue
-			# Only connect if the node actually has the target_hit signal
-			if not n.has_signal("target_hit"):
-				if not DEBUG_DISABLED:
-					print("Skipping node ", n.name, " - no target_hit signal")
-				continue
-			if n.target_hit.is_connected(_on_target_hit):
-				n.target_hit.disconnect(_on_target_hit)
-			n.target_hit.connect(_on_target_hit)
-			connected_hit_nodes.append(n)
-			if not DEBUG_DISABLED:
-				print("Connected to target_hit on node:", n.name)
-	else:
+	# Check bounds before accessing target_sequence
+	if current_target_index >= target_sequence.size():
 		if not DEBUG_DISABLED:
-			print("WARNING: target_hit signal not found on instance or children!")
+			print("WARNING: current_target_index out of bounds in connect_target_signals")
+			print("Index: ", current_target_index, " Size: ", target_sequence.size())
+		return
+	
+	# Connect to simple target signals
+	connect_simple_target_signals()
 
-	# Find and connect target_disappeared signal
-	var disp_nodes: Array = []
-	_find_nodes_with_signal(current_target_instance, "target_disappeared", disp_nodes)
-	if disp_nodes.size() > 0:
-		for n in disp_nodes:
-			# Skip paddle nodes - only connect to actual targets
-			if n.name == "Paddle":
-				continue
-			if n.has_signal("target_disappeared"):
-				if n.target_disappeared.is_connected(_on_target_disappeared):
-					n.target_disappeared.disconnect(_on_target_disappeared)
-				n.target_disappeared.connect(_on_target_disappeared)
-				connected_disappear_nodes.append(n)
-				if not DEBUG_DISABLED:
-					print("Connected to target_disappeared on node:", n.name)
+func connect_simple_target_signals():
+	"""Connect signals for simple targets"""
+	if not DEBUG_DISABLED:
+		print("=== CONNECTING SIMPLE TARGET SIGNALS ===")
+		print("Target instance: ", current_target_instance)
+	if current_target_instance:
+		if not DEBUG_DISABLED:
+			print("Target name: ", current_target_instance.name)
+			if current_target_index < target_sequence.size():
+				print("Target type: ", target_sequence[current_target_index])
+			else:
+				print("Target type: INDEX OUT OF BOUNDS (", current_target_index, ")")
 	else:
 		if not DEBUG_DISABLED:
-			print("WARNING: No disappearing signal found on instance or children!")
+			print("Target name: None")
+	
+	if current_target_instance.has_signal("target_hit"):
+		# Disconnect any existing connections
+		if current_target_instance.target_hit.is_connected(_on_target_hit):
+			current_target_instance.target_hit.disconnect(_on_target_hit)
+		
+		# Connect the signal
+		current_target_instance.target_hit.connect(_on_target_hit)
+		if not DEBUG_DISABLED:
+			print("Connected to target_hit signal")
+	else:
+		if not DEBUG_DISABLED:
+			print("WARNING: target_hit signal not found!")
+	
+	# Connect to disappear signal if available
+	if current_target_instance.has_signal("target_disappeared"):
+		if current_target_instance.target_disappeared.is_connected(_on_target_disappeared):
+			current_target_instance.target_disappeared.disconnect(_on_target_disappeared)
+		current_target_instance.target_disappeared.connect(_on_target_disappeared)
+		if not DEBUG_DISABLED:
+			print("Connected to target_disappeared signal")
+	else:
+		if not DEBUG_DISABLED:
+			print("WARNING: target_disappeared signal not found!")
 	
 	if not DEBUG_DISABLED:
 		print("=== SIGNAL CONNECTION COMPLETE ===")
 
 func _on_target_disappeared(target_id: String = ""):
-	"""Handle when target has completed its disappear animation"""
+	"""Handle when a target has completed its disappear animation"""
+	# Check bounds before accessing target_sequence
+	if current_target_index >= target_sequence.size():
+		if not DEBUG_DISABLED:
+			print("=== TARGET DISAPPEARED - INDEX OUT OF BOUNDS ===")
+			print("Target index: ", current_target_index)
+			print("Target sequence size: ", target_sequence.size())
+			print("Drill should already be completed, ignoring target_disappeared signal")
+		return
+	
+	var current_target_type = target_sequence[current_target_index]
 	if not DEBUG_DISABLED:
 		print("=== TARGET DISAPPEARED ===")
+		print("Target type: ", current_target_type)
 		print("Target ID: ", target_id)
 		print("Target index: ", current_target_index)
-	
-	print("[TARGET_DISAPPEARED] Before increment - index: ", current_target_index, " size: ", target_sequence.size())
-	
+		print("Moving to next target...")
+
 	# Disable bullet spawning during target transition
 	bullets_allowed = false
 	var ws_listener = get_node_or_null("/root/WebSocketListener")
 	if ws_listener:
 		ws_listener.set_bullet_spawning_enabled(false)
-	
-	# Check if this is the last target
-	if current_target_index + 1 >= target_sequence.size():
-		print("[TARGET_DISAPPEARED] Last target disappeared - completing drill")
-		complete_drill()
-		return
+	if not DEBUG_DISABLED:
+		print("Bullet spawning disabled during target transition")
 	
 	current_target_index += 1
-	print("[TARGET_DISAPPEARED] After increment - index: ", current_target_index, " size: ", target_sequence.size())
+	
+	# Update progress bar - current_target_index now represents completed targets
 	emit_signal("ui_progress_update", current_target_index)
 	
-	# Show footsteps between targets
-	show_footsteps()
-	
-	# Wait for footsteps animation to complete (1 second)
-	await get_tree().create_timer(1.0).timeout
-	
-	# Move to next target
-	print("[TARGET_DISAPPEARED] Calling spawn_next_target()")
-	spawn_next_target()
+	# Check if there are more targets.
+	if current_target_index < target_sequence.size() and enable_footsteps_transition:
+		if not DEBUG_DISABLED:
+			print("More targets remaining - showing footsteps transition")
+		show_footsteps_transition()
+	elif current_target_index < target_sequence.size():
+		if not DEBUG_DISABLED:
+			print("More targets remaining - transition disabled, spawning next target immediately")
+		spawn_next_target()
+	else:
+		if not DEBUG_DISABLED:
+			print("No more targets - proceeding to completion")
+		spawn_next_target()
 
-func _on_target_hit(param1, param2 = null, param3 = null, param4 = null, param5 = null, param6 = null):
-	"""Handle when a target is hit"""
+func _on_target_hit(param1, param2 = null, param3 = null, _param4 = null, param5 = null, param6 = null):
+	"""Handle when a target is hit - supports IDPA targets"""
+	# Check bounds before accessing target_sequence
 	if current_target_index >= target_sequence.size():
 		if not DEBUG_DISABLED:
 			print("WARNING: target hit but current_target_index out of bounds")
+			print("Index: ", current_target_index, " Size: ", target_sequence.size())
 		return
 	
 	var current_target_type = target_sequence[current_target_index]
@@ -498,27 +700,24 @@ func _on_target_hit(param1, param2 = null, param3 = null, param4 = null, param5 
 	var rotation_angle = 0.0
 	var target_position = Vector2.ZERO
 	
-	# Handle different parameter orders based on target type
+	# IDPA targets send different signal formats
 	if current_target_type == "idpa-mini-rotate":
 		# idpa_rotation.gd sends: (position, score, area, is_hit, rotation, target_position)
-		hit_position = param1  # Vector2
-		actual_points = param2  # int
-		hit_area = param3  # String
-		# param4 is is_hit (bool), ignored
-		rotation_angle = param5  # float
-		target_position = param6  # Vector2
+		hit_position = param1
+		actual_points = param2
+		hit_area = param3
+		rotation_angle = param5 if param5 != null else 0.0
+		target_position = param6 if param6 != null else Vector2.ZERO
 	else:
 		# Other IDPA targets send: (zone, points, hit_position)
-		var zone = param1  # String
-		actual_points = param2  # int
-		hit_position = param3  # Vector2
-		hit_area = zone
+		hit_area = str(param1)
+		actual_points = int(param2)
+		hit_position = param3 if param3 != null else Vector2.ZERO
 	
 	if not DEBUG_DISABLED:
 		print("Target hit: ", current_target_type, " in area: ", hit_area, " for ", actual_points, " points at ", hit_position)
 	
 	total_drill_score += int(actual_points)
-	
 	if not DEBUG_DISABLED:
 		print("Total drill score: ", total_drill_score)
 	emit_signal("ui_score_update", total_drill_score)
@@ -535,19 +734,16 @@ func complete_drill():
 	if not DEBUG_DISABLED:
 		print("=== DRILL COMPLETED! ===")
 		print("Final score: ", total_drill_score)
+		print("Targets completed: ", current_target_index, "/", target_sequence.size())
 	drill_completed = true
-	
-	# Update progress to show all targets completed
-	emit_signal("ui_progress_update", target_sequence.size())
-	
-	# Allow UI to render the progress update
-	await get_tree().process_frame
 	
 	# Stop the drill timer
 	stop_drill_timer()
+	
+	# Hide the shot timer since drill is complete
 	hide_shot_timer()
 	
-	# Temporarily disable bullet spawning
+	# Temporarily disable bullet spawning to freeze gameplay
 	bullets_allowed = false
 	var ws_listener = get_node_or_null("/root/WebSocketListener")
 	if ws_listener:
@@ -555,25 +751,37 @@ func complete_drill():
 	
 	# Show the completion overlay
 	var fastest_time = performance_tracker.get_fastest_time_diff()
+	if not DEBUG_DISABLED:
+		print("=== ABOUT TO EMIT ui_show_completion SIGNAL ===")
+		print("elapsed_seconds: ", elapsed_seconds)
+		print("fastest_time: ", fastest_time)
+		print("total_drill_score: ", total_drill_score)
+		print("drill_timed_out: ", drill_timed_out)
 	if drill_timed_out:
+		if not DEBUG_DISABLED:
+			print("=== EMITTING ui_show_completion_with_timeout ===")
 		emit_signal("ui_show_completion_with_timeout", elapsed_seconds, fastest_time, total_drill_score, true, false)
 	else:
-		emit_signal("ui_show_completion", elapsed_seconds, fastest_time, total_drill_score, false)
+		if not DEBUG_DISABLED:
+			print("=== EMITTING ui_show_completion ===")
+		emit_signal("ui_show_completion", elapsed_seconds, fastest_time, total_drill_score)
 	
-	# Set the total elapsed time in performance tracker
+	# Set the total elapsed time in performance tracker before finishing
 	performance_tracker.set_total_elapsed_time(elapsed_seconds)
 	
-	# Wait a moment to ensure the overlay is visible
+	# Wait a moment to ensure the overlay is visible before enabling bullets
 	await get_tree().create_timer(0.1).timeout
 	
 	# Re-enable bullet spawning for overlay interactions
-	bullets_allowed = true
+	bullets_allowed = true  # Enable local bullets flag for overlay interactions
 	if ws_listener:
 		ws_listener.set_bullet_spawning_enabled(true)
 		if not DEBUG_DISABLED:
 			print("=== BULLETS RE-ENABLED FOR COMPLETION OVERLAY ===")
+			print("bullets_allowed: ", bullets_allowed)
+			print("WebSocket bullet_spawning_enabled: ", ws_listener.bullet_spawning_enabled)
 	
-	# Only emit drills finished signal if not timed out
+	# Only emit drills finished signal if not timed out (to save performance data)
 	if not drill_timed_out:
 		emit_signal("drills_finished")
 	
@@ -583,47 +791,67 @@ func complete_drill():
 		var pause_time = global_data.settings_dict.get("auto_restart_pause_time", 5)
 		if not DEBUG_DISABLED:
 			print("=== AUTO RESTART ENABLED - RESTARTING DRILL ===")
+			print("Auto restart pause time: ", pause_time, " seconds")
 		
+		# Start countdown display on the restart button
 		var drill_ui = get_node_or_null("DrillUI")
 		if drill_ui:
 			var drill_complete_overlay = drill_ui.get_node_or_null("drill_complete_overlay")
 			if drill_complete_overlay and drill_complete_overlay.has_method("start_countdown"):
 				drill_complete_overlay.start_countdown(pause_time)
 		
+		# Wait for the configured pause time to let the completion overlay be visible
 		await get_tree().create_timer(pause_time).timeout
+		# Restart the drill after the pause
 		restart_drill()
 		return
 	
+	# Clear the current target
 	clear_current_target()
 	
-	# Reset tracking variables
+	# Hide footsteps when drill completes
+	if footsteps_node:
+		footsteps_node.visible = false
+		# Stop animation
+		var animation_player = footsteps_node.get_node_or_null("AnimationPlayer")
+		if animation_player:
+			animation_player.stop()
+		if not DEBUG_DISABLED:
+			print("Footsteps hidden on drill completion")
+	
+	# Reset tracking variables for next run - but keep UI state for display
 	current_target_index = 0
 	total_drill_score = 0
 	drill_completed = false
 	drill_timed_out = false
+	rotating_target_hits = 0
+	preserve_completion_target_visual = false
 	
-	# Reset performance tracker
+	# DON'T reset progress bar, timer, or fastest time - keep them displayed
+	# elapsed_seconds = 0.0  # Keep final time displayed
+	# emit_signal("ui_timer_update", elapsed_seconds)
+	# emit_signal("ui_progress_update", 0)  # Keep progress at 100%
+	
+	# Reset performance tracker for next drill - but don't update UI
 	performance_tracker.reset_fastest_time()
+	# emit_signal("ui_fastest_time_update", 999.0)  # Don't reset UI display
 
 func complete_drill_with_timeout():
-	"""Complete the drill due to timeout"""
+	"""Complete the drill due to timeout - don't save performance data"""
 	if not DEBUG_DISABLED:
 		print("=== DRILL TIMED OUT! ===")
 		print("Final score: ", total_drill_score)
+		print("Targets completed: ", current_target_index, "/", target_sequence.size())
 	drill_completed = true
 	drill_timed_out = true
 	
-	# Update progress to show current completion status
-	emit_signal("ui_progress_update", current_target_index)
-	
-	# Allow UI to render the progress update
-	await get_tree().process_frame
-	
 	# Stop the drill timer
 	stop_drill_timer()
+	
+	# Hide the shot timer since drill is complete
 	hide_shot_timer()
 	
-	# Disable bullet spawning
+	# Temporarily disable bullet spawning to freeze gameplay
 	bullets_allowed = false
 	var ws_listener = get_node_or_null("/root/WebSocketListener")
 	if ws_listener:
@@ -633,14 +861,23 @@ func complete_drill_with_timeout():
 	var fastest_time = performance_tracker.get_fastest_time_diff()
 	emit_signal("ui_show_completion_with_timeout", elapsed_seconds, fastest_time, total_drill_score, true, false)
 	
+	# DON'T set total elapsed time in performance tracker - we're not saving timeout data
+	# performance_tracker.set_total_elapsed_time(elapsed_seconds)
+	
+	# Wait a moment to ensure the overlay is visible before enabling bullets
 	await get_tree().create_timer(0.1).timeout
 	
 	# Re-enable bullet spawning for overlay interactions
-	bullets_allowed = true
+	bullets_allowed = true  # Enable local bullets flag for overlay interactions
 	if ws_listener:
 		ws_listener.set_bullet_spawning_enabled(true)
 		if not DEBUG_DISABLED:
 			print("=== BULLETS RE-ENABLED FOR COMPLETION OVERLAY (TIMEOUT) ===")
+			print("bullets_allowed: ", bullets_allowed)
+			print("WebSocket bullet_spawning_enabled: ", ws_listener.bullet_spawning_enabled)
+	
+	# DON'T emit drills_finished signal - this prevents performance data saving
+	# emit_signal("drills_finished")
 	
 	# Check for auto restart setting
 	var global_data = get_node_or_null("/root/GlobalData")
@@ -648,26 +885,42 @@ func complete_drill_with_timeout():
 		var pause_time = global_data.settings_dict.get("auto_restart_pause_time", 5)
 		if not DEBUG_DISABLED:
 			print("=== AUTO RESTART ENABLED - RESTARTING DRILL AFTER TIMEOUT ===")
+			print("Auto restart pause time: ", pause_time, " seconds")
 		
+		# Start countdown display on the restart button
 		var drill_ui = get_node_or_null("DrillUI")
 		if drill_ui:
 			var drill_complete_overlay = drill_ui.get_node_or_null("drill_complete_overlay")
 			if drill_complete_overlay and drill_complete_overlay.has_method("start_countdown"):
 				drill_complete_overlay.start_countdown(pause_time)
 		
+		# Wait for the configured pause time to let the completion overlay be visible
 		await get_tree().create_timer(pause_time).timeout
+		# Restart the drill after the pause
 		restart_drill()
 		return
 	
+	# Clear the current target to prevent further interactions
 	clear_current_target()
 	
-	# Reset tracking variables
+	# Hide footsteps when drill times out
+	if footsteps_node:
+		footsteps_node.visible = false
+		# Stop animation
+		var animation_player = footsteps_node.get_node_or_null("AnimationPlayer")
+		if animation_player:
+			animation_player.stop()
+		if not DEBUG_DISABLED:
+			print("Footsteps hidden on drill timeout")
+	
+	# Reset tracking variables for next run - but keep UI state for display
 	current_target_index = 0
 	total_drill_score = 0
 	drill_completed = false
 	drill_timed_out = false
+	rotating_target_hits = 0
 	
-	# Reset performance tracker
+	# Reset performance tracker for next drill without saving data
 	performance_tracker.reset_fastest_time()
 
 func restart_drill():
@@ -675,7 +928,7 @@ func restart_drill():
 	if not DEBUG_DISABLED:
 		print("=== RESTARTING DRILL ===")
 	
-	# Hide the completion overlay
+	# Hide the completion overlay if it's visible
 	emit_signal("ui_hide_completion")
 	
 	# Reset all tracking variables
@@ -683,44 +936,51 @@ func restart_drill():
 	total_drill_score = 0
 	drill_completed = false
 	drill_timed_out = false
-	last_beep_second = -1
+	rotating_target_hits = 0
+	preserve_completion_target_visual = false
+	last_beep_second = -1  # Reset beep tracking
 	
 	# Stop any running timers
 	if timeout_timer.is_stopped() == false:
 		timeout_timer.stop()
 	
-	# Re-initialize target sequence
+	# Re-initialize target sequence (this will re-randomize if enabled)
 	initialize_target_sequence()
 	
-	# Reset all UI displays
-	emit_signal("ui_progress_update", 0)
+	# NOW reset all UI displays when restarting
+	emit_signal("ui_progress_update", 0)  # Reset progress bar
 	elapsed_seconds = 0.0
-	emit_signal("ui_timer_update", elapsed_seconds)
-	emit_signal("ui_score_update", 0)
+	emit_signal("ui_timer_update", elapsed_seconds)  # Reset timer display
+	emit_signal("ui_score_update", 0)  # Reset score display
 	
-	# Reset performance tracker
+	# Reset performance tracker and UI
 	performance_tracker.reset_fastest_time()
 	performance_tracker.reset_shot_timer()
-	emit_signal("ui_fastest_time_update", 999.0)
+	emit_signal("ui_fastest_time_update", 999.0)  # Reset to show "--"
 	
 	# Clear the current target
 	clear_current_target()
 	
-	# Show shot timer overlay again
+	# Hide footsteps when restarting drill
+	if footsteps_node:
+		footsteps_node.visible = false
+		# Stop animation
+		var animation_player = footsteps_node.get_node_or_null("AnimationPlayer")
+		if animation_player:
+			animation_player.stop()
+		if not DEBUG_DISABLED:
+			print("Footsteps hidden on drill restart")
+	
+	# Show shot timer overlay again (which will spawn inactive target)
 	show_shot_timer()
 	
 	if not DEBUG_DISABLED:
 		print("Drill restarted!")
+		print("New target sequence: ", target_sequence)
 
-func show_footsteps():
-	"""Show footsteps animation between targets"""
-	if footsteps_node:
-		footsteps_node.visible = true
-		var animation_player = footsteps_node.get_node_or_null("AnimationPlayer")
-		if animation_player:
-			animation_player.play("footstep_reveal")  # Use the correct animation name
-		if not DEBUG_DISABLED:
-			print("Showing footsteps between targets")
+func is_bullet_spawning_allowed() -> bool:
+	"""Check if bullet spawning is currently allowed"""
+	return bullets_allowed
 
 func get_drills_manager():
 	"""Return reference to this drills manager for targets to use"""
@@ -732,19 +992,16 @@ func _on_menu_control(directive: String):
 	if not DEBUG_DISABLED:
 		print("[IDPA] Received menu_control signal with directive: ", directive)
 	
-	# Check if drill complete overlay is visible and should handle navigation
-	var drill_ui = get_node_or_null("DrillUI")
-	var drill_complete_overlay = null
-	if drill_ui:
-		drill_complete_overlay = drill_ui.get_node_or_null("drill_complete_overlay")
-	
-	# Forward navigation commands to drill_complete_overlay if it's visible
-	if drill_complete_overlay and drill_complete_overlay.visible and directive in ["left", "right", "enter"]:
-		if not DEBUG_DISABLED:
-			print("[IDPA] Forwarding navigation directive to drill_complete_overlay: ", directive)
+	# Navigation directives (up, down, enter) - forward to drill_complete_overlay if visible
+	if directive in ["up", "down", "enter"]:
+		var drill_ui = get_node_or_null("DrillUI")
+		if drill_ui:
+			var drill_complete_overlay = drill_ui.get_node_or_null("drill_complete_overlay")
+			if drill_complete_overlay and drill_complete_overlay.visible and drill_complete_overlay.has_method("handle_menu_control"):
+				if not DEBUG_DISABLED:
+					print("[IDPA] Forwarding navigation directive to drill_complete_overlay: ", directive)
+				drill_complete_overlay.handle_menu_control(directive)
 		
-		if drill_complete_overlay.has_method("handle_menu_control"):
-			drill_complete_overlay.handle_menu_control(directive)
 		var menu_controller = get_node("/root/MenuController")
 		if menu_controller:
 			menu_controller.play_cursor_sound()
@@ -800,6 +1057,9 @@ func _on_menu_control(directive: String):
 				for status_bar in status_bars:
 					status_bar.visible = true
 				get_tree().change_scene_to_file("res://scene/main_menu/main_menu.tscn")
+		_:
+			if not DEBUG_DISABLED:
+				print("[IDPA] Unknown directive: ", directive)
 
 func volume_up():
 	var http_service = get_node("/root/HttpService")
@@ -807,6 +1067,9 @@ func volume_up():
 		if not DEBUG_DISABLED:
 			print("[IDPA] Sending volume up HTTP request...")
 		http_service.volume_up(_on_volume_response)
+	else:
+		if not DEBUG_DISABLED:
+			print("[IDPA] HttpService singleton not found!")
 
 func volume_down():
 	var http_service = get_node("/root/HttpService")
@@ -814,6 +1077,9 @@ func volume_down():
 		if not DEBUG_DISABLED:
 			print("[IDPA] Sending volume down HTTP request...")
 		http_service.volume_down(_on_volume_response)
+	else:
+		if not DEBUG_DISABLED:
+			print("[IDPA] HttpService singleton not found!")
 
 func _on_volume_response(result, response_code, _headers, body):
 	var body_str = body.get_string_from_utf8()
@@ -831,3 +1097,6 @@ func has_visible_power_off_dialog() -> bool:
 		if child.name == "PowerOffDialog":
 			return true
 	return false
+
+
+# (All manual navigation methods removed - drill_complete_overlay handles navigation directly)

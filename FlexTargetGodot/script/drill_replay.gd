@@ -13,12 +13,11 @@ var target_scenes = {
 	"ipsc_mini": "res://scene/ipsc_mini.tscn",
 	"ipsc_mini_black_1": "res://scene/ipsc_mini_black_1.tscn",
 	"ipsc_mini_black_2": "res://scene/ipsc_mini_black_2.tscn",
+	"ipsc_mini_double": "res://scene/ipsc_mini_double.tscn",
 	"hostage": "res://scene/targets/hostage.tscn",
-	"ipsc_mini_rotate": "res://scene/ipsc_mini_rotate.tscn",
 	"3paddles": "res://scene/targets/3paddles_simple.tscn",
 	"2poppers": "res://scene/targets/2poppers_simple.tscn",
 	"idpa": "res://scene/targets/idpa.tscn",
-	"idpa-mini-rotate": "res://scene/idpa_mini_rotation.tscn",
 	"idpa-hard-cover-1": "res://scene/targets/idpa_hard_cover_1.tscn",
 	"idpa-hard-cover-2": "res://scene/targets/idpa_hard_cover_2.tscn",
 	"idpa-ns": "res://scene/targets/idpa_ns.tscn"
@@ -28,11 +27,21 @@ var target_scenes = {
 # UI references
 var target_type_title: Label
 var navigation_instruction_label: Label
+var back_button: Button
 var bullet_hole_labels = []  # Store sequence number labels for bullet holes
+
+# Auto-browse settings
+const AUTO_BROWSE_INTERVAL_SECONDS = 2.0
+var auto_browse_timer: Timer
+var auto_browse_enabled := true
+var previous_bullet_spawning_enabled := true
 
 func _ready():
 	if not DEBUG_DISABLED:
 		print("Drill Replay: Loading drill records...")
+
+	# Keep input active so back-button fallback works even while replay data is loading.
+	set_process_input(true)
 	
 	# Load and apply current language setting from global settings
 	load_language_from_global_settings()
@@ -41,11 +50,19 @@ func _ready():
 	var ws_listener = get_node_or_null("/root/WebSocketListener")
 	if ws_listener:
 		ws_listener.menu_control.connect(_on_menu_control)
+		previous_bullet_spawning_enabled = ws_listener.get_bullet_spawning_enabled()
+		ws_listener.set_bullet_spawning_enabled(false)
+		ws_listener.set_emit_click_for_ui(true)
 		if not DEBUG_DISABLED:
 			print("[Drill Replay] Connecting to WebSocketListener.menu_control signal")
+			print("[Drill Replay] Disabled bullet_hit emission for replay scene")
+			print("[Drill Replay] Enabled emit_click_for_ui")
 	else:
 		if not DEBUG_DISABLED:
 			print("[Drill Replay] WebSocketListener singleton not found!")
+
+	_setup_auto_browse_timer()
+	_connect_back_button()
 	
 	# Get upper level scene and selected drill data from GlobalData
 	var global_data = get_node("/root/GlobalData")
@@ -309,8 +326,11 @@ func load_selected_drill_data(data: Dictionary):
 	
 	# Check if records contain rotation angle data
 	if records.size() > 0:
+		current_index = 0
+		current_target_type = ""
 		# Load the first record
 		load_record(current_index)
+		start_auto_browse()
 	
 	# Enable input for this node
 	set_process_input(true)
@@ -400,7 +420,7 @@ func load_record(index):
 		return
 	
 	var record = records[index]
-	var target_type = record.get("target_type", "")
+	var target_type = normalize_target_type(record.get("target_type", ""))
 	
 	# If target type changed, switch target
 	if target_type != current_target_type:
@@ -426,8 +446,8 @@ func load_record(index):
 	update_bullet_hole_highlight()
 
 func update_shot_list():
-	var shot_list = get_node_or_null("CanvasLayer/ShotListOverlay/ScrollContainer/ShotList")
-	var scroll_container = get_node_or_null("CanvasLayer/ShotListOverlay/ScrollContainer")
+	var shot_list = get_node_or_null("UI/ShotListOverlay/ScrollContainer/ShotList")
+	var scroll_container = get_node_or_null("UI/ShotListOverlay/ScrollContainer")
 	if not shot_list or not scroll_container:
 		if not DEBUG_DISABLED:
 			print("Shot list node not found, skipping update")
@@ -443,7 +463,7 @@ func update_shot_list():
 		return
 	
 	var current_record = records[current_index]
-	var current_target = current_record.get("target_type", "")
+	var current_target = normalize_target_type(current_record.get("target_type", ""))
 	
 	# Find all shots for the current target up to current index
 	var current_target_shots = []
@@ -451,7 +471,7 @@ func update_shot_list():
 	
 	for i in range(current_index + 1):
 		var record = records[i]
-		var target_type = record.get("target_type", "")
+		var target_type = normalize_target_type(record.get("target_type", ""))
 		
 		if target_type == current_target:
 			current_target_shots.append({"index": i, "record": record})
@@ -495,7 +515,7 @@ func update_shot_list():
 
 func add_bullet_hole_for_record(index):
 	var record = records[index]
-	var target_type = record.get("target_type", "")
+	var target_type = normalize_target_type(record.get("target_type", ""))
 	if not loaded_targets.has(target_type):
 		return
 	
@@ -545,11 +565,35 @@ func add_bullet_hole_for_record(index):
 	# Store label reference for highlighting
 	bullet_hole_labels.append({"label": seq_label, "index": index, "target_type": target_type})
 	
+
+func normalize_target_type(target_type: String) -> String:
+	match target_type:
+		"ipsc-mini-double":
+			return "ipsc_mini_double"
+		_:
+			return target_type
+
+func _exit_tree():
+	# Prevent cross-scene persistence of UI click injection.
+	var ws_listener = get_node_or_null("/root/WebSocketListener")
+	if ws_listener:
+		ws_listener.set_bullet_spawning_enabled(previous_bullet_spawning_enabled)
+		ws_listener.set_emit_click_for_ui(false)
+		if not DEBUG_DISABLED:
+			print("[Drill Replay] Restored bullet_spawning_enabled to: ", previous_bullet_spawning_enabled)
+			print("[Drill Replay] Disabled emit_click_for_ui on exit")
+
+	if auto_browse_timer:
+		auto_browse_timer.stop()
+
 func initialize_ui():
 	"""Initialize UI references and setup highlight system"""
 	# Get UI references
-	target_type_title = get_node_or_null("CanvasLayer/HeaderContainer/TargetTypeTitle")
-	navigation_instruction_label = get_node_or_null("CanvasLayer/NavigationInstructions")
+	target_type_title = get_node_or_null("UI/VBoxContainer/HeaderContainer/TargetTypeTitle")
+	if not target_type_title:
+		target_type_title = get_node_or_null("UI/HeaderContainer/TargetTypeTitle")
+	navigation_instruction_label = get_node_or_null("UI/NavigationInstructions")
+	_connect_back_button()
 	
 	# Update navigation instruction text with translation
 	if navigation_instruction_label:
@@ -557,6 +601,58 @@ func initialize_ui():
 	
 	# Update title initially
 	update_progress_title()
+
+func _on_back_button_pressed():
+	stop_auto_browse()
+	var menu_controller = get_node_or_null("/root/MenuController")
+	if menu_controller:
+		menu_controller.play_cursor_sound()
+	get_tree().change_scene_to_file("res://scene/sub_menu/sub_menu.tscn")
+
+func _connect_back_button():
+	back_button = get_node_or_null("UI/VBoxContainer/HeaderContainer/BackButton")
+	if not back_button:
+		back_button = get_node_or_null("UI/HeaderContainer/BackButton")
+	if back_button:
+		back_button.disabled = false
+		if not back_button.pressed.is_connected(_on_back_button_pressed):
+			back_button.pressed.connect(_on_back_button_pressed)
+
+func _setup_auto_browse_timer():
+	if auto_browse_timer:
+		return
+
+	auto_browse_timer = Timer.new()
+	auto_browse_timer.one_shot = false
+	auto_browse_timer.wait_time = AUTO_BROWSE_INTERVAL_SECONDS
+	auto_browse_timer.timeout.connect(_on_auto_browse_timeout)
+	add_child(auto_browse_timer)
+
+func start_auto_browse():
+	if not auto_browse_enabled or records.size() <= 1:
+		stop_auto_browse()
+		return
+
+	if auto_browse_timer:
+		auto_browse_timer.start()
+
+func stop_auto_browse():
+	if auto_browse_timer:
+		auto_browse_timer.stop()
+
+func reset_auto_browse_timer():
+	if auto_browse_enabled and auto_browse_timer and records.size() > 1:
+		auto_browse_timer.start()
+
+func _on_auto_browse_timeout():
+	if not auto_browse_enabled:
+		stop_auto_browse()
+		return
+
+	if current_index < records.size() - 1:
+		navigate_next()
+	else:
+		stop_auto_browse()
 
 func update_progress_title():
 	"""Update the progress title showing current shot and target sequence"""
@@ -575,7 +671,7 @@ func update_progress_title():
 	# Find all unique target types in order of appearance
 	for i in range(records.size()):
 		var record = records[i]
-		var target_type = record.get("target_type", "")
+		var target_type = normalize_target_type(record.get("target_type", ""))
 		
 		if target_type not in unique_targets:
 			unique_targets.append(target_type)
@@ -616,6 +712,8 @@ func load_target_if_needed(target_type: String) -> bool:
 		if target_scenes.has(target_type):
 			var scene_path = target_scenes[target_type]
 			var target_scene = load(scene_path).instantiate()
+			# Replay uses visual-only targets: remove scripts before nodes enter the tree.
+			strip_scripts_recursive(target_scene)
 			var target_pos = Vector2(-200, 200) if target_type == "ipsc_mini_rotate" or target_type == "idpa-mini-rotate" else Vector2(0, 0)
 			target_scene.position = target_pos
 			get_node("CenterContainer").add_child(target_scene)
@@ -636,6 +734,12 @@ func load_target_if_needed(target_type: String) -> bool:
 			return false
 	return true
 
+func strip_scripts_recursive(node: Node):
+	node.set_script(null)
+	for child in node.get_children():
+		if child is Node:
+			strip_scripts_recursive(child)
+
 func reset_paddle_scene(target_scene: Node):
 	"""Reset the 3paddles scene to ensure paddles are in initial state for replay"""
 	if not DEBUG_DISABLED:
@@ -646,9 +750,6 @@ func reset_paddle_scene(target_scene: Node):
 		target_scene.reset_scene()
 		if not DEBUG_DISABLED:
 			print("Drill Replay: 3paddles scene reset complete")
-	else:
-		if not DEBUG_DISABLED:
-			print("Drill Replay: ERROR - 3paddles scene doesn't have reset_scene method")
 
 func apply_target_position_and_rotation(record: Dictionary, target_type: String, direction: String, same_target: bool):
 	if target_type != "ipsc_mini_rotate" and target_type != "idpa-mini-rotate":
@@ -713,7 +814,7 @@ func _input(event):
 			
 			# Check if target changed
 			var new_record = records[current_index]
-			var new_target_type = new_record.get("target_type", "")
+			var new_target_type = normalize_target_type(new_record.get("target_type", ""))
 			if new_target_type != current_target_type:
 				# Hide current target
 				if loaded_targets.has(current_target_type):
@@ -784,6 +885,7 @@ func _on_menu_control(directive: String):
 			if not DEBUG_DISABLED:
 						print("[Drill Replay] Previous bullet/target")
 			navigate_previous()
+			reset_auto_browse_timer()
 			var menu_controller = get_node("/root/MenuController")
 			if menu_controller:
 				menu_controller.play_cursor_sound()
@@ -791,6 +893,7 @@ func _on_menu_control(directive: String):
 			if not DEBUG_DISABLED:
 						print("[Drill Replay] Next bullet/target")
 			navigate_next()
+			reset_auto_browse_timer()
 			var menu_controller = get_node("/root/MenuController")
 			if menu_controller:
 				menu_controller.play_cursor_sound()

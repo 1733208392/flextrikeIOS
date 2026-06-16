@@ -1,13 +1,13 @@
-[gd_scene load_steps=12 format=3 uid="uid://6nm0fwntnbky"]
+[gd_scene format=3 uid="uid://6nm0fwntnbky"]
 
 [ext_resource type="Script" uid="uid://d0k8vvwawfi16" path="res://script/ipsc_mini_rotate.gd" id="1_6qps3"]
 [ext_resource type="PackedScene" uid="uid://bn4jluyldwlwl" path="res://scene/ipsc_mini.tscn" id="1_ipsc_mini"]
 [ext_resource type="Texture2D" uid="uid://d0m34j6rbnble" path="res://asset/logo-barrel.png" id="2_fco47"]
 [ext_resource type="PackedScene" uid="uid://hi8aom0rumjj" path="res://scene/paddle.tscn" id="4_5wbws"]
-[ext_resource type="Script" path="res://script/paddle_ipsc_rotation.gd" id="5_504v5"]
+[ext_resource type="Script" uid="uid://dukv4x4iox6xu" path="res://script/paddle_ipsc_rotation.gd" id="5_504v5"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_6qps3"]
-size = Vector2(398.18182, 639.0908)
+size = Vector2(569, 855)
 
 [sub_resource type="Animation" id="Animation_504v5"]
 length = 0.001
@@ -38,6 +38,7 @@ tracks/1/keys = {
 
 [sub_resource type="Animation" id="Animation_jfogm"]
 resource_name = "disappear"
+length = 2.0
 step = 1.0
 tracks/0/type = "value"
 tracks/0/imported = false
@@ -54,7 +55,7 @@ tracks/0/keys = {
 
 [sub_resource type="Animation" id="RotateAnimation"]
 resource_name = "rotate_left_right"
-length = 2.5
+length = 3.0
 step = 1.0
 tracks/0/type = "value"
 tracks/0/imported = false
@@ -63,7 +64,7 @@ tracks/0/path = NodePath("IPSCMini:position")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"times": PackedFloat32Array(0, 1.25, 2.5),
+"times": PackedFloat32Array(0, 1.25, 3),
 "transitions": PackedFloat32Array(1, 1, 1),
 "update": 0,
 "values": [Vector2(0, 0), Vector2(150, 50), Vector2(0, 0)]
@@ -75,7 +76,7 @@ tracks/1/path = NodePath("IPSCMini:rotation")
 tracks/1/interp = 1
 tracks/1/loop_wrap = true
 tracks/1/keys = {
-"times": PackedFloat32Array(0, 1.25, 2.5),
+"times": PackedFloat32Array(0, 1.25, 3),
 "transitions": PackedFloat32Array(1, 1, 1),
 "update": 0,
 "values": [0.0, 0.6981317, 0.0]
@@ -83,7 +84,7 @@ tracks/1/keys = {
 
 [sub_resource type="Animation" id="Animation_6qps3"]
 resource_name = "Popup"
-length = 2.5
+length = 3.0
 step = 1.0
 tracks/0/type = "value"
 tracks/0/imported = false
@@ -92,7 +93,7 @@ tracks/0/path = NodePath("IPSCMini:position")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"times": PackedFloat32Array(0, 1.25, 2.5),
+"times": PackedFloat32Array(0, 1.25, 3),
 "transitions": PackedFloat32Array(1, 1, 1),
 "update": 0,
 "values": [Vector2(0, 0), Vector2(0, -200), Vector2(0, 0)]
@@ -106,33 +107,34 @@ _data = {
 &"up": SubResource("Animation_6qps3")
 }
 
-[node name="IPSCMiniRotate" type="Node2D"]
+[node name="IPSCMiniRotate" type="Node2D" unique_id=2068525719]
 script = ExtResource("1_6qps3")
 
-[node name="IPSCMini" parent="." instance=ExtResource("1_ipsc_mini")]
-scale = Vector2(0.5, 0.5)
+[node name="IPSCMini" parent="." unique_id=264196583 instance=ExtResource("1_ipsc_mini")]
 script = null
 
-[node name="BarrelWall" type="StaticBody2D" parent="."]
+[node name="BarrelWall" type="StaticBody2D" parent="." unique_id=1980571805]
 collision_layer = 8
 collision_mask = 0
 
-[node name="Sprite2D" type="Sprite2D" parent="BarrelWall"]
-position = Vector2(0, 30)
+[node name="Sprite2D" type="Sprite2D" parent="BarrelWall" unique_id=1477192814]
+visible = false
+position = Vector2(-181.00002, 179)
+scale = Vector2(1.3738095, 1.6942278)
 texture = ExtResource("2_fco47")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="BarrelWall"]
-position = Vector2(-4, 33)
+[node name="CollisionShape2D" type="CollisionShape2D" parent="BarrelWall" unique_id=2100427594]
+visible = false
+position = Vector2(-0.5, 51.5)
 shape = SubResource("RectangleShape2D_6qps3")
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
-libraries = {
-&"": SubResource("AnimationLibrary")
-}
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=1849032130]
+libraries/ = SubResource("AnimationLibrary")
 
-[node name="Paddle" type="Node2D" parent="."]
+[node name="Paddle" type="Node2D" parent="." unique_id=1042500828]
 position = Vector2(400, 0)
 
-[node name="Paddle" parent="Paddle" instance=ExtResource("4_5wbws")]
+[node name="Paddle" parent="Paddle" unique_id=1667085469 instance=ExtResource("4_5wbws")]
+position = Vector2(157.99998, -1.9999999)
 scale = Vector2(0.4, 0.4)
 script = ExtResource("5_504v5")

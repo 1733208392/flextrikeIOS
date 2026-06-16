@@ -11,6 +11,7 @@ const DEBUG_DISABLED = false  # Set to true to disable debug prints for producti
 @onready var page_indicator = $CenterContainer/ContentVBox/NavigationContainer/PageIndicator
 @onready var title_label = $Title
 @onready var background_music = $BackgroundMusic
+@onready var back_button = $HBoxContainer/BackButton
 
 var current_page = 0
 var pages = []
@@ -181,6 +182,7 @@ func _ready():
 	start_button.pressed.connect(_on_start_pressed)
 	prev_button.pressed.connect(_on_prev_pressed)
 	next_button.pressed.connect(_on_next_pressed)
+	back_button.pressed.connect(_on_back_pressed)
 	
 	# Set start button as default focus (ensure it happens after UI is ready)
 	call_deferred("_set_start_button_focus")
@@ -280,6 +282,15 @@ func setup_ui_styles():
 		start_button.add_theme_color_override("font_color", Color.WHITE)
 		start_button.add_theme_color_override("font_pressed_color", Color.YELLOW)
 		start_button.add_theme_color_override("font_hover_color", Color.CYAN)
+
+func _on_back_pressed():
+	if not DEBUG_DISABLED:
+		print("[Intro] Back button pressed")
+	if is_inside_tree():
+		get_tree().change_scene_to_file("res://scene/sub_menu/sub_menu.tscn")
+	else:
+		if not DEBUG_DISABLED:
+			print("[Intro] Warning: Node not in tree, cannot change scene")
 
 func _on_start_pressed():
 	# Call the HTTP service to start the game

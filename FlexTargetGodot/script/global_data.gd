@@ -6,7 +6,7 @@ const OTA_USERAPP_DIR = "/srv/www/userapp"  # Directory for OTA mode and file do
 #const OTA_USERAPP_DIR = "/Users/kai/otatest"  # Directory for OTA mode and file downloads
 
 # Global data storage for sharing information between scenes
-var upper_level_scene: String = "res://scene/drills.tscn"
+var upper_level_scene: String = "res://scene/ipsc_mini_stage/ipsc_mini_stage.tscn"
 var settings_dict: Dictionary = {}
 var selected_drill_data: Dictionary = {}  # Store selected drill data for replay
 var latest_performance_data: Dictionary = {}  # Store latest performance data for fallback
