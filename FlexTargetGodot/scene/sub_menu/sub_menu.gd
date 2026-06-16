@@ -12,6 +12,7 @@ const DEBUG_DISABLED = false  # Set to true to disable debug prints for producti
 
 var focused_index
 var buttons = []
+var previous_emit_click_for_ui := false  # Track previous UI click injection state
 
 func load_language_setting():
 	# Load language setting from GlobalData.settings_dict
@@ -114,6 +115,17 @@ func _ready():
 
 	# Connect to WebSocket menu control signals (deferred to ensure WebSocketListener is ready)
 	call_deferred("_connect_to_websocket")
+	
+	# Enable UI click injection for sub_menu
+	var ws_listener = get_node_or_null("/root/WebSocketListener")
+	if ws_listener:
+		previous_emit_click_for_ui = ws_listener.get_emit_click_for_ui()
+		ws_listener.set_emit_click_for_ui(true)
+		if not DEBUG_DISABLED:
+			print("[SubMenu] Enabled UI click injection, previous state was: ", previous_emit_click_for_ui)
+	else:
+		if not DEBUG_DISABLED:
+			print("[SubMenu] WebSocketListener not found for UI click injection")
 
 func _update_button_styles():
 	for i in range(buttons.size()):
@@ -377,3 +389,11 @@ func _apply_sfx_volume(volume: int):
 			background_music.volume_db = db
 		if not DEBUG_DISABLED:
 			print("[SubMenu] Set audio volume_db to ", db, " (volume level: ", volume, ")")
+
+func _exit_tree():
+	# Disable UI click injection when exiting sub_menu
+	var ws_listener = get_node_or_null("/root/WebSocketListener")
+	if ws_listener:
+		ws_listener.set_emit_click_for_ui(false)
+		if not DEBUG_DISABLED:
+			print("[SubMenu] Disabled UI click injection on exit")

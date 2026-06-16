@@ -27,6 +27,7 @@ var stars_earned: int = 3  # Default to 3 stars
 var level_passed: bool = true  # Track if level was passed or failed
 var victory_sound = preload("res://audio/victory-chime.mp3")
 var game_node: Node = null  # Reference to the GameMole node
+var previous_emit_click_for_ui := false  # Track previous UI click injection state
 
 func _ready():
 	# Debug: Print the scene tree
@@ -98,6 +99,15 @@ func _ready():
 		next_button.text = tr("next")
 	if replay_button:
 		replay_button.text = tr("replay_button")
+	
+	# Enable UI click injection for mole_level_complete
+	var ws_listener = get_node_or_null("/root/WebSocketListener")
+	if ws_listener:
+		previous_emit_click_for_ui = ws_listener.get_emit_click_for_ui()
+		ws_listener.set_emit_click_for_ui(true)
+		print("[MoleLevelComplete] Enabled UI click injection, previous state was: ", previous_emit_click_for_ui)
+	else:
+		print("[MoleLevelComplete] WebSocketListener not found for UI click injection")
 	
 	print("[MoleLevelComplete] Scene ready")
 
@@ -294,3 +304,10 @@ func hide_level_complete():
 		remote_control.enter_pressed.disconnect(_on_enter_pressed)
 		remote_control.back_pressed.disconnect(_on_back_pressed)
 		print("[MoleLevelComplete] Disconnected from MenuController signals")
+
+func _exit_tree():
+	# Disable UI click injection when exiting mole_level_complete
+	var ws_listener = get_node_or_null("/root/WebSocketListener")
+	if ws_listener:
+		ws_listener.set_emit_click_for_ui(false)
+		print("[MoleLevelComplete] Disabled UI click injection on exit")

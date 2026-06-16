@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://dxhw3r7t4daxm"]
+[gd_scene format=3 uid="uid://dxhw3r7t4daxm"]
 
 [ext_resource type="Texture2D" uid="uid://xoqil48qkl7d" path="res://asset/games/jiong-avatar.png" id="1"]
 [ext_resource type="Theme" uid="uid://cdynjfvdtavlt" path="res://scene/main_menu/main_menu_button_theme.tres" id="2_i7y7c"]
@@ -7,14 +7,16 @@
 [ext_resource type="PackedScene" uid="uid://dturr8so8g8cw" path="res://scene/custom_button.tscn" id="4_wo8hs"]
 [ext_resource type="Texture2D" uid="uid://cqkwytntfgrv" path="res://asset/back-icon.png" id="5_vjs5b"]
 [ext_resource type="Texture2D" uid="uid://dw8n5kwgpkbtl" path="res://asset/restart-icon.png" id="6_52riw"]
+[ext_resource type="Script" uid="uid://diyup5yijbj7a" path="res://scene/games/monkey/game_over_overlay.gd" id="9_py7y0"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
 bg_color = Color(0, 0, 0, 0.8)
 
-[node name="GameOverOverlay" type="CanvasLayer"]
+[node name="GameOverOverlay" type="CanvasLayer" unique_id=773863435]
 layer = 10
+script = ExtResource("9_py7y0")
 
-[node name="Panel" type="Panel" parent="."]
+[node name="Panel" type="Panel" parent="." unique_id=1285198510]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -22,7 +24,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
 
-[node name="HBoxContainerAvatars" type="HBoxContainer" parent="Panel"]
+[node name="HBoxContainerAvatars" type="HBoxContainer" parent="Panel" unique_id=294304246]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -36,17 +38,17 @@ offset_bottom = 13.5
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="LeftSide" type="VBoxContainer" parent="Panel/HBoxContainerAvatars"]
+[node name="LeftSide" type="VBoxContainer" parent="Panel/HBoxContainerAvatars" unique_id=614957369]
 layout_mode = 2
 size_flags_horizontal = 3
 alignment = 1
 
-[node name="AvatarSprite" type="TextureRect" parent="Panel/HBoxContainerAvatars/LeftSide"]
+[node name="AvatarSprite" type="TextureRect" parent="Panel/HBoxContainerAvatars/LeftSide" unique_id=1651581875]
 layout_mode = 2
 texture = ExtResource("1")
 stretch_mode = 4
 
-[node name="NameLabel" type="Label" parent="Panel/HBoxContainerAvatars/LeftSide"]
+[node name="NameLabel" type="Label" parent="Panel/HBoxContainerAvatars/LeftSide" unique_id=1653260418]
 layout_mode = 2
 theme = ExtResource("2_i7y7c")
 theme_override_font_sizes/font_size = 32
@@ -54,18 +56,18 @@ text = "JIONG"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="RightSide" type="VBoxContainer" parent="Panel/HBoxContainerAvatars"]
+[node name="RightSide" type="VBoxContainer" parent="Panel/HBoxContainerAvatars" unique_id=2144864508]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
 alignment = 1
 
-[node name="AvatarSprite" type="TextureRect" parent="Panel/HBoxContainerAvatars/RightSide"]
+[node name="AvatarSprite" type="TextureRect" parent="Panel/HBoxContainerAvatars/RightSide" unique_id=1321733466]
 custom_minimum_size = Vector2(200, 200)
 layout_mode = 2
 texture = ExtResource("3_um74f")
 
-[node name="ResultLabel" type="Label" parent="Panel/HBoxContainerAvatars/RightSide"]
+[node name="ResultLabel" type="Label" parent="Panel/HBoxContainerAvatars/RightSide" unique_id=1790751624]
 layout_mode = 2
 theme = ExtResource("2_i7y7c")
 theme_override_font_sizes/font_size = 32
@@ -73,7 +75,7 @@ text = "WINNER"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="HBoxContainerButtons" type="HBoxContainer" parent="Panel"]
+[node name="HBoxContainerButtons" type="HBoxContainer" parent="Panel" unique_id=1274119386]
 layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0
@@ -86,17 +88,15 @@ grow_vertical = 0
 theme_override_constants/separation = 32
 alignment = 1
 
-[node name="BackButton" parent="Panel/HBoxContainerButtons" instance=ExtResource("4_wo8hs")]
+[node name="BackButton" parent="Panel/HBoxContainerButtons" unique_id=549433162 instance=ExtResource("4_wo8hs")]
 layout_mode = 2
-theme = ExtResource("2_i7y7c")
 text = "BACK"
 icon = ExtResource("5_vjs5b")
 expand_icon = true
 script = null
 
-[node name="ReplayButton" parent="Panel/HBoxContainerButtons" instance=ExtResource("4_wo8hs")]
+[node name="ReplayButton" parent="Panel/HBoxContainerButtons" unique_id=412248304 instance=ExtResource("4_wo8hs")]
 layout_mode = 2
-theme = ExtResource("2_i7y7c")
 text = "REPY
 "
 icon = ExtResource("6_52riw")
@@ -104,6 +104,6 @@ icon_alignment = 2
 expand_icon = true
 script = null
 
-[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=975748316]
 process_mode = 3
 stream = ExtResource("4_hefvv")

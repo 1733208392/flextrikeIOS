@@ -12,6 +12,7 @@ var coin_scene = preload("res://scene/games/wack-a-mole/coin-animate-hole.tscn")
 var current_coin: Node = null
 var coin_timer: Timer = null
 var remote_control: Node
+var previous_emit_click_for_ui := false  # Track previous UI click injection state
 
 # Level timing variables
 var level_duration: float = 30.0  # 30 seconds per level
@@ -130,6 +131,15 @@ func _ready() -> void:
 			print("[GameMole] HttpService does not have start_game method")
 	else:
 		print("[GameMole] HttpService autoload not found")
+	
+	# Disable UI click injection for game_mole (so shooting works normally)
+	var ws_listener = get_node_or_null("/root/WebSocketListener")
+	if ws_listener:
+		previous_emit_click_for_ui = ws_listener.get_emit_click_for_ui()
+		ws_listener.set_emit_click_for_ui(false)
+		print("[GameMole] Disabled UI click injection, previous state was: ", previous_emit_click_for_ui)
+	else:
+		print("[GameMole] WebSocketListener not found for UI click injection")
 
 func _start_pop_timer() -> void:
 	"""Start the pop timer with interval-based mole spawning"""
@@ -386,3 +396,10 @@ func _return_to_menu():
 		print("[GameMole] Failed to change scene: ", error)
 	else:
 		print("[GameMole] Scene change initiated")
+
+func _exit_tree():
+	# Restore UI click injection state when exiting game_mole
+	var ws_listener = get_node_or_null("/root/WebSocketListener")
+	if ws_listener:
+		ws_listener.set_emit_click_for_ui(previous_emit_click_for_ui)
+		print("[GameMole] Restored UI click injection to: ", previous_emit_click_for_ui)
