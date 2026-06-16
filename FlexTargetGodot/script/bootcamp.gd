@@ -1,8 +1,5 @@
 extends Node2D
 
-# Performance optimization
-const DEBUG_DISABLED = false  # Set to true for verbose debugging
-
 # Target sequence for bootcamp cycling
 var target_sequence: Array[String] = ["bullseye", "ipsc_mini", "ipsc_mini_black_1", "ipsc_mini_black_2", "hostage", "2poppers", "3paddles", "uspsa", "idpa", "idpa_ns", "idpa_hard_cover_1", "idpa_hard_cover_2", "mozambique", "custom_target", "dueling_tree_composite", "texas_start_composite"]
 
@@ -41,7 +38,6 @@ var reset_hidden_targets: Array[String] = ["2poppers", "3paddles", "dueling_tree
 
 @onready var custom_target_scene: PackedScene = preload("res://scene/custom_target.tscn")
 
-@onready var canvas_layer = $CanvasLayer
 @onready var canvas_layer_stats = $CanvasLayerStats
 @onready var stats_vbox = $CanvasLayerStats/Control/VBoxContainer
 @onready var shot_labels = []
@@ -91,8 +87,6 @@ func stop_all_background_music():
 	for player in audio_players:
 		if player.is_playing() and (player.name == "BackgroundMusic" or player.stream and "battle" in player.stream.resource_path.to_lower()):
 			player.stop()
-			if not DEBUG_DISABLED:
-				print("[Bootcamp] Stopped background music from previous scene: ", player.name)
 
 func _find_audio_stream_players(node: Node, result: Array):
 	"""Recursively find all AudioStreamPlayer nodes"""
@@ -102,6 +96,8 @@ func _find_audio_stream_players(node: Node, result: Array):
 	for child in node.get_children():
 		_find_audio_stream_players(child, result)
 
+
+
 func _ready():
 	# Stop any background music from previous scenes (like main menu)
 	stop_all_background_music()
@@ -110,26 +106,25 @@ func _ready():
 	load_language_from_global_settings()
 	
 	# Initialize but don't start the drill yet
-	if not DEBUG_DISABLED:
-		print("[Bootcamp] Initializing bootcamp, waiting for HTTP start game response...")
 	
 	# Targets are spawned dynamically when drill starts
 	
 	# Connect navigation buttons
-	back_button.pressed.connect(_on_back_button_pressed)
-	prev_button.pressed.connect(switch_to_previous_target)
-	reset_button.pressed.connect(_on_clear_pressed)
-	next_button.pressed.connect(switch_to_next_target)
+	if back_button:
+		back_button.pressed.connect(_on_back_button_pressed)
+	if prev_button:
+		prev_button.pressed.connect(switch_to_previous_target)
+	if reset_button:
+		reset_button.pressed.connect(_on_clear_pressed)
+	if next_button:
+		next_button.pressed.connect(switch_to_next_target)
 	
-	# Get all shot labels
-	for i in range(1, 11):
-		var label = get_node("CanvasLayerStats/Control/ShotIntervalsOverlay/Shot" + str(i))
+	# Get all shot labels (only 5 exist in the scene)
+	for i in range(1, 6):
+		var label = get_node_or_null("CanvasLayerStats/Control/ShotIntervalsOverlay/Shot" + str(i))
 		if label:
 			shot_labels.append(label)
 			label.text = ""
-		else:
-			if not DEBUG_DISABLED:
-				print("ERROR: Shot" + str(i) + " not found!")
 	
 	# Update UI texts with translations
 	update_ui_texts()
@@ -150,23 +145,13 @@ func _ready():
 		# Disable UI click injection - bootcamp handles button clicks via _on_bullet_hit_for_buttons
 		# to prevent double-input when bullets hit next/prev buttons
 		ws_listener.set_emit_click_for_ui(false)
-		if not DEBUG_DISABLED:
-			print("[Bootcamp] Connecting to WebSocketListener.menu_control signal")
-			print("[Bootcamp] Disabled emit_click_for_ui to prevent double button inputs")
-	else:
-		if not DEBUG_DISABLED:
-			print("[Bootcamp] WebSocketListener singleton not found!")
 	
 	# Enable bullet spawning for bootcamp scene
 	if ws_listener:
 		ws_listener.set_bullet_spawning_enabled(true)
-		if not DEBUG_DISABLED:
-			print("[Bootcamp] Enabled bullet spawning for bootcamp scene")
 		# Listen for bullet_hit to detect clicks on navigation buttons
 		# (Input.parse_input_event does not work on CanvasLayer buttons)
 		ws_listener.bullet_hit.connect(_on_bullet_hit_for_buttons)
-		if not DEBUG_DISABLED:
-			print("[Bootcamp] Connected bullet_hit for button area detection")
 
 	# Send HTTP request to start the game and wait for response
 	start_bootcamp_drill()
@@ -187,51 +172,29 @@ func _prepare_background() -> void:
 func start_bootcamp_drill():
 	"""Send HTTP start game request and wait for OK response before starting drill"""
 	if game_start_requested:
-		if not DEBUG_DISABLED:
-			print("[Bootcamp] Game start already requested, ignoring duplicate call")
 		return
 	
 	game_start_requested = true
-	if not DEBUG_DISABLED:
-		print("[Bootcamp] Sending start game HTTP request for bootcamp...")
 	
-	var http_service = get_node("/root/HttpService")
+	var http_service = get_node_or_null("/root/HttpService")
 	if http_service:
-		# Send start game request with bootcamp mode
 		http_service.start_game(_on_start_game_response, "bootcamp")
 	else:
-		if not DEBUG_DISABLED:
-			print("[Bootcamp] ERROR: HttpService singleton not found! Starting drill anyway...")
 		_start_drill_immediately()
 
 func _on_start_game_response(result, response_code, _headers, body):
 	"""Handle the HTTP start game response"""
+	# Parse the JSON response and start drill either way
 	var body_str = body.get_string_from_utf8()
-	if not DEBUG_DISABLED:
-		print("[Bootcamp] Start game HTTP response:", result, response_code, body_str)
-	
-	# Parse the JSON response
 	var json = JSON.parse_string(body_str)
-	if typeof(json) == TYPE_DICTIONARY and json.has("code") and json.code == 0:
-		if not DEBUG_DISABLED:
-			print("[Bootcamp] Start game SUCCESS - starting bootcamp drill")
-		_start_drill_immediately()
-	else:
-		if not DEBUG_DISABLED:
-			print("[Bootcamp] Start game FAILED or invalid response - starting drill anyway")
-		_start_drill_immediately()
+	_start_drill_immediately()
 
 func _start_drill_immediately():
 	"""Actually start the bootcamp drill"""
 	if drill_started:
-		if not DEBUG_DISABLED:
-			print("[Bootcamp] Drill already started, ignoring duplicate call")
 		return
 	
 	drill_started = true
-	if not DEBUG_DISABLED:
-		print("[Bootcamp] Bootcamp drill officially started! drill_started =", drill_started)
-	
 	# Initialize with the first target in sequence (bullseye)
 	current_target_index = 0
 	spawn_target_by_type(target_sequence[current_target_index])
@@ -243,13 +206,9 @@ func _start_drill_immediately():
 
 func _on_bullseye_time_diff(time_diff: float, hit_position: Vector2):
 	"""Handle time difference signals from bullseye target for gun zeroing"""
-	if not DEBUG_DISABLED:
-		print("[Bootcamp] _on_bullseye_time_diff called with time_diff: ", time_diff, " hit_position: ", hit_position)
 	
 	# Only process if drill has started
 	if not drill_started:
-		if not DEBUG_DISABLED:
-			print("[Bootcamp] Bullseye time diff before drill started - ignoring")
 		return
 	
 	# Only display time differences for actual target hits (time_diff >= 0)
@@ -272,12 +231,7 @@ func _on_target_hit(_arg1, _arg2, _arg3, _arg4 = null, _arg5 = null, _arg6 = nul
 	
 	# Only process hits if drill has started
 	if not drill_started:
-		if not DEBUG_DISABLED:
-			print("[Bootcamp] Target hit before drill started - ignoring")
 		return
-	
-	if not DEBUG_DISABLED:
-		print("[Bootcamp] _on_target_hit called with args:", _arg1, _arg2, _arg3, _arg4, _arg5, _arg6)
 	
 	# Determine target type to extract arguments correctly
 	var current_target_type = target_sequence[current_target_index]
@@ -347,8 +301,6 @@ func _on_clear_pressed():
 		# For poppers, paddles, and specific drills, remove and respawn them
 		if current_target_instance and is_instance_valid(current_target_instance):
 			current_target_instance.queue_free()
-			if not DEBUG_DISABLED:
-				print("Removed ", target_type, " for respawning")
 		# Respawn the target
 		spawn_target_by_type(target_type)
 	elif target_type in ["ipsc_mini", "ipsc_mini_black_1","ipsc_mini_black_2", "hostage","uspsa", "idpa", "idpa_ns", "idpa_hard_cover_1", "idpa_hard_cover_2", "bullseye", "custom_target"]:
@@ -380,8 +332,6 @@ func _on_clear_pressed():
 		# Remove all bullet holes
 		for bullet_hole in children_to_remove:
 			bullet_hole.queue_free()
-			if not DEBUG_DISABLED:
-				print("Removed bullet hole: ", bullet_hole.name)
 
 func _collect_bullet_holes(node: Node, result: Array):
 	"""Recursively collect all bullet holes in the node tree"""
@@ -479,8 +429,6 @@ func _update_reset_button_visibility(target_type: String) -> void:
 	# Keep button in layout so Prev/Next positions do not shift.
 	reset_button.disabled = not should_show
 	reset_button.modulate.a = 1.0 if should_show else 0.0
-	if not DEBUG_DISABLED:
-		print("[Bootcamp] Reset button ", "shown" if should_show else "hidden", " for target: ", target_type)
 
 func _flash_button(button: Button):
 	"""Brief visual feedback on button press"""
@@ -491,117 +439,61 @@ func _flash_button(button: Button):
 
 func _on_back_button_pressed():
 	"""Handle back button press - navigate to main menu"""
-	if not DEBUG_DISABLED:
-		print("[Bootcamp] Back button pressed - navigating to main menu")
-	
+	_navigate_to_main_menu()
+
+func _navigate_to_main_menu():
+	"""Helper function to navigate back to main menu with proper cleanup"""
 	# Set return source for focus management
 	var global_data = get_node_or_null("/root/GlobalData")
 	if global_data:
 		global_data.return_source = "bootcamp"
-		if not DEBUG_DISABLED:
-			print("[Bootcamp] Set return_source to bootcamp")
 	
 	# Deactivate current target before exiting
-	if current_target_instance and is_instance_valid(current_target_instance) and current_target_instance.has_method("set"):
-		current_target_instance.set("drill_active", false)
-		if not DEBUG_DISABLED:
-			print("[Bootcamp] Deactivated target before exiting")
+	if current_target_instance and is_instance_valid(current_target_instance):
+		if current_target_instance.has_method("set"):
+			current_target_instance.set("drill_active", false)
 	
 	if is_inside_tree():
 		get_tree().change_scene_to_file("res://scene/main_menu/main_menu.tscn")
-	else:
-		if not DEBUG_DISABLED:
-			print("[Bootcamp] Warning: Node not in tree, cannot change scene")
 
 func _on_menu_control(directive: String):
 	if has_visible_power_off_dialog():
 		return
-	if not DEBUG_DISABLED:
-		print("[Bootcamp] Received menu_control signal with directive: ", directive)
 	match directive:
 		"enter":
-			if not DEBUG_DISABLED:
-				print("[Bootcamp] Enter pressed")
 			_on_clear_pressed()
 		"left":
 			switch_to_previous_target()
 		"right":
 			switch_to_next_target()
 		"homepage","back":
-			if not DEBUG_DISABLED:
-				print("[Bootcamp] homepage - navigating to main menu")
-			
-			# Set return source for focus management
-			var global_data = get_node_or_null("/root/GlobalData")
-			if global_data:
-				global_data.return_source = "bootcamp"
-				if not DEBUG_DISABLED:
-					print("[Bootcamp] Set return_source to bootcamp")
-			
-			# Deactivate current target before exiting
-			if current_target_instance and is_instance_valid(current_target_instance) and current_target_instance.has_method("set"):
-				current_target_instance.set("drill_active", false)
-				if not DEBUG_DISABLED:
-					print("[Bootcamp] Deactivated target before exiting")
-			
-			if is_inside_tree():
-				get_tree().change_scene_to_file("res://scene/main_menu/main_menu.tscn")
-			else:
-				if not DEBUG_DISABLED:
-					print("[Bootcamp] Warning: Node not in tree, cannot change scene")
+			_navigate_to_main_menu()
 		"up":
-			if not DEBUG_DISABLED:
-				print("[Bootcamp] Zoom in")
 			zoom_in()
 		"down":
-			if not DEBUG_DISABLED:
-				print("[Bootcamp] Zoom out")
 			zoom_out()
 		"volume_up":
-			if not DEBUG_DISABLED:
-				print("[Bootcamp] Volume up")
 			volume_up()
 		"volume_down":
-			if not DEBUG_DISABLED:
-				print("[Bootcamp] Volume down")
 			volume_down()
 		"power":
-			if not DEBUG_DISABLED:
-				print("[Bootcamp] Power off")
 			power_off()
-		_:
-			if not DEBUG_DISABLED:
-				print("[Bootcamp] Unknown directive: ", directive)
 
 func volume_up():
 	var http_service = get_node("/root/HttpService")
 	if http_service:
-		if not DEBUG_DISABLED:
-			print("[Bootcamp] Sending volume up HTTP request...")
 		http_service.volume_up(_on_volume_up_response)
-	else:
-		if not DEBUG_DISABLED:
-			print("[Bootcamp] HttpService singleton not found!")
-
+	
 func _on_volume_up_response(result, response_code, _headers, body):
-	var body_str = body.get_string_from_utf8()
-	if not DEBUG_DISABLED:
-		print("[Bootcamp] Volume up HTTP response:", result, response_code, body_str)
+	pass
 
 func volume_down():
 	var http_service = get_node("/root/HttpService")
 	if http_service:
-		if not DEBUG_DISABLED:
-			print("[Bootcamp] Sending volume down HTTP request...")
 		http_service.volume_down(_on_volume_down_response)
-	else:
-		if not DEBUG_DISABLED:
-			print("[Bootcamp] HttpService singleton not found!")
-
+	
 func _on_volume_down_response(result, response_code, _headers, body):
-	var body_str = body.get_string_from_utf8()
-	if not DEBUG_DISABLED:
-		print("[Bootcamp] Volume down HTTP response:", result, response_code, body_str)
+	pass
 
 func power_off():
 	var dialog_scene = preload("res://scene/power_off_dialog.tscn")
@@ -633,8 +525,6 @@ func apply_current_scale():
 		if not (current_target_type in zoom_excluded_targets):
 			scale_value = scales[current_scale_index]
 		current_target_instance.scale = Vector2(scale_value, scale_value)
-		if not DEBUG_DISABLED:
-			print("[Bootcamp] Applied scale ", scale_value, "x to target: ", current_target_type)
 	
 	# Update scale indicator
 	update_scale_indicator()
@@ -662,11 +552,7 @@ func load_language_from_global_settings():
 	if global_data and global_data.settings_dict.has("language"):
 		var language = global_data.settings_dict.get("language", "English")
 		set_locale_from_language(language)
-		if not DEBUG_DISABLED:
-			print("[Bootcamp] Loaded language from GlobalData: ", language)
 	else:
-		if not DEBUG_DISABLED:
-			print("[Bootcamp] GlobalData not found or no language setting, using default English")
 		set_locale_from_language("English")
 
 func set_locale_from_language(language: String):
@@ -683,8 +569,6 @@ func set_locale_from_language(language: String):
 		_:
 			locale = "en"  # Default to English
 	TranslationServer.set_locale(locale)
-	if not DEBUG_DISABLED:
-		print("[Bootcamp] Set locale to: ", locale)
 
 func update_ui_texts():
 	# Update static UI elements with translations
@@ -727,8 +611,6 @@ func clear_stats():
 func switch_to_next_target():
 	"""Switch to the next target in the sequence"""
 	if not drill_started:
-		if not DEBUG_DISABLED:
-			print("[Bootcamp] Drill not started yet, ignoring target switch")
 		return
 	
 	# Clear stats when switching targets
@@ -737,14 +619,9 @@ func switch_to_next_target():
 	# Deactivate current target
 	if current_target_instance and is_instance_valid(current_target_instance) and current_target_instance.has_method("set"):
 		current_target_instance.set("drill_active", false)
-		if not DEBUG_DISABLED:
-			print("[Bootcamp] Deactivated current target")
 	
 	# Move to next target
 	current_target_index = (current_target_index + 1) % target_sequence.size()
-	
-	if not DEBUG_DISABLED:
-		print("[Bootcamp] Switching to next target: ", target_sequence[current_target_index], " (index: ", current_target_index, ")")
 	
 	spawn_target_by_type(target_sequence[current_target_index])
 	
@@ -754,8 +631,6 @@ func switch_to_next_target():
 func switch_to_previous_target():
 	"""Switch to the previous target in the sequence"""
 	if not drill_started:
-		if not DEBUG_DISABLED:
-			print("[Bootcamp] Drill not started yet, ignoring target switch")
 		return
 	
 	# Clear stats when switching targets
@@ -764,14 +639,9 @@ func switch_to_previous_target():
 	# Deactivate current target
 	if current_target_instance and is_instance_valid(current_target_instance) and current_target_instance.has_method("set"):
 		current_target_instance.set("drill_active", false)
-		if not DEBUG_DISABLED:
-			print("[Bootcamp] Deactivated current target")
 	
 	# Move to previous target
 	current_target_index = (current_target_index - 1 + target_sequence.size()) % target_sequence.size()
-	
-	if not DEBUG_DISABLED:
-		print("[Bootcamp] Switching to previous target: ", target_sequence[current_target_index], " (index: ", current_target_index, ")")
 	
 	spawn_target_by_type(target_sequence[current_target_index])
 	
@@ -780,8 +650,6 @@ func switch_to_previous_target():
 
 func _on_target_disappeared(target_name: String):
 	"""Handle when all poppers or paddles have disappeared - respawn them"""
-	if not DEBUG_DISABLED:
-		print("[Bootcamp] Target disappeared signal received: ", target_name)
 	
 	# Check if current target is a popper or paddle
 	var target_type = target_sequence[current_target_index]
@@ -789,12 +657,8 @@ func _on_target_disappeared(target_name: String):
 		# Call reset_scene if the target has this method
 		if current_target_instance and is_instance_valid(current_target_instance) and current_target_instance.has_method("reset_scene"):
 			current_target_instance.reset_scene()
-			if not DEBUG_DISABLED:
-				print("[Bootcamp] Reset scene for: ", target_type)
 		else:
 			# If no reset_scene method, respawn the target
-			if not DEBUG_DISABLED:
-				print("[Bootcamp] No reset_scene method, respawning target: ", target_type)
 			_on_clear_pressed()
 
 
@@ -815,15 +679,9 @@ func spawn_target_by_type(target_type: String):
 		canvas_layer_stats.visible = true
 	if stats_vbox:
 		stats_vbox.visible = stats_visible
-		if not DEBUG_DISABLED:
-			if stats_visible:
-				print("[Bootcamp] Stats visible for target:", target_type)
-			else:
-				print("[Bootcamp] Stats hidden for target:", target_type)
 
 	# Hide reset button for target types that manage their own reset behavior
 	_update_reset_button_visibility(target_type)
-	
 	# Update statistics display
 	update_statistics_display()
 	
@@ -864,22 +722,17 @@ func spawn_target_by_type(target_type: String):
 		"texas_start_composite":
 			target_scene = texas_start_composite_scene
 		_:
-			if not DEBUG_DISABLED:
-				print("[Bootcamp] Unknown target type: ", target_type)
 			return
 	
 	if target_scene:
 		var target = target_scene.instantiate()
+		if not target:
+			print("[Bootcamp] ERROR: Failed to instantiate target scene for: " + target_type)
+			return
+		
 		add_child(target)
 		current_target_instance = target
-		
-		# Set z_index to be above Background (z=0) but behind ClearArea and CanvasLayer
-		# Background: z_index = 0 (default)
-		# Target: z_index = 1 (above background)
-		# ClearArea: z_index = 2 (above target)
-		# CanvasLayer: z_index = 1 (by default, but CanvasLayers always render on top)
-		target.z_index = 1
-		
+
 		# Center the target in the scene
 		target.position = Vector2(360, 640)
 		
@@ -889,8 +742,6 @@ func spawn_target_by_type(target_type: String):
 		
 		# Reset any paddles in the newly spawned target
 		var paddles_reset = _reset_all_paddles(target)
-		if paddles_reset > 0 and not DEBUG_DISABLED:
-			print("[Bootcamp] Reset ", paddles_reset, " paddle(s) for target type ", target_type)
 		
 		# Special scaling for bullseye target
 		if target_type == "bullseye":
@@ -901,21 +752,12 @@ func spawn_target_by_type(target_type: String):
 			# Bullseye uses shot_time_diff signal instead of target_hit
 			if target.has_signal("shot_time_diff"):
 				target.shot_time_diff.connect(_on_bullseye_time_diff)
-				if not DEBUG_DISABLED:
-					print("[Bootcamp] Connected shot_time_diff signal for bullseye")
-			else:
-				if not DEBUG_DISABLED:
-					print("[Bootcamp] ERROR: Bullseye target does not have shot_time_diff signal")
 		elif target.has_signal("target_hit"):
 			target.target_hit.connect(_on_target_hit)
-			if not DEBUG_DISABLED:
-				print("[Bootcamp] Connected target_hit signal for:", target_type)
 		
 		# For poppers and paddles, connect to target_disappeared signal to auto-respawn
 		if target.has_signal("target_disappeared"):
 			target.target_disappeared.connect(_on_target_disappeared)
-			if not DEBUG_DISABLED:
-				print("[Bootcamp] Connected to target_disappeared signal for: ", target_type)
 		
 		# Enable the target
 		if target.has_method("set"):
@@ -934,14 +776,9 @@ func spawn_target_by_type(target_type: String):
 						var cb = Callable(target_handler_node, "websocket_bullet_hit")
 						if not ws_listener.is_connected("bullet_hit", cb):
 							ws_listener.bullet_hit.connect(cb)
-							if not DEBUG_DISABLED:
-								print("[Bootcamp] Connected WebSocketListener.bullet_hit to ", target_handler_node.name)
 		
 		# Apply current zoom scale
 		apply_current_scale()
-		
-		if not DEBUG_DISABLED:
-			print("[Bootcamp] Spawned and activated target: ", target_type, " at position: ", target.position)
 
 func _reset_all_paddles(node: Node) -> int:
 	var count = 0
@@ -957,25 +794,14 @@ func update_statistics_display():
 	var current_target_type = target_sequence[current_target_index] if current_target_index < target_sequence.size() else ""
 	var show_stats = _should_show_stats(current_target_type)
 	if not show_stats:
-		if not DEBUG_DISABLED:
-			print("[Bootcamp] Stats hidden for target type:", current_target_type)
 		_hide_stats_labels()
 		return
 	
 	var total_shots = a_zone_count + c_zone_count + d_zone_count + miss_count + ns_zone_count
 	
-	if not DEBUG_DISABLED:
-		print("[Bootcamp] update_statistics_display() called")
-		print("[Bootcamp] Updating stats - total_shots:", total_shots, " A:", a_zone_count, " C:", c_zone_count, " D:", d_zone_count, " Miss:", miss_count)
-	
 	# Update count label with total shots
 	if count_label:
 		count_label.text = (tr("stats_count") % total_shots).to_upper()
-		if not DEBUG_DISABLED:
-			print("[Bootcamp] Set Count label to:", count_label.text)
-	else:
-		if not DEBUG_DISABLED:
-			print("[Bootcamp] ERROR: Count label not found! count_label =", count_label)
 	
 	var is_idpa_target = _is_idpa_stats_target(current_target_type)
 	var show_ns_stat = _is_ns_stats_target(current_target_type)
@@ -989,32 +815,19 @@ func update_statistics_display():
 		if a_label:
 			var a_label_text = "0: %.0f%%" % a_percent if is_idpa_target else tr("stats_a_zone") % a_percent
 			a_label.text = a_label_text.to_upper()
-			if not DEBUG_DISABLED:
-				print("[Bootcamp] Set A label to:", a_label.text)
-		else:
-			if not DEBUG_DISABLED:
-				print("[Bootcamp] A label not found!")
 				
 		if c_label:
 			var c_label_text = "-1: %.0f%%" % c_percent if is_idpa_target else tr("stats_c_zone") % c_percent
 			c_label.text = c_label_text.to_upper()
-			if not DEBUG_DISABLED:
-				print("[Bootcamp] Set C label to:", c_label.text)
 		if d_label:
 			var d_label_text = "-3: %.0f%%" % d_percent if is_idpa_target else tr("stats_d_zone") % d_percent
 			d_label.text = d_label_text.to_upper()
-			if not DEBUG_DISABLED:
-				print("[Bootcamp] Set D label to:", d_label.text)
 		if miss_label:
 			miss_label.text = (tr("stats_miss") % miss_percent).to_upper()
-			if not DEBUG_DISABLED:
-				print("[Bootcamp] Set Miss label to:", miss_label.text)
 		if ns_label:
 			if show_ns_stat:
 				var ns_percent = (float(ns_zone_count) / total_shots) * 100
 				ns_label.text = ("NS: %.0f%%" % ns_percent).to_upper()
-				if not DEBUG_DISABLED:
-					print("[Bootcamp] Set NS label to:", ns_label.text)
 			else:
 				ns_label.text = "NS:--"
 	else:
@@ -1022,22 +835,14 @@ func update_statistics_display():
 		if a_label:
 			var a_label_text = "0: %.0f%%" % 0.0 if is_idpa_target else tr("stats_a_zone") % 0.0
 			a_label.text = a_label_text.to_upper()
-			if not DEBUG_DISABLED:
-				print("[Bootcamp] Set A label to: A:0.0%")
 		if c_label:
 			var c_label_text = "-1: %.0f%%" % 0.0 if is_idpa_target else tr("stats_c_zone") % 0.0
 			c_label.text = c_label_text.to_upper()
-			if not DEBUG_DISABLED:
-				print("[Bootcamp] Set C label to: C:0.0%")
 		if d_label:
 			var d_label_text = "-3: %.0f%%" % 0.0 if is_idpa_target else tr("stats_d_zone") % 0.0
 			d_label.text = d_label_text.to_upper()
-			if not DEBUG_DISABLED:
-				print("[Bootcamp] Set D label to: D:0.0%")
 		if miss_label:
 			miss_label.text = (tr("stats_miss") % 0.0).to_upper()
-			if not DEBUG_DISABLED:
-				print("[Bootcamp] Set Miss label to: Miss:0.0%")
 		if ns_label:
 			if show_ns_stat:
 				ns_label.text = "NS: 0.0%".to_upper()
@@ -1050,12 +855,8 @@ func update_statistics_display():
 		
 		if fastest_label:
 			fastest_label.text = (tr("stats_fastest") % fastest).to_upper()
-			if not DEBUG_DISABLED:
-				print("[Bootcamp] Set Fastest label to:", fastest_label.text)
 		if average_label:
 			average_label.text = (tr("stats_average") % average).to_upper()
-			if not DEBUG_DISABLED:
-				print("[Bootcamp] Set Average label to:", average_label.text)
 	else:
 		# Reset labels when no shots
 		if fastest_label:

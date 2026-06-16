@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://bs3r5ti17wret"]
+[gd_scene format=3 uid="uid://bs3r5ti17wret"]
 
 [ext_resource type="Script" uid="uid://cfaja7ny78ro" path="res://script/idpa_rotation.gd" id="1_r1ujw"]
 [ext_resource type="PackedScene" uid="uid://b6gm7b6lv1klv" path="res://scene/targets/idpa.tscn" id="2_osvbt"]

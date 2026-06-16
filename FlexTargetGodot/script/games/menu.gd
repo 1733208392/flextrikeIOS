@@ -24,7 +24,6 @@ var chimptest_label: Button
 var quickreact_label: Button
 var claypigeon_label: Button
 var rhythm_label: Button
-var scroll_container: ScrollContainer
 
 func _ready():
 	# Hide global status bar when entering games
@@ -34,28 +33,26 @@ func _ready():
 		print("[Games Menu] Hid global status bar: ", status_bar.name)
 	
 	# Get node references for game buttons
-	button_fruitcatcher = get_node("Panel/ScrollContainer/GridContainer/VBoxContainer/1Player")
-	button_monkeyduel = get_node("Panel/ScrollContainer/GridContainer/VBoxContainer2/2Players")
-	button_mole_attack = get_node("Panel/ScrollContainer/GridContainer/VBoxContainer3/wackamole")
-	button_tictactoe = get_node("Panel/ScrollContainer/GridContainer/HBoxContainer4/tictactoe")
-	button_painter = get_node("Panel/ScrollContainer/GridContainer/HBoxContainer5/painter")
-	button_chimptest = get_node("Panel/ScrollContainer/GridContainer/HBoxContainer6/chimptest")
-	button_quickreact = get_node("Panel/ScrollContainer/GridContainer/HBoxContainer7/quickreact")
-	button_claypigeon = get_node("Panel/ScrollContainer/GridContainer/HBoxContainer8/claypigeon")
-	button_rhythm = get_node_or_null("Panel/ScrollContainer/GridContainer/HBoxContainer9/rhythm")
-
-	scroll_container = get_node("Panel/ScrollContainer")
+	button_fruitcatcher = get_node("Panel/GridContainer/VBoxContainer/1Player")
+	button_monkeyduel = get_node("Panel/GridContainer/VBoxContainer2/2Players")
+	button_mole_attack = get_node("Panel/GridContainer/VBoxContainer3/wackamole")
+	button_tictactoe = get_node("Panel/GridContainer/HBoxContainer4/tictactoe")
+	button_painter = get_node("Panel/GridContainer/HBoxContainer5/painter")
+	button_chimptest = get_node("Panel/GridContainer/HBoxContainer6/chimptest")
+	button_quickreact = get_node("Panel/GridContainer/HBoxContainer7/quickreact")
+	button_claypigeon = get_node("Panel/GridContainer/HBoxContainer8/claypigeon")
+	button_rhythm = get_node_or_null("Panel/GridContainer/HBoxContainer9/rhythm")
 
 	# Get game name labels
-	fruitcatcher_label = get_node("Panel/ScrollContainer/GridContainer/VBoxContainer/Label")
-	monkeyduel_label = get_node("Panel/ScrollContainer/GridContainer/VBoxContainer2/Label")
-	mole_attack_label = get_node("Panel/ScrollContainer/GridContainer/VBoxContainer3/Label")
-	tictactoe_label = get_node("Panel/ScrollContainer/GridContainer/HBoxContainer4/Label")
-	painter_label = get_node("Panel/ScrollContainer/GridContainer/HBoxContainer5/Label")
-	chimptest_label = get_node("Panel/ScrollContainer/GridContainer/HBoxContainer6/Label")
-	quickreact_label = get_node("Panel/ScrollContainer/GridContainer/HBoxContainer7/Label")
-	claypigeon_label = get_node("Panel/ScrollContainer/GridContainer/HBoxContainer8/Label")
-	rhythm_label = get_node_or_null("Panel/ScrollContainer/GridContainer/HBoxContainer9/Label")
+	fruitcatcher_label = get_node("Panel/GridContainer/VBoxContainer/Label")
+	monkeyduel_label = get_node("Panel/GridContainer/VBoxContainer2/Label")
+	mole_attack_label = get_node("Panel/GridContainer/VBoxContainer3/Label")
+	tictactoe_label = get_node("Panel/GridContainer/HBoxContainer4/Label")
+	painter_label = get_node("Panel/GridContainer/HBoxContainer5/Label")
+	chimptest_label = get_node("Panel/GridContainer/HBoxContainer6/Label")
+	quickreact_label = get_node("Panel/GridContainer/HBoxContainer7/Label")
+	claypigeon_label = get_node("Panel/GridContainer/HBoxContainer8/Label")
+	rhythm_label = get_node_or_null("Panel/GridContainer/HBoxContainer9/Label")
 	
 	# Populate menu options arrays
 	main_menu_options = [button_fruitcatcher, button_monkeyduel, button_mole_attack, button_tictactoe, button_painter, button_chimptest, button_quickreact, button_claypigeon]
@@ -86,6 +83,12 @@ func _ready():
 	if rhythm_label:
 		rhythm_label.pressed.connect(_on_rhythm_pressed)
 
+	# Get back button reference
+	var back_button = get_node_or_null("HBoxContainer/HomeButton")
+	if back_button:
+		back_button.pressed.connect(_on_back_button_pressed)
+		print("[Menu] Connected back button signal")
+
 	# Connect to remote control directives
 	var remote_control = get_node_or_null("/root/MenuController")
 	if remote_control:
@@ -96,9 +99,17 @@ func _ready():
 	else:
 		print("[Menu] MenuController autoload not found!")
 
-	# Set translated game names
+	# --- Enable UI Click Injection ---
+	var ws = get_node_or_null("/root/WebSocketListener")
+	if ws:
+		ws.set_emit_click_for_ui(true)
+		print("[Menu] Enabled UI click injection for games menu")
+	else:
+		print("[Menu] WebSocketListener not found - UI click injection unavailable")
+
+	# Set translated game names (match scene labels - uppercase with abbreviations where needed)
 	if fruitcatcher_label:
-		fruitcatcher_label.text = tr("fruitcatcher")
+		fruitcatcher_label.text = tr("fruit_ninja")
 	if monkeyduel_label:
 		monkeyduel_label.text = tr("monkey_duel")
 	if mole_attack_label:
@@ -106,9 +117,9 @@ func _ready():
 	if tictactoe_label:
 		tictactoe_label.text = tr("tictactoe")
 	if rhythm_label:
-		rhythm_label.text = "Rhythm Game"
+		rhythm_label.text = tr("rhythm")
 	if painter_label:
-		painter_label.text = tr("shoot_painter")
+		painter_label.text = tr("painter")
 	if chimptest_label:
 		chimptest_label.text = tr("chimp_test")
 	if quickreact_label:
@@ -202,9 +213,23 @@ func _on_remote_enter():
 	elif selected_option == 8:
 		_on_rhythm_pressed()
 
+func _on_back_button_pressed():
+	"""Handle back button click to return to main menu"""
+	_go_back_to_main_menu()
+
 func _on_remote_back_pressed():
 	"""Handle back press from remote control to return to main menu"""
+	_go_back_to_main_menu()
+
+func _go_back_to_main_menu():
+	"""Helper function to return to main menu"""
 	print("[Menu] Back pressed - returning to main menu")
+	# Disable UI click injection when leaving games menu
+	var ws = get_node_or_null("/root/WebSocketListener")
+	if ws:
+		ws.set_emit_click_for_ui(false)
+		print("[Menu] Disabled UI click injection when returning to main menu")
+	
 	# Show global status bar when returning to main menu
 	var status_bars = get_tree().get_nodes_in_group("status_bar")
 	for status_bar in status_bars:
@@ -230,12 +255,7 @@ func _update_selection():
 		if rhythm_label:
 			rhythm_label.button_pressed = (selected_option == 8)
 		
-		# Auto-scroll based on selected row
-		var row = selected_option / COLS
-		if row == 0:
-			scroll_container.scroll_vertical = 0
-		elif row == 3:
-			scroll_container.scroll_vertical = scroll_container.get_v_scroll_bar().max_value
+		# Note: Scrolling handled automatically by layout if scrolling container exists
 	
 	print("[Menu] Selection updated to option: ", selected_option)
 

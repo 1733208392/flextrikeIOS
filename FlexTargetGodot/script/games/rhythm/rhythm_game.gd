@@ -79,6 +79,7 @@ var phases: Array = [0.0, 0.0, 0.0] # Individual phases for chord notes
 @onready var countdown_label: Label = $UI/CountdownLabel
 @onready var staff_display: Control = $UI/StaffDisplay
 @onready var melody_player: AudioStreamPlayer = $MelodyPlayer
+@onready var back_button: Button = $UI/TopBar/BackButton
 
 var tile_scene = preload("res://scene/games/rhythm/rhythm_tile.tscn")
 var tiles: Array = []
@@ -97,16 +98,23 @@ func _ready() -> void:
 	if global_status_bar:
 		global_status_bar.hide()
 	
+	# Wire back button
+	if back_button:
+		back_button.pressed.connect(_on_back_pressed)
+		print("[RhythmGame] Wired back button")
+	
 	# Connect MenuController
 	var remote_control = get_node_or_null("/root/MenuController")
 	if remote_control:
 		remote_control.back_pressed.connect(_on_back_pressed)
 	
-	# Connect WebSocket Listener for bullet hits
+	# Connect WebSocket Listener for bullet hits and enable UI click injection
 	var websocket_listener = get_node_or_null("/root/WebSocketListener")
 	if websocket_listener:
 		websocket_listener.bullet_hit.connect(_on_bullet_hit)
+		websocket_listener.set_emit_click_for_ui(true)
 		print("[RhythmGame] Connected to WebSocketListener for bullet_hit signals")
+		print("[RhythmGame] Enabled UI click injection")
 	else:
 		print("[RhythmGame] WARNING: WebSocketListener not found at /root/WebSocketListener")
 	
@@ -396,4 +404,8 @@ func _reset_round() -> void:
 	print("[RhythmGame] New Round Melody (Round-Robin): ", current_melody_name)
 
 func _on_back_pressed() -> void:
+	# Disable UI click injection before leaving
+	var websocket_listener = get_node_or_null("/root/WebSocketListener")
+	if websocket_listener:
+		websocket_listener.set_emit_click_for_ui(false)
 	get_tree().change_scene_to_file("res://scene/games/menu/menu.tscn")

@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://cxcf7ci5mr56m"]
 
-[ext_resource type="PackedScene" uid="uid://d376nuesjyhe2" path="res://scene/test_dueling_tree.tscn" id="1_124jw"]
+[ext_resource type="PackedScene" uid="uid://d376nuesjyhe2" path="res://scene/dueling_tree_pad.tscn" id="1_124jw"]
 [ext_resource type="Texture2D" uid="uid://bvnmip7l1v4so" path="res://asset/duelling-tree-stand.png" id="2_447go"]
 
 [node name="Node2D" type="Node2D"]

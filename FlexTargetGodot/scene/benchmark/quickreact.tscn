@@ -1,12 +1,16 @@
-[gd_scene load_steps=3 format=3 uid="uid://7nlypaqgjbaq"]
+[gd_scene format=3 uid="uid://7nlypaqgjbaq"]
 
 [ext_resource type="Theme" uid="uid://cdynjfvdtavlt" path="res://scene/main_menu/main_menu_button_theme.tres" id="1_yajby"]
+[ext_resource type="Texture2D" uid="uid://cqkwytntfgrv" path="res://asset/back-icon.png" id="3_q83to"]
 [ext_resource type="Script" uid="uid://cbgsspipwfm2x" path="res://script/quickreact.gd" id="3_quickreact"]
 
-[node name="Quickreact" type="Node2D"]
+[node name="Quickreact" type="Control" unique_id=1671526840]
+layout_mode = 3
+anchors_preset = 0
 script = ExtResource("3_quickreact")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="ColorRect" parent="." unique_id=408263782]
+layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -16,16 +20,26 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.09803922, 0.09803922, 0.09803922, 1)
 
-[node name="BestScore" type="Label" parent="Background"]
+[node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=1281729478]
 layout_mode = 1
-anchors_preset = 1
-anchor_left = 1.0
+anchors_preset = 10
 anchor_right = 1.0
-offset_left = -125.0
-offset_top = 29.0
-offset_right = -22.0
-offset_bottom = 68.0
-grow_horizontal = 0
+offset_right = 720.0
+offset_bottom = 142.0
+grow_horizontal = 2
+alignment = 1
+
+[node name="Back" type="Button" parent="HBoxContainer" unique_id=1904559758]
+layout_mode = 2
+theme = ExtResource("1_yajby")
+icon = ExtResource("3_q83to")
+
+[node name="Control" type="Control" parent="HBoxContainer" unique_id=619186320]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="BestScore" type="Label" parent="HBoxContainer" unique_id=750933487]
+layout_mode = 2
 theme = ExtResource("1_yajby")
 theme_override_colors/font_color = Color(0.87058824, 0.21960784, 0.13725491, 1)
 theme_override_font_sizes/font_size = 32
@@ -33,17 +47,17 @@ text = "0.344"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Label" type="Label" parent="Background"]
+[node name="Label" type="Label" parent="." unique_id=1274284762]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -326.0
-offset_top = -36.0
-offset_right = 326.0
-offset_bottom = 36.0
+offset_left = 34.0
+offset_top = 604.0
+offset_right = 686.0
+offset_bottom = 676.0
 grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("1_yajby")
@@ -53,21 +67,23 @@ text = "WAITING FOR GREEN"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Icon" type="TextureRect" parent="Background"]
+[node name="Icon" type="TextureRect" parent="." unique_id=557947908]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -60.0
-offset_top = -190.0
-offset_right = 60.0
-offset_bottom = -70.0
+offset_left = 300.0
+offset_top = 450.0
+offset_right = 420.0
+offset_bottom = 570.0
 grow_horizontal = 2
 grow_vertical = 2
 expand_mode = 1
 stretch_mode = 4
 
-[node name="Timer" type="Timer" parent="."]
+[node name="Timer" type="Timer" parent="." unique_id=301355823]
 one_shot = true
+
+[connection signal="pressed" from="HBoxContainer/Back" to="." method="_on_back_pressed"]

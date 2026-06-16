@@ -44,8 +44,17 @@ func _ready():
 			print("[TicTacToe] Connected to WebSocketListener bullet_hit")
 		else:
 			print("[TicTacToe] WebSocketListener found but no bullet_hit signal")
+		# Enable UI click injection for this scene
+		ws_listener.set_emit_click_for_ui(true)
+		print("[TicTacToe] Enabled UI click injection for tic-tac-toe game")
 	else:
 		print("[TicTacToe] No WebSocketListener singleton found - live shots disabled")
+	
+	# Wire back button to return to menu
+	var back_button = get_node_or_null("HBoxContainer/BackButton")
+	if back_button:
+		back_button.pressed.connect(_on_back_button_pressed)
+		print("[TicTacToe] Wired back button")
 
 	# Load persisted difficulty (if any). If HttpService is present this is async
 	# and the load callback will call _apply_focus; otherwise the sync fallback
@@ -303,11 +312,19 @@ func _unhandled_input(event: InputEvent) -> void:
 		if event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER:
 			_on_menu_enter()
 
+func _on_back_button_pressed() -> void:
+	print("[TicTacToe] Back button pressed, returning to menu")
+	_return_to_main_menu()
+
 func _on_menu_back_pressed() -> void:
 	print("[TicTacToe] Remote back/home pressed, returning to menu")
 	_return_to_main_menu()
 
 func _return_to_main_menu() -> void:
+	# Disable UI click injection before leaving
+	var ws_listener = get_node_or_null("/root/WebSocketListener")
+	if ws_listener:
+		ws_listener.set_emit_click_for_ui(false)
 	# Change to the shared menu scene
 	var target = "res://scene/games/menu/menu.tscn"
 	if ResourceLoader.exists(target):

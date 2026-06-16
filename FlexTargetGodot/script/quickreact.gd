@@ -1,10 +1,10 @@
-extends Node2D
+extends Control
 
 @onready var background = $Background
-@onready var label = $Background/Label
+@onready var label = $Label
 @onready var timer = $Timer
-@onready var icon = $Background/Icon
-@onready var best_score_label = $Background/BestScore
+@onready var icon = $Icon
+@onready var best_score_label = $HBoxContainer/BestScore
 
 var waiting_for_shoot = false
 var start_time = 0

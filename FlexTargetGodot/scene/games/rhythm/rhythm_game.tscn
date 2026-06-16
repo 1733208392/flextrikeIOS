@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://ck2o3wodcst08" path="res://script/games/rhythm/rhythm_game.gd" id="1_game"]
 [ext_resource type="Theme" uid="uid://cdynjfvdtavlt" path="res://scene/main_menu/main_menu_button_theme.tres" id="2_swubk"]
+[ext_resource type="Texture2D" uid="uid://cqkwytntfgrv" path="res://asset/back-icon.png" id="3_m23ke"]
 
 [sub_resource type="GDScript" id="GDScript_staff"]
 script/source = "extends Control
@@ -85,6 +86,11 @@ offset_bottom = 100.0
 grow_horizontal = 2
 alignment = 1
 
+[node name="BackButton" type="Button" parent="UI/TopBar" unique_id=69677028]
+layout_mode = 2
+theme = ExtResource("2_swubk")
+icon = ExtResource("3_m23ke")
+
 [node name="ComboLabel" type="Label" parent="UI/TopBar" unique_id=835465458]
 layout_mode = 2
 size_flags_horizontal = 3
@@ -166,4 +172,5 @@ columns = 3
 
 [node name="MelodyPlayer" type="AudioStreamPlayer" parent="." unique_id=978728738]
 
+[connection signal="pressed" from="UI/TopBar/BackButton" to="." method="_on_back_pressed"]
 [connection signal="timeout" from="BeatTimer" to="." method="_on_beat_timer_timeout"]

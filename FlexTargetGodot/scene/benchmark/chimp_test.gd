@@ -17,9 +17,9 @@ var sequence_length: int = 1
 
 @onready var grid_container: GridContainer = $CenterContainer/GridContainer
 @onready var flash_timer: Timer = $FlashTimer
-@onready var status_label: Label = $HBoxContainer/StatusLabel
+@onready var status_label: Label = $HBoxContainerBottom/StatusLabel
 @onready var delay_timer: Timer = $DelayTimer
-@onready var title_label: Label = $TitleLabel
+@onready var title_label: Label = $HBoxContainerTop/TitleLabel
 @onready var gameover_overlay: Panel = $GameoverOverly
 @onready var countdown_label: Label = $GameoverOverly/VBoxContainer/CountDown
 @onready var countdown_timer: Timer = $CountdownTimer
@@ -27,7 +27,8 @@ var sequence_length: int = 1
 @onready var level_complete_result_label: Label = $LevelCompleteOverlay/VBoxContainer/Result
 @onready var level_complete_countdown_label: Label = $LevelCompleteOverlay/VBoxContainer/CountDown
 @onready var level_complete_timer: Timer = $LevelCompleteTimer
-@onready var reveal_countdown_label: Label = $HBoxContainer/RevealCountdownLabel
+@onready var reveal_countdown_label: Label = $HBoxContainerBottom/RevealCountdownLabel
+@onready var back_button: Button = $HBoxContainerTop/Button
 
 var countdown_time: int = 5
 var reveal_timer: SceneTreeTimer
@@ -45,10 +46,16 @@ func _ready():
 	audio_player = AudioStreamPlayer.new()
 	audio_player.stream = remote_button_sound
 	add_child(audio_player)
-	# Connect to WebSocket for bullet hits
+	# Enable UI click injection for this scene
 	ws_listener = get_node_or_null("/root/WebSocketListener")
 	if ws_listener:
+		ws_listener.set_emit_click_for_ui(true)
+		print("[ChimpTest] Enabled UI click injection")
 		ws_listener.bullet_hit.connect(_on_websocket_bullet_hit)
+	# Wire back button
+	if back_button:
+		back_button.pressed.connect(_on_back_pressed)
+		print("[ChimpTest] Wired back button")
 	# Connect to MenuController for back and home buttons
 	menu_controller = get_node_or_null("/root/MenuController")
 	if menu_controller:
@@ -142,11 +149,17 @@ func _play_button_sound():
 		audio_player.play()
 
 func _on_back_pressed():
-	# Handle back button press - return to main menu
-	get_tree().change_scene_to_file("res://scene/main_menu/main_menu.tscn")
+	# Handle back button press - return to games menu
+	# Disable UI click injection before leaving
+	if ws_listener:
+		ws_listener.set_emit_click_for_ui(false)
+	get_tree().change_scene_to_file("res://scene/games/menu/menu.tscn")
 
 func _on_homepage_pressed():
 	# Handle home button press - return to main menu
+	# Disable UI click injection before leaving
+	if ws_listener:
+		ws_listener.set_emit_click_for_ui(false)
 	get_tree().change_scene_to_file("res://scene/main_menu/main_menu.tscn")
 
 func _on_countdown_timer_timeout():
