@@ -1,21 +1,26 @@
-extends CanvasLayer
+extends Control
 
 var back_button: Button
 var next_button: Button
 var replay_button: Button
-@onready var level_label = $Control/VBoxContainer/LevelLabel
-@onready var level_number = $Control/VBoxContainer/LevelNumber
-@onready var score_label = $Control/VBoxContainer/ScoreContainer/ScoreLabel
-@onready var score_value = $Control/VBoxContainer/ScoreContainer/ScoreValue
-@onready var coin_label = $Control/VBoxContainer/CoinContainer/CoinLabel
-@onready var coin_value = $Control/VBoxContainer/CoinContainer/CoinValue
+@onready var level_label = $VBoxContainer/LevelLabel
+@onready var level_number = $VBoxContainer/LevelNumber
+@onready var score_label = $VBoxContainer/ScoreContainer/ScoreLabel
+@onready var score_value = $VBoxContainer/ScoreContainer/ScoreValue
+@onready var coin_label = $VBoxContainer/CoinContainer/CoinLabel
+@onready var coin_value = $VBoxContainer/CoinContainer/CoinValue
+@onready var reason_label = $VBoxContainer/ReasonLabel
+@onready var accuracy_label = $VBoxContainer/AccuracyContainer/AccuracyLabel
+@onready var accuracy_value = $VBoxContainer/AccuracyContainer/AccuracyValue
+@onready var bunny_label = $VBoxContainer/BunnyContainer/BunnyLabel
+@onready var bunny_value = $VBoxContainer/BunnyContainer/BunnyValue
 @onready var bonus_label = null
 @onready var star1 = null
 @onready var star2 = null
 @onready var star3 = null
-@onready var coin_particles = $Control/CoinParticles
-@onready var cleared_label = $Control/VBoxContainer/ClearedLabel
-@onready var audio_player = $Control/AudioStreamPlayer2D
+@onready var coin_particles = $CoinParticles
+@onready var cleared_label = $VBoxContainer/ClearedLabel
+@onready var audio_player = $AudioStreamPlayer2D
 
 var bonus_value: Label = null  # Optional - may not exist in scene
 
@@ -27,16 +32,15 @@ var stars_earned: int = 3  # Default to 3 stars
 var level_passed: bool = true  # Track if level was passed or failed
 var victory_sound = preload("res://audio/victory-chime.mp3")
 var game_node: Node = null  # Reference to the GameMole node
-var previous_emit_click_for_ui := false  # Track previous UI click injection state
 
 func _ready():
 	# Debug: Print the scene tree
 	print_tree_pretty()
 	
 	# Get button references using get_node_or_null with correct paths
-	back_button = get_node_or_null("Control/VBoxContainer/ButtonsContainer/BackButton")
-	next_button = get_node_or_null("Control/VBoxContainer/ButtonsContainer/NextButton")
-	replay_button = get_node_or_null("Control/VBoxContainer/ButtonsContainer/ReplayButton")
+	back_button = get_node_or_null("VBoxContainer/ButtonsContainer/BackButton")
+	next_button = get_node_or_null("VBoxContainer/ButtonsContainer/NextButton")
+	replay_button = get_node_or_null("VBoxContainer/ButtonsContainer/ReplayButton")
 	
 	# Debug: Print button references
 	print("Back button: ", back_button)
@@ -88,9 +92,16 @@ func _ready():
 	if level_label:
 		level_label.text = tr("level_label")
 	if score_label:
-		score_label.text = tr("score")
+		score_label.text = tr("total_score")
 	if coin_label:
 		coin_label.text = tr("coin_label")
+	if reason_label:
+		reason_label.visible = false
+		reason_label.text = ""
+	if accuracy_label:
+		accuracy_label.text = tr("hit_rate")
+	if bunny_label:
+		bunny_label.text = tr("bunny_hit")
 	if bonus_label:
 		bonus_label.text = tr("bonus_label")
 	if back_button:
@@ -103,15 +114,14 @@ func _ready():
 	# Enable UI click injection for mole_level_complete
 	var ws_listener = get_node_or_null("/root/WebSocketListener")
 	if ws_listener:
-		previous_emit_click_for_ui = ws_listener.get_emit_click_for_ui()
 		ws_listener.set_emit_click_for_ui(true)
-		print("[MoleLevelComplete] Enabled UI click injection, previous state was: ", previous_emit_click_for_ui)
+		print("[MoleLevelComplete] Enabled UI click injection")
 	else:
 		print("[MoleLevelComplete] WebSocketListener not found for UI click injection")
 	
 	print("[MoleLevelComplete] Scene ready")
 
-func show_level_complete(level: int, score: int, coins: int = 0, bonus: int = 0, stars: int = 3, passed: bool = true):
+func show_level_complete(level: int, score: int, coins: int = 0, bonus: int = 0, stars: int = 3, passed: bool = true, hits: int = 0, shots: int = 0, bunny_hits: int = 0, failure_reason: String = ""):
 	"""Show the level complete screen with the given data"""
 	current_level = level
 	current_score = score
@@ -127,6 +137,20 @@ func show_level_complete(level: int, score: int, coins: int = 0, bonus: int = 0,
 	level_number.text = "%03d" % level
 	score_value.text = str(score)
 	coin_value.text = str(coins)
+	if accuracy_value:
+		var pct: int = 0
+		if shots > 0:
+			pct = int(round((float(hits) / float(shots)) * 100.0))
+		accuracy_value.text = "%d/%d (%d%%)" % [hits, shots, pct]
+	if bunny_value:
+		bunny_value.text = str(bunny_hits)
+	if reason_label:
+		if passed or failure_reason.is_empty():
+			reason_label.visible = false
+			reason_label.text = ""
+		else:
+			reason_label.visible = true
+			reason_label.text = failure_reason
 	
 	# Update bonus if the node exists
 	if bonus_value:
@@ -310,4 +334,4 @@ func _exit_tree():
 	var ws_listener = get_node_or_null("/root/WebSocketListener")
 	if ws_listener:
 		ws_listener.set_emit_click_for_ui(false)
-		print("[MoleLevelComplete] Disabled UI click injection on exit")
+		print("[MoleLevelComplete] Disabled UI click injection")

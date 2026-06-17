@@ -2,6 +2,7 @@ extends Node
 
 # Performance optimization
 const DEBUG_DISABLED = true  # Set to true for verbose debugging
+const CIRCULAR_BUFFER_SIZE = 15
 
 # Scoring rules are now loaded dynamically from settings_dict.target_rule
 
@@ -114,9 +115,9 @@ func _on_drills_finished():
 	var http_service = get_node("/root/HttpService")
 	if http_service:
 		var json_string = JSON.stringify(pending_drill_data)
-		# Implement circular buffer: cycle through indices 1-20
+		# Implement circular buffer: cycle through indices 1-15
 		var current_index = int(global_data.settings_dict.get("max_index", 0)) if global_data else 0
-		var next_index = (current_index % 20) + 1  # Circular buffer: 1-20
+		var next_index = (current_index % CIRCULAR_BUFFER_SIZE) + 1  # Circular buffer: 1-15
 		var data_id = "performance_" + str(next_index)
 		if not DEBUG_DISABLED:
 			print("[PerformanceTracker] Saving drill data to file: ", data_id, " (previous index: ", current_index, ", next index: ", next_index, ")")
@@ -217,17 +218,17 @@ func _on_performance_saved(result, response_code, headers, body):
 			print("Performance data saved")
 		var http_service = get_node("/root/HttpService")
 		if http_service:
-			# Update max_index with circular buffer logic: cycle 1-20
+			# Update max_index with circular buffer logic: cycle 1-15
 			var global_data = get_node_or_null("/root/GlobalData")
 			var settings_json = ""
 			var next_index = 1
 			
 			if global_data and global_data.settings_dict != null:
 				var current_index = int(global_data.settings_dict.get("max_index", 0))
-				next_index = (current_index % 20) + 1
+				next_index = (current_index % CIRCULAR_BUFFER_SIZE) + 1
 				global_data.settings_dict["max_index"] = next_index
 				if not DEBUG_DISABLED:
-					print("[PerformanceTracker] Updated max_index from ", current_index, " to ", next_index, " (circular buffer 1-20)")
+					print("[PerformanceTracker] Updated max_index from ", current_index, " to ", next_index, " (circular buffer 1-15)")
 				# Preserve all existing settings, only update max_index
 				#settings_json = JSON.stringify(global_data.settings_dict)
 			

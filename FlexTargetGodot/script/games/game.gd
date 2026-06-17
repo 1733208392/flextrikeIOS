@@ -6,6 +6,12 @@ var current_state = GameState.RUNNING
 var current_level: int = 1  # Track current level
 var velocity_bonus: float = 0.0  # Velocity bonus per level (+0.5 per level)
 var spawn_speed_multiplier: float = 1.0  # Spawn speed multiplier (30% faster per level)
+const MAG_SIZE := 10
+const PASS_SCORE_THRESHOLD := 70
+const PASS_ACCURACY_THRESHOLD := 0.7
+const BASE_HIT_SCORE := 10
+const COMBO_BONUS_STEP := 5
+const LEVEL_FALL_SPEED_MULTIPLIER := 1.15
 
 var watermelon_whole_scene = preload("res://scene/games/watermelon.tscn")
 var banana_whole_scene = preload("res://scene/games/banana.tscn")
@@ -15,9 +21,7 @@ var lemon_whole_scene = preload("res://scene/games/lemon.tscn")
 var pineapple_whole_scene = preload("res://scene/games/pineapple.tscn")
 var pear_whole_scene = preload("res://scene/games/pear.tscn")
 var bullet_impact_scene = preload("res://scene/games/bullet_impact.tscn")
-var coin_anim_scene = preload("res://scene/games/coin_anim.tscn")
 var bomb_scene = preload("res://scene/games/bomb.tscn")
-var coin_collection_sound = preload("res://audio/SE-Collision_08C.ogg")
 var level_complete_scene = preload("res://scene/games/level_complete.tscn")
 var http_service: Node
 var spawn_timer = 0.0
@@ -25,21 +29,24 @@ var spawn_interval = 2.0  # Base spawn interval (gets divided by spawn_speed_mul
 var fruit_scenes = []  # Array to hold all fruit scenes
 var fruits_spawned: int = 0  # Track how many fruits have been spawned
 var bomb_spawn_interval: int = randi_range(5, 7)  # Spawn bomb every 5-7 fruits
+const MAX_FALLING_OBJECTS = 10
 var truck_node: Node2D
-var truck_health: int = 100
 var truck_crashed: bool = false
 var game_over: bool = false
-var score: int = 0
-var total_score: int = 0
-var score_label: Label
+var level_resolved: bool = false
 var level_label: Label
-var progress_bar: ProgressBar
-var coin_icon_position: Vector2
-var fruits_in_trunk: int = 0
-var truck_full: bool = false
-var max_fruits_in_trunk: int = 10
-var counted_fruits: Dictionary = {}  # Track fruits that have been counted to avoid duplicates
-var score_target: int = 120  # Base target score for level 1 (increases 30% per level)
+var top_score_label: Label
+var ammo_icons: Array[TextureRect] = []
+var ui_score: int = 0
+var score: int = 0  # Compatibility with level_complete.gd
+var score_target: int = PASS_SCORE_THRESHOLD  # Compatibility with level_complete.gd
+var shots_fired: int = 0
+var shots_hit: int = 0
+var shots_missed: int = 0
+var combo_streak: int = 0
+var ws_listener: Node = null
+var previous_emit_click_for_ui := false
+var active_combo_label: Label = null
 
 func _ready():
 	# Mark this as the game scene for level progression
@@ -47,6 +54,15 @@ func _ready():
 	
 	# Enable input processing
 	set_process_input(true)
+	
+	ws_listener = get_node_or_null("/root/WebSocketListener")
+	if ws_listener:
+		previous_emit_click_for_ui = ws_listener.get_emit_click_for_ui()
+		ws_listener.set_emit_click_for_ui(false)
+		ws_listener.bullet_hit.connect(_on_bullet_fired)
+		print("[Game] Disabled UI click injection for fruitninja, previous state was: ", previous_emit_click_for_ui)
+	else:
+		print("[Game] WARNING: WebSocketListener not found, shot tracking disabled")
 	
 	# Get http service for leaderboard
 	http_service = get_node("/root/HttpService")
@@ -66,10 +82,6 @@ func _ready():
 		print("[Game] GlobalData not found or no language setting, using default English")
 		set_locale_from_language("English")
 	
-	# Set score target based on current level (30% increase per level, rounded to nearest 10)
-	var base_target = 120 * pow(1.3, current_level - 1)
-	score_target = round(base_target / 10) * 10
-	
 	# Initialize fruit scenes array
 	fruit_scenes = [watermelon_whole_scene, banana_whole_scene, avocado_whole_scene, tomato_whole_scene, lemon_whole_scene, pineapple_whole_scene, pear_whole_scene]
 	
@@ -80,35 +92,18 @@ func _ready():
 		print("ERROR: No fruit scenes loaded! Check that the scene files exist at res://scene/games/")
 		return
 
-	# Get game over panel and hide it initially
-	var game_over_panel = get_node("GameOverLayer/GameOverPanel")
-	if game_over_panel:
-		game_over_panel.hide()
-
-	# Get score label and coin icon position
-	var top_bar = get_node("StatusBar/TopBar")
-	score_label = top_bar.get_node("Score")
-	level_label = top_bar.get_node("Level")
-	level_label.text = "LEVEL " + str(current_level)
-	progress_bar = top_bar.get_node("ProgressBar")
-	progress_bar.max_value = score_target
-	progress_bar.value = score
-	var coin_icon = top_bar.get_node("CoinIcon")
-	coin_icon_position = coin_icon.global_position
+	# Initialize top status bar references and defaults
+	_init_top_bar_ui()
 	
 	# Get truck node and connect to its signals
 	truck_node = get_node_or_null("Truck")
 	if truck_node:
 		truck_node.truck_crashed.connect(_on_truck_crashed)
 		print("[Game] Connected to truck signals")
+		_sync_top_bar_ui()
 		
 	else:
 		print("[Game] WARNING: Truck node not found!")
-	
-	# Call start_game on HttpService when game starts
-	HttpService.start_game(func(result, response_code, _headers, _body):
-		print("Game started - Result: ", result, ", Response Code: ", response_code)
-	)
 	
 	# Connect to remote control directives
 	var remote_control = get_node_or_null("/root/MenuController")
@@ -135,15 +130,178 @@ func set_locale_from_language(language: String):
 	spawn_random_fruit()
 
 func _process(delta):
-	# Don't spawn fruits if game is over or truck is full
-	if game_over or truck_full:
+	# Don't spawn fruits if game is over
+	if game_over:
+		_sync_top_bar_ui()
 		return
 	
-	# Spawn a new fruit at intervals (faster with higher spawn_speed_multiplier)
+	_sync_top_bar_ui()
+
+	# Spawn a new fruit at intervals, faster on higher levels.
 	spawn_timer += delta
-	if spawn_timer >= (spawn_interval / spawn_speed_multiplier):
+	if spawn_timer >= (spawn_interval / max(spawn_speed_multiplier, 0.001)):
 		spawn_random_fruit()
 		spawn_timer = 0.0
+
+func _init_top_bar_ui():
+	var top_bar = get_node_or_null("StatusBar/TopBar")
+	if not top_bar:
+		print("[Game] WARNING: StatusBar/TopBar not found")
+		return
+
+	level_label = top_bar.get_node_or_null("Level")
+	top_score_label = top_bar.get_node_or_null("Score")
+	ammo_icons.clear()
+	for i in range(1, MAG_SIZE + 1):
+		var ammo_icon = top_bar.get_node_or_null("AmmoContainer/Bullet%d" % i)
+		if ammo_icon and ammo_icon is TextureRect:
+			ammo_icons.append(ammo_icon)
+
+	if level_label:
+		level_label.text = "LEVEL " + str(current_level)
+	if top_score_label:
+		top_score_label.text = str(ui_score)
+	_update_ammo_display()
+
+func _sync_top_bar_ui():
+	if top_score_label:
+		top_score_label.text = str(ui_score)
+
+	_update_ammo_display()
+
+func _update_ammo_display():
+	for i in range(ammo_icons.size()):
+		var ammo_icon = ammo_icons[i]
+		if ammo_icon:
+			ammo_icon.visible = i < max(0, MAG_SIZE - shots_fired)
+
+func _on_bullet_fired(hit_pos: Vector2, _a: int = 0, _t: int = 0):
+	if game_over or level_resolved or truck_crashed:
+		return
+	if shots_fired >= MAG_SIZE:
+		return
+
+	shots_fired += 1
+	var hit_type = _classify_hit_type(hit_pos)
+	if hit_type != "":
+		shots_hit += 1
+		combo_streak += 1
+		var combo_bonus = max(0, combo_streak - 1) * COMBO_BONUS_STEP
+		var shot_points = BASE_HIT_SCORE + combo_bonus
+		ui_score += shot_points
+		score = ui_score
+		_show_combo_feedback()
+		print("[Game] Shot hit ", hit_type, " | combo=", combo_streak, " +", shot_points, " score=", ui_score)
+	else:
+		shots_missed += 1
+		combo_streak = 0
+		print("[Game] Shot missed | fired=", shots_fired, " miss=", shots_missed)
+
+	_sync_top_bar_ui()
+
+	if shots_fired >= MAG_SIZE:
+		_finish_magazine_round()
+
+func _classify_hit_type(hit_pos: Vector2) -> String:
+	# Prefer bomb classification if overlapping with fruit at the same point.
+	for child in get_children():
+		if not (child is RigidBody2D) or child.get_parent() != self:
+			continue
+		if child.is_queued_for_deletion():
+			continue
+		if (child.get("is_bomb") == true or child.name.begins_with("Bomb")) and _point_hits_body(child, hit_pos):
+			return "bomb"
+
+	for child in get_children():
+		if not (child is RigidBody2D) or child.get_parent() != self:
+			continue
+		if child.is_queued_for_deletion():
+			continue
+		if child.get("is_fruit") == true and _point_hits_body(child, hit_pos):
+			return "fruit"
+
+	return ""
+
+func _point_hits_body(body: RigidBody2D, hit_pos: Vector2) -> bool:
+	var shape_node: CollisionShape2D = null
+	for child in body.get_children():
+		if child is CollisionShape2D:
+			shape_node = child
+			break
+
+	if not shape_node or not shape_node.shape:
+		# Fallback when no collision shape is found.
+		return body.global_position.distance_to(hit_pos) <= 60.0
+
+	var local_hit_pos = body.to_local(hit_pos)
+	var shape = shape_node.shape
+
+	if shape is CapsuleShape2D:
+		var capsule = shape as CapsuleShape2D
+		var half_height = capsule.height / 2.0
+		var clamped_y = clamp(local_hit_pos.y, -half_height + capsule.radius, half_height - capsule.radius)
+		var axis_point = Vector2(0, clamped_y)
+		return local_hit_pos.distance_to(axis_point) <= capsule.radius
+	elif shape is CircleShape2D:
+		var circle = shape as CircleShape2D
+		return local_hit_pos.length() <= circle.radius
+	elif shape is RectangleShape2D:
+		var rect = shape as RectangleShape2D
+		var half_size = rect.size / 2.0
+		return abs(local_hit_pos.x) <= half_size.x and abs(local_hit_pos.y) <= half_size.y
+
+	# Generic fallback for unsupported shapes.
+	return body.global_position.distance_to(hit_pos) <= 60.0
+
+func _finish_magazine_round():
+	if level_resolved:
+		return
+
+	level_resolved = true
+	game_over = true
+	_freeze_all_physics_bodies()
+
+	var accuracy = float(shots_hit) / float(max(1, shots_fired))
+	var passed = accuracy >= PASS_ACCURACY_THRESHOLD and not truck_crashed
+
+	print("[Game] Magazine complete | score=", ui_score, " accuracy=", accuracy, " truck_crashed=", truck_crashed, " passed=", passed)
+
+	var level_complete = level_complete_scene.instantiate()
+	add_child(level_complete)
+	level_complete.show_level_complete(current_level, ui_score, passed, accuracy, shots_hit, shots_fired)
+
+func _show_combo_feedback():
+	if combo_streak < 2:
+		return
+
+	if active_combo_label and is_instance_valid(active_combo_label):
+		active_combo_label.queue_free()
+
+	active_combo_label = Label.new()
+	active_combo_label.text = "X%d" % combo_streak
+	active_combo_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	active_combo_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	active_combo_label.add_theme_font_size_override("font_size", 54)
+	active_combo_label.add_theme_color_override("font_outline_color", Color(0.55, 0.05, 0.05, 1.0))
+	active_combo_label.add_theme_constant_override("outline_size", 8)
+	active_combo_label.modulate = Color(1.0, 0.95, 0.25, 1.0)
+	active_combo_label.position = Vector2(280, 130)
+	active_combo_label.size = Vector2(120, 80)
+	active_combo_label.z_index = 100
+	active_combo_label.scale = Vector2(0.6, 0.6)
+	add_child(active_combo_label)
+
+	var tween = create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(active_combo_label, "position:y", 58.0, 0.55)
+	tween.tween_property(active_combo_label, "modulate", Color(1.0, 0.25, 0.15, 0.0), 0.55)
+	tween.tween_property(active_combo_label, "scale", Vector2(1.75, 1.75), 0.18)
+	tween.chain().tween_property(active_combo_label, "scale", Vector2(1.2, 1.2), 0.18)
+	tween.finished.connect(func():
+		if active_combo_label and is_instance_valid(active_combo_label):
+			active_combo_label.queue_free()
+		active_combo_label = null
+	)
 
 func _input(event):
 	# Handle mouse click to simulate bullet hit
@@ -159,44 +317,10 @@ func _input(event):
 		if event.keycode == KEY_BACK or event.keycode == KEY_HOME:
 			_return_to_menu()
 
-# Collision detection now handled by truck - this function is no longer used
-# func _on_count_rect_collision(body: Node2D):
-# 	"""Handle collision between fruit (RigidBody2D) and count rect - award 3x score"""
-# 	if body.get("is_fruit") == true:
-# 		# Check if this fruit has already been counted
-# 		if counted_fruits.has(body):
-# 			return
-# 		
-# 		counted_fruits[body] = true
-# 		_award_triple_score(body.global_position)
-# 		_add_fruit_to_trunk(body)
-
-func _award_triple_score(from_position: Vector2):
-	"""Award 3x score with 3 coin animations"""
-	var points = 30  # 3x the normal 10 points
-	score += points
-	total_score += points
-	
-	# Update the score label
-	score_label.text = str(total_score)
-	
-	# Update progress bar
-	if progress_bar:
-		progress_bar.value = score
-	
-	# Create 3 coin animations
-	for i in range(3):
-		# Stagger the animations slightly
-		await get_tree().create_timer(i * 0.1).timeout
-		_create_coin_animation(from_position, coin_icon_position)
-
 func _trigger_level_complete():
-	"""Trigger level complete when score reaches target"""
-	print("[Game] Level Complete! Score: ", score)
+	"""Trigger level complete when truck survives"""
+	print("[Game] Level Complete!")
 	game_over = true
-	
-	# Save score if it qualifies for top 10
-	_save_score_if_top_10(total_score)
 	
 	# Play truck run animation and background animation
 	_play_truck_run_animation()
@@ -227,8 +351,8 @@ func _play_truck_run_animation():
 	var level_complete = level_complete_scene.instantiate()
 	add_child(level_complete)
 	
-	# Show level complete with current level, current score, and passed=true
-	level_complete.show_level_complete(current_level, score, true)
+	# Show level complete with current level and passed=true
+	level_complete.show_level_complete(current_level, ui_score, true, float(shots_hit) / float(max(1, shots_fired)), shots_hit, shots_fired)
 	
 	# Freeze all dropping fruits and bombs
 	for child in get_children():
@@ -237,70 +361,19 @@ func _play_truck_run_animation():
 			child.linear_velocity = Vector2.ZERO
 			child.angular_velocity = 0.0
 
-func add_score(points: int, from_position: Vector2):
-	"""Animate coins flying to the coin icon and add score"""
-	score += points
-	total_score += points
-	
-	# Update the score label
-	score_label.text = str(total_score)
-	
-	# Update progress bar
-	if progress_bar:
-		progress_bar.value = score
-	
-	# Spawn animated coin that flies to the icon
-	_create_coin_animation(from_position, coin_icon_position)
-	
-	# Check if score reaches target
-	if score >= score_target and not game_over:
-		_trigger_level_complete()
-
 func update_level_display():
 	"""Update the level label in the status bar"""
 	if level_label:
 		level_label.text = "Level " + str(current_level)
-	if progress_bar:
-		progress_bar.max_value = score_target
-		progress_bar.value = score
-
-func _create_coin_animation(start_pos: Vector2, end_pos: Vector2):
-	"""Create an animated coin that flies from start to end position"""
-	var coin = coin_anim_scene.instantiate()
-	
-	# Add coin to the GameOverLayer (UI space) instead of game scene (world space)
-	var game_over_layer = get_node("GameOverLayer")
-	game_over_layer.add_child(coin)
-	
-	# Convert world position to screen position for the start position
-	var camera = get_node_or_null("Camera2D")
-	if camera:
-		# Get viewport and convert world position to screen coordinates
-		var viewport = get_viewport()
-		var canvas_transform = viewport.get_canvas_transform()
-		var screen_start_pos = canvas_transform * start_pos
-		coin.global_position = screen_start_pos
-	else:
-		# No camera, use position directly
-		coin.global_position = start_pos
-	
-	# Play coin collection sound from the coin instance
-	var audio_player = coin.get_node_or_null("AudioStreamPlayer2D")
-	if audio_player:
-		audio_player.play()
-	
-	# Tween animation - coins fly to the coin icon
-	var tween = create_tween()
-	tween.set_trans(Tween.TRANS_CUBIC)
-	tween.set_ease(Tween.EASE_IN)
-	tween.tween_property(coin, "global_position", end_pos, 0.6)
-	tween.parallel().tween_property(coin, "scale", Vector2(0.3, 0.3), 0.6)
-	tween.tween_callback(coin.queue_free)
 
 func spawn_random_fruit():
 	"""Spawn a random fruit from the array"""
 	if fruit_scenes.is_empty():
 		print("ERROR: fruit_scenes is empty, cannot spawn fruit")
+		return
+
+	if _count_active_falling_objects() >= MAX_FALLING_OBJECTS:
+		print("[Game] Falling object limit reached (", MAX_FALLING_OBJECTS, "), skipping fruit spawn")
 		return
 	
 	# Track spawn count and spawn bomb if needed
@@ -330,12 +403,16 @@ func spawn_random_fruit():
 	else:
 		# Right side: 30° to 60°
 		random_angle = randf_range(PI/6, PI/3)
-	var velocity_magnitude = 50 + velocity_bonus  # Add velocity bonus per level
+	var velocity_magnitude = 50.0 * pow(LEVEL_FALL_SPEED_MULTIPLIER, current_level - 1)
 	fruit.linear_velocity = Vector2(sin(random_angle) * velocity_magnitude, cos(random_angle) * velocity_magnitude)
-	print("Spawned new random fruit from the sky - Level: ", current_level, " Velocity Bonus: ", velocity_bonus)
+	print("Spawned new random fruit from the sky - Level: ", current_level, " Fall speed: ", velocity_magnitude)
 
 func spawn_bomb():
 	"""Spawn a bomb that falls from the sky"""
+	if _count_active_falling_objects() >= MAX_FALLING_OBJECTS:
+		print("[Game] Falling object limit reached (", MAX_FALLING_OBJECTS, "), skipping bomb spawn")
+		return
+
 	print("Spawning bomb! (fruits_spawned=", fruits_spawned, ")")
 	var bomb = bomb_scene.instantiate()
 	add_child(bomb)
@@ -352,13 +429,22 @@ func spawn_bomb():
 	# Bomb is now a RigidBody2D, set velocity directly
 	if bomb is RigidBody2D:
 		var random_angle = randf_range(-PI/4, PI/4)
-		var velocity_magnitude = 50 + velocity_bonus  # Add velocity bonus per level
+		var velocity_magnitude = 50.0 * pow(LEVEL_FALL_SPEED_MULTIPLIER, current_level - 1)
 		bomb.linear_velocity = Vector2(sin(random_angle) * velocity_magnitude, cos(random_angle) * velocity_magnitude)
-		print("Bomb velocity set: ", bomb.linear_velocity, " - Level: ", current_level, " Velocity Bonus: ", velocity_bonus)
+		print("Bomb velocity set: ", bomb.linear_velocity, " - Level: ", current_level, " Fall speed: ", velocity_magnitude)
 	else:
 		print("ERROR: Bomb is not a RigidBody2D!")
 	
 	print("Spawned bomb from the sky at z_index=10")
+
+func _count_active_falling_objects() -> int:
+	"""Count the fruit and bomb instances currently falling in this scene"""
+	var active_objects = 0
+	for child in get_children():
+		if child is RigidBody2D and child.get_parent() == self:
+			if child.get("is_fruit") == true or child.get("is_bomb") == true or child.name.begins_with("Bomb"):
+				active_objects += 1
+	return active_objects
 
 
 func _on_remote_back_pressed():
@@ -379,22 +465,18 @@ func restart_level():
 	print("[Game] Restarting level %d with velocity bonus %.1f and spawn multiplier %.2f" % [current_level, velocity_bonus, spawn_speed_multiplier])
 	
 	# Reset game state
-	score = 0
 	fruits_spawned = 0
 	truck_crashed = false
 	game_over = false
-	truck_full = false
-	fruits_in_trunk = 0
-	counted_fruits.clear()
+	level_resolved = false
 	spawn_timer = 0.0
-	
-	# Update score label
-	if score_label:
-		score_label.text = str(total_score)
-	
-	# Update progress bar
-	if progress_bar:
-		progress_bar.value = score
+	shots_fired = 0
+	shots_hit = 0
+	shots_missed = 0
+	combo_streak = 0
+	if active_combo_label and is_instance_valid(active_combo_label):
+		active_combo_label.queue_free()
+	active_combo_label = null
 	
 	# Reset truck health
 	truck_node.current_health = truck_node.max_health
@@ -424,12 +506,17 @@ func restart_level():
 	
 	# Spawn first fruit
 	spawn_random_fruit()
+	_sync_top_bar_ui()
 	
 	print("[Game] Level restarted successfully")
 
 func _on_truck_crashed():
 	"""Handle truck crashed signal - trigger game over with failed level complete screen"""
+	if level_resolved:
+		return
+
 	print("[Game] Received truck_crashed signal")
+	level_resolved = true
 	truck_crashed = true
 	game_over = true
 	
@@ -439,69 +526,9 @@ func _on_truck_crashed():
 	# Show level complete screen with failure
 	var level_complete = level_complete_scene.instantiate()
 	add_child(level_complete)
-	level_complete.show_level_complete(current_level, score, false)
+	level_complete.show_level_complete(current_level, ui_score, false, float(shots_hit) / float(max(1, shots_fired)), shots_hit, shots_fired)
 
-func _save_score_if_top_10(score: int):
-	"""Check if score qualifies for top 10 and save it"""
-	if http_service:
-		http_service.load_game(Callable(self, "_on_leaderboard_loaded_for_save"), "fruitblast_leaderboard")
 
-func _on_leaderboard_loaded_for_save(result, response_code, _headers, body):
-	"""Load leaderboard and check if current score qualifies for top 10"""
-	var leaderboard_data = []
-	
-	if result == HTTPRequest.RESULT_SUCCESS and response_code == 200:
-		var body_str = body.get_string_from_utf8()
-		var json_result = JSON.parse_string(body_str)
-		if json_result != null:
-			var response_data = json_result
-			var code = response_data.get("code", -1)
-			
-			if code == 0:
-				var data = response_data.get("data", {})
-				if typeof(data) == TYPE_STRING:
-					var parsed_data = JSON.parse_string(data)
-					if parsed_data != null:
-						if typeof(parsed_data) == TYPE_DICTIONARY:
-							leaderboard_data = parsed_data.get("content", [])
-						elif typeof(parsed_data) == TYPE_ARRAY:
-							leaderboard_data = parsed_data
-				else:
-					leaderboard_data = data.get("content", [])
-	
-	# Ensure it's an array of dicts with total_score
-	for i in range(leaderboard_data.size()):
-		if typeof(leaderboard_data[i]) != TYPE_DICTIONARY or not leaderboard_data[i].has("total_score"):
-			leaderboard_data[i] = {"total_score": 0}
-	
-	# Check if score qualifies for top 10
-	var inserted = false
-	for i in range(leaderboard_data.size()):
-		if total_score > leaderboard_data[i]["total_score"]:
-			leaderboard_data.insert(i, {"total_score": total_score})
-			inserted = true
-			break
-	
-	if not inserted and leaderboard_data.size() < 10:
-		leaderboard_data.append({"total_score": total_score})
-		inserted = true
-	
-	if inserted:
-		# Keep only top 10
-		if leaderboard_data.size() > 10:
-			leaderboard_data.resize(10)
-		
-		# Save updated leaderboard
-		if http_service:
-			var leaderboard_json = JSON.stringify(leaderboard_data)
-			http_service.save_game(Callable(self, "_on_leaderboard_saved_for_score"), "fruitblast_leaderboard", leaderboard_json)
-
-func _on_leaderboard_saved_for_score(result, response_code, _headers, _body):
-	"""Callback after saving score to leaderboard"""
-	if result == HTTPRequest.RESULT_SUCCESS and response_code == 200:
-		print("[Game] Score saved to leaderboard successfully")
-	else:
-		print("[Game] Failed to save score to leaderboard")
 
 func _play_lightning_effect():
 	"""Play a lightning bolt animation across the sky"""
@@ -589,6 +616,9 @@ func _freeze_truck_contents(truck: Node):
 
 func _trigger_game_over():
 	"""Set game over flag and show level complete screen with failure"""
+	if level_resolved:
+		return
+
 	print("Game Over!")
 
 	# Freeze all floating fruits immediately
@@ -600,15 +630,21 @@ func _trigger_game_over():
 				fruit.angular_velocity = 0
 	
 	# Set game over flag
+	level_resolved = true
 	game_over = true
 	
 	# Show level complete screen with failure
 	var level_complete = level_complete_scene.instantiate()
 	add_child(level_complete)
-	level_complete.show_level_complete(current_level, score, false)
+	level_complete.show_level_complete(current_level, ui_score, false, float(shots_hit) / float(max(1, shots_fired)), shots_hit, shots_fired)
 
 func _exit_tree():
 	# Show the global status bar back when leaving the game
 	var global_status_bar = get_node_or_null("/root/StatusBar")
 	if global_status_bar:
 		global_status_bar.visible = true
+
+	if ws_listener and ws_listener.bullet_hit.is_connected(_on_bullet_fired):
+		ws_listener.bullet_hit.disconnect(_on_bullet_fired)
+	if ws_listener:
+		ws_listener.set_emit_click_for_ui(previous_emit_click_for_ui)

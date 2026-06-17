@@ -27,11 +27,25 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayerStats/Control" unique_id=1419024523]
+[node name="BackButton" type="Button" parent="CanvasLayerStats/Control" unique_id=1008936847]
+modulate = Color(1, 1, 1, 0.64705884)
 layout_mode = 0
-offset_top = 60.0
-offset_right = 720.0
-offset_bottom = 124.0
+offset_left = 10.0
+offset_top = 125.0
+offset_right = 170.0
+offset_bottom = 285.0
+theme = ExtResource("3_e58o0")
+theme_override_font_sizes/font_size = 40
+icon = ExtResource("4_6mmk4")
+icon_alignment = 1
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayerStats/Control" unique_id=1419024523]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 54.0
+offset_bottom = 118.0
+grow_horizontal = 2
 
 [node name="HBoxContainerLine1" type="HBoxContainer" parent="CanvasLayerStats/Control/VBoxContainer" unique_id=1078198766]
 layout_mode = 2
@@ -115,29 +129,25 @@ grow_vertical = 0
 theme_override_constants/separation = 20
 alignment = 1
 
-[node name="BackButton" type="Button" parent="CanvasLayerStats/Control/HBoxBottomBar" unique_id=1008936847]
-custom_minimum_size = Vector2(120, 0)
-layout_mode = 2
-theme = ExtResource("3_e58o0")
-theme_override_font_sizes/font_size = 40
-icon = ExtResource("4_6mmk4")
-
 [node name="PrevButton" type="Button" parent="CanvasLayerStats/Control/HBoxBottomBar" unique_id=1012722096]
-custom_minimum_size = Vector2(120, 0)
+modulate = Color(1, 1, 1, 0.64705884)
+custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
 theme = ExtResource("3_e58o0")
 theme_override_font_sizes/font_size = 60
 text = "◀"
 
 [node name="ResetButton" type="Button" parent="CanvasLayerStats/Control/HBoxBottomBar" unique_id=1593824365]
-custom_minimum_size = Vector2(280, 120)
+modulate = Color(1, 1, 1, 0.64705884)
+custom_minimum_size = Vector2(320, 120)
 layout_mode = 2
 theme = ExtResource("3_e58o0")
 theme_override_font_sizes/font_size = 36
 text = "RESET"
 
 [node name="NextButton" type="Button" parent="CanvasLayerStats/Control/HBoxBottomBar" unique_id=748922339]
-custom_minimum_size = Vector2(120, 0)
+modulate = Color(1, 1, 1, 0.64705884)
+custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
 theme = ExtResource("3_e58o0")
 theme_override_font_sizes/font_size = 60
@@ -157,6 +167,7 @@ mouse_filter = 2
 alignment = 1
 
 [node name="ScaleLabel" type="Label" parent="CanvasLayerStats/Control/ScaleIndicator" unique_id=1419919198]
+modulate = Color(1, 1, 1, 0.64705884)
 layout_mode = 2
 theme = ExtResource("3_e58o0")
 theme_override_font_sizes/font_size = 24
@@ -164,6 +175,7 @@ text = "Zoom: 1.0x"
 horizontal_alignment = 1
 
 [node name="ScaleProgressBar" type="ProgressBar" parent="CanvasLayerStats/Control/ScaleIndicator" unique_id=1227854860]
+modulate = Color(1, 1, 1, 0.64705884)
 custom_minimum_size = Vector2(200, 20)
 layout_mode = 2
 size_flags_horizontal = 0
@@ -230,3 +242,5 @@ offset_right = -20.0
 offset_bottom = -20.0
 grow_horizontal = 0
 grow_vertical = 0
+
+[connection signal="pressed" from="CanvasLayerStats/Control/BackButton" to="." method="_on_back_button_pressed"]

@@ -714,4 +714,11 @@ func clear_all_bullet_holes() -> void:
 		if is_instance_valid(hole):
 			hole.visible = false
 
+	# Active holes are popped from pool while in use, so hide them explicitly too.
+	for hole in active_bullet_holes:
+		if is_instance_valid(hole):
+			hole.visible = false
+			if hole not in bullet_hole_pool:
+				bullet_hole_pool.append(hole)
+
 	active_bullet_holes.clear()

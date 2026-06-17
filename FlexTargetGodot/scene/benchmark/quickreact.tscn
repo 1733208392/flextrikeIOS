@@ -30,9 +30,11 @@ grow_horizontal = 2
 alignment = 1
 
 [node name="Back" type="Button" parent="HBoxContainer" unique_id=1904559758]
+custom_minimum_size = Vector2(160, 120)
 layout_mode = 2
 theme = ExtResource("1_yajby")
 icon = ExtResource("3_q83to")
+expand_icon = true
 
 [node name="Control" type="Control" parent="HBoxContainer" unique_id=619186320]
 layout_mode = 2

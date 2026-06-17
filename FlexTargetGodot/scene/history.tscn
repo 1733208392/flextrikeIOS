@@ -1,11 +1,10 @@
-[gd_scene load_steps=5 format=3 uid="uid://ekpvobk5ubws"]
+[gd_scene format=3 uid="uid://ekpvobk5ubws"]
 
 [ext_resource type="Script" uid="uid://b4jmt6ldumens" path="res://script/history.gd" id="1_history"]
 [ext_resource type="PackedScene" uid="uid://bgnvqj8xi6u7e" path="res://scene/volumn.tscn" id="1_volumn"]
-[ext_resource type="Texture2D" uid="uid://de6eee177g4qo" path="res://asset/dialog_cntnrs1.png" id="2_0su6n"]
 [ext_resource type="Theme" uid="uid://cdynjfvdtavlt" path="res://scene/main_menu/main_menu_button_theme.tres" id="3_cer4d"]
 
-[node name="history" type="Control"]
+[node name="history" type="Control" unique_id=1813964654]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -14,7 +13,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_history")
 
-[node name="ColorRect" type="ColorRect" parent="."]
+[node name="ColorRect" type="ColorRect" parent="." unique_id=966175692]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -23,13 +22,11 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.03137255, 0.03137255, 0.03137255, 1)
 
-[node name="MarginContainer" type="MarginContainer" parent="."]
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=1030909550]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = 80.0
-offset_bottom = 80.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/margin_left = 20
@@ -37,16 +34,11 @@ theme_override_constants/margin_top = 80
 theme_override_constants/margin_right = 20
 theme_override_constants/margin_bottom = 20
 
-[node name="TextureRect" type="TextureRect" parent="MarginContainer"]
-visible = false
-layout_mode = 2
-texture = ExtResource("2_0su6n")
-
-[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer" unique_id=396604981]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="TitleLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+[node name="TitleLabel" type="Label" parent="MarginContainer/VBoxContainer" unique_id=1865296933]
 layout_mode = 2
 theme = ExtResource("3_cer4d")
 theme_override_font_sizes/font_size = 48
@@ -54,53 +46,53 @@ text = "IPSC DRILL HIST"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="HSeparator" type="HSeparator" parent="MarginContainer/VBoxContainer"]
+[node name="HSeparator" type="HSeparator" parent="MarginContainer/VBoxContainer" unique_id=1796866209]
 layout_mode = 2
 
-[node name="HeaderContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+[node name="HeaderContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=1882233159]
 layout_mode = 2
 
-[node name="NoLabel" type="Label" parent="MarginContainer/VBoxContainer/HeaderContainer"]
+[node name="NoLabel" type="Label" parent="MarginContainer/VBoxContainer/HeaderContainer" unique_id=892142065]
 layout_mode = 2
 size_flags_horizontal = 3
 theme = ExtResource("3_cer4d")
 text = " No "
 horizontal_alignment = 1
 
-[node name="VSeparator" type="VSeparator" parent="MarginContainer/VBoxContainer/HeaderContainer"]
+[node name="VSeparator" type="VSeparator" parent="MarginContainer/VBoxContainer/HeaderContainer" unique_id=1974821192]
 layout_mode = 2
 
-[node name="TotalTimeLabel" type="Label" parent="MarginContainer/VBoxContainer/HeaderContainer"]
+[node name="TotalTimeLabel" type="Label" parent="MarginContainer/VBoxContainer/HeaderContainer" unique_id=1834302208]
 layout_mode = 2
 size_flags_horizontal = 3
 theme = ExtResource("3_cer4d")
 text = "Time"
 horizontal_alignment = 1
 
-[node name="VSeparator2" type="VSeparator" parent="MarginContainer/VBoxContainer/HeaderContainer"]
+[node name="VSeparator2" type="VSeparator" parent="MarginContainer/VBoxContainer/HeaderContainer" unique_id=578813212]
 layout_mode = 2
 
-[node name="FastShotLabel" type="Label" parent="MarginContainer/VBoxContainer/HeaderContainer"]
+[node name="FastShotLabel" type="Label" parent="MarginContainer/VBoxContainer/HeaderContainer" unique_id=1118966726]
 layout_mode = 2
 size_flags_horizontal = 3
 theme = ExtResource("3_cer4d")
 text = "F'Shot"
 horizontal_alignment = 1
 
-[node name="VSeparator3" type="VSeparator" parent="MarginContainer/VBoxContainer/HeaderContainer"]
+[node name="VSeparator3" type="VSeparator" parent="MarginContainer/VBoxContainer/HeaderContainer" unique_id=1283050887]
 layout_mode = 2
 
-[node name="ScoreLabel" type="Label" parent="MarginContainer/VBoxContainer/HeaderContainer"]
+[node name="ScoreLabel" type="Label" parent="MarginContainer/VBoxContainer/HeaderContainer" unique_id=1876597067]
 layout_mode = 2
 size_flags_horizontal = 3
 theme = ExtResource("3_cer4d")
 text = " Score"
 horizontal_alignment = 1
 
-[node name="VSeparator4" type="VSeparator" parent="MarginContainer/VBoxContainer/HeaderContainer"]
+[node name="VSeparator4" type="VSeparator" parent="MarginContainer/VBoxContainer/HeaderContainer" unique_id=1966118752]
 layout_mode = 2
 
-[node name="HFLabel" type="Label" parent="MarginContainer/VBoxContainer/HeaderContainer"]
+[node name="HFLabel" type="Label" parent="MarginContainer/VBoxContainer/HeaderContainer" unique_id=1865456027]
 layout_mode = 2
 size_flags_horizontal = 3
 theme = ExtResource("3_cer4d")
@@ -108,27 +100,27 @@ theme_override_font_sizes/font_size = 24
 text = "  HF  "
 horizontal_alignment = 1
 
-[node name="HSeparator2" type="HSeparator" parent="MarginContainer/VBoxContainer"]
+[node name="HSeparator2" type="HSeparator" parent="MarginContainer/VBoxContainer" unique_id=1266166686]
 layout_mode = 2
 
-[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/VBoxContainer"]
+[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/VBoxContainer" unique_id=1666108858]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="ListContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ScrollContainer"]
+[node name="ListContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ScrollContainer" unique_id=706298858]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="HSeparator3" type="HSeparator" parent="MarginContainer/VBoxContainer"]
+[node name="HSeparator3" type="HSeparator" parent="MarginContainer/VBoxContainer" unique_id=857436661]
 visible = false
 layout_mode = 2
 
-[node name="BackButton" type="Button" parent="MarginContainer/VBoxContainer"]
+[node name="BackButton" type="Button" parent="MarginContainer/VBoxContainer" unique_id=1428098621]
 visible = false
 layout_mode = 2
 text = "Back"
 
-[node name="VolumeControl" parent="." instance=ExtResource("1_volumn")]
+[node name="VolumeControl" parent="." unique_id=2049413208 instance=ExtResource("1_volumn")]
 visible = false
 layout_mode = 1
 anchors_preset = 3

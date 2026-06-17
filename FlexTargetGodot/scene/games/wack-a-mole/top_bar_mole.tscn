@@ -1,26 +1,26 @@
-[gd_scene load_steps=5 format=3 uid="uid://b7xxmkj4ycdi3"]
+[gd_scene format=3 uid="uid://b7xxmkj4ycdi3"]
 
-[ext_resource type="PackedScene" uid="uid://dvqfglgeqcxw5" path="res://scene/games/wack-a-mole/mole_progress_bar.tscn" id="1_orpai"]
+[ext_resource type="Texture2D" uid="uid://cywdquisabreu" path="res://asset/bullet.png" id="1_bullet"]
 [ext_resource type="Theme" uid="uid://cdynjfvdtavlt" path="res://scene/main_menu/main_menu_button_theme.tres" id="2_2a212"]
 [ext_resource type="Texture2D" uid="uid://cf5mwxx8au2rv" path="res://asset/bitcoin-icon.png" id="3_2a212"]
 [ext_resource type="Script" uid="uid://2ljrmsr5wy81" path="res://script/games/top_bar_mole.gd" id="3_script"]
 
-[node name="TopBarMole" type="Node2D"]
+[node name="TopBarMole" type="Node2D" unique_id=1445637182]
 script = ExtResource("3_script")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=750689875]
 offset_right = 477.0
 offset_bottom = 40.0
 
-[node name="space2" type="Control" parent="VBoxContainer"]
+[node name="space2" type="Control" parent="VBoxContainer" unique_id=251733100]
 custom_minimum_size = Vector2(0, 16)
 layout_mode = 2
 
-[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer" unique_id=462848060]
 layout_direction = 2
 layout_mode = 2
 
-[node name="Score" type="Label" parent="VBoxContainer/HBoxContainer"]
+[node name="Score" type="Label" parent="VBoxContainer/HBoxContainer" unique_id=1994146925]
 custom_minimum_size = Vector2(240, 0)
 layout_mode = 2
 theme = ExtResource("2_2a212")
@@ -29,7 +29,7 @@ text = "score: 33330"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Level" type="Label" parent="VBoxContainer/HBoxContainer"]
+[node name="Level" type="Label" parent="VBoxContainer/HBoxContainer" unique_id=88307236]
 custom_minimum_size = Vector2(240, 0)
 layout_mode = 2
 theme = ExtResource("2_2a212")
@@ -38,40 +38,99 @@ text = "Level 01"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="StarContainer" type="HBoxContainer" parent="VBoxContainer/HBoxContainer"]
+[node name="StarContainer" type="HBoxContainer" parent="VBoxContainer/HBoxContainer" unique_id=1146169497]
 custom_minimum_size = Vector2(240, 0)
 layout_mode = 2
 alignment = 1
 
-[node name="StarCoinIcon" type="TextureRect" parent="VBoxContainer/HBoxContainer/StarContainer"]
+[node name="StarCoinIcon" type="TextureRect" parent="VBoxContainer/HBoxContainer/StarContainer" unique_id=2047411474]
 custom_minimum_size = Vector2(32, 32)
 layout_mode = 2
 texture = ExtResource("3_2a212")
 expand_mode = 3
 
-[node name="StarLabel" type="Label" parent="VBoxContainer/HBoxContainer/StarContainer"]
+[node name="StarLabel" type="Label" parent="VBoxContainer/HBoxContainer/StarContainer" unique_id=1907521492]
 layout_mode = 2
 theme = ExtResource("2_2a212")
 theme_override_font_sizes/font_size = 32
 text = "1220"
 vertical_alignment = 2
 
-[node name="space" type="Control" parent="VBoxContainer"]
+[node name="space" type="Control" parent="VBoxContainer" unique_id=686677718]
 custom_minimum_size = Vector2(0, 16)
 layout_mode = 2
 
-[node name="MoleProgressBar" parent="VBoxContainer" instance=ExtResource("1_orpai")]
-custom_minimum_size = Vector2(720, 32)
+[node name="AmmoContainer" type="HBoxContainer" parent="VBoxContainer" unique_id=692763479]
+custom_minimum_size = Vector2(0, 32)
 layout_mode = 2
-
-[node name="TimerContainer" type="HBoxContainer" parent="VBoxContainer"]
-layout_mode = 2
+theme_override_constants/separation = 4
 alignment = 1
 
-[node name="TimerLabel" type="Label" parent="VBoxContainer/TimerContainer"]
+[node name="Bullet1" type="TextureRect" parent="VBoxContainer/AmmoContainer" unique_id=36985934]
+custom_minimum_size = Vector2(32, 32)
 layout_mode = 2
-theme = ExtResource("2_2a212")
-theme_override_font_sizes/font_size = 48
-text = "00:30"
-horizontal_alignment = 1
-vertical_alignment = 1
+texture = ExtResource("1_bullet")
+stretch_mode = 5
+
+[node name="Bullet2" type="TextureRect" parent="VBoxContainer/AmmoContainer" unique_id=2138511963]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+texture = ExtResource("1_bullet")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Bullet3" type="TextureRect" parent="VBoxContainer/AmmoContainer" unique_id=1488629278]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+texture = ExtResource("1_bullet")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Bullet4" type="TextureRect" parent="VBoxContainer/AmmoContainer" unique_id=531736058]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+texture = ExtResource("1_bullet")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Bullet5" type="TextureRect" parent="VBoxContainer/AmmoContainer" unique_id=760098587]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+texture = ExtResource("1_bullet")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Bullet6" type="TextureRect" parent="VBoxContainer/AmmoContainer" unique_id=1335430982]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+texture = ExtResource("1_bullet")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Bullet7" type="TextureRect" parent="VBoxContainer/AmmoContainer" unique_id=2019306434]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+texture = ExtResource("1_bullet")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Bullet8" type="TextureRect" parent="VBoxContainer/AmmoContainer" unique_id=415308735]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+texture = ExtResource("1_bullet")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Bullet9" type="TextureRect" parent="VBoxContainer/AmmoContainer" unique_id=380050673]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+texture = ExtResource("1_bullet")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Bullet10" type="TextureRect" parent="VBoxContainer/AmmoContainer" unique_id=393476401]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+texture = ExtResource("1_bullet")
+expand_mode = 1
+stretch_mode = 5

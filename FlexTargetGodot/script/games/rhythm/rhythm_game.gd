@@ -118,16 +118,6 @@ func _ready() -> void:
 	else:
 		print("[RhythmGame] WARNING: WebSocketListener not found at /root/WebSocketListener")
 	
-	# Start game via HTTP service
-	var http_service = get_node_or_null("/root/HttpService")
-	if http_service and http_service.has_method("start_game"):
-		http_service.start_game(func(result, response_code, headers, body):
-			print("[RhythmGame] Game started via HTTP. Response code: ", response_code)
-		)
-		print("[RhythmGame] HTTP Game start request sent")
-	else:
-		print("[RhythmGame] WARNING: HttpService not found or missing start_game method")
-	
 	# Initialize Grid
 	_setup_grid()
 	

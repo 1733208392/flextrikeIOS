@@ -487,14 +487,7 @@ func update_shot_list():
 		
 		var label = Label.new()
 		# Use global sequence number (1-based)
-		var shot_text = get_localized_shot_text()
-		label.text = "%s %d: %.2fs" % [shot_text, global_index + 1, time_diff]
-		
-		# Color scheme: grey for previous shots in current target, highlighted for current shot
-		if i == current_shot_index_in_target:
-			label.modulate = Color(1, 1, 0)  # Yellow for current shot
-		else:
-			label.modulate = Color(0.6, 0.6, 0.6)  # Grey for previous shots in current target
+		label.text = "%d: %.2fs" % [global_index + 1, time_diff]
 		
 		shot_list.add_child(label)
 	

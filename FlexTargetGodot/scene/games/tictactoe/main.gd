@@ -74,13 +74,6 @@ func _ready():
 			menu_controller.homepage_pressed.connect(Callable(self, "_on_menu_back_pressed"))
 		print("[TicTacToe] Connected to MenuController.navigate for remote directives")
 
-	# Notify HttpService that this mini-game has started (mirrors the main game implementation)
-	var http_service = get_node_or_null("/root/HttpService")
-	if http_service and http_service.has_method("start_game"):
-		http_service.start_game(func(result, response_code, _headers, _body):
-			print("[TicTacToe] Game started - Result: ", result, ", Response Code: ", response_code)
-		)
-
 func _setup_play_mode_buttons() -> void:
 	_play_mode_buttons.clear()
 	if is_instance_valid(btn_ai):

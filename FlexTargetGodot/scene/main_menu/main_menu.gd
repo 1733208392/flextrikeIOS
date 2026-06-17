@@ -168,7 +168,7 @@ func _ready():
 	# Update subtitle with current netlink status if available
 	_update_subtitle()
 	
-	# --- UI Click Test: start game + enable mouse click injection ---
+	# --- UI Click: start game + enable mouse click injection ---
 	# NOTE: Main menu can safely use emit_click_for_ui because bootcamp explicitly
 	# disables it in its _ready() to prevent double-input issues.
 	var http_service = get_node_or_null("/root/HttpService")
@@ -184,7 +184,7 @@ func _ready():
 		ws.set_emit_click_for_ui(true)
 		if not DEBUG_DISABLED:
 			print("[Menu] Enabled emit_click_for_ui on main menu")
-	# --- End UI Click Test ---
+	# --- End UI Click ---
 	
 	# Connect to SignalBus signals
 	stages_button.pressed.connect(_on_drills_pressed)

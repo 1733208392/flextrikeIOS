@@ -14,10 +14,6 @@ func hit():
 	# Play animation once
 	$Sprite.play()
 	
-	# Add score with coin animation
-	var game = get_parent()
-	game.add_score(10, global_position)
-	
 	# Wait for animation to finish, then remove the banana
 	await $Sprite.animation_finished
 	queue_free()
@@ -26,7 +22,7 @@ func truck_hit():
 	# Disappear immediately without playing animation
 	queue_free()
 
-func _on_bullet_hit(hit_pos: Vector2, a: int = 0, t: int = 0):
+func _on_bullet_hit(hit_pos: Vector2, _a: int = 0, _t: int = 0):
 	"""Handle bullet hit from WebSocket"""
 	# Spawn bullet impact at hit position
 	var impact = bullet_impact_scene.instantiate()

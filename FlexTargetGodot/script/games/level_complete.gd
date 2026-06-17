@@ -4,6 +4,7 @@ extends CanvasLayer
 @onready var next_button = $Control/VBoxContainer/Panel/PanelContent/ButtonsContainer/NextButton
 @onready var level_label = $Control/VBoxContainer/Panel/PanelContent/LevelLabel
 @onready var score_value = $Control/VBoxContainer/Panel/PanelContent/ScoreValue
+@onready var accuracy_value = $Control/VBoxContainer/Panel/PanelContent/AccuracyValue
 @onready var best_score_value = $Control/VBoxContainer/Panel/PanelContent/BestScoreValue
 @onready var status_label = $Control/VBoxContainer/Panel/PanelContent/LevelLabel2
 @onready var audio_player = $Control/AudioStreamPlayer2D
@@ -13,6 +14,10 @@ var current_score: int = 0
 var is_passed: bool = true
 var http_service: Node
 var best_score: int = 0
+var current_accuracy: float = 0.0
+var current_hits: int = 0
+var current_shots: int = 0
+var previous_emit_click_for_ui: bool = false
 
 func _ready():
 	http_service = get_node("/root/HttpService")
@@ -40,11 +45,14 @@ func _ready():
 	
 	print("[LevelComplete] Scene ready")
 
-func show_level_complete(level: int, score: int, passed: bool = true):
+func show_level_complete(level: int, score: int, passed: bool = true, accuracy: float = 0.0, hits: int = 0, shots: int = 0):
 	"""Show the level complete screen with the given data"""
 	current_level = level
 	current_score = score
 	is_passed = passed
+	current_accuracy = accuracy
+	current_hits = hits
+	current_shots = shots
 	
 	# Load best score from leaderboard
 	load_best_score()
@@ -54,17 +62,19 @@ func show_level_complete(level: int, score: int, passed: bool = true):
 		level_label.text = "Level %03d" % level
 	if score_value:
 		score_value.text = str(score)
+	if accuracy_value:
+		accuracy_value.text = "HIT RATE %d/%d (%d%%)" % [current_hits, current_shots, int(round(current_accuracy * 100.0))]
 	if status_label:
-		status_label.text = "CLEARED" if passed else "FAILED"
+		status_label.text = tr("level_cleared") if passed else tr("level_failed")
 	
 	# Update buttons based on passed status
 	if next_button:
 		if passed:
-			next_button.text = "NEXT"
+			next_button.text = tr("next")
 			next_button.icon = preload("res://asset/next-icon.png")
 			next_button.pressed.connect(_on_next_pressed)
 		else:
-			next_button.text = "REPY"
+			next_button.text = tr("replay")
 			next_button.icon = preload("res://asset/restart-icon.png")
 			next_button.pressed.connect(_on_restart_pressed)
 	
@@ -79,6 +89,15 @@ func show_level_complete(level: int, score: int, passed: bool = true):
 	# Play victory sound
 	if audio_player:
 		audio_player.play()
+
+	# Enable UI click injection so websocket shots can click the overlay buttons
+	var ws_listener = get_node_or_null("/root/WebSocketListener")
+	if ws_listener:
+		previous_emit_click_for_ui = ws_listener.get_emit_click_for_ui()
+		ws_listener.set_emit_click_for_ui(true)
+		print("[LevelComplete] Enabled UI click injection for level complete, previous state was: ", previous_emit_click_for_ui)
+	else:
+		print("[LevelComplete] WebSocketListener not found for UI click injection")
 	
 	print("[LevelComplete] Showing level %d with score %d, passed %s" % [level, score, str(passed)])
 
@@ -202,9 +221,7 @@ func _on_next_pressed():
 		var next_level = current_level + 1
 		game_node.current_level = next_level
 		game_node.velocity_bonus = (next_level - 1) * 0.5  # +0.5 per level
-		game_node.spawn_speed_multiplier = pow(1.3, next_level - 1)  # 30% faster per level
-		game_node.score_target = round((120 * pow(1.3, next_level - 1)) / 10) * 10  # 30% more coins per level, rounded to 10s
-		game_node.score = 0
+		game_node.spawn_speed_multiplier = pow(1.15, next_level - 1)  # 15% faster per level
 		game_node.fruits_spawned = 0
 		print("[LevelComplete] Updated game to level %d with velocity bonus %.1f and spawn multiplier %.2f" % [next_level, game_node.velocity_bonus, game_node.spawn_speed_multiplier])
 		print("[LevelComplete] Game node found: %s" % game_node.name)
@@ -248,9 +265,7 @@ func _on_restart_pressed():
 		var restart_level = current_level
 		game_node.current_level = restart_level
 		game_node.velocity_bonus = (restart_level - 1) * 0.5  # +0.5 per level
-		game_node.spawn_speed_multiplier = pow(1.3, restart_level - 1)  # 30% faster per level
-		game_node.score_target = round((120 * pow(1.3, restart_level - 1)) / 10) * 10  # 30% more coins per level, rounded to 10s
-		game_node.score = 0
+		game_node.spawn_speed_multiplier = pow(1.15, restart_level - 1)  # 15% faster per level
 		game_node.fruits_spawned = 0
 		print("[LevelComplete] Restarted game to level %d with velocity bonus %.1f and spawn multiplier %.2f" % [restart_level, game_node.velocity_bonus, game_node.spawn_speed_multiplier])
 		print("[LevelComplete] Game node found: %s" % game_node.name)
@@ -284,6 +299,11 @@ func hide_level_complete():
 	"""Hide the level complete screen"""
 	visible = false
 	set_process_input(false)
+
+	var ws_listener = get_node_or_null("/root/WebSocketListener")
+	if ws_listener:
+		ws_listener.set_emit_click_for_ui(previous_emit_click_for_ui)
+		print("[LevelComplete] Restored UI click injection to: ", previous_emit_click_for_ui)
 	
 	# Disconnect button signals
 	if next_button:

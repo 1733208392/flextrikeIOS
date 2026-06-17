@@ -10,16 +10,17 @@ var showing_howtoplay = true
 
 @onready var score_label = $StatusBar/TopBar/Score
 @onready var coin_icon = $StatusBar/TopBar/CoinIcon
-@onready var game_over_panel = $GameOverLayer/GameOverPanel
-@onready var game_over_layer = $GameOverLayer
 @onready var howtoplay_layer = $HowtoplayOverlay
 @onready var howtoplay_button = $HowtoplayOverlay/Button
 @onready var game_background = $Background
+@onready var back_button = $BackButton
 
 var test_timer = 0.0
 var test_interval = 5.0
+const CLAY_SPEED_MULTIPLIER: float = 0.8
 
 var _is_shaking = false
+var _is_navigating_to_menu = false
 
 func _ready():
 	# Connect to WebSocket
@@ -30,10 +31,17 @@ func _ready():
 			WebSocketListener.menu_control.connect(_on_menu_control)
 
 	_setup_howtoplay()
-	
+
+	if back_button:
+		back_button.pressed.connect(_on_back_button_pressed)
+
+	# Hide the ammo progress bar — not used in clay pigeon
+	var ammo_container = get_node_or_null("StatusBar/TopBar/AmmoContainer")
+	if ammo_container:
+		ammo_container.visible = false
+
 	# Initial UI
 	score_label.text = str(score)
-	game_over_panel.hide()
 
 func _setup_howtoplay():
 	# Show how to play overlay with specific background color
@@ -70,11 +78,6 @@ func _on_howtoplay_dismissed():
 	# Show game background when dismissed
 	if game_background:
 		game_background.show()
-	
-	# Let the app know we are ready
-	HttpService.start_game(func(result, response_code, _headers, _body):
-		print("Clay Pigeon started - Result: ", result)
-	)
 
 func _on_netlink_forward(data: Dictionary):
 	# Handle commands from mobile app
@@ -143,13 +146,13 @@ func _launch_by_string_direction(direction: String):
 	var velocity = Vector2.ZERO
 	match direction:
 		"left":
-			velocity = Vector2(-200, -600)
+			velocity = Vector2(-200, -600) * CLAY_SPEED_MULTIPLIER
 		"right":
-			velocity = Vector2(200, -600)
+			velocity = Vector2(200, -600) * CLAY_SPEED_MULTIPLIER
 		"center":
-			velocity = Vector2(0, -700)
+			velocity = Vector2(0, -700) * CLAY_SPEED_MULTIPLIER
 		_:
-			velocity = Vector2(randf_range(-250, 250), -randf_range(600, 800))
+			velocity = Vector2(randf_range(-250, 250), -randf_range(600, 800)) * CLAY_SPEED_MULTIPLIER
 	
 	launch_clay_custom(velocity)
 
@@ -171,16 +174,59 @@ func _stop_game():
 	, results)
 
 func _on_bullet_hit(hit_pos: Vector2, _a, _t):
-	# This handles the "shot" from the target sensors
-	# We can use it to check collision with active clays if the clay doesn't do it itself
-	# However, hit detection is often better performed by the target if using Area2D
-	pass
+	# Manual bullet-hit detection for overlay/menu buttons; no UI click injection.
+	if _is_bullet_hit_on_howtoplay_start_button(hit_pos):
+		_on_howtoplay_dismissed()
+		return
+
+	if showing_howtoplay:
+		return
+
+	if _is_bullet_hit_on_back_button(hit_pos):
+		_go_to_game_menu()
+
+func _on_back_button_pressed():
+	_go_to_game_menu()
+
+func _is_bullet_hit_on_back_button(hit_pos: Vector2) -> bool:
+	if not back_button or not is_instance_valid(back_button):
+		return false
+	if not back_button.visible:
+		return false
+	var back_rect = back_button.get_global_rect()
+	return back_rect.has_point(hit_pos)
+
+func _is_bullet_hit_on_howtoplay_start_button(hit_pos: Vector2) -> bool:
+	if not showing_howtoplay:
+		return false
+	if not howtoplay_layer or not howtoplay_layer.visible:
+		return false
+	if not howtoplay_button or not is_instance_valid(howtoplay_button):
+		return false
+	if not howtoplay_button.visible:
+		return false
+	var start_rect = howtoplay_button.get_global_rect()
+	return start_rect.has_point(hit_pos)
+
+func _go_to_game_menu():
+	if _is_navigating_to_menu:
+		return
+	_is_navigating_to_menu = true
+	var tree = get_tree()
+	if tree:
+		tree.change_scene_to_file("res://scene/games/menu/menu.tscn")
+
+func _exit_tree():
+	# Restore the ammo progress bar for other scenes that use this status bar
+	var ammo_container = get_node_or_null("StatusBar/TopBar/AmmoContainer")
+	if ammo_container:
+		ammo_container.visible = true
 
 func launch_clay():
 	# Standard launch logic (e.g. from bottom center, arc to side)
 	var screen_size = get_viewport_rect().size
 	var start_pos = Vector2(screen_size.x / 2, screen_size.y + 50)
-	var velocity = Vector2(randf_range(-250, 250), -randf_range(600, 800))
+	var velocity = Vector2(randf_range(-250, 250), -randf_range(600, 800)) * CLAY_SPEED_MULTIPLIER
 	
 	var target = clay_target_scene.instantiate()
 	add_child(target)

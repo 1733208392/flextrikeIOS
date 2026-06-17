@@ -3,6 +3,8 @@ extends Control
 # Performance optimization - disable debug prints in production
 const DEBUG_PRINTS = false
 const MAIN_MENU_BUTTON_THEME = preload("res://scene/main_menu/main_menu_button_theme.tres")
+const ROW_HEIGHT_MULTIPLIER: float = 1.5
+const BASE_ROW_HEIGHT: float = 48.0
 
 @onready var list_container = $MarginContainer/VBoxContainer/ScrollContainer/ListContainer
 @onready var back_button = $MarginContainer/VBoxContainer/BackButton
@@ -46,6 +48,7 @@ func _ready():
 	var ws_listener = get_node_or_null("/root/WebSocketListener")
 	if ws_listener:
 		ws_listener.menu_control.connect(_on_menu_control)
+		ws_listener.set_emit_click_for_ui(true)
 		if DEBUG_PRINTS:
 			print("[HistoryIDPA] Connecting to WebSocketListener.menu_control signal")
 	else:
@@ -54,6 +57,11 @@ func _ready():
 
 	# Start loading history data
 	load_drill_data()
+
+func _exit_tree():
+	var ws_listener = get_node_or_null("/root/WebSocketListener")
+	if ws_listener:
+		ws_listener.set_emit_click_for_ui(false)
 
 func _input(event):
 	"""Handle direct keyboard input for sorting toggle"""
@@ -382,6 +390,7 @@ func populate_list():
 		var data = history_data[i]
 		var item = HBoxContainer.new()
 		item.layout_mode = 2
+		item.custom_minimum_size = Vector2(0, BASE_ROW_HEIGHT * ROW_HEIGHT_MULTIPLIER)
 
 		# No label - use sorted position (i+1) instead of drill_number
 		var no_label = Label.new()
@@ -559,6 +568,7 @@ func _on_item_hover_enter(item: HBoxContainer):
 	# Add visual feedback when hovering over items
 	var panel = Panel.new()
 	panel.name = "HighlightPanel"
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var style = StyleBoxFlat.new()
 	style.bg_color = Color(0.3, 0.3, 0.3, 0.5)  # Semi-transparent dark background
 	style.border_width_left = 2
@@ -606,6 +616,7 @@ func _on_item_focus_enter(item: HBoxContainer):
 	# Add visual feedback when focusing on items
 	var panel = Panel.new()
 	panel.name = "FocusPanel"
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var style = MAIN_MENU_BUTTON_THEME.get_stylebox("hover", "Button")
 	if style:
 		panel.add_theme_stylebox_override("panel", style)

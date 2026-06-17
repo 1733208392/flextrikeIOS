@@ -7,12 +7,17 @@ const OTA_USERAPP_DIR = "/srv/www/userapp"  # Directory for OTA downloads and fi
 #const OTA_USERAPP_DIR = "/Users/kai/otatest"  # Directory for OTA downloads and files
 
 var base_url: String = "http://127.0.0.1"
-#var base_url: String = "http://192.168.0.110"
+#var base_url: String = "http://192.168.0.101"
 
 var sb = null  # Signal bus reference
 
 func _ready():
 	sb = get_node_or_null("/root/SignalBus")
+	# Start game session once at Godot program startup
+	start_game(func(_result, response_code, _headers, _body):
+		if not DEBUG_DISABLED:
+			print("[HttpService] Program started - start_game response code: ", response_code)
+	)
 
 # Renamed to avoid conflict with Godot's built-in get()
 func get_request(url: String, callback: Callable):

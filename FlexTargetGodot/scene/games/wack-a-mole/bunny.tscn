@@ -1,0 +1,127 @@
+[gd_scene format=3 uid="uid://cpywwyffq2ly"]
+
+[ext_resource type="Script" uid="uid://d0xj4w1klm115" path="res://script/games/bunny.gd" id="1_4h18t"]
+[ext_resource type="Texture2D" uid="uid://ch7jk8iew83a2" path="res://asset/games/wack-a-mole/Sprites/Bunny/Bunny_Action_Sprites.png" id="2_ds68e"]
+[ext_resource type="AudioStream" uid="uid://cvnmpvx27nomd" path="res://audio/little-creature-hurt-sound.mp3" id="6_a4v8e"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_xdwoy"]
+radius = 63.001984
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ffq56"]
+atlas = ExtResource("2_ds68e")
+region = Rect2(68, 448, 200, 200)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_t0xwg"]
+atlas = ExtResource("2_ds68e")
+region = Rect2(268, 448, 200, 200)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4h18t"]
+atlas = ExtResource("2_ds68e")
+region = Rect2(56, 248, 200, 200)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1060f"]
+atlas = ExtResource("2_ds68e")
+region = Rect2(256, 248, 200, 200)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_r8by1"]
+atlas = ExtResource("2_ds68e")
+region = Rect2(72, 1040, 200, 200)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_22fv5"]
+atlas = ExtResource("2_ds68e")
+region = Rect2(272, 1040, 200, 200)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5q5b5"]
+atlas = ExtResource("2_ds68e")
+region = Rect2(472, 1040, 200, 200)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_a4v8e"]
+atlas = ExtResource("2_ds68e")
+region = Rect2(40, 40, 200, 200)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_21xeo"]
+atlas = ExtResource("2_ds68e")
+region = Rect2(240, 40, 200, 200)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_i3l04"]
+atlas = ExtResource("2_ds68e")
+region = Rect2(440, 40, 200, 200)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_o2a1e"]
+atlas = ExtResource("2_ds68e")
+region = Rect2(640, 40, 200, 200)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_8ylak"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ffq56")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_t0xwg")
+}],
+"loop": false,
+"name": &"hurt",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4h18t")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_1060f")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 2.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_r8by1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_22fv5")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5q5b5")
+}],
+"loop": false,
+"name": &"in",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_a4v8e")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_21xeo")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_i3l04")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_o2a1e")
+}],
+"loop": false,
+"name": &"out",
+"speed": 5.0
+}]
+
+[node name="Bunny" type="Area2D" unique_id=2140119704]
+scale = Vector2(2, 2)
+script = ExtResource("1_4h18t")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=740814158]
+shape = SubResource("CircleShape2D_xdwoy")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1398330707]
+position = Vector2(0, 6)
+scale = Vector2(0.5, 0.5)
+sprite_frames = SubResource("SpriteFrames_8ylak")
+animation = &"hurt"
+frame = 1
+frame_progress = 1.0
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=1618303545]
+stream = ExtResource("6_a4v8e")
+pitch_scale = 1.5

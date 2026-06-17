@@ -740,3 +740,8 @@ score,SCORE,得分,スコア,得分
 game_over,GAME OVER,游戏结束,ゲームオーバー,遊戲結束
 replay,REPLAY,重赛,再試行,重賽
 done,DONE,完成,終了,完成
+total_score,TOTAL SCORE,总分,総合得点,總分
+hit_rate,HIT RATE,命中率,命中率,命中率
+bunny_hit,BUNNY HIT,兔子命中,バニー命中,兔子命中
+bunny_hit_twice,BUNNY HIT TWICE,兔子被击中两次,バニーが2回ヒット,兔子被擊中兩次
+too_many_idle_moles,TOO MANY IDLE MOLES,待机鼹鼠过多,アイドル状態のモグラが多すぎます,待機鼴鼠過多

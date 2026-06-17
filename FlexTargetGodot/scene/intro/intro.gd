@@ -191,14 +191,23 @@ func _ready():
 	var ws_listener = get_node_or_null("/root/WebSocketListener")
 	if ws_listener:
 		ws_listener.menu_control.connect(_on_menu_control)
+		ws_listener.set_emit_click_for_ui(true)
 		if not DEBUG_DISABLED:
-			print("[Intro] Connecting to WebSocketListener.menu_control signal")
+			print("[Intro] Connected to WebSocketListener.menu_control and enabled UI click injection")
 	else:
 		if not DEBUG_DISABLED:
 			print("[Intro] WebSocketListener singleton not found!")
 	
 	# Add some visual polish
 	setup_ui_styles()
+
+func _exit_tree():
+	# Prevent click injection state leaking to scenes that handle bullet hits directly.
+	var ws_listener = get_node_or_null("/root/WebSocketListener")
+	if ws_listener:
+		ws_listener.set_emit_click_for_ui(false)
+		if not DEBUG_DISABLED:
+			print("[Intro] Disabled UI click injection on scene exit")
 
 func _set_start_button_focus():
 	"""Deferred function to set focus to start button after UI is fully ready"""
@@ -293,17 +302,9 @@ func _on_back_pressed():
 			print("[Intro] Warning: Node not in tree, cannot change scene")
 
 func _on_start_pressed():
-	# Call the HTTP service to start the game
-	var http_service = get_node("/root/HttpService")
-	if http_service:
-		if not DEBUG_DISABLED:
-			print("[Intro] Sending start game HTTP request...")
-		http_service.start_game(_on_start_response)
-	else:
-		if not DEBUG_DISABLED:
-			print("[Intro] HttpService singleton not found!")
-		if get_tree():
-			_jump_to_stage_scene()
+	# start_game() is now called once at program startup via HttpService._ready()
+	if get_tree():
+		_jump_to_stage_scene()
 
 func _on_start_response(_result, response_code, _headers, body):
 	var body_str = body.get_string_from_utf8()

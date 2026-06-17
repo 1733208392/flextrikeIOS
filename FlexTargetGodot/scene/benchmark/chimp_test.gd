@@ -37,6 +37,7 @@ var ws_listener: Node
 var remote_button_sound: AudioStream = preload("res://audio/remote_button_sound.mp3")
 var audio_player: AudioStreamPlayer
 var menu_controller: Node
+var previous_bullet_spawning_enabled := true
 
 func _ready():
 	gameover_overlay.visible = false
@@ -49,9 +50,10 @@ func _ready():
 	# Enable UI click injection for this scene
 	ws_listener = get_node_or_null("/root/WebSocketListener")
 	if ws_listener:
+		previous_bullet_spawning_enabled = ws_listener.get_bullet_spawning_enabled()
+		ws_listener.set_bullet_spawning_enabled(false)
 		ws_listener.set_emit_click_for_ui(true)
-		print("[ChimpTest] Enabled UI click injection")
-		ws_listener.bullet_hit.connect(_on_websocket_bullet_hit)
+		print("[ChimpTest] Enabled UI click injection and disabled gameplay bullet_hit emission")
 	# Wire back button
 	if back_button:
 		back_button.pressed.connect(_on_back_pressed)
@@ -61,10 +63,6 @@ func _ready():
 	if menu_controller:
 		menu_controller.back_pressed.connect(_on_back_pressed)
 		menu_controller.homepage_pressed.connect(_on_homepage_pressed)
-	# Start the game via HTTP service
-	var http_service = get_node_or_null("/root/HttpService")
-	if http_service:
-		http_service.start_game(func(result, response_code, headers, body): pass)
 	start_sequence_phase()
 	title_label.text = tr("chimp_level") + str(sequence_length)
 
@@ -80,6 +78,7 @@ func setup_grid():
 func start_sequence_phase():
 	is_sequence_phase = true
 	status_label.text = tr("chimp_watch_sequence")
+	_set_cells_interactive(false)
 	generate_sequence()
 	for i in range(sequence.size()):
 		var cell_index = sequence[i]
@@ -115,6 +114,7 @@ func transition_to_input_phase():
 	is_sequence_phase = false
 	status_label.text = tr("chimp_shoot_order")
 	current_sequence_index = 0
+	_set_cells_interactive(true)
 
 func _on_cell_clicked(cell):
 	if is_sequence_phase:
@@ -137,7 +137,7 @@ func _on_cell_clicked(cell):
 		countdown_label.text = str(countdown_time)
 		countdown_timer.start(1.0)
 
-func _on_websocket_bullet_hit(pos: Vector2, a: int = 0, t: int = 0):
+func _on_websocket_bullet_hit(pos: Vector2, _a: int = 0, _t: int = 0):
 	for cell in cells:
 		if cell.get_global_rect().has_point(pos):
 			_on_cell_clicked(cell)
@@ -150,17 +150,21 @@ func _play_button_sound():
 
 func _on_back_pressed():
 	# Handle back button press - return to games menu
-	# Disable UI click injection before leaving
-	if ws_listener:
-		ws_listener.set_emit_click_for_ui(false)
+	_restore_websocket_input_state()
 	get_tree().change_scene_to_file("res://scene/games/menu/menu.tscn")
 
 func _on_homepage_pressed():
 	# Handle home button press - return to main menu
-	# Disable UI click injection before leaving
+	_restore_websocket_input_state()
+	get_tree().change_scene_to_file("res://scene/main_menu/main_menu.tscn")
+
+func _exit_tree():
+	_restore_websocket_input_state()
+
+func _restore_websocket_input_state():
 	if ws_listener:
 		ws_listener.set_emit_click_for_ui(false)
-	get_tree().change_scene_to_file("res://scene/main_menu/main_menu.tscn")
+		ws_listener.set_bullet_spawning_enabled(previous_bullet_spawning_enabled)
 
 func _on_countdown_timer_timeout():
 	countdown_time -= 1
@@ -188,4 +192,10 @@ func restart_game():
 	is_sequence_phase = true
 	for cell in cells:
 		cell.hide_number()
+	_set_cells_interactive(false)
 	start_sequence_phase()
+
+func _set_cells_interactive(enabled: bool) -> void:
+	for cell in cells:
+		if cell and cell.has_method("set_interactive_enabled"):
+			cell.set_interactive_enabled(enabled)

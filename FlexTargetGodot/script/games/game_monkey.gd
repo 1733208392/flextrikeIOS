@@ -266,19 +266,6 @@ func _show_game_over(winner_id: int):
 		if audio:
 			audio.play()
 		
-		# Call HttpService to stop the game
-		if has_node("/root/HttpService"):
-			var http_service = get_node("/root/HttpService")
-			if http_service.has_method("stop_game"):
-				var callback = func(_result, response_code, _headers, _body):
-					print("[GameMonkey] Game stopped response - Code: ", response_code)
-				http_service.stop_game(callback)
-				print("[GameMonkey] Called HttpService.stop_game()")
-			else:
-				print("[GameMonkey] HttpService does not have stop_game method")
-		else:
-			print("[GameMonkey] HttpService autoload not found")
-		
 		print("[GameMonkey] Game over! Winner: Player ", winner_id)
 
 		# Wire game over buttons (these are nodes inside the instantiated overlay)
@@ -412,20 +399,6 @@ func start_countdown():
 	if countdown_overlay:
 		countdown_overlay.visible = true
 		print("[GameMonkey] Countdown overlay shown")
-	
-	# Call HttpService to start the game
-	if has_node("/root/HttpService"):
-		var http_service = get_node("/root/HttpService")
-		if http_service.has_method("start_game"):
-			# Callback to handle the response
-			var callback = func(_result, response_code, _headers, _body):
-				print("[GameMonkey] Game started response - Code: ", response_code)
-			http_service.start_game(callback)
-			print("[GameMonkey] Called HttpService.start_game()")
-		else:
-			print("[GameMonkey] HttpService does not have start_game method")
-	else:
-		print("[GameMonkey] HttpService autoload not found")
 	
 	_start_countdown()
 

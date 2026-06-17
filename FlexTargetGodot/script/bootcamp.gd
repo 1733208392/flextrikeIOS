@@ -1,10 +1,11 @@
 extends Node2D
 
 # Target sequence for bootcamp cycling
-var target_sequence: Array[String] = ["bullseye", "ipsc_mini", "ipsc_mini_black_1", "ipsc_mini_black_2", "hostage", "2poppers", "3paddles", "uspsa", "idpa", "idpa_ns", "idpa_hard_cover_1", "idpa_hard_cover_2", "mozambique", "custom_target", "dueling_tree_composite", "texas_start_composite"]
+var target_sequence: Array[String] = ["bullseye", "ipsc_mini", "ipsc_mini_black_1", "ipsc_mini_black_2", "hostage", "ipsc_mini_double", "2poppers", "3paddles", "uspsa", "idpa", "idpa_ns", "idpa_hard_cover_1", "idpa_hard_cover_2", "mozambique", "custom_target", "dueling_tree_composite", "texas_start_composite"]
 
 var current_target_index: int = 0
 var current_target_instance = null
+var current_target_base_scale: Vector2 = Vector2.ONE
 
 # Zoom levels: 0.5x, 0.7x, 1x
 var scales = [0.5, 0.7, 1.0]
@@ -22,6 +23,7 @@ var reset_hidden_targets: Array[String] = ["2poppers", "3paddles", "dueling_tree
 @onready var ipsc_mini_scene: PackedScene = preload("res://scene/ipsc_mini.tscn")
 @onready var ipsc_mini_black_1_scene: PackedScene = preload("res://scene/ipsc_mini_black_1.tscn")
 @onready var ipsc_mini_black_2_scene: PackedScene = preload("res://scene/ipsc_mini_black_2.tscn")
+@onready var ipsc_mini_double_scene: PackedScene = preload("res://scene/ipsc_mini_double.tscn")
 @onready var hostage_scene: PackedScene = preload("res://scene/targets/hostage.tscn")
 
 @onready var idpa_scene: PackedScene = preload("res://scene/targets/idpa.tscn")
@@ -41,7 +43,7 @@ var reset_hidden_targets: Array[String] = ["2poppers", "3paddles", "dueling_tree
 @onready var canvas_layer_stats = $CanvasLayerStats
 @onready var stats_vbox = $CanvasLayerStats/Control/VBoxContainer
 @onready var shot_labels = []
-@onready var back_button = $CanvasLayerStats/Control/HBoxBottomBar/BackButton
+@onready var back_button = $CanvasLayerStats/Control/BackButton
 @onready var prev_button = $CanvasLayerStats/Control/HBoxBottomBar/PrevButton
 @onready var reset_button = $CanvasLayerStats/Control/HBoxBottomBar/ResetButton
 @onready var next_button = $CanvasLayerStats/Control/HBoxBottomBar/NextButton
@@ -175,12 +177,7 @@ func start_bootcamp_drill():
 		return
 	
 	game_start_requested = true
-	
-	var http_service = get_node_or_null("/root/HttpService")
-	if http_service:
-		http_service.start_game(_on_start_game_response, "bootcamp")
-	else:
-		_start_drill_immediately()
+	_start_drill_immediately()
 
 func _on_start_game_response(result, response_code, _headers, body):
 	"""Handle the HTTP start game response"""
@@ -244,6 +241,12 @@ func _on_target_hit(_arg1, _arg2, _arg3, _arg4 = null, _arg5 = null, _arg6 = nul
 	else:
 		# IPSC Mini and idpa variants: target_hit(zone, points, hit_position)
 		zone = _arg1
+
+	var hit_pos: Vector2 = _arg3 if typeof(_arg3) == TYPE_VECTOR2 else Vector2.ZERO
+
+	# If this shot lands on Bootcamp UI, do not count it in target stats/intervals.
+	if _is_hit_on_bootcamp_ui(hit_pos):
+		return
 	
 	var current_time = Time.get_ticks_msec() / 1000.0
 	
@@ -303,7 +306,7 @@ func _on_clear_pressed():
 			current_target_instance.queue_free()
 		# Respawn the target
 		spawn_target_by_type(target_type)
-	elif target_type in ["ipsc_mini", "ipsc_mini_black_1","ipsc_mini_black_2", "hostage","uspsa", "idpa", "idpa_ns", "idpa_hard_cover_1", "idpa_hard_cover_2", "bullseye", "custom_target"]:
+	elif target_type in ["ipsc_mini", "ipsc_mini_black_1", "ipsc_mini_black_2", "ipsc_mini_double", "hostage", "uspsa", "idpa", "idpa_ns", "idpa_hard_cover_1", "idpa_hard_cover_2", "bullseye", "custom_target"]:
 		# For bullseye, just reset the target state if needed
 		if current_target_instance and is_instance_valid(current_target_instance):
 			# Call clear_all_bullet_holes if available on the target itself
@@ -365,7 +368,7 @@ func _is_idpa_stats_target(target_type: String) -> bool:
 	return target_type in idpa_targets
 
 func _is_ipsc_stats_target(target_type: String) -> bool:
-	var ipsc_targets = ["ipsc_mini", "ipsc_mini_black_1", "ipsc_mini_black_2", "hostage"]
+	var ipsc_targets = ["ipsc_mini", "ipsc_mini_black_1", "ipsc_mini_black_2", "ipsc_mini_double", "hostage"]
 	return target_type in ipsc_targets
 
 func _is_ipsc_ns_stats_target(target_type: String) -> bool:
@@ -421,6 +424,18 @@ func _check_button_hit(button: Button, hit_pos: Vector2) -> bool:
 		return false
 	var rect = button.get_global_rect()
 	return rect.has_point(hit_pos)
+
+func _is_hit_on_bootcamp_ui(hit_pos: Vector2) -> bool:
+	# Bootcamp uses bullet-hit for these buttons, so exclude these hits from shot stats.
+	if _check_button_hit(back_button, hit_pos):
+		return true
+	if _check_button_hit(prev_button, hit_pos):
+		return true
+	if _check_button_hit(reset_button, hit_pos):
+		return true
+	if _check_button_hit(next_button, hit_pos):
+		return true
+	return false
 
 func _update_reset_button_visibility(target_type: String) -> void:
 	if not reset_button:
@@ -524,7 +539,7 @@ func apply_current_scale():
 		var scale_value = 1.0  # Default scale
 		if not (current_target_type in zoom_excluded_targets):
 			scale_value = scales[current_scale_index]
-		current_target_instance.scale = Vector2(scale_value, scale_value)
+		current_target_instance.scale = current_target_base_scale * scale_value
 	
 	# Update scale indicator
 	update_scale_indicator()
@@ -697,6 +712,8 @@ func spawn_target_by_type(target_type: String):
 			target_scene = ipsc_mini_black_1_scene
 		"ipsc_mini_black_2":
 			target_scene = ipsc_mini_black_2_scene
+		"ipsc_mini_double":
+			target_scene = ipsc_mini_double_scene
 		"idpa":
 			target_scene = idpa_scene
 		"uspsa":
@@ -746,6 +763,9 @@ func spawn_target_by_type(target_type: String):
 		# Special scaling for bullseye target
 		if target_type == "bullseye":
 			target.scale = Vector2(0.9, 0.9)
+
+		# Store the target's baseline scale so zoom is applied as a multiplier.
+		current_target_base_scale = target.scale
 		
 		# Connect signals
 		if target_type == "bullseye":

@@ -4,17 +4,17 @@
 [ext_resource type="Script" uid="uid://clfkslwk142a8" path="res://games/shoot-painter/script/stem_manager.gd" id="2_omiao"]
 [ext_resource type="AudioStream" uid="uid://d3g1qmoe8bedm" path="res://audio/cartoon-splat.mp3" id="3_fw0ma"]
 [ext_resource type="Script" uid="uid://wrjfqv7g68uk" path="res://games/shoot-painter/script/splat_spawner.gd" id="3_yd2mb"]
-[ext_resource type="Script" uid="uid://6h4rrwwqj0kb" path="res://games/shoot-painter/script/painter.gd" id="4_painter"]
+[ext_resource type="Script" uid="uid://dgwyo1xxwbpue" path="res://games/shoot-painter/script/painter.gd" id="4_painter"]
 [ext_resource type="Theme" uid="uid://cdynjfvdtavlt" path="res://scene/main_menu/main_menu_button_theme.tres" id="7_uwwwr"]
 
 [node name="SplatDemo" type="Control" unique_id=2122084039]
-script = ExtResource("4_painter")
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+script = ExtResource("4_painter")
 
 [node name="TextureRect" type="TextureRect" parent="." unique_id=2141201483]
 layout_mode = 1
@@ -57,7 +57,7 @@ custom_minimum_size = Vector2(300, 120)
 layout_mode = 2
 theme = ExtResource("7_uwwwr")
 theme_override_font_sizes/font_size = 36
-text = "Back"
+text = "BACK"
 
 [node name="RestartButton" type="Button" parent="HBoxContainer" unique_id=944385940]
 custom_minimum_size = Vector2(300, 120)

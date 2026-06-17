@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://doyt24685r6bj"]
+[gd_scene format=3 uid="uid://doyt24685r6bj"]
 
 [ext_resource type="Script" uid="uid://bs3sx1fus0bj0" path="res://script/games/mole_level_complete.gd" id="1_mole"]
 [ext_resource type="Theme" uid="uid://cdynjfvdtavlt" path="res://scene/main_menu/main_menu_button_theme.tres" id="2_8ci02"]
@@ -8,71 +8,73 @@
 [ext_resource type="PackedScene" uid="uid://benwj6w5un0vk" path="res://scene/games/coin_particles.tscn" id="7_1r4r6"]
 [ext_resource type="AudioStream" uid="uid://dxpul16876qad" path="res://audio/victory-chime.mp3" id="8_jv7kj"]
 
-[node name="MoleLevelCompletePanel" type="CanvasLayer"]
-layer = 20
+[node name="MoleLevelCompletePanel" type="Control" unique_id=1799632213]
+layout_mode = 3
+anchors_preset = 0
 script = ExtResource("1_mole")
 
-[node name="Control" type="Control" parent="."]
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="Background" type="ColorRect" parent="Control"]
+[node name="Background" type="ColorRect" parent="." unique_id=331595208]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_right = 720.0
+offset_bottom = 1280.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.03137255, 0.03137255, 0.03137255, 0.88235295)
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Control"]
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=699933270]
 layout_mode = 0
-offset_left = 146.0
+offset_left = 100.0
 offset_top = 309.0
-offset_right = 574.0
-offset_bottom = 671.0
+offset_right = 620.0
+offset_bottom = 888.0
 grow_horizontal = 2
 alignment = 2
 
-[node name="LevelLabel" type="Label" parent="Control/VBoxContainer"]
+[node name="LevelLabel" type="Label" parent="VBoxContainer" unique_id=432553536]
 layout_mode = 2
 theme = ExtResource("2_8ci02")
 text = "Level"
 horizontal_alignment = 1
 
-[node name="LevelNumber" type="Label" parent="Control/VBoxContainer"]
+[node name="LevelNumber" type="Label" parent="VBoxContainer" unique_id=1369830053]
 layout_mode = 2
 theme = ExtResource("2_8ci02")
 theme_override_font_sizes/font_size = 72
 text = "03"
 horizontal_alignment = 1
 
-[node name="ClearedLabel" type="Label" parent="Control/VBoxContainer"]
+[node name="ClearedLabel" type="Label" parent="VBoxContainer" unique_id=1964099140]
 layout_mode = 2
 theme = ExtResource("2_8ci02")
 text = "CLEARED"
 horizontal_alignment = 1
 
-[node name="VSpacer1" type="Control" parent="Control/VBoxContainer"]
+[node name="ReasonLabel" type="Label" parent="VBoxContainer" unique_id=999900001]
+layout_mode = 2
+theme = ExtResource("2_8ci02")
+theme_override_colors/font_color = Color(1, 0.35, 0.35, 1)
+theme_override_font_sizes/font_size = 28
+horizontal_alignment = 1
+
+[node name="VSpacer1" type="Control" parent="VBoxContainer" unique_id=2135491946]
 custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
 
-[node name="ScoreContainer" type="HBoxContainer" parent="Control/VBoxContainer"]
+[node name="ScoreContainer" type="HBoxContainer" parent="VBoxContainer" unique_id=1547509868]
 layout_mode = 2
 alignment = 1
 
-[node name="ScoreLabel" type="Label" parent="Control/VBoxContainer/ScoreContainer"]
+[node name="ScoreLabel" type="Label" parent="VBoxContainer/ScoreContainer" unique_id=1361144696]
 custom_minimum_size = Vector2(168, 0)
 layout_mode = 2
 theme = ExtResource("2_8ci02")
 theme_override_font_sizes/font_size = 36
 text = "SCORE"
 
-[node name="ScoreValue" type="Label" parent="Control/VBoxContainer/ScoreContainer"]
+[node name="ScoreValue" type="Label" parent="VBoxContainer/ScoreContainer" unique_id=619815817]
 custom_minimum_size = Vector2(168, 0)
 layout_direction = 2
 layout_mode = 2
@@ -82,11 +84,11 @@ theme_override_font_sizes/font_size = 36
 text = "37829"
 horizontal_alignment = 2
 
-[node name="CoinContainer" type="HBoxContainer" parent="Control/VBoxContainer"]
+[node name="CoinContainer" type="HBoxContainer" parent="VBoxContainer" unique_id=147987223]
 layout_mode = 2
 alignment = 1
 
-[node name="CoinLabel" type="Label" parent="Control/VBoxContainer/CoinContainer"]
+[node name="CoinLabel" type="Label" parent="VBoxContainer/CoinContainer" unique_id=2020656778]
 custom_minimum_size = Vector2(168, 0)
 layout_mode = 2
 theme = ExtResource("2_8ci02")
@@ -94,7 +96,7 @@ theme_override_font_sizes/font_size = 36
 text = "COIN"
 uppercase = true
 
-[node name="CoinValue" type="Label" parent="Control/VBoxContainer/CoinContainer"]
+[node name="CoinValue" type="Label" parent="VBoxContainer/CoinContainer" unique_id=346388480]
 custom_minimum_size = Vector2(168, 0)
 layout_mode = 2
 theme = ExtResource("2_8ci02")
@@ -102,17 +104,55 @@ theme_override_font_sizes/font_size = 36
 text = "1250"
 horizontal_alignment = 2
 
-[node name="VSpacer2" type="Control" parent="Control/VBoxContainer"]
+[node name="AccuracyContainer" type="HBoxContainer" parent="VBoxContainer" unique_id=1226430910]
+layout_mode = 2
+alignment = 1
+
+[node name="AccuracyLabel" type="Label" parent="VBoxContainer/AccuracyContainer" unique_id=359439788]
+custom_minimum_size = Vector2(168, 0)
+layout_mode = 2
+theme = ExtResource("2_8ci02")
+theme_override_font_sizes/font_size = 32
+text = "HIT RATE"
+
+[node name="AccuracyValue" type="Label" parent="VBoxContainer/AccuracyContainer" unique_id=175821172]
+custom_minimum_size = Vector2(168, 0)
+layout_mode = 2
+theme = ExtResource("2_8ci02")
+theme_override_font_sizes/font_size = 32
+text = "0/10 (0%)"
+horizontal_alignment = 2
+
+[node name="BunnyContainer" type="HBoxContainer" parent="VBoxContainer" unique_id=1285620401]
+layout_mode = 2
+alignment = 1
+
+[node name="BunnyLabel" type="Label" parent="VBoxContainer/BunnyContainer" unique_id=667361260]
+custom_minimum_size = Vector2(168, 0)
+layout_mode = 2
+theme = ExtResource("2_8ci02")
+theme_override_font_sizes/font_size = 32
+text = "  BUNNY HIT"
+
+[node name="BunnyValue" type="Label" parent="VBoxContainer/BunnyContainer" unique_id=1479086056]
+custom_minimum_size = Vector2(168, 0)
+layout_mode = 2
+theme = ExtResource("2_8ci02")
+theme_override_font_sizes/font_size = 32
+text = "0"
+horizontal_alignment = 2
+
+[node name="VSpacer2" type="Control" parent="VBoxContainer" unique_id=1340427342]
 custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
 
-[node name="ButtonsContainer" type="HBoxContainer" parent="Control/VBoxContainer"]
+[node name="ButtonsContainer" type="HBoxContainer" parent="VBoxContainer" unique_id=315898000]
 layout_mode = 2
 theme_override_constants/separation = 20
 alignment = 1
 
-[node name="BackButton" type="Button" parent="Control/VBoxContainer/ButtonsContainer"]
-custom_minimum_size = Vector2(160, 100)
+[node name="BackButton" type="Button" parent="VBoxContainer/ButtonsContainer" unique_id=1045312399]
+custom_minimum_size = Vector2(160, 120)
 layout_mode = 2
 theme = ExtResource("2_8ci02")
 theme_override_font_sizes/font_size = 36
@@ -120,8 +160,8 @@ text = "BACK"
 icon = ExtResource("3_1mnwc")
 expand_icon = true
 
-[node name="NextButton" type="Button" parent="Control/VBoxContainer/ButtonsContainer"]
-custom_minimum_size = Vector2(160, 100)
+[node name="NextButton" type="Button" parent="VBoxContainer/ButtonsContainer" unique_id=754997282]
+custom_minimum_size = Vector2(160, 120)
 layout_mode = 2
 theme = ExtResource("2_8ci02")
 theme_override_font_sizes/font_size = 36
@@ -131,8 +171,8 @@ flat = true
 icon_alignment = 2
 expand_icon = true
 
-[node name="ReplayButton" type="Button" parent="Control/VBoxContainer/ButtonsContainer"]
-custom_minimum_size = Vector2(160, 100)
+[node name="ReplayButton" type="Button" parent="VBoxContainer/ButtonsContainer" unique_id=726119452]
+custom_minimum_size = Vector2(160, 120)
 layout_mode = 2
 theme = ExtResource("2_8ci02")
 theme_override_font_sizes/font_size = 36
@@ -142,13 +182,13 @@ flat = true
 icon_alignment = 2
 expand_icon = true
 
-[node name="VSpacer3" type="Control" parent="Control/VBoxContainer"]
+[node name="VSpacer3" type="Control" parent="VBoxContainer" unique_id=213470012]
 custom_minimum_size = Vector2(0, 15)
 layout_mode = 2
 
-[node name="CoinParticles" parent="Control" instance=ExtResource("7_1r4r6")]
+[node name="CoinParticles" parent="." unique_id=359676881 instance=ExtResource("7_1r4r6")]
 position = Vector2(360, 700)
 
-[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="Control"]
+[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="." unique_id=1987413351]
 stream = ExtResource("8_jv7kj")
 autoplay = true

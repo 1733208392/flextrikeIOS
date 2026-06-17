@@ -10,9 +10,15 @@ func _ready():
 	text = ""
 	self_modulate.a = 1
 	connect("pressed", Callable(self, "_on_pressed"))
+	set_interactive_enabled(true)
 
 func _on_pressed():
 	cell_clicked.emit(self)
+
+func set_interactive_enabled(enabled: bool) -> void:
+	disabled = not enabled
+	mouse_filter = Control.MOUSE_FILTER_STOP if enabled else Control.MOUSE_FILTER_IGNORE
+	focus_mode = Control.FOCUS_ALL if enabled else Control.FOCUS_NONE
 
 func show_number(number: int):
 	current_number = number

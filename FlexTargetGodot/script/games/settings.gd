@@ -2,6 +2,8 @@ extends Control
 
 var controls = []
 var current_focus_index = 0
+var ws_listener: Node = null
+var previous_emit_click_for_ui: bool = false
 
 func _ready():
 	print("[Settings] _ready called")
@@ -37,6 +39,15 @@ func _ready():
 	print("[Settings] Controls: ", controls)
 	current_focus_index = 2  # StartButton
 	$StartButton.grab_focus()
+
+	# Enable UI click injection while this settings screen is active
+	ws_listener = get_node_or_null("/root/WebSocketListener")
+	if ws_listener:
+		previous_emit_click_for_ui = ws_listener.get_emit_click_for_ui()
+		ws_listener.set_emit_click_for_ui(true)
+		print("[Settings] Enabled UI click injection, previous state was: ", previous_emit_click_for_ui)
+	else:
+		print("[Settings] WebSocketListener not found for UI click injection")
 	
 	# Connect Start button pressed
 	$StartButton.pressed.connect(_on_start_pressed)
@@ -105,6 +116,7 @@ func _on_remote_enter():
 func _on_start_pressed():
 	"""Handle Start button pressed"""
 	print("[Settings] Start button pressed")
+	_restore_websocket_input_state()
 	
 	# Get selected options
 	var difficulty_index = $VBoxContainer/DifficultyOption.selected
@@ -146,8 +158,17 @@ func _on_remote_back_pressed():
 
 func _return_to_menu():
 	print("[Settings] Returning to menu scene")
+	_restore_websocket_input_state()
 	var error = get_tree().change_scene_to_file("res://scene/games/menu/menu.tscn")
 	if error != OK:
 		print("[Settings] Failed to change scene: ", error)
 	else:
 		print("[Settings] Scene change initiated")
+
+func _exit_tree() -> void:
+	_restore_websocket_input_state()
+
+func _restore_websocket_input_state() -> void:
+	if ws_listener:
+		ws_listener.set_emit_click_for_ui(previous_emit_click_for_ui)
+		print("[Settings] Restored UI click injection to: ", previous_emit_click_for_ui)

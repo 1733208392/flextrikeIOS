@@ -1,14 +1,15 @@
-[gd_scene load_steps=5 format=3 uid="uid://dunndq3e043lq"]
+[gd_scene format=3 uid="uid://dunndq3e043lq"]
 
 [ext_resource type="Texture2D" uid="uid://xwlbbbi42pqq" path="res://asset/games/wack-a-mole/Background/Background_2.png" id="2_xiawl"]
 [ext_resource type="PackedScene" uid="uid://b7xxmkj4ycdi3" path="res://scene/games/wack-a-mole/top_bar_mole.tscn" id="3_bj317"]
+[ext_resource type="PackedScene" uid="uid://cpywwyffq2ly" path="res://scene/games/wack-a-mole/bunny.tscn" id="4_t2t5k"]
 [ext_resource type="Script" uid="uid://dkf58chmrv7d" path="res://script/games/game_mole.gd" id="game_mole"]
 [ext_resource type="PackedScene" uid="uid://bw71nta7ndmqs" path="res://scene/games/wack-a-mole/mole.tscn" id="mole"]
 
-[node name="GameMole" type="Node2D"]
+[node name="GameMole" type="Node2D" unique_id=337032438]
 script = ExtResource("game_mole")
 
-[node name="TextureRect" type="TextureRect" parent="."]
+[node name="TextureRect" type="TextureRect" parent="." unique_id=1959131587]
 custom_minimum_size = Vector2(720, 1280)
 anchors_preset = 15
 anchor_right = 1.0
@@ -20,30 +21,36 @@ grow_vertical = 2
 texture = ExtResource("2_xiawl")
 expand_mode = 4
 
-[node name="TopBarMole" parent="." instance=ExtResource("3_bj317")]
+[node name="TopBarMole" parent="." unique_id=1734767689 instance=ExtResource("3_bj317")]
 
-[node name="Mole0" parent="." instance=ExtResource("mole")]
+[node name="Bunny0" parent="." unique_id=2140119704 instance=ExtResource("4_t2t5k")]
+visible = false
 
-[node name="Mole1" parent="." instance=ExtResource("mole")]
+[node name="Bunny1" parent="." unique_id=319097809 instance=ExtResource("4_t2t5k")]
+visible = false
 
-[node name="Mole2" parent="." instance=ExtResource("mole")]
+[node name="Mole0" parent="." unique_id=1616953123 instance=ExtResource("mole")]
+visible = false
 
-[node name="Mole3" parent="." instance=ExtResource("mole")]
+[node name="Mole1" parent="." unique_id=1818562276 instance=ExtResource("mole")]
+visible = false
 
-[node name="Mole4" parent="." instance=ExtResource("mole")]
+[node name="Mole2" parent="." unique_id=2096585320 instance=ExtResource("mole")]
+visible = false
 
-[node name="Mole5" parent="." instance=ExtResource("mole")]
+[node name="Mole3" parent="." unique_id=185415769 instance=ExtResource("mole")]
+visible = false
 
-[node name="Mole6" parent="." instance=ExtResource("mole")]
+[node name="Mole4" parent="." unique_id=175602635 instance=ExtResource("mole")]
+visible = false
 
-[node name="Mole7" parent="." instance=ExtResource("mole")]
+[node name="Mole5" parent="." unique_id=401060614 instance=ExtResource("mole")]
+visible = false
 
-[node name="Mole8" parent="." instance=ExtResource("mole")]
+[node name="Mole6" parent="." unique_id=734690022 instance=ExtResource("mole")]
+visible = false
 
-[node name="Mole9" parent="." instance=ExtResource("mole")]
+[node name="Mole7" parent="." unique_id=518662132 instance=ExtResource("mole")]
+visible = false
 
-[node name="Mole10" parent="." instance=ExtResource("mole")]
-
-[node name="Mole11" parent="." instance=ExtResource("mole")]
-
-[node name="PopTimer" type="Timer" parent="."]
+[node name="PopTimer" type="Timer" parent="." unique_id=179140918]

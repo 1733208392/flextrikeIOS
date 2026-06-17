@@ -31,16 +31,6 @@ func _ready():
 	else:
 		print("MenuController not found")
 
-			# Start the game via HTTP service
-	var http_service = get_node_or_null("/root/HttpService")
-	if http_service:
-		http_service.start_game(func(_result, response_code, _headers, _body): 
-			if response_code == 200:
-				print("Game started successfully")
-			else:
-				print("Failed to start game: ", response_code)
-		)
-	
 	start_reaction_test()
 
 func on_click():

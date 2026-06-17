@@ -53,10 +53,13 @@ func _ready():
 		if global_data.netlink_status and global_data.netlink_status.has("bluetooth_name"):
 			_on_netlink_status_loaded()
 	
-	# 4. Connect to WebSocketListener for provision_step signal
+	# 4. Connect to WebSocketListener for provision_step signal and UI click injection
 	var ws_listener = get_node_or_null("/root/WebSocketListener")
 	if ws_listener:
 		ws_listener.provision_step_received.connect(_on_provision_step_received)
+		ws_listener.set_emit_click_for_ui(true)
+		if not DEBUG_DISABLED:
+			print("[Onboarding] Enabled UI click injection")
 
 	# 5. Setup skip onboarding controls
 	if is_instance_valid(skip_button):
@@ -79,6 +82,11 @@ func _connect_menu_controller_signals():
 			menu_controller.navigate_claimed.connect(_on_remote_navigate_claimed)
 
 func _exit_tree():
+	var ws_listener = get_node_or_null("/root/WebSocketListener")
+	if ws_listener:
+		ws_listener.set_emit_click_for_ui(false)
+		if not DEBUG_DISABLED:
+			print("[Onboarding] Disabled UI click injection")
 	var menu_controller = get_node_or_null("/root/MenuController")
 	if menu_controller and menu_controller.has_method("release_focus"):
 		menu_controller.release_focus(MENU_FOCUS_OWNER)

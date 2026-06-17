@@ -87,9 +87,11 @@ grow_horizontal = 2
 alignment = 1
 
 [node name="BackButton" type="Button" parent="UI/TopBar" unique_id=69677028]
+custom_minimum_size = Vector2(160, 120)
 layout_mode = 2
 theme = ExtResource("2_swubk")
 icon = ExtResource("3_m23ke")
+expand_icon = true
 
 [node name="ComboLabel" type="Label" parent="UI/TopBar" unique_id=835465458]
 layout_mode = 2
@@ -111,9 +113,10 @@ horizontal_alignment = 2
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_left = 42.0
-offset_top = 150.0
-offset_bottom = 200.0
+offset_left = 63.0
+offset_top = 176.0
+offset_right = 21.0
+offset_bottom = 226.0
 grow_horizontal = 2
 theme = ExtResource("2_swubk")
 theme_override_colors/font_color = Color(0.87, 0.22, 0.14, 1)

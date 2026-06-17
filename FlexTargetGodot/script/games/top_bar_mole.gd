@@ -2,23 +2,23 @@ extends Node2D
 
 @onready var score_label: Label = $VBoxContainer/HBoxContainer/Score
 @onready var star_label: Label = $VBoxContainer/HBoxContainer/StarContainer/StarLabel
-@onready var progress_bar: ProgressBar = $VBoxContainer/MoleProgressBar/HBoxContainer/ProgressBar
-@onready var timer_label: Label = $VBoxContainer/TimerContainer/TimerLabel
 @onready var level_label: Label = $VBoxContainer/HBoxContainer/Level
+@onready var ammo_container: HBoxContainer = $VBoxContainer/AmmoContainer
 
 var star_count: int = 0
+var ammo_icons: Array[TextureRect] = []
+var max_ammo: int = 10
 
 func _ready() -> void:
 	score_label.text = "SCORE: 0"
 	star_label.text = "0"
-	
-	# Initialize progress bar to 0
-	if progress_bar:
-		progress_bar.value = 0
-	
-	# Initialize timer label
-	if timer_label:
-		timer_label.text = "00:30"
+
+	if ammo_container:
+		for child in ammo_container.get_children():
+			if child is TextureRect:
+				ammo_icons.append(child)
+		max_ammo = ammo_icons.size()
+		_update_ammo_display(max_ammo)
 	
 	# Initialize level label
 	if level_label:
@@ -43,15 +43,14 @@ func increment_stars() -> void:
 	star_count += 1
 	star_label.text = str(star_count)
 
-func update_time_progress(progress: float) -> void:
-	"""Update progress bar based on time elapsed (0.0 to 1.0)"""
-	if progress_bar:
-		progress_bar.value = clamp(progress * 100.0, 0.0, 100.0)
-	
-	# Update timer display (count down from 30 to 0)
-	if timer_label:
-		var time_remaining = 30.0 * (1.0 - progress)
-		var total_seconds: int = int(time_remaining)
-		var minutes: int = total_seconds / 60
-		var seconds: int = total_seconds % 60
-		timer_label.text = "%02d:%02d" % [minutes, seconds]
+func _update_ammo_display(remaining: int) -> void:
+	for i in range(ammo_icons.size()):
+		ammo_icons[i].visible = i < remaining
+
+func update_ammo_progress(shots_fired: int, total_shots: int) -> void:
+	var total: int = max(1, total_shots)
+	var remaining: int = clamp(total - shots_fired, 0, total)
+	if total != max_ammo and ammo_icons.size() > 0:
+		max_ammo = ammo_icons.size()
+	remaining = min(remaining, max_ammo)
+	_update_ammo_display(remaining)

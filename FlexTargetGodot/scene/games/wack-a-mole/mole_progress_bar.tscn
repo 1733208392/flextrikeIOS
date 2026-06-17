@@ -1,28 +1,28 @@
-[gd_scene load_steps=4 format=3 uid="uid://dvqfglgeqcxw5"]
+[gd_scene format=3 uid="uid://dedv0i6rnalka"]
 
 [ext_resource type="Texture2D" uid="uid://cq53nonwrrc11" path="res://asset/games/wack-a-mole/GUI/clock.png" id="1_emfhu"]
 [ext_resource type="Theme" uid="uid://cdynjfvdtavlt" path="res://scene/main_menu/main_menu_button_theme.tres" id="2_28g1k"]
 [ext_resource type="Script" uid="uid://b14pc0jqfik6j" path="res://script/games/progress_bar_rounded.gd" id="2_script"]
 
-[node name="MoleProgressBar" type="Control"]
+[node name="MoleProgressBar" type="Control" unique_id=828631206]
 layout_mode = 3
 anchors_preset = 0
 
-[node name="HBoxContainer" type="HBoxContainer" parent="."]
+[node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=1264968042]
 custom_minimum_size = Vector2(720, 0)
 layout_mode = 1
 offset_right = 336.0
 offset_bottom = 32.0
 alignment = 1
 
-[node name="clock" type="TextureRect" parent="HBoxContainer"]
+[node name="clock" type="TextureRect" parent="HBoxContainer" unique_id=1368459308]
 visible = false
 custom_minimum_size = Vector2(32, 32)
 layout_mode = 2
 texture = ExtResource("1_emfhu")
 expand_mode = 1
 
-[node name="ProgressBar" type="ProgressBar" parent="HBoxContainer"]
+[node name="ProgressBar" type="ProgressBar" parent="HBoxContainer" unique_id=1969922278]
 custom_minimum_size = Vector2(680, 32)
 layout_mode = 2
 theme = ExtResource("2_28g1k")

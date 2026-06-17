@@ -81,14 +81,15 @@ anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -480.0
-offset_bottom = -432.0
+offset_top = -486.0
+offset_bottom = -386.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_constants/separation = 32
 alignment = 1
 
 [node name="BackButton" parent="Panel/HBoxContainerButtons" unique_id=549433162 instance=ExtResource("4_wo8hs")]
+custom_minimum_size = Vector2(160, 48)
 layout_mode = 2
 text = "BACK"
 icon = ExtResource("5_vjs5b")
@@ -96,6 +97,7 @@ expand_icon = true
 script = null
 
 [node name="ReplayButton" parent="Panel/HBoxContainerButtons" unique_id=412248304 instance=ExtResource("4_wo8hs")]
+custom_minimum_size = Vector2(160, 48)
 layout_mode = 2
 text = "REPY
 "

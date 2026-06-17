@@ -76,11 +76,13 @@ signal sfx_volume_changed(volume: int)
 
 # Reference to background music
 @onready var background_music = $BackgroundMusic
+@onready var back_button: Button = $BackButton
 
 # Reference to networking tab script
 @onready var networking_tab = preload("res://scene/option/networking_tab.gd").new()
 
 var about_ble_name: String = "..."
+var ws_listener: Node = null
 
 func _ready():
 	# Show status bar when entering options
@@ -199,14 +201,41 @@ func _ready():
 	# Focus will be set by load_settings_from_global_data() based on current language
 	
 	# Connect to WebSocketListener
-	var ws_listener = get_node_or_null("/root/WebSocketListener")
+	ws_listener = get_node_or_null("/root/WebSocketListener")
 	if ws_listener:
+		ws_listener.set_emit_click_for_ui(true)
 		ws_listener.menu_control.connect(_on_menu_control)
+		if back_button:
+			back_button.pressed.connect(_on_back_button_pressed)
 		if not GlobalDebug.DEBUG_DISABLED:
 			print("[Option] Connecting to WebSocketListener.menu_control signal")
+			print("[Option] Enabled emit_click_for_ui")
 	else:
 		if not GlobalDebug.DEBUG_DISABLED:
 			print("[Option] WebSocketListener singleton not found!")
+
+func _exit_tree():
+	if ws_listener:
+		ws_listener.set_emit_click_for_ui(false)
+		if not GlobalDebug.DEBUG_DISABLED:
+			print("[Option] Disabled emit_click_for_ui on exit")
+
+func _on_back_button_pressed():
+	_go_back_to_main_menu()
+
+func _go_back_to_main_menu():
+	_save_threshold_if_changed()
+	# Set return source for focus management
+	var global_data = get_node_or_null("/root/GlobalData")
+	if global_data:
+		global_data.return_source = "options"
+		if not GlobalDebug.DEBUG_DISABLED:
+			print("[Option] Set return_source to options")
+	if is_inside_tree():
+		get_tree().change_scene_to_file("res://scene/main_menu/main_menu.tscn")
+	else:
+		if not GlobalDebug.DEBUG_DISABLED:
+			print("[Option] Warning: Node not in tree, cannot change scene")
 
 func _on_language_changed(language: String):
 	current_language = language
@@ -693,19 +722,7 @@ func _on_menu_control(directive: String):
 			var menu_controller = get_node("/root/MenuController")
 			if menu_controller:
 				menu_controller.play_cursor_sound()
-			# Save threshold before leaving the scene
-			_save_threshold_if_changed()
-			# Set return source for focus management
-			var global_data = get_node_or_null("/root/GlobalData")
-			if global_data:
-				global_data.return_source = "options"
-				if not GlobalDebug.DEBUG_DISABLED:
-					print("[Option] Set return_source to options")
-			if is_inside_tree():
-				get_tree().change_scene_to_file("res://scene/main_menu/main_menu.tscn")
-			else:
-				if not GlobalDebug.DEBUG_DISABLED:
-					print("[Option] Warning: Node not in tree, cannot change scene")
+			_go_back_to_main_menu()
 		"volume_up":
 			if not GlobalDebug.DEBUG_DISABLED:
 				print("[Option] Volume up")

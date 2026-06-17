@@ -7,7 +7,8 @@
 script = ExtResource("2_script")
 
 [node name="Popper1Area" type="Area2D" parent="." unique_id=1086729732]
-position = Vector2(-100, 0)
+position = Vector2(-100, 20)
+scale = Vector2(0.8, 0.8)
 
 [node name="Popper1_simple" parent="Popper1Area" unique_id=1834534889 instance=ExtResource("1_popper_simple")]
 
